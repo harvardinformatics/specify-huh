@@ -142,6 +142,7 @@ public class FormSetupPanel extends ViewBasedDisplayPanel implements SetupPanelI
     @Override
     public void aboutToLeave()
     {
+        // no op
     }
 
     /* (non-Javadoc)

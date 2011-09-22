@@ -302,7 +302,7 @@ public class SpLocaleContainer extends SpLocaleBase implements LocalizableContai
      */
     public int compareTo(SpLocaleContainer obj)
     {
-        return name.compareTo(obj.name);
+        return name != null && obj != null && obj.getName() != null ? name.compareTo(obj.getName()) : 0;
     }
     
     /* (non-Javadoc)
@@ -375,9 +375,9 @@ public class SpLocaleContainer extends SpLocaleBase implements LocalizableContai
     /* (non-Javadoc)
      * @see java.lang.Comparable#compareTo(java.lang.Object)
      */
-    public int compareTo(LocalizableContainerIFace o)
+    public int compareTo(LocalizableContainerIFace obj)
     {
-        return name.compareTo(o.getName());
+        return name != null && obj != null && obj.getName() != null ? name.compareTo(obj.getName()) : 0;
     }
 
 
@@ -459,7 +459,7 @@ public class SpLocaleContainer extends SpLocaleBase implements LocalizableContai
         if (str != null && str instanceof SpLocaleItemStr)
         {
             SpLocaleItemStr strItem = (SpLocaleItemStr)str;
-            strItem.setContainerDesc(this);
+            strItem.setContainerName(this);
             names.add(strItem);
         } else
         {
@@ -489,7 +489,7 @@ public class SpLocaleContainer extends SpLocaleBase implements LocalizableContai
     {
         if (str != null && str instanceof SpLocaleItemStr)
         {
-            names.add((SpLocaleItemStr)str);
+            names.remove((SpLocaleItemStr)str);
         } else
         {
             log.error("LocalizableStrIFace was null or not of Class SpLocaleItemStr");
@@ -513,5 +513,21 @@ public class SpLocaleContainer extends SpLocaleBase implements LocalizableContai
         
     }
     
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.datamodel.SpLocaleBase#getNamesSet()
+     */
+    @Transient
+    public Set<SpLocaleItemStr> getNamesSet()
+    {
+        return names;
+    }
     
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.datamodel.SpLocaleBase#getDescsSet()
+     */
+    @Transient
+    public Set<SpLocaleItemStr> getDescsSet()
+    {
+        return descs;
+    }
 }

@@ -47,6 +47,7 @@ import javax.swing.JPanel;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 
 import com.jgoodies.forms.builder.PanelBuilder;
@@ -124,6 +125,7 @@ public class IconViewObj implements Viewable
     protected boolean                       isEditing;
     
     protected BusinessRulesIFace            businessRules;
+    protected Class<?>                      dataClass;
     
     protected boolean                       orderableDataClass;
     
@@ -137,11 +139,15 @@ public class IconViewObj implements Viewable
      * @param altView the altView
      * @param mvParent the parent MultiView
      * @param options the view options
+     * @param cellName the name of the cell when it is a subview
+     * @param dataClass the class of the data that is put into the form
      */
     public IconViewObj(final ViewIFace     view, 
                        final AltViewIFace altView, 
                        final MultiView    mvParent, 
-                       final int          options)
+                       final int          options,
+                       final String       cellName,
+                       final Class<?>     dataClass)
     {
         this.view          = view;
         this.altView       = altView;
@@ -150,6 +156,8 @@ public class IconViewObj implements Viewable
         this.viewDef       = altView.getViewDef();
         this.dataTypeError = false;
         this.businessRules = view.createBusinessRule();
+        this.cellName      = cellName;
+        this.dataClass     = dataClass;
         
         if (businessRules != null)
         {
@@ -180,6 +188,15 @@ public class IconViewObj implements Viewable
     }
     
     /* (non-Javadoc)
+     * @see edu.ku.brc.af.ui.forms.Viewable#getMVParent()
+     */
+    @Override
+    public MultiView getMVParent()
+    {
+        return mvParent;
+    }
+
+    /* (non-Javadoc)
      * @see edu.ku.brc.af.ui.forms.Viewable#setClassToCreate(java.lang.String)
      */
     public void setClassToCreate(final Class<?> classToCreate)
@@ -202,7 +219,7 @@ public class IconViewObj implements Viewable
     {
         if (isEditing)
         {
-            String delTTStr = ResultSetController.createTooltip("RemoveRecordTT", view.getObjTitle());
+            String delTTStr = ResultSetController.createTooltip("DeleteRecordTT", view.getObjTitle());
             String edtTTStr = ResultSetController.createTooltip("EditRecordTT",   view.getObjTitle());
             String newTTStr = ResultSetController.createTooltip("NewRecordTT",    view.getObjTitle());
 
@@ -224,7 +241,7 @@ public class IconViewObj implements Viewable
         }
         
         altViewsList = new Vector<AltViewIFace>();
-        switcherUI   = FormViewObj.createMenuSwitcherPanel(mvParent, view, altView, altViewsList, mainComp);
+        switcherUI   = FormViewObj.createMenuSwitcherPanel(mvParent, view, altView, altViewsList, mainComp, cellName, dataClass);
         
         iconTray = new OrderedIconTray(IconTray.SINGLE_ROW);
         iconTray.addPropertyChangeListener(new PropertyChangeListener()
@@ -350,8 +367,8 @@ public class IconViewObj implements Viewable
     {
         try
         {
-            Class<?> dataClass = Class.forName(dataClassName != null ? dataClassName : view.getClassName());
-            if (Orderable.class.isAssignableFrom(dataClass))
+            Class<?> dataClss = Class.forName(dataClassName != null ? dataClassName : view.getClassName());
+            if (Orderable.class.isAssignableFrom(dataClss))
             {
                 // this IconViewObj is showing Orderable objects
                 // so we should use an OrderedIconTray
@@ -405,7 +422,7 @@ public class IconViewObj implements Viewable
         }
         else
         {
-            ViewBasedDisplayIFace dialog = FormHelper.createDataObjectDialog(altView, mainComp, selection, MultiView.isOptionOn(viewOptions, MultiView.IS_EDITTING), false);
+            ViewBasedDisplayIFace dialog = FormHelper.createDataObjectDialog(mainComp, selection, MultiView.isOptionOn(viewOptions, MultiView.IS_EDITTING), false);
             if (dialog != null)
             {
                 dialog.setData(selection);
@@ -446,7 +463,7 @@ public class IconViewObj implements Viewable
                     return;
                 }
                 
-                ViewBasedDisplayIFace dialog = FormHelper.createDataObjectDialog(altView, mainComp, selection, MultiView.isOptionOn(viewOptions, MultiView.IS_EDITTING), false);
+                ViewBasedDisplayIFace dialog = FormHelper.createDataObjectDialog(mainComp, selection, MultiView.isOptionOn(viewOptions, MultiView.IS_EDITTING), false);
                 if (dialog != null)
                 {
                     dialog.setData(selection);
@@ -547,7 +564,7 @@ public class IconViewObj implements Viewable
     public void setNewObject(final FormDataObjIFace newDataObj)
     {
         // get an edit dialog for the object
-        ViewBasedDisplayIFace dialog = FormHelper.createDataObjectDialog(altView, mainComp, newDataObj, true, true);
+        ViewBasedDisplayIFace dialog = FormHelper.createDataObjectDialog(mainComp, newDataObj, true, true);
         if (dialog == null)
         {
             log.error("Unable to create a dialog for data entry.  [" + newDataObj.getClass().getName() + "]");
@@ -572,7 +589,7 @@ public class IconViewObj implements Viewable
 
             rootHasChanged();
             
-        } else if (dialog.getBtnPressed() == ViewBasedDisplayIFace.CANCEL_BTN)
+        } else if (dialog.isCancelled())
         {
             if (mvParent.getMultiViewParent() != null && mvParent.getMultiViewParent().getCurrentValidator() != null)
             {
@@ -742,24 +759,26 @@ public class IconViewObj implements Viewable
         {
             if (perm == null)
             {
-                Class<?> cls;
-                if (classToCreate == null)
+                String shortClassName = MultiView.getClassNameFromParentMV(dataClass, mvParent, cellName);
+                if (StringUtils.isEmpty(shortClassName))
                 {
-                    try
+                    if (classToCreate == null)
                     {
-                        cls = Class.forName(view.getClassName());
-                    } catch (Exception ex) 
+                        try
+                        {
+                            shortClassName = Class.forName(view.getClassName()).getSimpleName();
+                            
+                        } catch (Exception ex) 
+                        {
+                            shortClassName = dataObj.getClass().getSimpleName();
+                        }
+                    } else
                     {
-                        cls = dataObj.getClass();
+                        shortClassName = classToCreate.getSimpleName();
                     }
-                    
-                } else
-                {
-                    cls = classToCreate;
                 }
-                perm = SecurityMgr.getInstance().getPermission("DO."+cls.getSimpleName().toLowerCase());                
-                //SecurityMgr.dumpPermissions(dataObj.getClass().getSimpleName(), perm2.getOptions());
-               }
+                perm = SecurityMgr.getInstance().getPermission("DO."+shortClassName.toLowerCase());            
+            }
             
             if ((isEditing && perm.isViewOnly()) || (!isEditing && !perm.canView()))
             {
@@ -1011,7 +1030,18 @@ public class IconViewObj implements Viewable
     {
         // do nothing
     }
-
+    
+    /* (non-Javadoc)
+     * @see edu.ku.brc.af.ui.forms.Viewable#enableMultiViewSwitch(boolean)
+     */
+    public void enableMultiViewSwitch(boolean enabled)
+    {
+        if (switcherUI != null)
+        {
+            switcherUI.setEnabled(enabled);   
+        }
+    }
+    
     /* (non-Javadoc)
      * @see edu.ku.brc.af.ui.forms.Viewable#dataHasChanged()
      */

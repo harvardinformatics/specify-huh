@@ -108,15 +108,18 @@ public class UploadMainPanel extends JPanel
     protected JPanel validationErrorPanel;
     protected JScrollPane msgListSB;
     
+    protected boolean isUpdateUpload;
+    
     /**
      * The object listening to this form. Currently an Uploader object.
      */
     protected ActionListener listener = null;
     
     
-    public UploadMainPanel()
+    public UploadMainPanel(boolean isUpdateUpload)
     {
-        buildUI();
+        this.isUpdateUpload = isUpdateUpload;
+    	buildUI();
     }
     
     /**
@@ -174,13 +177,14 @@ public class UploadMainPanel extends JPanel
      */
     public void addAffectedTables(Iterator<UploadInfoRenderable> uts)
     {
-        DefaultListModel tbls = new DefaultListModel();
+    	
+    	DefaultListModel tbls = new DefaultListModel();
         Vector<Vector<Object>> cells = new Vector<Vector<Object>>();
         JList tableList = getUploadTbls();
         TableNameRenderer nameRender = new TableNameRenderer(IconManager.IconSize.Std24);
         nameRender.setUseIcon("PlaceHolder");
         tableList.setCellRenderer(nameRender);
-    
+
         while (uts.hasNext())
         {
             UploadInfoRenderable ut = uts.next();
@@ -188,13 +192,21 @@ public class UploadMainPanel extends JPanel
             Vector<Object> row = new Vector<Object>(2);
             row.add(ut);
             row.add(ut);
+            if (isUpdateUpload)
+            {
+            	row.add(ut);
+            }
             cells.add(row);            
         }
     
         tableList.setModel(tbls);
-        Vector<String> heads = new Vector<String>(2);
+        Vector<String> heads = new Vector<String>(3);
         heads.add(getResourceString("ERD_TABLE")); 
         heads.add(getResourceString("WB_UPLOAD_RECORDS_ADDED"));
+        if (isUpdateUpload)
+        {
+        	heads.add(getResourceString("WB_UPLOAD_RECORDS_UPDATED"));
+        }
         getUploadTblTbl().setModel(new DefaultTableModel(cells, heads));
         getUploadTblTbl().getColumnModel().getColumn(0).setCellRenderer(new DefaultTableCellRenderer()
         {
@@ -238,47 +250,70 @@ public class UploadMainPanel extends JPanel
                     return this;
                 }
             });
-            getUploadTblTbl().getColumnModel().getColumn(1).setCellRenderer(new DefaultTableCellRenderer()
+        	DefaultTableCellRenderer colRenderer = new DefaultTableCellRenderer()
             {
-              @Override
-              public Component getTableCellRendererComponent(JTable table,
-                                                             Object value,
-                                                             boolean isSelected,
-                                                             boolean hasFocus,
-                                                             int row,
-                                                             int column)
-              {
-                  super
-                          .getTableCellRendererComponent(table, value, isSelected, hasFocus, row,
-                                  column);
-  
-                  UploadInfoRenderable ti = (UploadInfoRenderable) value;
-                  setIcon(null);
-                  if (isSelected)
-                  {
-                      setOpaque(true);
-                      setBackground(table.getSelectionBackground());
-                      setForeground(table.getSelectionForeground());
-  
-                  }
-                  else
-                  {
-                      setBackground(table.getBackground());
-                      setForeground(table.getForeground());
-                  }
-  
-                  if (ti.getCreatedCnt() != null)
-                  {
-                      if (getHorizontalAlignment() != SwingConstants.CENTER)
-                      {
-                          setHorizontalAlignment(SwingConstants.CENTER);
-                      }
-                      setText(ti.getCreatedCnt().toString());
-                  }
-                  return this;
-              }
-          });
-        }
+                @Override
+                public Component getTableCellRendererComponent(JTable table,
+                                                               Object value,
+                                                               boolean isSelected,
+                                                               boolean hasFocus,
+                                                               int row,
+                                                               int column)
+                {
+                    super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row,
+                                    column);
+    
+                    UploadInfoRenderable ti = (UploadInfoRenderable) value;
+                    setIcon(null);
+                    if (isSelected)
+                    {
+                        setOpaque(true);
+                        setBackground(table.getSelectionBackground());
+                        setForeground(table.getSelectionForeground());
+    
+                    }
+                    else
+                    {
+                        setBackground(table.getBackground());
+                        setForeground(table.getForeground());
+                    }
+    
+                    //System.out.println("column = " + column);
+                    if (column == 1)
+                    {
+                  	  if (ti.getCreatedCnt() != null)
+                  	  {
+                  		  if (getHorizontalAlignment() != SwingConstants.CENTER)
+                  		  {
+                  			  setHorizontalAlignment(SwingConstants.CENTER);
+                  		  }
+                  		  setText(ti.getCreatedCnt().toString());
+                  	  }
+                    } else if (column == 2)
+                    {
+                  	    if (ti == null)
+                  	    {
+                  	    	//System.out.println("NULL TI!?");
+                  	    	return this;
+                  	    } else
+                    	if (ti.getUpdatedCnt() != null)
+                  	  	{
+                  		  	if (getHorizontalAlignment() != SwingConstants.CENTER)
+                  		  	{
+                  		  		setHorizontalAlignment(SwingConstants.CENTER);
+                  		  	}
+                  		  	setText(ti.getUpdatedCnt().toString());
+                  	  	}
+                    }
+                    return this;
+                }
+            };
+            getUploadTblTbl().getColumnModel().getColumn(1).setCellRenderer(colRenderer);
+            if (isUpdateUpload)
+            {
+            	getUploadTblTbl().getColumnModel().getColumn(2).setCellRenderer(colRenderer);
+            }
+       }
 
     
     public void buildUI()
@@ -395,6 +430,8 @@ public class UploadMainPanel extends JPanel
         closeBtn.setActionCommand(CLOSE_UI);
         undoBtn         = createButton(getResourceString("WB_UPLOAD_UNDO_BTN")); 
         undoBtn.setActionCommand(UNDO_UPLOAD);
+        undoBtn.setVisible(!isUpdateUpload);
+        
         btnPane.add(validateContentBtn, cc.xy(1, 1));
         btnPane.add(doUploadBtn, cc.xy(1,2));
         btnPane.add(viewUploadBtn, cc.xy(1, 3));
@@ -402,6 +439,7 @@ public class UploadMainPanel extends JPanel
         btnPane.add(undoBtn, cc.xy(1, 5));
         btnPane.add(closeBtn, cc.xy(1, 6));
         add(btnPane, cc.xy(6, 6));
+        
         
         uploadTbls.addMouseListener(new MouseListener()
         {
@@ -799,7 +837,7 @@ public class UploadMainPanel extends JPanel
     
     public static void main(final String[] args)
     {
-        final UploadMainPanel tf = new UploadMainPanel();
+        final UploadMainPanel tf = new UploadMainPanel(false);
         tf.buildUI();
         DefaultListModel tbls = new DefaultListModel();
         tbls.addElement("CollectingEvent");

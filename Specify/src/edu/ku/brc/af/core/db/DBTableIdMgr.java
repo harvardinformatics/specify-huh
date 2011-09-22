@@ -32,7 +32,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Vector;
 
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.dom4j.Element;
@@ -45,6 +44,7 @@ import edu.ku.brc.af.ui.forms.formatters.UIFieldFormatterIFace;
 import edu.ku.brc.dbsupport.RecordSetIFace;
 import edu.ku.brc.dbsupport.RecordSetItemIFace;
 import edu.ku.brc.helpers.XMLHelper;
+import edu.ku.brc.ui.UIRegistry;
 import edu.ku.brc.util.DatamodelHelper;
 
 /**
@@ -129,12 +129,12 @@ public class DBTableIdMgr
      */
     public void initialize()
     {
-        initialize(new File(DatamodelHelper.getDatamodelFilePath()));
+        initialize(DatamodelHelper.getDatamodelFilePath());
     }
 
     /**
-     * Reads in datamodel input file and populates the hashtable of teh
-     * DBTableMgr with DBTableInfo
+     * Reads in datamodel input file and populates the Hashtable of the DBTableMgr with DBTableInfo
+     * @param inputFile the input file.
      */
     public void initialize(final File inputFile)
     {
@@ -142,15 +142,10 @@ public class DBTableIdMgr
 		String classname = null;
 		try
 		{
-			//FileInputStream fileInputStream = new FileInputStream(inputFile);
-			SAXReader       reader          = new SAXReader();
+			SAXReader reader = new SAXReader();
 			reader.setValidation(false);
             
-			//Document doc          = reader.read(fileInputStream);
-			//Element  databaseNode = doc.getRootElement();
-			String xmlStr = FileUtils.readFileToString(inputFile);
-	        Element  databaseNode = XMLHelper.readStrToDOM4J(xmlStr);
-
+	        Element databaseNode = XMLHelper.readFileToDOM4J(inputFile);
 
 			if (databaseNode != null)
 			{
@@ -207,6 +202,14 @@ public class DBTableIdMgr
                         tblInfo.setIdType(getAttr(idElement,       "type", null)); //$NON-NLS-1$
                     }
                     
+                    for (Iterator<?> ir = tableNode.elementIterator("tableindex"); ir.hasNext();) //$NON-NLS-1$
+                    {
+                        Element irNode     = (Element) ir.next();
+                        String inxName     = getAttr(irNode, "indexName", null);
+                        String inxColNames = getAttr(irNode, "columnNames", null);
+                        tblInfo.addTableIndex(inxName, inxColNames);
+                    }
+                    
                     Element displayElement = (Element)tableNode.selectSingleNode("display"); //$NON-NLS-1$
                     if (displayElement != null)
                     {
@@ -237,7 +240,8 @@ public class DBTableIdMgr
                                                             irNode.attributeValue("jointable"), //$NON-NLS-1$
                                                             getAttr(irNode, "required", false), //$NON-NLS-1$
                                                             getAttr(irNode, "updatable", false), //$NON-NLS-1$
-                                                            getAttr(irNode, "save", false)); //$NON-NLS-1$
+                                                            getAttr(irNode, "save", false),//$NON-NLS-1$
+                                                            getAttr(irNode, "likemanytoone", false)); //$NON-NLS-1$
                         tblInfo.getRelationships().add(tblRel);
                     }
                     
@@ -250,6 +254,10 @@ public class DBTableIdMgr
                         if (StringUtils.isNotEmpty(lenStr) && StringUtils.isNumeric(lenStr))
                         {
                             len = Integer.parseInt(lenStr);
+                            if (!UIRegistry.isMobile() && len > 256) // length over 255 are memo/text fields in MySQL and do not need to be constrained
+                            {
+                                len = 32767;
+                            }
                         }
                         DBFieldInfo fieldInfo = new DBFieldInfo(tblInfo,
                                                                 irNode.attributeValue("column"), //$NON-NLS-1$
@@ -289,7 +297,7 @@ public class DBTableIdMgr
 		{
 		    edu.ku.brc.af.core.UsageTracker.incrHandledUsageCount();
 		    edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(DBTableIdMgr.class, numEx);
-			log.error("Specify datamodel input file: " + DatamodelHelper.getDatamodelFilePath() //$NON-NLS-1$
+			log.error("Specify datamodel input file: " + inputFile.getAbsolutePath() //$NON-NLS-1$
 					+ " failed to provide valid table id for class/table:" + classname); //$NON-NLS-1$
 			log.error(numEx);
 		} catch (Exception ex)
@@ -300,7 +308,7 @@ public class DBTableIdMgr
 			ex.printStackTrace();
 		}
         Collections.sort(tables);
-        log.debug("Done Reading in datamodel file: " + DatamodelHelper.getDatamodelFilePath()); //$NON-NLS-1$
+        log.debug("Done Reading in datamodel file: " + inputFile.getAbsolutePath()); //$NON-NLS-1$
 	}
     
     /**
@@ -339,6 +347,26 @@ public class DBTableIdMgr
         if (ti != null)
         {
             return ti.getTitle();
+        }
+        return "";
+    }
+    
+    /**
+     * Gets the localized title for a field in a table. 
+     * @param tableId the table id
+     * @param fieldName POJO field name, NOT column name
+     * @return the localized title for a table by id, returns "" if in error
+     */
+    public String getTitleForField(final int tableId, final String fieldName)
+    {
+        DBTableInfo ti = getInfoById(tableId);
+        if (ti != null)
+        {
+            DBFieldInfo fi = ti.getFieldByName(fieldName);
+            if (fi != null)
+            {
+                return fi.getTitle();
+            }
         }
         return "";
     }

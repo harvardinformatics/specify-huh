@@ -104,4 +104,25 @@ public interface UIPluginable
      */
     public abstract String getTitle();
     
+    
+    /**
+     * @return the names that the plugin uses when 'this' is passed in, but it
+     * should always return any and all field names that are needed by the plugin.
+     * The names are the java field names that are used in the forms, not the column
+     * names used in the database.
+     */
+    public abstract String[] getFieldNames();
+    
+    /**
+     * Called telling plugin whether the current data obj is new.
+     * 
+     * @param isNewObj true is new
+     */
+    public abstract void setNewObj(boolean isNewObj);
+    
+    /**
+     * Called after CarryForward is Configured
+     */
+    public abstract void carryForwardStateChange();
+    
 }

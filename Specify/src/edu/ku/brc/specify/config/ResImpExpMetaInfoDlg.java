@@ -26,12 +26,17 @@ import static edu.ku.brc.ui.UIHelper.createTextField;
 
 import java.awt.BorderLayout;
 import java.awt.Frame;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.util.ArrayList;
 
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
+import javax.swing.JLabel;
 import javax.swing.JTextField;
 
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.StringUtils;
 
 import com.jgoodies.forms.builder.PanelBuilder;
@@ -52,30 +57,38 @@ import edu.ku.brc.ui.UIRegistry;
  * Feb 4, 2009
  *
  */
+@SuppressWarnings("serial")
 public class ResImpExpMetaInfoDlg extends CustomDialog
 {
-    protected JComboBox  mimeTypeCBX;  // text/xml, jrxml/label, jrxml/report, jrxml/subreport
-    protected JTextField descTxt;      // text
+    protected JTextField    nameTxt;
+    protected JComboBox     mimeTypeCBX;  // text/xml, jrxml/label, jrxml/report, jrxml/subreport
+    protected JTextField    descTxt;      // text
     
     // Meta Info
-    protected JComboBox  tableIdCBX;    // List of all the tables
-    protected JCheckBox  reqsRecSetChk; // whether a recordset is required
+    protected JComboBox     tableIdCBX;    // List of all the tables
+    protected JCheckBox     reqsRecSetChk; // whether a recordset is required
     
-    protected JComboBox  rptTypeCBX;    // Invoice, WorkBench, Report
+    protected JComboBox     rptTypeCBX;    // Invoice, WorkBench, Report
     
-    protected JTextField subReportsTxt; // list of subreports
-    protected JTextField actionsTxt;
+    protected JTextField    subReportsTxt; // list of subreports
+    protected JTextField    actionsTxt;
     
-    protected SpAppResource appRes = null;
+    protected ArrayList<JLabel> labels = new ArrayList<JLabel>();
+    
+    protected SpAppResource appRes   = null;
+    protected String        fileName;
     
     /**
-     * Default Constructor.
+     * @param appRes
+     * @param fileName
      */
-    public ResImpExpMetaInfoDlg(final SpAppResource appRes)
+    public ResImpExpMetaInfoDlg(final SpAppResource appRes,
+                                final String fileName)
     {
-        super((Frame)UIRegistry.getTopWindow(), "Title", true, OKCANCELHELP, null); //$NON-NLS-1$
+        super((Frame)UIRegistry.getTopWindow(), UIRegistry.getResourceString("ResImpExpMetaInfoDlg.DlgTitle"), true, OKCANCELHELP, null); //$NON-NLS-1$   // I18N
         
-        this.appRes = appRes;
+        this.appRes   = appRes;
+        this.fileName = fileName;
     }
 
     /* (non-Javadoc)
@@ -88,54 +101,99 @@ public class ResImpExpMetaInfoDlg extends CustomDialog
         
         //HelpMgr.registerComponent(helpBtn, "ResImpExpMetaInfoDlg");
         
-        DefaultComboBoxModel mimeModel = new DefaultComboBoxModel(new String[] {"XML", "Label", "Report", "Subreport"});
-        DefaultComboBoxModel typeModel = new DefaultComboBoxModel(new String[] {"Report", "Invoice", "WorkBench", "CollectionObject"});
+        DefaultComboBoxModel mimeModel = new DefaultComboBoxModel(new String[] {"XML", "Label", "Report", "Subreport"});                  // I18N
+        DefaultComboBoxModel typeModel = new DefaultComboBoxModel(new String[] {"Report", "Invoice", "WorkBench", "CollectionObject"});   // I18N
         
         DefaultComboBoxModel tblModel = new DefaultComboBoxModel(DBTableIdMgr.getInstance().getTablesForUserDisplay());
         
         mimeTypeCBX = createComboBox(mimeModel);
         
+        nameTxt = createTextField();
         descTxt = createTextField();
+        
+        CellConstraints cc = new CellConstraints();
         
         // Meta Info
         tableIdCBX    = createComboBox(tblModel);
-        reqsRecSetChk = createCheckBox("Is RecSet Required?");
+        reqsRecSetChk = createCheckBox("Is Record Set Required?");
         
         rptTypeCBX    = createComboBox(typeModel);
         
         subReportsTxt = createTextField();
         actionsTxt    = createTextField();
         
-        PanelBuilder    pb = new PanelBuilder(new FormLayout("p,2px,p,f:p:g", "p,4px,p,4px,p,4px,p,4px,p,4px,p,4px,p,4px,")); //$NON-NLS-1$ //$NON-NLS-2$
-        CellConstraints cc = new CellConstraints();
+        PanelBuilder    pb = new PanelBuilder(new FormLayout("p,2px,p,f:p:g", "p,4px,p,4px,p,4px,p,4px,p,4px,p,4px,p,4px,p,4px")); //$NON-NLS-1$ //$NON-NLS-2$
 
         int y = 1;
-        pb.add(createI18NFormLabel("Mime Type"), cc.xy(1, y));
-        pb.add(mimeTypeCBX,                      cc.xy(3, y)); y += 2;
+        JLabel lbl = createI18NFormLabel("Mime Type");              // I18N
+        pb.add(lbl,         cc.xy(1, y));
+        pb.add(mimeTypeCBX, cc.xy(3, y)); y += 2;
         
-        pb.add(createI18NFormLabel("Description"), cc.xy(1, y));
-        pb.add(descTxt,                            cc.xyw(3, y, 2)); y += 2;
+        lbl = createI18NFormLabel("Name");              // I18N
+        pb.add(lbl,         cc.xy(1, y));
+        pb.add(nameTxt,     cc.xy(3, y)); y += 2;
         
-        pb.add(createI18NFormLabel("Table"), cc.xy(1, y));
-        pb.add(tableIdCBX,                   cc.xy(3, y)); y += 2;
+        lbl = createI18NFormLabel("Description");              // I18N
+        pb.add(lbl,         cc.xy(1, y));
+        pb.add(descTxt,     cc.xyw(3, y, 2)); y += 2;
         
-        //pb.add(createI18NFormLabel("Mime Type"), cc.xy(1, y));
-        pb.add(reqsRecSetChk,                      cc.xy(3, y)); y += 2;
+        lbl = createI18NFormLabel("Table");              // I18N
+        labels.add(lbl);
+        pb.add(lbl,         cc.xy(1, y));
+        pb.add(tableIdCBX,  cc.xy(3, y)); y += 2;
         
-        pb.add(createI18NFormLabel("Report Type"), cc.xy(1, y));
-        pb.add(rptTypeCBX,                         cc.xy(3, y)); y += 2;
+        pb.add(reqsRecSetChk, cc.xy(3, y)); y += 2;
         
-        pb.add(createI18NFormLabel("Sub-Reports"), cc.xy(1, y));
-        pb.add(subReportsTxt,                      cc.xyw(3, y, 2)); y += 2;
+        lbl = createI18NFormLabel("Report Type");              // I18N
+        labels.add(lbl);
+        pb.add(lbl,         cc.xy(1, y));
+        pb.add(rptTypeCBX,  cc.xy(3, y)); y += 2;
         
-        pb.add(createI18NFormLabel("Action"), cc.xy(1, y));
-        pb.add(actionsTxt,                    cc.xyw(3, y, 2)); y += 2;
+        lbl = createI18NFormLabel("Sub-Reports");              // I18N
+        labels.add(lbl);
+        pb.add(lbl,           cc.xy(1, y));
+        pb.add(subReportsTxt, cc.xyw(3, y, 2)); y += 2;
         
+        lbl = createI18NFormLabel("Action");              // I18N
+        labels.add(lbl);
+        pb.add(lbl,        cc.xy(1, y));
+        pb.add(actionsTxt, cc.xyw(3, y, 2)); y += 2;
+            
         pb.setDefaultDialogBorder();
+        
+        nameTxt.setText(FilenameUtils.getBaseName(fileName));
         
         contentPanel = pb.getPanel();
         mainPanel.add(contentPanel, BorderLayout.CENTER);
         pack();
+        
+        updateUI();
+        
+        mimeTypeCBX.addActionListener(new ActionListener()
+        {
+            @Override
+            public void actionPerformed(ActionEvent e)
+            {
+                updateUI();
+            }
+        });
+    }
+    
+    /**
+     * 
+     */
+    private void updateUI()
+    {
+        boolean isRep = mimeTypeCBX.getSelectedIndex() > 0;
+        tableIdCBX.setEnabled(isRep);
+        reqsRecSetChk.setEnabled(isRep);
+        rptTypeCBX.setEnabled(isRep);
+        subReportsTxt.setEnabled(isRep);
+        actionsTxt.setEnabled(isRep);
+        for (JLabel lbl : labels)
+        {
+            lbl.setEnabled(isRep);
+        }
     }
 
     /* (non-Javadoc)
@@ -146,6 +204,8 @@ public class ResImpExpMetaInfoDlg extends CustomDialog
     {
         String mimeType = (String)mimeTypeCBX.getSelectedItem();
         appRes.setMimeType((mimeTypeCBX.getSelectedIndex() == 0 ? "text/" : "jrxml/") + mimeType.toLowerCase());
+        
+        appRes.setName(nameTxt.getText());
         appRes.setDescription(descTxt.getText());
         
         if (mimeTypeCBX.getSelectedIndex() > 0 && mimeTypeCBX.getSelectedIndex() < 3)
@@ -197,6 +257,4 @@ public class ResImpExpMetaInfoDlg extends CustomDialog
         
         super.okButtonPressed();
     }
-    
-    
 }

@@ -38,7 +38,6 @@ import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.CascadeType;
 import org.hibernate.annotations.Index;
 
-import edu.ku.brc.af.ui.forms.persist.FormCell;
 import edu.ku.brc.af.ui.forms.persist.FormCellIFace;
 import edu.ku.brc.af.ui.forms.persist.FormRowIFace;
 import edu.ku.brc.helpers.XMLHelper;
@@ -260,7 +259,7 @@ public class SpUIRow implements java.io.Serializable, FormRowIFace, Comparable<S
      */
     public int compareTo(SpUIRow row)
     {
-        return rowNum.compareTo(row.rowNum);
+        return rowNum != null && row != null && row.rowNum != null ? rowNum.compareTo(row.rowNum) : 0;
     }
 
     /* (non-Javadoc)
@@ -269,13 +268,17 @@ public class SpUIRow implements java.io.Serializable, FormRowIFace, Comparable<S
     @Override
     public Object clone() throws CloneNotSupportedException
     {
-        SpUIRow formRow = (SpUIRow)super.clone();
-        formRow.cells   = new Vector<FormCellIFace>();
-        for (FormCellIFace cell : cells)
+        SpUIRow obj = (SpUIRow)super.clone();
+        obj.cells   = new Vector<FormCellIFace>();
+        obj.spCells = new HashSet<SpUICell>();
+        for (SpUICell cell : spCells)
         {
-            formRow.cells.add((FormCell)cell.clone());
+            SpUICell newFC = (SpUICell)cell.clone();
+            obj.cells.add(newFC);
+            obj.spCells.add(newFC);
+            newFC.setSpRow(obj);
         }
-        return formRow; 
+        return obj; 
     }
     
     /* (non-Javadoc)

@@ -387,7 +387,7 @@ public class Loan extends DisciplineMember implements AttachmentOwnerIFace<LoanA
      */
     @Column(name="IsClosed", unique = false, nullable = true, updatable = true, insertable = true)
     public Boolean getIsClosed() {
-        return this.isClosed;
+        return this.isClosed != null ? this.isClosed : false;
     }
    
     public void setIsClosed(Boolean isClosed) {
@@ -629,7 +629,27 @@ public class Loan extends DisciplineMember implements AttachmentOwnerIFace<LoanA
         }
         return set;
     }
+    
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.datamodel.DataModelObjBase#getParentTableId()
+     */
+    @Override
+    @Transient
+    public Integer getParentTableId()
+    {
+        return Discipline.getClassTableId();
+    }
 
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.datamodel.DataModelObjBase#getParentId()
+     */
+    @Override
+    @Transient
+    public Integer getParentId()
+    {
+        return discipline != null ? discipline.getId() : null;
+    }
+    
     /* (non-Javadoc)
      * @see edu.ku.brc.ui.forms.FormDataObjIFace#getTableId()
      */

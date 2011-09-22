@@ -44,7 +44,7 @@ import javax.persistence.Transient;
 @org.hibernate.annotations.Entity(dynamicInsert=true, dynamicUpdate=true)
 @org.hibernate.annotations.Proxy(lazy = false)
 @Table(name = "localitydetail")
-public class LocalityDetail extends DataModelObjBase implements Cloneable
+public class LocalityDetail extends DataModelObjBase
 {
     // Fields    
     protected Integer               localityDetailId;
@@ -62,6 +62,16 @@ public class LocalityDetail extends DataModelObjBase implements Cloneable
     protected String                waterBody;
     protected String                drainage;
     
+    // Depths primarily for Paleo
+    protected Double                startDepth;
+    protected Byte                  startDepthUnit;
+    protected String                startDepthVerbatim;
+    
+    protected Double                endDepth;
+    protected Byte                  endDepthUnit;
+    protected String                endDepthVerbatim;
+    
+    // HUC Code for fishes
     protected String                hucCode;
     
     protected String                text1;
@@ -73,15 +83,17 @@ public class LocalityDetail extends DataModelObjBase implements Cloneable
 
     
     // UTM Fields
-    protected Float                 utmEasting;
-    protected Float                 utmNorthing;
+    protected BigDecimal            utmEasting;
+    protected BigDecimal            utmNorthing;
     protected Integer               utmFalseEasting;
     protected Integer               utmFalseNorthing;
     protected String                utmDatum;
     protected Short                 utmZone;
     protected BigDecimal            utmOrigLatitude;
     protected BigDecimal            utmOrigLongitude;
-    protected String                utmScale;
+    protected BigDecimal            utmScale;
+    protected String                mgrsZone;            // GZD only, precision level 6 x 8 (in most cases)
+    
      
     protected Locality              locality;
 
@@ -120,6 +132,14 @@ public class LocalityDetail extends DataModelObjBase implements Cloneable
         island      = null;
         waterBody   = null;
         drainage    = null;
+        
+        startDepth         = null;
+        startDepthUnit     = null;
+        startDepthVerbatim = null;
+        endDepth           = null;
+        endDepthUnit       = null;
+        endDepthVerbatim   = null;
+        
         locality    = null;
         
         utmEasting       = null;
@@ -131,6 +151,7 @@ public class LocalityDetail extends DataModelObjBase implements Cloneable
         utmOrigLatitude  = null;
         utmOrigLongitude = null;
         utmScale         = null;
+        mgrsZone         = null;
         
         text1 = null;
         text2 = null;
@@ -343,6 +364,108 @@ public class LocalityDetail extends DataModelObjBase implements Cloneable
     }
 
     /**
+     * @return the startDepth
+     */
+    @Column(name = "StartDepth", unique = false, nullable = true, insertable = true, updatable = true)
+    public Double getStartDepth()
+    {
+        return startDepth;
+    }
+
+    /**
+     * @param startDepth the startDepth to set
+     */
+    public void setStartDepth(Double startDepth)
+    {
+        this.startDepth = startDepth;
+    }
+
+    /**
+     * @return the startDepthUnit
+     */
+    @Column(name = "StartDepthUnit", unique = false, nullable = true, insertable = true, updatable = true)
+    public Byte getStartDepthUnit()
+    {
+        return startDepthUnit;
+    }
+
+    /**
+     * @param startDepthUnit the startDepthUnit to set
+     */
+    public void setStartDepthUnit(Byte startDepthUnit)
+    {
+        this.startDepthUnit = startDepthUnit;
+    }
+
+    /**
+     * @return the startDepthVerbatim
+     */
+    @Column(name = "StartDepthVerbatim", unique = false, nullable = true, insertable = true, updatable = true, length = 32)
+    public String getStartDepthVerbatim()
+    {
+        return startDepthVerbatim;
+    }
+
+    /**
+     * @param startDepthVerbatim the startDepthVerbatim to set
+     */
+    public void setStartDepthVerbatim(String startDepthVerbatim)
+    {
+        this.startDepthVerbatim = startDepthVerbatim;
+    }
+
+    /**
+     * @return the endDepth
+     */
+    @Column(name = "EndDepth", unique = false, nullable = true, insertable = true, updatable = true)
+    public Double getEndDepth()
+    {
+        return endDepth;
+    }
+
+    /**
+     * @param endDepth the endDepth to set
+     */
+    public void setEndDepth(Double endDepth)
+    {
+        this.endDepth = endDepth;
+    }
+
+    /**
+     * @return the endDepthUnit
+     */
+    @Column(name = "EndDepthUnit", unique = false, nullable = true, insertable = true, updatable = true)
+    public Byte getEndDepthUnit()
+    {
+        return endDepthUnit;
+    }
+
+    /**
+     * @param endDepthUnit the endDepthUnit to set
+     */
+    public void setEndDepthUnit(Byte endDepthUnit)
+    {
+        this.endDepthUnit = endDepthUnit;
+    }
+
+    /**
+     * @return the endDepthVerbatim
+     */
+    @Column(name = "EndDepthVerbatim", unique = false, nullable = true, insertable = true, updatable = true, length = 32)
+    public String getEndDepthVerbatim()
+    {
+        return endDepthVerbatim;
+    }
+
+    /**
+     * @param endDepthVerbatim the endDepthVerbatim to set
+     */
+    public void setEndDepthVerbatim(String endDepthVerbatim)
+    {
+        this.endDepthVerbatim = endDepthVerbatim;
+    }
+
+    /**
      * * User definable
      */
     @Column(name = "Text1", length = 300, unique = false, nullable = true, insertable = true, updatable = true)
@@ -447,7 +570,7 @@ public class LocalityDetail extends DataModelObjBase implements Cloneable
      * @return the utmEasting
      */
     @Column(name = "UtmEasting", unique = false, nullable = true, updatable = true, insertable = true)
-    public Float getUtmEasting()
+    public BigDecimal getUtmEasting()
     {
         return utmEasting;
     }
@@ -455,7 +578,7 @@ public class LocalityDetail extends DataModelObjBase implements Cloneable
     /**
      * @param utmEasting the utmEasting to set
      */
-    public void setUtmEasting(Float utmEasting)
+    public void setUtmEasting(BigDecimal utmEasting)
     {
         this.utmEasting = utmEasting;
     }
@@ -464,7 +587,7 @@ public class LocalityDetail extends DataModelObjBase implements Cloneable
      * @return the utmNorthing
      */
     @Column(name = "UtmNorthing", unique = false, nullable = true, updatable = true, insertable = true)
-    public Float getUtmNorthing()
+    public BigDecimal getUtmNorthing()
     {
         return utmNorthing;
     }
@@ -472,7 +595,7 @@ public class LocalityDetail extends DataModelObjBase implements Cloneable
     /**
      * @param utmNorthing the utmNorthing to set
      */
-    public void setUtmNorthing(Float utmNorthing)
+    public void setUtmNorthing(BigDecimal utmNorthing)
     {
         this.utmNorthing = utmNorthing;
     }
@@ -514,7 +637,7 @@ public class LocalityDetail extends DataModelObjBase implements Cloneable
     /**
      * @return the utmDatum
      */
-    @Column(name = "getUtmDatum", unique = false, nullable = true, updatable = true, insertable = true)
+    @Column(name = "UtmDatum", unique = false, nullable = true, updatable = true, insertable = true, length = 32)
     public String getUtmDatum()
     {
         return utmDatum;
@@ -582,8 +705,8 @@ public class LocalityDetail extends DataModelObjBase implements Cloneable
     /**
      * @return the utmScale
      */
-    @Column(name = "UtmScale", unique = false, nullable = true, updatable = true, insertable = true, length = 8)
-    public String getUtmScale()
+    @Column(name = "UtmScale", unique = false, nullable = true, updatable = true, insertable = true)
+    public BigDecimal getUtmScale()
     {
         return utmScale;
     }
@@ -591,9 +714,26 @@ public class LocalityDetail extends DataModelObjBase implements Cloneable
     /**
      * @param utmScale the utmScale to set
      */
-    public void setUtmScale(String utmScale)
+    public void setUtmScale(BigDecimal utmScale)
     {
         this.utmScale = utmScale;
+    }
+
+    /**
+     * @return the mgrsZone
+     */
+    @Column(name = "MgrsZone", unique = false, nullable = true, updatable = true, insertable = true, length = 4)
+    public String getMgrsZone()
+    {
+        return mgrsZone;
+    }
+
+    /**
+     * @param mgrsZone the mgrsZone to set
+     */
+    public void setMgrsZone(String mgrsZone)
+    {
+        this.mgrsZone = mgrsZone;
     }
 
     /* (non-Javadoc)
@@ -621,7 +761,26 @@ public class LocalityDetail extends DataModelObjBase implements Cloneable
         this.locality = locality;
     }
 
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.datamodel.DataModelObjBase#getParentTableId()
+     */
+    @Override
+    @Transient
+    public Integer getParentTableId()
+    {
+        return Locality.getClassTableId();
+    }
 
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.datamodel.DataModelObjBase#getParentId()
+     */
+    @Override
+    @Transient
+    public Integer getParentId()
+    {
+        return locality != null ? locality.getId() : null;
+    }
+    
     /* (non-Javadoc)
      * @see edu.ku.brc.ui.forms.FormDataObjIFace#getTableId()
      */
@@ -647,7 +806,6 @@ public class LocalityDetail extends DataModelObjBase implements Cloneable
     public Object clone() throws CloneNotSupportedException
     {
         LocalityDetail ld = (LocalityDetail)super.clone();
-        ld.init();
         
         ld.localityDetailId = null;
         ld.locality         = null;
@@ -655,4 +813,56 @@ public class LocalityDetail extends DataModelObjBase implements Cloneable
         return ld;
     }
 
+    /**
+     * @param o
+     * @return true if 'non-system' fields all match.
+     * 
+     */
+    public boolean matches(LocalityDetail o)
+    {
+        if (o == null)
+        {
+        	return false;
+        }
+        
+    	return
+        	((baseMeridian == null && o.baseMeridian == null) || ((baseMeridian != null && o.baseMeridian != null) && baseMeridian.equals(o.baseMeridian))) &&
+        	((rangeDesc == null && o.rangeDesc == null) || ((rangeDesc != null && o.rangeDesc != null) && rangeDesc.equals(o.rangeDesc))) &&
+            ((rangeDirection == null && o.rangeDirection == null) || ((rangeDirection != null && o.rangeDirection != null) && rangeDirection.equals(o.rangeDirection))) &&
+            ((township == null && o.township == null) || ((township != null && o.township != null) && township.equals(o.township))) &&
+            ((townshipDirection == null && o.townshipDirection == null) || ((townshipDirection != null && o.townshipDirection != null)
+            		&& townshipDirection.equals(o.townshipDirection))) &&
+            ((section == null && o.section == null) || ((section != null && o.section != null)
+            		&& section.equals(o.section))) &&
+            ((sectionPart == null && o.sectionPart == null) || ((sectionPart != null && o.sectionPart != null)
+            		&& sectionPart.equals(o.sectionPart))) &&
+            ((gml == null && o.gml == null) || ((gml != null && o.gml != null) && gml.equals(o.gml))) &&
+            ((nationalParkName == null && o.nationalParkName == null) || ((nationalParkName != null && o.nationalParkName != null)
+                    && nationalParkName.equals(o.nationalParkName))) &&
+            ((islandGroup == null && o.islandGroup == null) || ((islandGroup != null && o.islandGroup != null)
+                    && islandGroup.equals(o.islandGroup))) &&
+            ((island == null && o.island == null) || ((island != null && o.island != null)
+            		&& island.equals(o.island))) &&
+            ((drainage == null && o.drainage == null) || ((drainage != null && o.drainage != null)
+                    && drainage.equals(o.drainage))) &&
+            ((utmDatum == null && o.utmDatum == null) || ((utmDatum != null && o.utmDatum != null)
+                    && utmDatum.equals(o.utmDatum))) &&
+            ((utmScale == null && o.utmScale == null) || ((utmScale != null && o.utmScale != null) && utmScale.compareTo(o.utmScale) == 0)) &&
+            ((hucCode == null && o.hucCode == null) || ((hucCode != null && o.hucCode != null) && hucCode.equals(o.hucCode))) &&
+            ((text1 == null && o.text1 == null) || ((text1 != null && o.text1 != null) && text1.equals(o.text1))) &&
+            ((text2 == null && o.text2 == null) || ((text2 != null && o.text2 != null) && text2.equals(o.text2))) &&
+            ((number1 == null && o.number1 == null) || ((number1 != null && o.number1 != null) && number1.equals(o.number1))) &&
+            ((number2 == null && o.number2 == null) || ((number2 != null && o.number2 != null) && number2.equals(o.number2))) &&
+            ((yesNo1 == null && o.yesNo1 == null) || ((yesNo1 != null && o.yesNo1 != null) && yesNo1.equals(o.yesNo1))) &&
+            ((yesNo2 == null && o.yesNo2 == null) || ((yesNo2 != null && o.yesNo2 != null) && yesNo2.equals(o.yesNo2))) &&
+            ((utmEasting == null && o.utmEasting == null) || ((utmEasting != null && o.utmEasting != null) && utmEasting.compareTo(o.utmEasting) == 0)) &&
+            ((utmNorthing == null && o.utmNorthing == null) || ((utmNorthing != null && o.utmNorthing != null) && utmNorthing.compareTo(o.utmNorthing) == 0)) &&
+            ((utmFalseEasting == null && o.utmFalseEasting == null) || ((utmFalseEasting != null && o.utmFalseEasting != null) && utmFalseEasting.equals(o.utmFalseEasting))) &&
+            ((utmFalseNorthing == null && o.utmFalseNorthing == null) || ((utmFalseNorthing != null && o.utmFalseNorthing != null) && utmFalseNorthing.equals(o.utmFalseNorthing))) &&
+            ((utmZone == null && o.utmZone == null) || ((utmZone != null && o.utmZone != null) && utmZone.equals(o.utmZone))) &&
+            ((utmOrigLatitude == null && o.utmOrigLatitude == null) || ((utmOrigLatitude != null && o.utmOrigLatitude != null) && utmOrigLatitude.compareTo(o.utmOrigLatitude) == 0)) &&
+            ((utmOrigLongitude == null && o.utmOrigLongitude == null) || ((utmOrigLongitude != null && o.utmOrigLongitude != null) && utmOrigLongitude.compareTo(o.utmOrigLongitude) == 0)) &&
+            ((waterBody == null && o.waterBody == null) || ((waterBody != null && o.waterBody != null) && waterBody.equals(o.waterBody)));
+    }
+    
 }

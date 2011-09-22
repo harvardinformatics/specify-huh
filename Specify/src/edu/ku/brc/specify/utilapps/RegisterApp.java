@@ -30,7 +30,9 @@ import java.awt.event.MouseEvent;
 import java.io.File;
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
@@ -77,6 +79,8 @@ import com.jgoodies.forms.builder.PanelBuilder;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
 
+import edu.ku.brc.af.core.FrameworkAppIFace;
+import edu.ku.brc.af.core.MacOSAppHandler;
 import edu.ku.brc.af.core.db.DBTableIdMgr;
 import edu.ku.brc.af.core.db.DBTableInfo;
 import edu.ku.brc.dbsupport.DBConnection;
@@ -89,6 +93,7 @@ import edu.ku.brc.ui.CustomDialog;
 import edu.ku.brc.ui.CustomFrame;
 import edu.ku.brc.ui.IconManager;
 import edu.ku.brc.ui.UIHelper;
+import edu.ku.brc.ui.UIRegistry;
 import edu.ku.brc.util.Pair;
 
 /**
@@ -99,14 +104,16 @@ import edu.ku.brc.util.Pair;
  * Nov 27, 2008
  *
  */
-public class RegisterApp extends JPanel
+public class RegisterApp extends JPanel implements FrameworkAppIFace
 {
     private enum CountType {Divs, Disps, Cols}
     private enum DateType  {None, Date, Monthly, Yearly, Time}
     
-    protected String                    connectStr = "jdbc:mysql://specify6-test.nhm.ku.edu/stats";
-    protected String                    username   = "rods";
-    protected String                    password   = "rods";
+    protected static boolean INCL_ANON = false;
+    
+    protected String                    connectStr = "jdbc:mysql://localhost/stats";
+    protected String                    username   = "root";
+    protected String                    password   = "root";
 
     protected boolean                   doLocal = false;
     protected JFrame                    frame;
@@ -118,9 +125,6 @@ public class RegisterApp extends JPanel
     
     protected JList                     trackItemsList;
     protected Hashtable<String, Hashtable<String, Integer>> trackUsageHash;
-    
-    //protected Hashtable<String, Boolean> viewsHash     = new Hashtable<String, Boolean>();
-    //protected Hashtable<String, Boolean> dbCmdsHash    = new Hashtable<String, Boolean>();
     
     protected CustomFrame               chartFrame    = null;
     protected Hashtable<String, String> trackDescHash = new Hashtable<String, String>();
@@ -140,11 +144,15 @@ public class RegisterApp extends JPanel
     {
         super(new BorderLayout());
         
+        new MacOSAppHandler(this);
+        
         DBConnection dbConn = DBConnection.getInstance();
         dbConn.setConnectionStr(connectStr);
         dbConn.setDatabaseName("stats");
         dbConn.setUsernamePassword(username, password);
         dbConn.setDriver("com.mysql.jdbc.Driver");
+        
+        //rp.processFile();
         
         createUI();
         
@@ -181,36 +189,20 @@ public class RegisterApp extends JPanel
         JTabbedPane tabbedPane = new JTabbedPane();
         
         rp = new RegProcessor();
-        try
-        {
-            boolean doBuild = false;
-            if (doBuild)
-            {
-                rp.process(doLocal ? new File("reg.dat") : rp.getDataFromWeb("SpReg.REGISTER_URL", true));
-                rp.processTracks(doLocal ? new File("track.dat") : rp.getDataFromWeb("StatsTrackerTask.URL", true));
-                //rp.mergeStats();
-            } else
-            {
-                rp.processSQL();
-            }
-            
-            tree       = new JTree(rp.getRoot(false));
-            propsTable = new JTable();
-            
-            tree.getSelectionModel().addTreeSelectionListener(new TreeSelectionListener() {
-                @Override
-                public void valueChanged(TreeSelectionEvent e)
-                {
-                    fillPropsTable();
-                }
-            });
-            tree.setCellRenderer(new MyTreeCellRenderer());
-            
-        } catch (IOException ex)
-        {
-            ex.printStackTrace();
-        }
+        rp.processSQL();
         
+        tree       = new JTree(rp.getRoot(INCL_ANON));
+        propsTable = new JTable();
+        
+        tree.getSelectionModel().addTreeSelectionListener(new TreeSelectionListener() {
+            @Override
+            public void valueChanged(TreeSelectionEvent e)
+            {
+                fillPropsTable();
+            }
+        });
+        tree.setCellRenderer(new MyTreeCellRenderer());
+            
         Component topComp = UIHelper.createScrollPane(tree);
         Component botComp = UIHelper.createScrollPane(propsTable);
         JSplitPane splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, topComp, botComp);
@@ -250,7 +242,7 @@ public class RegisterApp extends JPanel
             }
         });
         
-        tabbedPane.add("Reg Stats", getStatsPane("Registration", rp.getRegNumHash().values()));
+        tabbedPane.add("Reg Stats", getStatsPane("Registration", rp.getRegNumHash().values(), "register"));
         
         DefaultListModel model = new DefaultListModel();
         trackItemsList = new JList(model);
@@ -268,7 +260,7 @@ public class RegisterApp extends JPanel
         trackUsageHash = rp.getTrackCatsHash();
         tabbedPane.add("Usage Tracking", splitPane);
         
-        tabbedPane.add("User Stats", getStatsPane("Tracking", rp.getTrackIdHash().values()));
+        tabbedPane.add("User Stats", getStatsPane("Tracking", rp.getTrackIdHash().values(), "track"));
         
         add(tabbedPane, BorderLayout.CENTER);
     }
@@ -278,9 +270,7 @@ public class RegisterApp extends JPanel
      */
     protected void fillUsageItemsList(final String catName)
     {
-
-        //String sql = "SELECT Name, Total FROM (SELECT Name, SUM(CountAmt) as Total FROM trackitem WHERE SUBSTRING(Name, 1, 8) = 'Usage_"+catName+"' OR SUBSTRING(Name, 1, 2) = '"+catName+"' GROUP BY Name) AS T1 ORDER BY Total";
-        String sql = "SELECT Name, Total FROM (SELECT Name, SUM(CountAmt) as Total FROM trackitem WHERE SUBSTRING(Name, 1, 8) = 'Usage_"+catName+"' GROUP BY Name) AS T1 ORDER BY Total";
+        String sql = "SELECT Name, Total FROM (SELECT Name, SUM(CountAmt) as Total FROM trackitem WHERE CountAmt < 100000 AND SUBSTRING(Name, 1, 8) = 'Usage_"+catName+"' GROUP BY Name) AS T1 ORDER BY Total";
         System.out.println(sql);
         Vector<Object[]> rows = BasicSQLUtils.query(sql);
         
@@ -442,6 +432,34 @@ public class RegisterApp extends JPanel
         }
     }
     
+    /* (non-Javadoc)
+     * @see edu.ku.brc.af.core.FrameworkAppIFace#doAbout()
+     */
+    @Override
+    public void doAbout()
+    {
+    }
+
+    /* (non-Javadoc)
+     * @see edu.ku.brc.af.core.FrameworkAppIFace#doExit(boolean)
+     */
+    @Override
+    public boolean doExit(boolean doAppExit)
+    {
+        RegProcEntry.cleanUp();
+        System.exit(0);
+        
+        return true;
+    }
+
+    /* (non-Javadoc)
+     * @see edu.ku.brc.af.core.FrameworkAppIFace#doPreferences()
+     */
+    @Override
+    public void doPreferences()
+    {
+    }
+
     /**
      * @param entries
      * @return
@@ -505,7 +523,8 @@ public class RegisterApp extends JPanel
      * @return
      */
     private JPanel getStatsPane(final String chartPrefixTitle, 
-                                final Collection<RegProcEntry> entries)
+                                final Collection<RegProcEntry> entries,
+                                final String tableName)
     {
         CellConstraints cc = new CellConstraints();
         PanelBuilder    pb = new PanelBuilder(new FormLayout("f:p:g", "f:p:g"));
@@ -531,13 +550,20 @@ public class RegisterApp extends JPanel
             {
                 String desc = keyDescPairsHash.get(keyword);
                 //System.out.println("["+keyword+"]->["+desc+"]");
-                keywords.add(desc);
+                if (desc != null)
+                {
+                    keywords.add(desc);    
+                } else
+                {
+                    System.out.println("Desc for keyword["+keyword+"] is null.");
+                }
+                
             }
         }
         Vector<Object[]> rvList = BasicSQLUtils.query("SELECT DISTINCT(Name) FROM registeritem WHERE SUBSTRING(Name, 1, 4) = 'num_'");
         for (Object[] array : rvList)
         {
-            keywords.add(array[0].toString());
+            keywords.add((String)array[0]);
         }
         Collections.sort(keywords);
         
@@ -600,7 +626,7 @@ public class RegisterApp extends JPanel
                     } else
                     {
                         String                        desc   = getByDateDesc(dateType);
-                        Vector<Pair<String, Integer>> values = getDateValuesFromList(dateType);
+                        Vector<Pair<String, Integer>> values = tableName.equals("track") ? getDateValuesFromListByTable(dateType, tableName) : getDateValuesFromList(dateType);
                         Collections.sort(values, titleComparator);
                         createBarChart(chartPrefixTitle + " "+ desc, desc, values);
                     }
@@ -611,6 +637,10 @@ public class RegisterApp extends JPanel
         return pb.getPanel();
     }
     
+    /**
+     * @param statName
+     * @return
+     */
     protected Vector<Pair<String, Integer>> getCollValuesFromList(final String statName)
     {
         String sql = "SELECT Value, COUNT(Value) AS CNT FROM registeritem WHERE Name = '" + statName + "' GROUP BY Value ORDER BY CNT";
@@ -632,6 +662,13 @@ public class RegisterApp extends JPanel
         String sql = "SELECT RegisterID, Value, CountAmt FROM registeritem WHERE Name = '" + statName + "' OR Name = 'Collection_name' ORDER BY RegisterID";
         
         Vector<Pair<String, Integer>> values = new Vector<Pair<String,Integer>>();
+        for (RegProcEntry entry : rp.getRoot(INCL_ANON).getKids())
+        {
+            if (entry.get("reg_type").equals("Collection"))
+            {
+            
+            }
+        }
         
         Vector<Object[]> list = BasicSQLUtils.query(sql);
         for (int i=0;i<list.size();i++)
@@ -702,23 +739,88 @@ public class RegisterApp extends JPanel
      */
     private Vector<Pair<String, Integer>> getDateValuesFromList(final DateType dateType)
     {
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+        Calendar         cal = Calendar.getInstance();
+        
+        System.out.println(rp.getRegNumHash().values().size());
+        
+        Hashtable<String, Pair<String, Integer>> hash = new Hashtable<String, Pair<String,Integer>>();
+        for (RegProcEntry entry : rp.getRoot(INCL_ANON).getKids())
+        {
+            if (entry.get("reg_type").equals("Institution"))
+            {
+                String    desc = null;
+                Timestamp ts   = entry.getTimestampCreated();
+                cal.setTime(ts);
+                
+                switch (dateType)
+                {
+                    case Time:
+                        desc = Integer.toString(cal.get(Calendar.HOUR_OF_DAY));
+                        break;
+                        
+                    case Monthly:
+                        desc = Integer.toString(cal.get(Calendar.MONTH));
+                        break;
+                        
+                    case Yearly:
+                        desc = Integer.toString(cal.get(Calendar.YEAR));
+                        break;
+                        
+                    case Date:
+                        desc = sdf.format(ts);
+                        break;
+                        
+                    case None:
+                        break;
+                }
+    
+                Pair<String, Integer> pair = hash.get(desc);
+                if (pair == null)
+                {
+                    pair = new Pair<String, Integer>(desc, 1);
+                    hash.put(desc, pair);
+                } else
+                {
+                    pair.second++;
+                }
+            }
+        }
+        Vector<Pair<String, Integer>> values = new Vector<Pair<String,Integer>>(hash.values());
+        
+        int total = 0;
+        for (Pair<String, Integer> p : values)
+        {
+            total += p.second;
+        }
+        System.err.println("Total: "+total);
+        return values;
+    }
+    
+    /**
+     * @param dateType
+     * @param srcList
+     * @return
+     */
+    private Vector<Pair<String, Integer>> getDateValuesFromListByTable(final DateType dateType, final String tableName)
+    {
         String sql = "";
         switch (dateType)
         {
             case Time:
-                sql = "SELECT hrs, COUNT(hrs) FROM (SELECT (hr + mn + sc) as hrs FROM (SELECT HOUR(TimestampCreated) as hr, ROUND(MINUTE(TimestampCreated) / 60) as mn, ROUND(SECOND(TimestampCreated) / 3600) as sc FROM track) AS T1) as T2 GROUP BY hrs";
+                sql = "SELECT hrs, COUNT(hrs) FROM (SELECT (hr + mn + sc) as hrs FROM (SELECT HOUR(TimestampCreated) as hr, ROUND(MINUTE(TimestampCreated) / 60) as mn, ROUND(SECOND(TimestampCreated) / 3600) as sc FROM "+tableName+" WHERE TimestampCreated > '2009-04-12') AS T1) as T2 GROUP BY hrs";
                 break;
                 
             case Monthly:
-                sql = "SELECT nm,COUNT(mon) FROM (SELECT MONTH(TimestampCreated) as mon, MONTHNAME(TimestampCreated) as nm FROM track) AS T1 GROUP BY mon";
+                sql = "SELECT nm,COUNT(mon) FROM (SELECT MONTH(TimestampCreated) as mon, MONTHNAME(TimestampCreated) as nm FROM "+tableName+" WHERE TimestampCreated > '2009-04-12') AS T1 GROUP BY mon";
                 break;
                 
             case Yearly:
-                sql = "SELECT yr,count(yr) FROM (SELECT YEAR(TimestampCreated) as yr FROM track) AS T1 group by yr";
+                sql = "SELECT yr,count(yr) FROM (SELECT YEAR(TimestampCreated) as yr FROM "+tableName+" WHERE TimestampCreated > '2009-04-12') AS T1 group by yr";
                 break;
                 
             case Date:
-                sql = "SELECT dt,count(dt) FROM (SELECT DATE(TimestampCreated) as dt FROM track) AS T1 group by dt";
+                sql = "SELECT dt,count(dt) FROM (SELECT DATE(TimestampCreated) as dt FROM "+tableName+" WHERE TimestampCreated > '2009-04-12') AS T1 group by dt";
                 break;
                 
             case None:
@@ -846,11 +948,10 @@ public class RegisterApp extends JPanel
         TreePath path = tree.getSelectionPath();
         if (path != null)
         {
-            RegProcEntry rpe   = (RegProcEntry)path.getLastPathComponent();
-            Properties   props = rpe.getProps();
+            RegProcEntry rpe= (RegProcEntry)path.getLastPathComponent();
          
             Vector<String> keys = new Vector<String>();
-            for (Object obj : props.keySet())
+            for (Object obj : rpe.keySet())
             {
                 keys.add(obj.toString());
             }
@@ -872,7 +973,7 @@ public class RegisterApp extends JPanel
                 }
                 rows[inx][0] = titleStr;
                 
-                rows[inx][1] = props.get(key);
+                rows[inx][1] = rpe.get(key.toString());
                 inx++;
             }
             propsTable.setModel(new DefaultTableModel(rows, new String[] {"Property", "Value"}));
@@ -946,11 +1047,12 @@ public class RegisterApp extends JPanel
      * @param entries
      * @param hasReg
      */
-    private void createTable(final StringBuilder        sb, 
+    private int  createTable(final StringBuilder        sb, 
                              final String               tableTitle, 
                              final Vector<RegProcEntry> entries,
                              final boolean              hasReg)
     {
+        int count = 0;
         Hashtable<String, RegProcEntry> collHash = rp.getCollectionHash();
         
         sb.append("<table class=\"brd\" border=\"0\" cellspacing=\"0\">\n");
@@ -971,6 +1073,7 @@ public class RegisterApp extends JPanel
             
             int cols = count(inst, CountType.Cols);
             sb.append("<tr>\n  <td valign=\"top\" rowspan=\""+cols+"\">"+inst.getName()+"</td>\n");
+            count++;
             
             int divsCnt = 0;
             for (RegProcEntry div : inst.getKids())
@@ -997,10 +1100,10 @@ public class RegisterApp extends JPanel
                             String       dateStr      = colEntry.get("date");
                             Date         lastUsedDate = new Date(rp.getDate(dateStr));
                             dateStr = rp.getDateFmt().format(lastUsedDate);
-                            col.getProps().put("last_used_date", dateStr);
+                            col.put("last_used_date", dateStr);
                         } else
                         {
-                            col.getProps().put("last_used_date", "&nbsp;");
+                            col.put("last_used_date", "&nbsp;");
                         }
 
                         if (colsCnt > 0) sb.append("<tr>\n");
@@ -1023,6 +1126,7 @@ public class RegisterApp extends JPanel
             sb.append("<tr>\n");
         }
         sb.append("</table>\n");
+        return count;
     }
     
     /**
@@ -1030,14 +1134,29 @@ public class RegisterApp extends JPanel
      */
     public void createRegReport()
     {
+        SimpleDateFormat sdf = new SimpleDateFormat("MM-dd-yyyy");
+        
         StringBuilder sb = new StringBuilder();
         sb.append("<html><head>\n<title>Registrations</title>\n");
-        sb.append("<link rel=\"stylesheet\" type=\"text/css\" href=\"http://specify6.specifysoftware.org/css/report.css\">\n");
-        sb.append("</head><body>\n<div style=\"text-align: left;\"><img src=\"http://specify6.specifysoftware.org/images/logosmaller.png\" height=\"42\" width=\"117\"></div>\n");
+        //sb.append("<link rel=\"stylesheet\" type=\"text/css\" href=\""+UIRegistry.getResourceString("CGI_BASE_URL") + "/css/report.css\">\n");
+        sb.append("<style>");
+        sb.append("body { font-family: sans-serif; font-size:10pt; }");
+        sb.append("td, th { font-family: sans-serif; font-size:10pt; }");
+        sb.append("table { border-top: 1px gray solid; border-left: 1px gray solid; }");
+        sb.append("table td { border-bottom: 1px gray solid; border-right: 1px gray solid; }");
+        sb.append("table th { border-bottom: 1px gray solid; border-right: 1px gray solid; }");
+        sb.append("</style>");
+        sb.append("</head><body>\n<div style=\"text-align: left;\"><img src=\""+UIRegistry.getResourceString("CGI_BASE_URL") + "/images/logosmaller.png\" height=\"42\" width=\"117\"></div>\n");
 
-        createTable(sb, "ISA Registrations", rp.getRoot(false).getKids(), true);
-        sb.append("<br><br>");
-        createTable(sb, "No ISA Registrations", rp.getRoot(false).getKids(), false);
+        StringBuilder tsb = new StringBuilder();
+        int cnt = createTable(tsb, "ISA Registrations - "+sdf.format(Calendar.getInstance().getTime()), rp.getRoot(INCL_ANON).getKids(), true);
+        if (cnt > 0)
+        {
+            sb.append(tsb);
+            sb.append("<br><br>");
+        }
+       
+        createTable(sb, "No ISA Registrations - "+sdf.format(Calendar.getInstance().getTime()), rp.getRoot(INCL_ANON).getKids(), false);
         sb.append("</body></html>");
         
         try
@@ -1119,8 +1238,8 @@ public class RegisterApp extends JPanel
         
         StringBuilder sb = new StringBuilder();
         sb.append("<html><head>\n<title>Statistics</title>\n");
-        sb.append("<link rel=\"stylesheet\" type=\"text/css\" href=\"http://specify6.specifysoftware.org/css/report.css\">\n");
-        sb.append("</head><body>\n<div style=\"text-align: left;\"><img src=\"http://specify6.specifysoftware.org/images/logosmaller.png\" height=\"42\" width=\"117\"></div>\n");
+        sb.append("<link rel=\"stylesheet\" type=\"text/css\" href=\""+UIRegistry.getResourceString("CGI_BASE_URL") + "/css/report.css\">\n");
+        sb.append("</head><body>\n<div style=\"text-align: left;\"><img src=\""+UIRegistry.getResourceString("CGI_BASE_URL") + "/images/logosmaller.png\" height=\"42\" width=\"117\"></div>\n");
         sb.append("<center\n<table class=\"brd\" border=\"0\" cellspacing=\"0\">\n");
         sb.append("<tr>");
         sb.append("<th colspan=\"2\">");
@@ -1175,7 +1294,7 @@ public class RegisterApp extends JPanel
             sb.append("</table>"); 
         }
         //sb.append("<br><br>");
-        //createTable(sb, "No ISA Registrations", rp.getRoot(false).getKids(), false);
+        //createTable(sb, "No ISA Registrations", rp.getRoot(INCL_ANON).getKids(), false);
         sb.append("</center></body></html>");
         
         try
@@ -1207,7 +1326,7 @@ public class RegisterApp extends JPanel
         {
             SimpleDateFormat mmddyyyy = new SimpleDateFormat("MM/dd/yyyy");
             SimpleDateFormat yyyymmdd = new SimpleDateFormat("yyyy/MM/dd");
-            List<String> lines = FileUtils.readLines(rp.getDataFromWeb("http://specify6-test.nhm.ku.edu/specifydownloads/specify6/alpha/versions.txt", false));
+            List<String> lines = FileUtils.readLines(rp.getDataFromWeb(UIRegistry.getResourceString("CGI_BASE_URL") + "/specifydownloads/specify6/alpha/versions.txt", false));
             for (String line : lines)
             {
                 String[] toks = line.split(",");
@@ -1286,7 +1405,7 @@ public class RegisterApp extends JPanel
                 frame.setTitle(title+" for "+version);
             }
             
-            try
+            /*try
             {
                 rp.process(doLocal ? new File("reg.dat") : rp.getDataFromWeb("SpReg.REGISTER_URL", true));
                 rp.processTracks(doLocal ? new File("track.dat") : rp.getDataFromWeb("StatsTrackerTask.URL", true));
@@ -1295,7 +1414,7 @@ public class RegisterApp extends JPanel
             } catch (IOException ex)
             {
                 ex.printStackTrace();
-            }
+            }*/
             
         }
     }
@@ -1335,7 +1454,7 @@ public class RegisterApp extends JPanel
                 @Override
                 public void actionPerformed(ActionEvent e)
                 {
-                    System.exit(0);
+                    doExit(true);
                 }
             });
         }
@@ -1375,6 +1494,8 @@ public class RegisterApp extends JPanel
         });
     }
     
+    
+    //-------------------------------------------------------
     class MyTreeCellRenderer extends DefaultTreeCellRenderer implements TreeCellRenderer 
     {
         public Component getTreeCellRendererComponent(JTree treeArg,

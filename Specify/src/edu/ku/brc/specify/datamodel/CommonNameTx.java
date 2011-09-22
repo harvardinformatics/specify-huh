@@ -54,7 +54,7 @@ import org.hibernate.annotations.Index;
     {   @Index (name="CommonNameTxNameIDX", columnNames={"Name"}),
         @Index (name="CommonNameTxCountryIDX", columnNames={"Country"})
     })
-public class CommonNameTx extends DataModelObjBase implements Serializable
+public class CommonNameTx extends DataModelObjBase implements Serializable, Cloneable
 {
     protected Integer					commonNameTxId;
 	protected String					country;		// Java Two Character
@@ -228,7 +228,27 @@ public class CommonNameTx extends DataModelObjBase implements Serializable
 	{
 		this.author = author;
 	}
+    
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.datamodel.DataModelObjBase#getParentTableId()
+     */
+    @Override
+    @Transient
+    public Integer getParentTableId()
+    {
+        return Taxon.getClassTableId();
+    }
 
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.datamodel.DataModelObjBase#getParentId()
+     */
+    @Override
+    @Transient
+    public Integer getParentId()
+    {
+        return taxon != null ? taxon.getId() : null;
+    }
+    
 	/* (non-Javadoc)
      * @see edu.ku.brc.ui.forms.FormDataObjIFace#getTableId()
      */
@@ -272,5 +292,19 @@ public class CommonNameTx extends DataModelObjBase implements Serializable
 		this.citations = citations;
 	}
 
-    
+
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.datamodel.DataModelObjBase#clone()
+     */
+    @Override
+    public Object clone() throws CloneNotSupportedException
+    {
+        CommonNameTx obj = (CommonNameTx)super.clone();
+        
+        obj.commonNameTxId = null;
+        obj.taxon = null;
+        obj.citations    = new HashSet<CommonNameTxCitation>(); 
+        
+        return obj;
+    }
 }

@@ -19,12 +19,15 @@
 */
 package edu.ku.brc.specify.datamodel;
 
+import static edu.ku.brc.helpers.XMLHelper.addAttr;
+
 import java.sql.Timestamp;
 import java.util.HashSet;
 import java.util.Set;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
@@ -33,7 +36,12 @@ import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.persistence.Transient;
 
+import org.dom4j.Element;
+
 import edu.ku.brc.af.core.db.DBFieldInfo;
+import edu.ku.brc.helpers.XMLHelper;
+import edu.ku.brc.specify.tasks.WorkbenchTask;
+import edu.ku.brc.specify.tasks.subpane.wb.GridTableHeader;
 
 /**
  * Items are sorted by ViewOrder
@@ -43,11 +51,15 @@ import edu.ku.brc.af.core.db.DBFieldInfo;
 @org.hibernate.annotations.Proxy(lazy = false)
 @Table(name = "workbenchtemplatemappingitem")
 @SuppressWarnings("serial")
-public class WorkbenchTemplateMappingItem extends DataModelObjBase implements java.io.Serializable, Comparable<WorkbenchTemplateMappingItem>
+public class WorkbenchTemplateMappingItem extends DataModelObjBase implements java.io.Serializable, GridTableHeader
 {
-    public final static short UNKNOWN   = 0;
-    public final static short TEXTFIELD = 1;
-    public final static short TEXTAREA  = 2;
+    public final static short UNKNOWN         = 0;
+    public final static short TEXTFIELD       = 1;
+    public final static short TEXTAREA        = 2;
+    public final static short CHECKBOX        = 3;  // Boolean
+    public final static short TEXTFIELD_DATE  = 4;
+    public final static short COMBOBOX        = 5;
+    
     
     // Fields
 
@@ -67,6 +79,12 @@ public class WorkbenchTemplateMappingItem extends DataModelObjBase implements ja
     protected Boolean           isRequired;
     protected Set<WorkbenchDataItem> workbenchDataItems;
 
+    //for updates
+    /**
+     * User configurable. False if, for an exported dataset, the data in column cannot be edited.
+     */
+    protected Boolean			isEditable;
+    
     // UI Layout extras
     protected String            metaData;
     protected Short             xCoord;
@@ -77,7 +95,6 @@ public class WorkbenchTemplateMappingItem extends DataModelObjBase implements ja
     // Transient
     protected Class<?>          dataFieldClass = null;
     protected DBFieldInfo       fieldInfo      = null;
-    protected boolean           isFpMagic; // FP MMK
     
     // Constructors
 
@@ -117,7 +134,7 @@ public class WorkbenchTemplateMappingItem extends DataModelObjBase implements ja
         isExportableToContent = true;
         isIncludedInTitle     = false;
         isRequired            = false;
-        isFpMagic             = false; // FP MMK
+        isEditable            = false;
         
         workbenchDataItems = new HashSet<WorkbenchDataItem>();
         
@@ -362,7 +379,25 @@ public class WorkbenchTemplateMappingItem extends DataModelObjBase implements ja
         this.isExportableToContent = isExportableToContent;
     }
 
-    @Column(name="IsIncludedInTitle")
+    
+    /**
+	 * @return the isEditable
+	 */
+    @Column(name="IsEditable")
+	public Boolean getIsEditable()
+	{
+		return isEditable;
+	}
+
+	/**
+	 * @param isEditable the isEditable to set
+	 */
+	public void setIsEditable(Boolean isEditable)
+	{
+		this.isEditable = isEditable;
+	}
+
+	@Column(name="IsIncludedInTitle")
     public Boolean getIsIncludedInTitle()
     {
         return isIncludedInTitle;
@@ -384,21 +419,10 @@ public class WorkbenchTemplateMappingItem extends DataModelObjBase implements ja
         this.isRequired = isRequired;
     }
 
-    @Transient
-    public boolean getIsFpMagic()
-    {
-        return this.isFpMagic;
-    }
-    
-    public void setIsFpMagic(boolean isFpMagic)
-    {
-        this.isFpMagic = isFpMagic;
-    }
-
     /**
      * 
      */
-    @ManyToOne
+    @ManyToOne(cascade = {}, fetch = FetchType.EAGER)
     @JoinColumn(name = "WorkbenchTemplateID", nullable = false)
     public WorkbenchTemplate getWorkbenchTemplate()
     {
@@ -425,9 +449,9 @@ public class WorkbenchTemplateMappingItem extends DataModelObjBase implements ja
     /* (non-Javadoc)
      * @see java.lang.Comparable#compareTo(java.lang.Object)
      */
-    public int compareTo(WorkbenchTemplateMappingItem obj)
+    public int compareTo(GridTableHeader obj)
     {
-        return viewOrder.compareTo(obj.viewOrder);
+        return viewOrder.compareTo(obj.getViewOrder());
     }
     
     
@@ -468,7 +492,17 @@ public class WorkbenchTemplateMappingItem extends DataModelObjBase implements ja
 //	{
 //		this.useCaptionForText = useCaptionForText;
 //	}
-
+    
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.datamodel.DataModelObjBase#isChangeNotifier()
+     */
+    @Override
+    @Transient
+    public boolean isChangeNotifier()
+    {
+        return false;
+    }
+    
 	/*
      * (non-Javadoc)
      * 
@@ -498,34 +532,68 @@ public class WorkbenchTemplateMappingItem extends DataModelObjBase implements ja
     {
         WorkbenchTemplateMappingItem wbtmi = (WorkbenchTemplateMappingItem)super.clone();
         wbtmi.workbenchTemplateMappingItemId = null;
-        wbtmi.tableName             = tableName;
-        wbtmi.srcTableId            = srcTableId;
-        wbtmi.fieldName             = fieldName;
-        wbtmi.importedColName       = fieldName;
-        wbtmi.caption               = caption;
-        wbtmi.viewOrder             = viewOrder;
-        wbtmi.origImportColumnIndex = origImportColumnIndex;
-        wbtmi.dataFieldLength       = dataFieldLength;
-        wbtmi.fieldType             = fieldType;
         wbtmi.workbenchTemplate     = null;
-        wbtmi.metaData              = metaData;
-        wbtmi.xCoord                = xCoord;
-        wbtmi.yCoord                = yCoord;
-        wbtmi.carryForward          = carryForward;
-        wbtmi.isExportableToContent = isExportableToContent;
-        wbtmi.isIncludedInTitle     = isIncludedInTitle;
-        wbtmi.isRequired            = isRequired;
         wbtmi.workbenchDataItems    = new HashSet<WorkbenchDataItem>();
         
         wbtmi.timestampCreated      = new Timestamp(System.currentTimeMillis());
         wbtmi.timestampModified     = null;
-        wbtmi.modifiedByAgent          = null;
+        wbtmi.modifiedByAgent       = null;
 
-        wbtmi.isFpMagic = isFpMagic; // FP MMK
-        
         return wbtmi;
     }
 
+    /**
+     * @param sb
+     * 
+     * Constructs an XML description of the object
+     */
+    public void toXML(final StringBuilder sb)
+    {
+        sb.append("<workbenchtemplatemappingitem ");
+        addAttr(sb, "tableName", tableName);
+        addAttr(sb, "srcTableId", srcTableId);
+        addAttr(sb, "fieldName", fieldName);
+        addAttr(sb, "importedColName", importedColName);
+        addAttr(sb, "caption", caption);
+        addAttr(sb, "viewOrder", viewOrder);
+        addAttr(sb, "origImportColumnIndex", origImportColumnIndex);
+        addAttr(sb, "dataFieldLength", dataFieldLength);
+        addAttr(sb, "fieldType", fieldType);
+        addAttr(sb, "metaData", metaData);
+        addAttr(sb, "xCoord", xCoord);
+        addAttr(sb, "yCoord", yCoord);
+        addAttr(sb, "carryForward", carryForward);
+        addAttr(sb, "isExportableToContent", isExportableToContent);
+        addAttr(sb, "isIncludedInTitle", isIncludedInTitle);
+        addAttr(sb, "isRequired", isRequired);
+        sb.append(" />");
+    }
+
+    /**
+     * @param element
+     * 
+     * reads attributes from element.
+     */
+    public void fromXML(final Element element)
+    {
+    	tableName = XMLHelper.getAttr(element, "tableName", null);
+    	srcTableId = XMLHelper.getAttr(element, "srcTableId", -1);
+    	fieldName = XMLHelper.getAttr(element, "fieldName", null);
+    	importedColName = XMLHelper.getAttr(element, "importedColName", null);
+    	caption = XMLHelper.getAttr(element, "caption", null);
+    	viewOrder = (short )XMLHelper.getAttr(element, "viewOrder", -1);
+    	origImportColumnIndex = (short )XMLHelper.getAttr(element, "origImportColumnIndex", -1);
+    	dataFieldLength = (short )XMLHelper.getAttr(element, "dataFieldLength", -1);
+    	fieldType = (short )XMLHelper.getAttr(element, "fieldType", -1);
+    	metaData = XMLHelper.getAttr(element, "metaData", null);
+    	xCoord = (short )XMLHelper.getAttr(element, "xCoord", -1);
+    	yCoord = (short )XMLHelper.getAttr(element, "yCoord", -1);
+    	carryForward = XMLHelper.getAttr(element, "carryForward", false);
+    	isExportableToContent = XMLHelper.getAttr(element, "isExportableToContent", false);
+    	isIncludedInTitle = XMLHelper.getAttr(element, "isIncludedInTitle", false);
+    	isRequired = XMLHelper.getAttr(element, "isRequired", false);
+    }
+    
     /**
      * @return the Table ID for the class.
      */
@@ -541,4 +609,11 @@ public class WorkbenchTemplateMappingItem extends DataModelObjBase implements ja
     {
         return importedColNameMaxLength;
     }
+
+	@Transient
+	@Override
+	public Class<?> getDataType() {
+		return WorkbenchTask.getDataType(this);
+	}
+    
 }

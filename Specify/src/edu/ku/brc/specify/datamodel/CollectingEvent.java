@@ -23,6 +23,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.Vector;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -46,6 +47,7 @@ import org.hibernate.annotations.Index;
 import edu.ku.brc.af.ui.forms.formatters.UIFieldFormatterIFace;
 import edu.ku.brc.dbsupport.AttributeIFace;
 import edu.ku.brc.dbsupport.AttributeProviderIFace;
+import edu.ku.brc.specify.conversion.BasicSQLUtils;
 
 /**
 
@@ -94,6 +96,7 @@ public class CollectingEvent extends DisciplineMember implements AttachmentOwner
     protected Set<CollectingEventAttachment>    collectingEventAttachments;
 
 
+    private static String ceCOSQL = " FROM collectingevent ce INNER JOIN collectionobject c ON ce.CollectingEventID = c.CollectingEventID WHERE c.CollectingEventID = ";
 
     // Constructors
 
@@ -407,7 +410,7 @@ public class CollectingEvent extends DisciplineMember implements AttachmentOwner
     /**
      *      * Locality where collection took place
      */
-    @ManyToOne
+    @ManyToOne(cascade = {}, fetch = FetchType.LAZY)
     @JoinColumn(name = "LocalityID")
     public Locality getLocality() 
     {
@@ -459,7 +462,7 @@ public class CollectingEvent extends DisciplineMember implements AttachmentOwner
    }
 
 
-    @ManyToOne
+    @ManyToOne(cascade = {}, fetch = FetchType.LAZY)
     @JoinColumn(name = "CollectingTripID")
     public CollectingTrip getCollectingTrip()
     {
@@ -498,7 +501,67 @@ public class CollectingEvent extends DisciplineMember implements AttachmentOwner
     {
         this.collectingEventAttachments = collectingEventAttachments;
     }
+    
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.datamodel.DataModelObjBase#getParentTableId()
+     */
+    @Override
+    @Transient
+    public Integer getParentTableId()
+    {
+        if (collectingTrip != null)
+        {
+            return CollectingTrip.getClassTableId();
+        }
+        
+        int cnt = BasicSQLUtils.getCountAsInt("SELECT COUNT(c.CollectionObjectID)" + ceCOSQL + collectingEventId);
+        if (cnt > 1)
+        {
+            return CollectionObject.getClassTableId();
+        }
+        return null;
+    }
 
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.datamodel.DataModelObjBase#forceLoad()
+     */
+    @Override
+    public void forceLoad()
+    {
+        if (collectingEventAttribute != null)
+        {
+            collectingEventAttribute.getId();
+        }
+        collectingEventAttachments.size();
+        //collectionObjects.size();
+        collectors.size();
+        collectingEventAttrs.size();
+    }
+
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.datamodel.DataModelObjBase#getParentId()
+     */
+    @Override
+    @Transient
+    public Integer getParentId()
+    {
+        if (collectingTrip != null)
+        {
+            return collectingTrip.getId();
+        }
+        
+        // Here is a non-Hibernate fix
+        String postSQL = ceCOSQL + collectingEventId;
+        
+        int cnt = BasicSQLUtils.getCountAsInt("SELECT COUNT(c.CollectionObjectID)" + postSQL);
+        if (cnt == 1)
+        {
+            Vector<Object> ids = BasicSQLUtils.querySingleCol("SELECT c.CollectionObjectID" + postSQL);
+            return (Integer)ids.get(0);
+        }
+        return null;
+    }
+    
     /* (non-Javadoc)
      * @see edu.ku.brc.ui.forms.FormDataObjIFace#getTableId()
      */
@@ -533,7 +596,6 @@ public class CollectingEvent extends DisciplineMember implements AttachmentOwner
     public Object clone() throws CloneNotSupportedException
     {
         CollectingEvent obj = (CollectingEvent)super.clone();
-        obj.init();
         
         obj.collectingEventId = null;
         obj.collectionObjects            = new HashSet<CollectionObject>();
@@ -554,7 +616,9 @@ public class CollectingEvent extends DisciplineMember implements AttachmentOwner
         obj.collectingEventAttrs        = new HashSet<CollectingEventAttr>();
         for (CollectingEventAttr cea : collectingEventAttrs)
         {
-            obj.collectingEventAttrs.add((CollectingEventAttr)cea.clone());
+            CollectingEventAttr newCEA = (CollectingEventAttr)cea.clone();
+            obj.collectingEventAttrs.add(newCEA);
+            newCEA.setCollectingEvent(obj);
         }
          
         return obj;

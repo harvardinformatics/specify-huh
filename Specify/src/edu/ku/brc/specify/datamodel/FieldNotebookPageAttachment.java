@@ -23,6 +23,7 @@ import java.io.Serializable;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
@@ -113,9 +114,9 @@ public class FieldNotebookPageAttachment extends DataModelObjBase implements Obj
         this.remarks = remarks;
     }
 
-    @ManyToOne
+    @ManyToOne(cascade = {}, fetch = FetchType.EAGER)
     @JoinColumn(name = "AttachmentID", nullable = false)
-    @Cascade( {CascadeType.SAVE_UPDATE, CascadeType.MERGE, CascadeType.LOCK} )
+    @Cascade( { CascadeType.ALL, CascadeType.DELETE_ORPHAN })
     public Attachment getAttachment()
     {
         return attachment;
@@ -126,7 +127,7 @@ public class FieldNotebookPageAttachment extends DataModelObjBase implements Obj
         this.attachment = attachment;
     }
 
-    @ManyToOne
+    @ManyToOne(cascade = {}, fetch = FetchType.LAZY)
     @JoinColumn(name = "FieldNotebookPageID", nullable = false)
     public FieldNotebookPage getFieldNotebookPage()
     {
@@ -158,6 +159,26 @@ public class FieldNotebookPageAttachment extends DataModelObjBase implements Obj
     public void setObject(FieldNotebookPage object)
     {
         setFieldNotebookPage(object);
+    }
+    
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.datamodel.DataModelObjBase#getParentTableId()
+     */
+    @Override
+    @Transient
+    public Integer getParentTableId()
+    {
+        return FieldNotebookPage.getClassTableId();
+    }
+
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.datamodel.DataModelObjBase#getParentId()
+     */
+    @Override
+    @Transient
+    public Integer getParentId()
+    {
+        return fieldNotebookPage != null ? fieldNotebookPage.getId() : null;
     }
     
     /* (non-Javadoc)

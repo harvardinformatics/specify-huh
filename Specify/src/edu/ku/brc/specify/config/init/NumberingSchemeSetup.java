@@ -144,6 +144,7 @@ public class NumberingSchemeSetup extends JPanel implements SetupPanelIFace
     @Override
     public void aboutToLeave()
     {
+        // no op
     }
     
     /* (non-Javadoc)

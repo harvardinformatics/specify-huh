@@ -21,6 +21,7 @@ package edu.ku.brc.specify.datamodel;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.Vector;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -32,7 +33,11 @@ import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.persistence.Transient;
 
+import org.apache.commons.lang.StringUtils;
 import org.hibernate.annotations.Index;
+
+import edu.ku.brc.af.ui.forms.formatters.DataObjFieldFormatMgr;
+import edu.ku.brc.specify.conversion.BasicSQLUtils;
 
 /**
  * @author rod
@@ -64,6 +69,7 @@ public class CollectionObjectAttribute extends CollectionMember implements Clone
     protected Float  number10;
     protected String text13;
     protected String text14;
+    protected String text15;
     protected Float number11;
     protected Float number12;
     protected Float number13;
@@ -117,6 +123,7 @@ public class CollectionObjectAttribute extends CollectionMember implements Clone
     protected Boolean yesNo5;
     protected Boolean yesNo6;
     protected Boolean yesNo7;
+    
     protected Set<CollectionObject> collectionObjects;
     
     // Constructors
@@ -139,17 +146,18 @@ public class CollectionObjectAttribute extends CollectionMember implements Clone
     {
         super.init();
         collectionObjectAttributeId = null;
-        text10 = null;
-        text11 = null;
-        text12 = null;
+        text10   = null;
+        text11   = null;
+        text12   = null;
         number37 = null;
         number38 = null;
-        number8 = null;
-        number9 = null;
-        text8 = null;
+        number8  = null;
+        number9  = null;
+        text8    = null;
         number10 = null;
-        text13 = null;
-        text14 = null;
+        text13   = null;
+        text14   = null;
+        text15   = null;
         number11 = null;
         number12 = null;
         number13 = null;
@@ -231,7 +239,6 @@ public class CollectionObjectAttribute extends CollectionMember implements Clone
         return collectionObjects;
     }
 
-
     @Column(name = "Text11", unique = false, nullable = true, insertable = true, updatable = true, length = 50)
     public String getText11()
     {
@@ -242,6 +249,12 @@ public class CollectionObjectAttribute extends CollectionMember implements Clone
     public String getText14()
     {
         return text14;
+    }
+
+    @Column(name = "Text15", unique = false, nullable = true, insertable = true, updatable = true, length = 64)
+    public String getText15()
+    {
+        return text15;
     }
 
     @Column(name = "Number42", unique = false, nullable = true, insertable = true, updatable = true)
@@ -637,6 +650,11 @@ public class CollectionObjectAttribute extends CollectionMember implements Clone
         this.text14 = text14;
     }
 
+    public void setText15(String text15)
+    {
+        this.text15 = text15;
+    }
+
     public void setNumber42(Float number42)
     {
         this.number42 = number42;
@@ -959,7 +977,53 @@ public class CollectionObjectAttribute extends CollectionMember implements Clone
         
         return obj;
     }
+    
+    
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.datamodel.DataModelObjBase#getIdentityTitle()
+     */
+    @Override
+    @Transient
+    public String getIdentityTitle()
+    {
+        return toString();
+    }
 
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.datamodel.DataModelObjBase#toString()
+     */
+    @Override
+    public String toString()
+    {
+        String str = DataObjFieldFormatMgr.getInstance().format(this, getDataClass());
+        return StringUtils.isNotEmpty(str) ? str : "1";
+    }
+    
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.datamodel.DataModelObjBase#getParentTableId()
+     */
+    @Override
+    @Transient
+    public Integer getParentTableId()
+    {
+        return CollectionObject.getClassTableId();
+    }
+
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.datamodel.DataModelObjBase#getParentId()
+     */
+    @Override
+    @Transient
+    public Integer getParentId()
+    {
+        Vector<Object> ids = BasicSQLUtils.querySingleCol("SELECT CollectionObjectID FROM collectionobject WHERE CollectionObjectAttributeID = "+ collectionObjectAttributeId);
+        if (ids.size() == 1)
+        {
+            return (Integer)ids.get(0);
+        }
+        return null;
+    }
+    
     /* (non-Javadoc)
      * @see edu.ku.brc.ui.forms.FormDataObjIFace#getDataClass()
      */

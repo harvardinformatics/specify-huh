@@ -199,7 +199,6 @@ public class DataImportDialog extends JDialog implements ActionListener
         highestColumnCount = 0;
         myDisplayTable = new JTable();
         model = new PreviewTableModel();
-        createUiForCSV();
         
         ImageIcon appIcon = IconManager.getIcon("AppIcon"); //$NON-NLS-1$
         if (appIcon != null)
@@ -223,7 +222,6 @@ public class DataImportDialog extends JDialog implements ActionListener
         this.doesFirstRowHaveHeaders = doesHaveHeaders;
         myDisplayTable = null;
         model = new PreviewTableModel();
-        createUiForXLS();
         
         ImageIcon appIcon = IconManager.getIcon("AppIcon"); //$NON-NLS-1$
         if (appIcon != null)
@@ -231,20 +229,38 @@ public class DataImportDialog extends JDialog implements ActionListener
             setIconImage(appIcon.getImage());
         }
 	}
+    
+    /**
+     * @return false means the dialog should not be shown.
+     */
+    public boolean init()
+    {
+        return createUiForXLS();
+    }
 
+    /**
+     * @return true if ui creation succeeds, else false
+     */
+    public boolean initForCSV()
+    {
+    	return createUiForCSV();
+    }
+    
     /**
      * Initialize UI for a csv import
      * 
      * void
      */
-    private void createUiForCSV()
+    private boolean createUiForCSV()
     {
     	JPanel p = createConfigPanelForCSV();
     	setContentPane(p);  
     	if(!hasTooManyRows)
     	{
     		init(getResourceString("IMPORT_CVS"));    
+    		return true;
     	}
+    	return false;
     }
       
 
@@ -253,14 +269,19 @@ public class DataImportDialog extends JDialog implements ActionListener
      * 
      * void
      */
-    private void createUiForXLS()
+    private boolean createUiForXLS()
     {
     	JPanel p = createConfigPanelForXLS();
-    	setContentPane(p);
-    	if(!hasTooManyRows)
+    	if (p != null)
     	{
-    		init(getResourceString("IMPORT_XLS"));    
+        	setContentPane(p);
+        	if(!hasTooManyRows)
+        	{
+        		init(getResourceString("IMPORT_XLS"));    
+        	}
+        	return true;
     	}
+    	return false;
     }
     
     /**
@@ -269,7 +290,7 @@ public class DataImportDialog extends JDialog implements ActionListener
      * @param title - the title of the dialog
      * void
      */
-    private void init(String title)
+    private void init(final String title)
     {
         setTitle(title);
         setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
@@ -363,6 +384,10 @@ public class DataImportDialog extends JDialog implements ActionListener
         
         builder.addSeparator(getResourceString("DATA_PREVIEW"),     cc.xyw(2,8,4));
         myDisplayTable = setXLSTableData(myDisplayTable);
+        if (myDisplayTable == null)
+        {
+            return null;
+        }
         builder.add         (addtoScroll(myDisplayTable),           cc.xyw(3,10,3));
         builder.add         (errorPanel,                            cc.xyw(3,12,4));  
         builder.add         (buttonpanel,                           cc.xyw(2,14,4)); 
@@ -892,7 +917,9 @@ public class DataImportDialog extends JDialog implements ActionListener
                         }
                         else
                         {
-                            switch (cell.getCellType())
+                            int type = cell.getCellType();
+
+                        	switch (type)
                             {
                                 case HSSFCell.CELL_TYPE_NUMERIC:
                                     // The best I can do at this point in the app is to guess if a
@@ -912,11 +939,12 @@ public class DataImportDialog extends JDialog implements ActionListener
                                     // This function checks the format against a few internal
                                     // formats to decide the issue,
                                     // but by its very nature it is prone to false negatives.
-                                    if (HSSFDateUtil.isCellDateFormatted(cell))
+                                	if (HSSFDateUtil.isCellDateFormatted(cell))
                                     {
                                         value = scrDateFormat.getSimpleDateFormat().format(
                                                 cell.getDateCellValue());
-                                    }
+                                        //value = scrDateFormat.getSimpleDateFormat().format(cell.getDateCellValue());
+                                                                            }
                                     else
                                     {
                                         double numeric = cell.getNumericCellValue();
@@ -936,6 +964,10 @@ public class DataImportDialog extends JDialog implements ActionListener
                                     value = Boolean.toString(cell.getBooleanCellValue());
                                     break;
 
+                                case HSSFCell.CELL_TYPE_FORMULA:
+                                	value = UIRegistry.getResourceString("WB_FORMULA_IMPORT_NO_PREVIEW");
+                                	break;
+                                	
                                 default:
                                     value = "";
                                     log.error("unsuported cell type");
@@ -1032,28 +1064,31 @@ public class DataImportDialog extends JDialog implements ActionListener
             model.fireTableStructureChanged();
             return result;
         } 
-        catch (IOException ex)
+        catch (Exception ex)
         {
-        	UIRegistry.displayStatusBarErrMsg(UIRegistry.getResourceString("WB_ERROR_READING_IMPORT_FILE"));
-        	String[] columnNames = {};
-        	String[][] blankData = {{}};
-            model = new PreviewTableModel(columnNames, blankData);
-            table.setModel(model);
-            table.setColumnSelectionAllowed(false);
-            table.setRowSelectionAllowed(false);
-            table.setCellSelectionEnabled(false);
-            table.getTableHeader().setReorderingAllowed(false);
-            table.setPreferredScrollableViewportSize(new Dimension(500, 100));
-            table.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
-            table.setDefaultRenderer(String.class, new BiColorTableCellRenderer(false));
-            model.fireTableDataChanged();
-            model.fireTableStructureChanged();
-            return table;
+        	UIRegistry.displayErrorDlgLocalized(UIRegistry.getResourceString("WB_ERROR_READING_IMPORT_FILE"));
+        	if (table != null)
+        	{
+            	String[] columnNames = {};
+            	String[][] blankData = {{}};
+                model = new PreviewTableModel(columnNames, blankData);
+                table.setModel(model);
+                table.setColumnSelectionAllowed(false);
+                table.setRowSelectionAllowed(false);
+                table.setCellSelectionEnabled(false);
+                table.getTableHeader().setReorderingAllowed(false);
+                table.setPreferredScrollableViewportSize(new Dimension(500, 100));
+                table.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
+                table.setDefaultRenderer(String.class, new BiColorTableCellRenderer(false));
+                model.fireTableDataChanged();
+                model.fireTableStructureChanged();
+                return table;
+        	}
             //log.error("Error attempting to parse input xls file:" + ex);
             //ex.printStackTrace();
         }
 
-        //return null;       
+        return null;       
     }
     
     private void showTooManyRowsErrorDialog()
@@ -1222,10 +1257,10 @@ public class DataImportDialog extends JDialog implements ActionListener
             {
             	//WorkbenchDataItem.class.getDeclaredMethod("getCellData", null).getDeclaredAnnotations();
                 String str = data[i][j];
-                if (!isStringShorterThan(WorkbenchDataItem.getCellDataLength(), str))
+                if (!isStringShorterThan(WorkbenchDataItem.getMaxWBCellLength(), str))
                 {
                     String msg = "The value in cell Row=" + i + ", Column=" + headers[j] + " is too long to be inserted into the database.  It will be truncated.\n"
-                    + "Current Value:\n" + str+ "\nTruncated Value:\n" + str.substring(0, WorkbenchDataItem.getCellDataLength()-1);
+                    + "Current Value:\n" + str+ "\nTruncated Value:\n" + str.substring(0, WorkbenchDataItem.getMaxWBCellLength()-1);
                     log.warn(msg);
                     listModel.addElement(msg);
                 }

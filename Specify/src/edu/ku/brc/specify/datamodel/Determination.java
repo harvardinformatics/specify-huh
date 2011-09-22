@@ -63,6 +63,8 @@ public class Determination extends CollectionMember implements java.io.Serializa
      protected Byte                determinedDatePrecision;   // Accurate to Year, Month, Day
 
      protected String              qualifier;
+     protected String              subSpQualifier;
+     protected String              varQualifier;
      protected String              addendum;
      protected String              confidence;
      protected String              method;
@@ -113,6 +115,8 @@ public class Determination extends CollectionMember implements java.io.Serializa
         determinedDatePrecision = null;
         confidence = null;
         qualifier  = null;
+        subSpQualifier = null;
+        varQualifier = null;
         addendum = null;
         alternateName = null;
         nameUsage = null;
@@ -178,7 +182,7 @@ public class Determination extends CollectionMember implements java.io.Serializa
     @Column(name="IsCurrent",unique=false,nullable=false,updatable=true,insertable=true)
     public Boolean getIsCurrent() 
     {
-        return this.isCurrent;
+        return this.isCurrent != null ? this.isCurrent : false;
     }
     
     /**
@@ -271,6 +275,40 @@ public class Determination extends CollectionMember implements java.io.Serializa
     public void setQualifier(String qualifier)
     {
         this.qualifier = qualifier;
+    }
+
+    /**
+     * @return the subSpQualifier
+     */
+    @Column(name = "SubSpQualifier", unique = false, nullable = true, insertable = true, updatable = true, length = 16)
+    public String getSubSpQualifier()
+    {
+        return subSpQualifier;
+    }
+
+    /**
+     * @param subSpQualifier the subSpQualifier to set
+     */
+    public void setSubSpQualifier(String subSpQualifier)
+    {
+        this.subSpQualifier = subSpQualifier;
+    }
+
+    /**
+     * @return the varQualifier
+     */
+    @Column(name = "VarQualifier", unique = false, nullable = true, insertable = true, updatable = true, length = 16)
+    public String getVarQualifier()
+    {
+        return varQualifier;
+    }
+
+    /**
+     * @param varQualifier the varQualifier to set
+     */
+    public void setVarQualifier(String varQualifier)
+    {
+        this.varQualifier = varQualifier;
     }
 
     /**
@@ -496,12 +534,10 @@ public class Determination extends CollectionMember implements java.io.Serializa
      * 
      * setTaxon() should be used instead.
      */
-    @SuppressWarnings("unused")
     public void setPreferredTaxon(Taxon preferredTaxon)
     {
         this.preferredTaxon = preferredTaxon;
     }
-
 
     /**
      * 
@@ -581,8 +617,29 @@ public class Determination extends CollectionMember implements java.io.Serializa
 //        {
 //            ds.getId(); // make sure it is loaded;
 //        }
+    	determinationCitations.size();
+    }
+    
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.datamodel.DataModelObjBase#getParentTableId()
+     */
+    @Override
+    @Transient
+    public Integer getParentTableId()
+    {
+        return CollectionObject.getClassTableId();
     }
 
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.datamodel.DataModelObjBase#getParentId()
+     */
+    @Override
+    @Transient
+    public Integer getParentId()
+    {
+        return collectionObject != null ? collectionObject.getId() : null;
+    }
+ 
     /* (non-Javadoc)
      * @see edu.ku.brc.ui.forms.FormDataObjIFace#getTableId()
      */
@@ -609,7 +666,6 @@ public class Determination extends CollectionMember implements java.io.Serializa
     {
         Determination 
         obj = (Determination)super.clone();
-        obj.init();
         obj.determinationId        = null;
         obj.collectionObject       = null;
         obj.determinationCitations = new HashSet<DeterminationCitation>();
@@ -644,7 +700,7 @@ public class Determination extends CollectionMember implements java.io.Serializa
             return obj.determinedDate.compareTo(determinedDate); //reverse order- recent first
         }
         // else
-        return obj.timestampCreated.compareTo(timestampCreated); //reverse order- recent first
+        return timestampCreated != null && obj != null && obj.timestampCreated != null ? timestampCreated.compareTo(obj.timestampCreated) : 0;
     }
 
 

@@ -55,6 +55,7 @@ import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
 
 import edu.ku.brc.af.core.db.AutoNumberGeneric;
+import edu.ku.brc.af.core.db.AutoNumberIFace;
 import edu.ku.brc.af.core.db.DBFieldInfo;
 import edu.ku.brc.ui.CustomDialog;
 
@@ -321,8 +322,8 @@ public class UIFormatterListEdtDlg extends CustomDialog
     {
         try
         {
-            UIFieldFormatterIFace tempCopy = isNew ? uif : (UIFieldFormatterIFace)uif.clone();
-            boolean isDefault = tempCopy.isDefault();
+            UIFieldFormatterIFace tempCopy  = isNew ? uif : (UIFieldFormatterIFace)uif.clone();
+            boolean               isDefault = tempCopy.isDefault();
             
             UIFormatterEditorDlg dlg = new UIFormatterEditorDlg(this, fieldInfo, tempCopy, isNew, doProcessSamples, uiFieldFormatterMgrCache);
             dlg.setVisible(true);
@@ -333,9 +334,12 @@ public class UIFormatterListEdtDlg extends CustomDialog
                 
                 if (selectedUIF.isIncrementer() && selectedUIF.getAutoNumber() == null)
                 {
-                    selectedUIF.setAutoNumber(new AutoNumberGeneric(
-                            fieldInfo.getTableInfo().getClassName(),
-                            fieldInfo.getName(), false));
+                    
+                    AutoNumberIFace autoNum = UIFieldFormatterMgr.getInstance().createAutoNumber(AutoNumberGeneric.class.getName(), 
+                                                                                                 fieldInfo.getTableInfo().getClassName(), 
+                                                                                                 fieldInfo.getName(), 
+                                                                                                 tempCopy.getFields().size() == 1);
+                    selectedUIF.setAutoNumber(autoNum);
                 }
                 
                 DefaultListModel model = (DefaultListModel) formatList.getModel();

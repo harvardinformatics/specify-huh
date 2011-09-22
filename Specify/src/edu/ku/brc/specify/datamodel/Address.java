@@ -22,6 +22,7 @@ package edu.ku.brc.specify.datamodel;
 import java.util.Calendar;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.Vector;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -39,6 +40,7 @@ import javax.persistence.Transient;
 
 import org.apache.commons.lang.StringUtils;
 
+import edu.ku.brc.specify.conversion.BasicSQLUtils;
 import edu.ku.brc.util.Orderable;
 
 /**
@@ -50,7 +52,8 @@ import edu.ku.brc.util.Orderable;
 @Table(name = "address")
 public class Address extends DataModelObjBase implements Orderable,
                                                          Comparable<Address>,
-                                                         java.io.Serializable 
+                                                         java.io.Serializable,
+                                                         Cloneable
 {
 
     // Fields
@@ -58,6 +61,9 @@ public class Address extends DataModelObjBase implements Orderable,
     protected Integer           addressId;
     protected String            address;
     protected String            address2;
+    protected String            address3;
+    protected String            address4;
+    protected String            address5;
     protected String            city;
     protected String            state;
     protected String            country;
@@ -105,6 +111,9 @@ public class Address extends DataModelObjBase implements Orderable,
         addressId = null;
         address = null;
         address2 = null;
+        address3 = null;
+        address4 = null;
+        address5 = null;
         city = null;
         state = null;
         country = null;
@@ -173,7 +182,7 @@ public class Address extends DataModelObjBase implements Orderable,
     /**
      *      * Address as it should appear on mailing labels
      */
-    @Column(name = "Address", unique = false, nullable = true, insertable = true, updatable = true)
+    @Column(name = "Address", unique = false, nullable = true, insertable = true, updatable = true, length = 255)
     public String getAddress() {
         return this.address;
     }
@@ -185,13 +194,49 @@ public class Address extends DataModelObjBase implements Orderable,
     /**
      *
      */
-    @Column(name = "Address2", unique = false, nullable = true, insertable = true, updatable = true)
+    @Column(name = "Address2", unique = false, nullable = true, insertable = true, updatable = true, length = 255)
     public String getAddress2() {
         return this.address2;
     }
 
     public void setAddress2(String address2) {
         this.address2 = address2;
+    }
+
+    /**
+     *
+     */
+    @Column(name = "Address3", unique = false, nullable = true, insertable = true, updatable = true, length = 64)
+    public String getAddress3() {
+        return this.address3;
+    }
+
+    public void setAddress3(String address3) {
+        this.address3 = address3;
+    }
+
+    /**
+     *
+     */
+    @Column(name = "Address4", unique = false, nullable = true, insertable = true, updatable = true, length = 64)
+    public String getAddress4() {
+        return this.address4;
+    }
+
+    public void setAddress4(String address4) {
+        this.address4 = address4;
+    }
+
+    /**
+     *
+     */
+    @Column(name = "Address5", unique = false, nullable = true, insertable = true, updatable = true, length = 64)
+    public String getAddress5() {
+        return this.address5;
+    }
+
+    public void setAddress5(String address5) {
+        this.address5 = address5;
     }
 
     /**
@@ -516,6 +561,37 @@ public class Address extends DataModelObjBase implements Orderable,
         this.divisions = divisions;
     }
 
+
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.datamodel.DataModelObjBase#getParentId()
+     */
+    @Override
+    @Transient
+    public Integer getParentId()
+    {
+        if (agent != null)
+        {
+            parentTblId = Agent.getClassTableId();
+            return agent.getId();
+        }
+        
+        Vector<Object> ids = BasicSQLUtils.querySingleCol("SELECT InstitutionID FROM institution WHERE AddressID = "+ addressId);
+        if (ids.size() == 1)
+        {
+            parentTblId = Institution.getClassTableId();
+            return (Integer)ids.get(0);
+        }
+        
+        ids = BasicSQLUtils.querySingleCol("SELECT DivisionID FROM division WHERE AddressID = "+ addressId);
+        if (ids.size() == 1)
+        {
+            parentTblId = Division.getClassTableId();
+            return (Integer)ids.get(0);
+        }
+        parentTblId = null;
+        return null;
+    }
+    
     @Override
     @Transient
     public String getIdentityTitle()
@@ -560,6 +636,62 @@ public class Address extends DataModelObjBase implements Orderable,
      */
     public int compareTo(Address obj)
     {
-        return ordinal.compareTo(obj.ordinal);
+        if (ordinal != null && obj != null && obj.ordinal != null)
+        {
+            return ordinal.compareTo(obj.ordinal);
+        }
+        return 0;
+    }
+    
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.datamodel.DataModelObjBase#clone()
+     */
+    @Override
+    public Object clone() throws CloneNotSupportedException
+    {
+        Address obj = (Address)super.clone();
+        
+        obj.addressId            = null;
+        obj.agent                = null;
+        obj.insitutions          = new HashSet<Institution>();
+        obj.divisions            = new HashSet<Division>();
+       
+        return obj;
+    }
+    
+    /**
+     * @param o
+     * @return true if 'non-system' fields all match.
+     */
+    public boolean matches(Address o)
+    {
+        if (o == null)
+        {
+        	return false;
+        }
+        
+        //XXX not comparing agent. For current usage of this method Agent doesn't need to be compared.
+    	return
+        	((address == null && o.address == null) || ((address != null && o.address != null) && address.equals(o.address))) &&
+        	((address2 == null && o.address2 == null) || ((address2 != null && o.address2 != null) && address2.equals(o.address2))) &&
+        	((address3 == null && o.address3 == null) || ((address3 != null && o.address3 != null) && address3.equals(o.address3))) &&
+        	((address4 == null && o.address4 == null) || ((address4 != null && o.address4 != null) && address4.equals(o.address4))) &&
+        	((address5 == null && o.address5 == null) || ((address5 != null && o.address5 != null) && address5.equals(o.address5))) &&
+        	((city == null && o.city == null) || ((city != null && o.city != null) && city.equals(o.city))) &&
+        	((state == null && o.state == null) || ((state != null && o.state != null) && state.equals(o.state))) &&
+        	((country == null && o.country == null) || ((country != null && o.country != null) && country.equals(o.country))) &&
+        	((postalCode == null && o.postalCode == null) || ((postalCode != null && o.postalCode != null) && postalCode.equals(o.postalCode))) &&
+        	((remarks == null && o.remarks == null) || ((remarks != null && o.remarks != null) && remarks.equals(o.remarks))) &&
+        	((isPrimary == null && o.isPrimary == null) || ((isPrimary != null && o.isPrimary != null) && isPrimary.equals(o.isPrimary))) &&
+        	((phone1 == null && o.phone1 == null) || ((phone1 != null && o.phone1 != null) && phone1.equals(o.phone1))) &&
+        	((phone2 == null && o.phone2 == null) || ((phone2 != null && o.phone2 != null) && phone2.equals(o.phone2))) &&
+        	((fax == null && o.fax == null) || ((fax != null && o.fax != null) && fax.equals(o.fax))) &&
+        	((roomOrBuilding == null && o.roomOrBuilding == null) || ((roomOrBuilding != null && o.roomOrBuilding != null) && roomOrBuilding.equals(o.roomOrBuilding))) &&
+        	((startDate == null && o.startDate == null) || ((startDate != null && o.startDate != null) && startDate.equals(o.startDate))) &&
+        	((endDate == null && o.endDate == null) || ((endDate != null && o.endDate != null) && endDate.equals(o.endDate))) &&
+        	((positionHeld == null && o.positionHeld == null) || ((positionHeld != null && o.positionHeld != null) && positionHeld.equals(o.positionHeld))) &&
+        	((isCurrent == null && o.isCurrent == null) || ((isCurrent != null && o.isCurrent != null) && isCurrent.equals(o.isCurrent))) &&
+        	((isShipping == null && o.isShipping == null) || ((isShipping != null && o.isShipping != null) && isShipping.equals(o.isShipping))) &&
+        	((typeOfAddr == null && o.typeOfAddr == null) || ((typeOfAddr != null && o.typeOfAddr != null) && typeOfAddr.equals(o.typeOfAddr)));
     }
 }

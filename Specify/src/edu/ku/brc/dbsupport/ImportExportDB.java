@@ -64,8 +64,7 @@ import edu.ku.brc.util.Pair;
 // TODO find a better way to stip the working set
 public class ImportExportDB
 {
-    
-    protected static final Logger log = Logger.getLogger(ImportExportDB.class);
+    private static final Logger log = Logger.getLogger(ImportExportDB.class);
     
     protected Session session;
     protected String  importFolderPath;
@@ -1224,8 +1223,8 @@ public class ImportExportDB
     @SuppressWarnings("unchecked")
     protected void parentXMLImport(Element dbImport,
                                    String dbTable,
-                                   String parentName,
-                                   long parentId)
+                                   @SuppressWarnings("unused") String parentName,
+                                   @SuppressWarnings("unused") long parentId)
     {
         // get the immediate parents
         List<String> immediateParents = new ArrayList<String>();
@@ -1717,7 +1716,7 @@ public class ImportExportDB
                         return bool;
                     } else if (type.equals("java.math.BigDecimal")) //$NON-NLS-1$
                     {
-                        BigDecimal num = new BigDecimal(compareMe.getStringValue());
+                        BigDecimal num = UIHelper.parseDoubleToBigDecimal(compareMe.getStringValue());
                         return num;
                     } else if (type.equals("java.lang.Double")) //$NON-NLS-1$
                     {
@@ -1870,7 +1869,7 @@ public class ImportExportDB
                         return bool;
                     } else if (type.equals("java.math.BigDecimal")) //$NON-NLS-1$
                     {
-                        BigDecimal num = new BigDecimal(compareMe.getStringValue());
+                        BigDecimal num = UIHelper.parseDoubleToBigDecimal(compareMe.getStringValue());
                         return num;
                     } else if (type.equals("java.lang.Double")) //$NON-NLS-1$
                     {
@@ -1985,7 +1984,7 @@ public class ImportExportDB
     // this method adds parents to the database instead of loading them
     protected Object findTypeRecordSet(Element compareMe,
                                        String dbTable,
-                                       long parentId,
+                                       @SuppressWarnings("unused") long parentId,
                                        String parentName)
     {
         try
@@ -2029,7 +2028,7 @@ public class ImportExportDB
                         return bool;
                     } else if (type.equals("java.math.BigDecimal")) //$NON-NLS-1$
                     {
-                        BigDecimal num = new BigDecimal(compareMe.getStringValue());
+                        BigDecimal num = UIHelper.parseDoubleToBigDecimal(compareMe.getStringValue());
                         return num;
                     } else if (type.equals("java.lang.Double")) //$NON-NLS-1$
                     {
@@ -2106,7 +2105,7 @@ public class ImportExportDB
     // this method adds parents to the database instead of loading them
     protected Object findTypeDataBase(Element compareMe,
                                       String dbTable,
-                                      long parentId,
+                                      @SuppressWarnings("unused") long parentId,
                                       String parentName)
     {
         try
@@ -2150,7 +2149,7 @@ public class ImportExportDB
                         return bool;
                     } else if (type.equals("java.math.BigDecimal")) //$NON-NLS-1$
                     {
-                        BigDecimal num = new BigDecimal(compareMe.getStringValue());
+                        BigDecimal num = UIHelper.parseDoubleToBigDecimal(compareMe.getStringValue());
                         return num;
                     } else if (type.equals("java.lang.Double")) //$NON-NLS-1$
                     {
@@ -2230,7 +2229,7 @@ public class ImportExportDB
     // this method adds parents to the database instead of loading them
     protected Object findTypeDataBaseParent(Element compareMe,
                                             String dbTable,
-                                            long parentId,
+                                            @SuppressWarnings("unused") long parentId,
                                             String parentName)
     {
         try
@@ -2287,7 +2286,7 @@ public class ImportExportDB
                     return bool;
                 } else if (type.equals("java.math.BigDecimal")) //$NON-NLS-1$
                 {
-                    BigDecimal num = new BigDecimal(compareMe.getStringValue());
+                    BigDecimal num = UIHelper.parseDoubleToBigDecimal(compareMe.getStringValue());
                     return num;
                 } else if (type.equals("java.lang.Double")) //$NON-NLS-1$
                 {

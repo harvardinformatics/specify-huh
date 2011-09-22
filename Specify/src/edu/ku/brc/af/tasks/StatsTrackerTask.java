@@ -23,24 +23,29 @@ import static edu.ku.brc.ui.UIRegistry.getResourceString;
 
 import java.beans.PropertyChangeListener;
 import java.io.IOException;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.List;
 import java.util.Vector;
+
+import javax.swing.SwingUtilities;
 
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.NameValuePair;
 import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
 
 import edu.ku.brc.af.core.SubPaneIFace;
 import edu.ku.brc.af.core.ToolBarItemDesc;
 import edu.ku.brc.af.core.UsageTracker;
+import edu.ku.brc.af.prefs.AppPreferences;
 import edu.ku.brc.dbsupport.DBConnection;
 import edu.ku.brc.dbsupport.DataProviderFactory;
 import edu.ku.brc.helpers.SwingWorker;
 import edu.ku.brc.specify.conversion.BasicSQLUtils;
 import edu.ku.brc.ui.CommandAction;
 import edu.ku.brc.ui.CommandDispatcher;
-import edu.ku.brc.ui.UIHelper;
 import edu.ku.brc.ui.UIRegistry;
 import edu.ku.brc.util.Pair;
 
@@ -53,6 +58,8 @@ import edu.ku.brc.util.Pair;
  */
 public class StatsTrackerTask extends BaseTask
 {
+    private static final Logger log = Logger.getLogger(StatsTrackerTask.class);
+    
     public  static final String           STATS_TRACKER   = "StatsTracker"; //$NON-NLS-1$
     
     protected StatsSwingWorker<?, ?> worker;
@@ -133,10 +140,14 @@ public class StatsTrackerTask extends BaseTask
     }
     
     /**
-     * @param doExit
-     * @param doSilent
+     * When it is done sending the statistics: if doExit is true it will shutdown the Hibernate and the DBConnections
+     * and call System.exit(0), if doSendDoneEvent is true then it send a CommandAction(APP_CMD_TYPE, "STATS_SEND_DONE", null)
+     * for someone else to shut everything down.
+     * @param doExit call exit
+     * @param doSilent don't show any UI while sending stats
+     * @param doSendDoneEvent send a STATS_SEND_DONE command on the UI thread.
      */
-    public void sendStats(final boolean doExit, final boolean doSilent)
+    public void sendStats(final boolean doExit, final boolean doSilent, final boolean doSendDoneEvent)
     {
         if (!doSilent)
         {
@@ -164,9 +175,25 @@ public class StatsTrackerTask extends BaseTask
                     
                     if (doExit)
                     {
+                        AppPreferences.shutdownAllPrefs();
                         DataProviderFactory.getInstance().shutdown();
                         DBConnection.shutdown();
                         System.exit(0);
+                        
+                    } else if (doSendDoneEvent)
+                    {
+                        SwingUtilities.invokeLater(new Runnable()
+                        {
+                            @Override
+                            public void run()
+                            {
+                                try
+                                {
+                                    Thread.sleep(500);
+                                } catch (Exception ex) {}
+                                CommandDispatcher.dispatch(new CommandAction(BaseTask.APP_CMD_TYPE, "STATS_SEND_DONE", null));
+                            }
+                        });
                     }
                 }
                 
@@ -251,23 +278,32 @@ public class StatsTrackerTask extends BaseTask
     /**
      * Connects to the update/usage tracking server to get the latest version info and/or send the usage stats.
      * 
-     * @return a list of modules that have a different version number than the currently installed software
      * @throws Exception if an IO error occured or the response couldn't be parsed
      */
     protected void sendStats() throws Exception
     {
+        sendStats(getVersionCheckURL(), createPostParameters(isSendSecondaryStatsAllowed), getClass().getName());
+    }
+    
+    /**
+     * Connects to the update/usage tracking server to get the latest version info and/or send the usage stats.
+     * @param url
+     * @param postParams
+     * @param userAgentName
+     * @throws Exception if an IO error occurred or the response couldn't be parsed
+     */
+    public static void sendStats(final String url, 
+                                 final Vector<NameValuePair> postParams, 
+                                 final String userAgentName) throws Exception
+    {
         // check the website for the info about the latest version
         HttpClient httpClient = new HttpClient();
-        httpClient.getParams().setParameter("http.useragent", getClass().getName()); //$NON-NLS-1$
+        httpClient.getParams().setParameter("http.useragent", userAgentName); //$NON-NLS-1$
         
-        // get the URL of the website to check, with usage info appended, if allowed
-        String versionCheckURL = getVersionCheckURL();
-        
-        PostMethod postMethod = new PostMethod(versionCheckURL);
+        PostMethod postMethod = new PostMethod(url);
         
         // get the POST parameters (which includes usage stats, if we're allowed to send them)
-        NameValuePair[] postParams = createPostParameters(isSendSecondaryStatsAllowed);
-        postMethod.setRequestBody(postParams);
+        postMethod.setRequestBody(buildNamePairArray(postParams));
         
         // connect to the server
         try
@@ -275,24 +311,27 @@ public class StatsTrackerTask extends BaseTask
             httpClient.executeMethod(postMethod);
             
             // get the server response
-            /*String responseString = postMethod.getResponseBodyAsString();
+            @SuppressWarnings("unused")
+            String responseString = postMethod.getResponseBodyAsString();
             
-            if (StringUtils.isNotEmpty(responseString))
-            {
-                System.err.println(responseString);
-            }*/
+            //if (StringUtils.isNotEmpty(responseString))
+            //{
+            //    System.err.println(responseString);
+            //}
 
-        }
-        catch (Exception e)
+        } catch (java.net.UnknownHostException ex)
+        {
+            log.debug("Couldn't reach host.");
+            
+        } catch (Exception e)
         {
             //e.printStackTrace();
             //UsageTracker.incrHandledUsageCount();
             //edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(StatsTrackerTask.class, e);
             throw new ConnectionException(e);
         }
-        
     }
-    
+
     /**
      * Gets the URL of the version checking / usage tracking server.
      * 
@@ -335,16 +374,32 @@ public class StatsTrackerTask extends BaseTask
                 return 0;
             }
         }
-        return count != null ? count : 0;
+        return count;
     }
     
     /**
      * Collection Statistics about the Collection (synchronously).
      * @return list of http named value pairs
      */
-    protected Vector<NameValuePair> collectSecondaryStats()
+    protected Vector<NameValuePair> collectSecondaryStats(@SuppressWarnings("unused") final boolean doSendSecondaryStats)
     {
         return null;
+    }
+    
+    /**
+     * Builds NamePair array from list.
+     * @param postParams the list 
+     * @return the array
+     */
+    public static NameValuePair[] buildNamePairArray(final Vector<NameValuePair> postParams)
+    {
+        // create an array from the params
+        NameValuePair[] paramArray = new NameValuePair[postParams.size()];
+        for (int i = 0; i < paramArray.length; ++i)
+        {
+            paramArray[i] = postParams.get(i);
+        }
+        return paramArray;
     }
     
     /**
@@ -353,7 +408,7 @@ public class StatsTrackerTask extends BaseTask
      * @param doSendSecondaryStats if true, the POST parameters include usage stats
      * @return an array of POST parameters
      */
-    protected NameValuePair[] createPostParameters(final boolean doSendSecondaryStats)
+    protected Vector<NameValuePair> createPostParameters(final boolean doSendSecondaryStats)
     {
         Vector<NameValuePair> postParams = new Vector<NameValuePair>();
         try
@@ -368,29 +423,28 @@ public class StatsTrackerTask extends BaseTask
             postParams.add(new NameValuePair("java_version", System.getProperty("java.version"))); //$NON-NLS-1$
             postParams.add(new NameValuePair("java_vendor",  System.getProperty("java.vendor"))); //$NON-NLS-1$
             
-            if (!UIRegistry.isRelease()) // For Testing Only
+            //if (!UIRegistry.isRelease()) // For Testing Only
             {
                 postParams.add(new NameValuePair("user_name", System.getProperty("user.name"))); //$NON-NLS-1$
-                //try 
-                //{
-                //    postParams.add(new NameValuePair("ip", InetAddress.getLocalHost().getHostAddress())); //$NON-NLS-1$
-                //} catch (UnknownHostException e) {}
-            }
-            
-            String install4JStr = UIHelper.getInstall4JInstallString();
-            if (StringUtils.isEmpty(install4JStr))
-            {
-                install4JStr = "Unknown"; 
-            }
-            postParams.add(new NameValuePair("app_version", install4JStr)); //$NON-NLS-1$
-            
-            if (doSendSecondaryStats)
-            {
-                Vector<NameValuePair> extraStats = collectSecondaryStats();
-                if (extraStats != null)
+                try 
                 {
-                    postParams.addAll(extraStats);
-                }
+                    postParams.add(new NameValuePair("ip", InetAddress.getLocalHost().getHostAddress())); //$NON-NLS-1$
+                } catch (UnknownHostException e) {}
+            }
+            
+            postParams.add(new NameValuePair("tester", AppPreferences.getLocalPrefs().getBoolean("tester", false) ? "true" : "false")); //$NON-NLS-1$
+            
+            String resAppVersion = UIRegistry.getAppVersion();
+            if (StringUtils.isEmpty(resAppVersion))
+            {
+                resAppVersion = "Unknown"; 
+            }
+            postParams.add(new NameValuePair("app_version", resAppVersion)); //$NON-NLS-1$
+            
+            Vector<NameValuePair> extraStats = collectSecondaryStats(doSendSecondaryStats);
+            if (extraStats != null)
+            {
+                postParams.addAll(extraStats);
             }
             
             // get all of the usage tracking stats
@@ -400,25 +454,17 @@ public class StatsTrackerTask extends BaseTask
                 postParams.add(new NameValuePair(stat.first, Integer.toString(stat.second)));
             }
             
-            // create an array from the params
-            NameValuePair[] paramArray = new NameValuePair[postParams.size()];
-            for (int i = 0; i < paramArray.length; ++i)
-            {
-                paramArray[i] = postParams.get(i);
-            }
-            
-            return paramArray;
+            return postParams;
         
         } catch (Exception ex)
         {
+            ex.printStackTrace();
             edu.ku.brc.af.core.UsageTracker.incrHandledUsageCount();
             edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(StatsTrackerTask.class, ex);
-            ex.printStackTrace();
         }
         return null;
     }
     
-
     /* (non-Javadoc)
      * @see edu.ku.brc.af.ui.CommandListener#doCommand(edu.ku.brc.af.ui.CommandAction)
      */

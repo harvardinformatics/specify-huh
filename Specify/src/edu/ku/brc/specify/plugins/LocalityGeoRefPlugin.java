@@ -25,7 +25,9 @@ import static edu.ku.brc.ui.UIRegistry.popResourceBundle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.math.BigDecimal;
+import java.text.NumberFormat;
 import java.util.List;
+import java.util.Locale;
 import java.util.Properties;
 import java.util.Vector;
 
@@ -58,6 +60,7 @@ import edu.ku.brc.ui.CommandListener;
 import edu.ku.brc.ui.GetSetValueIFace;
 import edu.ku.brc.ui.IconManager;
 import edu.ku.brc.ui.JStatusBar;
+import edu.ku.brc.ui.UIHelper;
 import edu.ku.brc.ui.UIRegistry;
 import edu.ku.brc.util.LatLonConverter;
 
@@ -75,6 +78,8 @@ public class LocalityGeoRefPlugin extends JButton implements GetSetValueIFace,
                                                              CommandListener
 {
     protected final String           PREFERENCES = "Preferences";
+    
+    protected NumberFormat           numberFormatter = NumberFormat.getNumberInstance(Locale.getDefault());
     
     protected Locality               locality    = null;
     protected FormViewObj            fvo         = null;    
@@ -226,6 +231,16 @@ public class LocalityGeoRefPlugin extends JButton implements GetSetValueIFace,
         throw new NotImplementedException("isNotEmpty not implement!");
     }
 
+
+    /* (non-Javadoc)
+     * @see edu.ku.brc.af.ui.forms.UIPluginable#getFieldNames()
+     */
+    @Override
+    public String[] getFieldNames()
+    {
+        return new String[] {"localityName", "geography"};
+    }
+    
     /**
      * 
      */
@@ -233,7 +248,7 @@ public class LocalityGeoRefPlugin extends JButton implements GetSetValueIFace,
     {
         if (doGeoLocate)
         {
-            setIcon(IconManager.getIcon("GEOLocate", IconManager.IconSize.Std16));
+            setIcon(IconManager.getIcon("GEOLocate16"));
             setText("GEOLocate");
             
         } else
@@ -357,9 +372,9 @@ public class LocalityGeoRefPlugin extends JButton implements GetSetValueIFace,
        {
            GeoCoordDataIFace gcData = items.get(0);
            
-           BigDecimal lat1 = new BigDecimal(Double.parseDouble(gcData.getLatitude()));
-           BigDecimal lon1 = new BigDecimal(Double.parseDouble(gcData.getLongitude()));
-
+           BigDecimal lat1 = UIHelper.parseDoubleToBigDecimal(gcData.getLatitude());
+           BigDecimal lon1 = UIHelper.parseDoubleToBigDecimal(gcData.getLongitude());
+           
            if (llId == null)
            {
                JOptionPane.showMessageDialog(null, "The LatLonUI is missing the 'llid' parameter", "Error", JOptionPane.ERROR_MESSAGE);
@@ -403,9 +418,31 @@ public class LocalityGeoRefPlugin extends JButton implements GetSetValueIFace,
             if (cmdAction.isAction("Updated"))
             {
                 String geoRefTool = cmdAction.getPropertyAsString("georef_tool");
-                doGeoLocate = StringUtils.isNotEmpty(geoRefTool) && geoRefTool.equalsIgnoreCase("geolocate");
+                if (geoRefTool != null)
+                {
+                    doGeoLocate = geoRefTool.equalsIgnoreCase("geolocate");
+                }
                 adjustUIForTool();
             }
         }
+    }
+    
+
+    /* (non-Javadoc)
+     * @see edu.ku.brc.af.ui.forms.UIPluginable#carryForwardStateChange()
+     */
+    @Override
+    public void carryForwardStateChange()
+    {
+        // no op
+    }
+
+    /* (non-Javadoc)
+     * @see edu.ku.brc.af.ui.forms.UIPluginable#setNewObj(boolean)
+     */
+    @Override
+    public void setNewObj(boolean isNewObj)
+    {
+        // no op
     }
 }

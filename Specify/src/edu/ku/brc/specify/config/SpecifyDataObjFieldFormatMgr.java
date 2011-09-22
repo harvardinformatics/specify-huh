@@ -26,6 +26,7 @@ import org.dom4j.Element;
 
 import edu.ku.brc.af.core.AppContextMgr;
 import edu.ku.brc.af.ui.forms.formatters.DataObjFieldFormatMgr;
+import edu.ku.brc.af.ui.forms.formatters.UIFieldFormatterMgr;
 import edu.ku.brc.helpers.XMLHelper;
 import edu.ku.brc.specify.ui.SpecifyUIFieldFormatterMgr;
 import edu.ku.brc.ui.CommandAction;
@@ -52,7 +53,26 @@ public class SpecifyDataObjFieldFormatMgr extends DataObjFieldFormatMgr implemen
     {
         CommandDispatcher.register(DISCIPLINE, this); //$NON-NLS-1$
     }
-    
+
+    /**
+     * @param appContextMgr
+     */
+    public SpecifyDataObjFieldFormatMgr(AppContextMgr appContextMgr)
+    {
+        super(appContextMgr);
+        CommandDispatcher.register(DISCIPLINE, this); //$NON-NLS-1$
+    }
+
+
+    /* (non-Javadoc)
+     * @see edu.ku.brc.af.ui.forms.formatters.DataObjFieldFormatMgr#reset()
+     */
+    @Override
+    public void reset()
+    {
+        instance = null;
+    }
+
     /* (non-Javadoc)
      * @see edu.ku.brc.ui.forms.formatters.DataObjFieldFormatMgr#getDOM()
      */
@@ -63,7 +83,8 @@ public class SpecifyDataObjFieldFormatMgr extends DataObjFieldFormatMgr implemen
             return XMLHelper.readDOMFromConfigDir(localFileName);
         }
 
-        return SpecifyUIFieldFormatterMgr.getDisciplineDOMFromResource(DATAOBJFORMATTERS, localFileName);
+        SpecifyUIFieldFormatterMgr spUIFFMgr = (SpecifyUIFieldFormatterMgr)UIFieldFormatterMgr.getInstance();
+        return spUIFFMgr.getDisciplineDOMFromResource(getAppContextMgr(), DATAOBJFORMATTERS, localFileName);
     }
     
     /* (non-Javadoc)
@@ -88,7 +109,7 @@ public class SpecifyDataObjFieldFormatMgr extends DataObjFieldFormatMgr implemen
             
         } else if (AppContextMgr.getInstance() != null)
         {
-            SpecifyUIFieldFormatterMgr.saveDisciplineResource(DATAOBJFORMATTERS, xml);
+            SpecifyUIFieldFormatterMgr.saveDisciplineResource(getAppContextMgr(), DATAOBJFORMATTERS, xml);
         }
 
     }

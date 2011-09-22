@@ -24,6 +24,7 @@ import static edu.ku.brc.ui.UIRegistry.getLocalizedMessage;
 import static edu.ku.brc.ui.UIRegistry.getResourceString;
 
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Frame;
 import java.awt.Graphics;
@@ -32,9 +33,13 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.Hashtable;
 import java.util.List;
+import java.util.Properties;
+import java.util.Set;
 import java.util.Vector;
 
 import javax.swing.ImageIcon;
+import javax.swing.JCheckBox;
+import javax.swing.JMenuItem;
 import javax.swing.SwingUtilities;
 
 import org.apache.commons.lang.StringUtils;
@@ -42,10 +47,13 @@ import org.apache.log4j.Logger;
 
 import com.thoughtworks.xstream.XStream;
 
+import edu.ku.brc.af.auth.BasicPermisionPanel;
+import edu.ku.brc.af.auth.PermissionEditorIFace;
 import edu.ku.brc.af.auth.PermissionSettings;
 import edu.ku.brc.af.core.AppContextMgr;
 import edu.ku.brc.af.core.AppResourceIFace;
 import edu.ku.brc.af.core.ContextMgr;
+import edu.ku.brc.af.core.MenuItemDesc;
 import edu.ku.brc.af.core.NavBox;
 import edu.ku.brc.af.core.NavBoxAction;
 import edu.ku.brc.af.core.NavBoxButton;
@@ -72,23 +80,34 @@ import edu.ku.brc.af.ui.forms.persist.ViewIFace;
 import edu.ku.brc.af.ui.forms.persist.ViewLoader;
 import edu.ku.brc.dbsupport.DataProviderFactory;
 import edu.ku.brc.dbsupport.DataProviderSessionIFace;
+import edu.ku.brc.dbsupport.DataProviderSessionIFace.QueryIFace;
 import edu.ku.brc.dbsupport.RecordSetIFace;
 import edu.ku.brc.specify.config.SpecifyAppContextMgr;
 import edu.ku.brc.specify.datamodel.Agent;
 import edu.ku.brc.specify.datamodel.Collection;
 import edu.ku.brc.specify.datamodel.CollectionObject;
+import edu.ku.brc.specify.datamodel.Determination;
 import edu.ku.brc.specify.datamodel.Discipline;
+import edu.ku.brc.specify.datamodel.RecordSet;
+import edu.ku.brc.specify.datamodel.SpAppResource;
+import edu.ku.brc.specify.datamodel.SpReport;
+import edu.ku.brc.specify.datamodel.busrules.BaseTreeBusRules;
 import edu.ku.brc.specify.dbsupport.TaskSemaphoreMgr;
+import edu.ku.brc.specify.dbsupport.TaskSemaphoreMgr.SCOPE;
 import edu.ku.brc.specify.prefs.FormattingPrefsPanel;
 import edu.ku.brc.specify.tasks.subpane.wb.wbuploader.Uploader;
+import edu.ku.brc.specify.ui.BatchReidentifyPanel;
 import edu.ku.brc.specify.ui.DBObjDialogFactory.FormLockStatus;
+import edu.ku.brc.ui.ChooseFromListDlg;
 import edu.ku.brc.ui.CommandAction;
 import edu.ku.brc.ui.CommandDispatcher;
+import edu.ku.brc.ui.CustomDialog;
 import edu.ku.brc.ui.DataFlavorTableExt;
 import edu.ku.brc.ui.IconManager;
 import edu.ku.brc.ui.ToggleButtonChooserDlg;
 import edu.ku.brc.ui.ToggleButtonChooserPanel;
 import edu.ku.brc.ui.ToolBarDropDownBtn;
+import edu.ku.brc.ui.UIHelper;
 import edu.ku.brc.ui.UIRegistry;
 import edu.ku.brc.ui.dnd.DataActionEvent;
 import edu.ku.brc.ui.dnd.GhostActionable;
@@ -128,6 +147,7 @@ public class DataEntryTask extends BaseTask
     // Data Members
     protected Vector<NavBoxIFace> extendedNavBoxes = new Vector<NavBoxIFace>();
     protected NavBox              viewsNavBox      = null;
+    protected NavBox              containerNavBox  = null;
     
     protected Vector<DataEntryView> stdViews       = null;
     protected Vector<DataEntryView> miscViews      = null;
@@ -166,9 +186,9 @@ public class DataEntryTask extends BaseTask
             
             navBoxes.add(viewsNavBox);
             
-            // No Series Processing
+            // Container Tree
             //NavBox navBox = new NavBox(getResourceString("Actions"));
-            //navBox.add(NavBox.createBtn(getResourceString("Series_Processing"), name, IconManager.STD_ICON_SIZE));
+            //navBox.add(NavBox.createBtn(getResourceString("ContainerTree"), "Container", IconManager.STD_ICON_SIZE));
             //navBoxes.add(navBox);
         }
         isShowDefault = true;
@@ -364,7 +384,10 @@ public class DataEntryTask extends BaseTask
         {
             FormPane  formPane  = (FormPane)subPane;
             MultiView multiView = formPane.getMultiView();
-            if (multiView != null && multiView.isEditable())
+            //Bug 7691. TreeLocks get set when a form is first displayed, even when a recordset is being
+            //displayed and the formview is not yet editable. So the isEditable() condition needs to be removed.
+            //A better fix would be to check locks when view mode is switched.
+            if (multiView != null/* && (multiView.isEditable()*/)
             {
                 ViewIFace view = multiView.getView();
                 
@@ -391,8 +414,15 @@ public class DataEntryTask extends BaseTask
                     
                     if (!hasDataOfTreeClass)
                     {
-                        TaskSemaphoreMgr.unlock("tabtitle", treeDefClass.getSimpleName()+"Form", TaskSemaphoreMgr.SCOPE.Discipline);
-                        TaskSemaphoreMgr.unlock("tabtitle", treeDefClass.getSimpleName(), TaskSemaphoreMgr.SCOPE.Discipline);
+                        if (BaseTreeBusRules.ALLOW_CONCURRENT_FORM_ACCESS)
+                        {
+                        	//XXX treeviewer pane vs. data form pane???
+                        	TaskSemaphoreMgr.decrementUsageCount(title, treeDefClass.getSimpleName(), SCOPE.Discipline);
+                        } else
+                        {
+                        	TaskSemaphoreMgr.unlock("tabtitle", treeDefClass.getSimpleName()+"Form", TaskSemaphoreMgr.SCOPE.Discipline);
+                        	TaskSemaphoreMgr.unlock("tabtitle", treeDefClass.getSimpleName(), TaskSemaphoreMgr.SCOPE.Discipline);
+                        }
                     }
                 }
             }
@@ -705,7 +735,7 @@ public class DataEntryTask extends BaseTask
                             
                             NavBoxAction nba = new NavBoxAction(cmdAction);
                             
-                            NavBoxItemIFace nbi = NavBox.createBtnWithTT(tableInfo.getTitle(), dev.getIconName(), dev.getToolTip(), IconManager.STD_ICON_SIZE, nba);
+                            NavBoxItemIFace nbi = NavBox.createBtnWithTT(dev.getTitle(), dev.getIconName(), dev.getToolTip(), IconManager.STD_ICON_SIZE, nba);
                             if (nbi instanceof NavBoxButton)
                             {
                                 NavBoxButton nbb = (NavBoxButton)nbi;
@@ -880,7 +910,8 @@ public class DataEntryTask extends BaseTask
                         }
                     } else
                     {
-                        dev.setToolTip(getLocalizedMessage(dev.getToolTip()));
+                        //dev.setToolTip(getLocalizedMessage(dev.getToolTip()));
+                        dev.setToolTip(dev.getToolTip());
                     }
                 }
                 
@@ -895,7 +926,8 @@ public class DataEntryTask extends BaseTask
                         }
                     } else
                     {
-                        dev.setToolTip(getLocalizedMessage(dev.getToolTip()));
+                        //dev.setToolTip(getLocalizedMessage(dev.getToolTip()));
+                        dev.setToolTip(dev.getToolTip());
                     }
                 }
                 
@@ -1089,6 +1121,57 @@ public class DataEntryTask extends BaseTask
         toolbarItems.add(new ToolBarItemDesc(btn));
 
         return toolbarItems;
+    }
+    
+    /*
+     *  (non-Javadoc)
+     * @see edu.ku.brc.specify.plugins.Taskable#getMenuItems()
+     */
+    @Override
+    public List<MenuItemDesc> getMenuItems()
+    {
+        String menuDesc = "Specify.DATA_MENU";
+        
+        menuItems = new Vector<MenuItemDesc>();
+        
+        if (permissions == null || permissions.canModify())
+        {
+            String    menuTitle = "DET_BTCH_REIDENT_MENU"; //$NON-NLS-1$
+            String    mneu      = "DET_BTCH_REIDENT_MNEU"; //$NON-NLS-1$
+            String    desc      = "DET_BTCH_REIDENT_DESC"; //$NON-NLS-1$
+            JMenuItem mi        = UIHelper.createLocalizedMenuItem(menuTitle, mneu, desc, true, null);
+            mi.addActionListener(new ActionListener()
+            {
+                public void actionPerformed(ActionEvent ae)
+                {
+                    doBatchReidentify();
+                }
+            });
+            MenuItemDesc rsMI = new MenuItemDesc(mi, menuDesc);
+            rsMI.setPosition(MenuItemDesc.Position.After);
+            menuItems.add(rsMI);
+        }
+        
+        return menuItems;
+    }
+    
+    /**
+     * 
+     */
+    protected void doBatchReidentify()
+    {
+        final BatchReidentifyPanel panel = new BatchReidentifyPanel();
+        if (panel.askForColObjs())
+        {
+            CustomDialog dlg = new CustomDialog((Frame)UIRegistry.getMostRecentWindow(), getResourceString("DET_BTCH_REIDENT_MENU"), true, panel);
+            dlg.createUI();
+            panel.setDlg(dlg);
+            UIHelper.centerAndShow(dlg);
+            if (!dlg.isCancelled())
+            {
+                panel.doReIdentify();
+            }
+        }
     }
 
     /**
@@ -1428,10 +1511,212 @@ public class DataEntryTask extends BaseTask
                 });
 
             }
+        } else if (cmdAction.isAction("SaveBeforeSetData"))
+        {
+            //checkToPrintLabel(cmdAction, false);
+            
+        } else if (cmdAction.isAction("PrintColObjLabel"))
+        {
+            checkToPrintLabel(cmdAction, true);
         }
     }
     
+    /**
+     * @param cmdAction
+     */
+    protected void checkToPrintLabel(final CommandAction cmdAction, final boolean doOverride)
+    {
+        if (cmdAction.getData() instanceof CollectionObject)
+        {
+            CollectionObject colObj =(CollectionObject)cmdAction.getData();
+            
+            if (colObj.getDeterminations().size() == 0 ||
+                colObj.getPreparations().size() == 0)
+            {
+               UIRegistry.showLocalizedError("DET_NOLBL_CO");
+               return;
+            }
+            
+            Boolean doPrintLabel = null;
+            
+            if (!doOverride)
+            {
+                FormViewObj formViewObj    = getCurrentFormViewObj();
+                if (formViewObj != null)
+                {
+                    Component comp = formViewObj.getControlByName("generateLabelChk");
+                    if (comp instanceof JCheckBox)
+                    {
+                        doPrintLabel = ((JCheckBox)comp).isSelected();
+                    }
+                }
+                
+                if (doPrintLabel == null)
+                {
+                    return;
+                }
+            }
+            
+            if (doOverride || doPrintLabel)
+            {
+                InfoForTaskReport inforForPrinting = getLabelReportInfo();
+                
+                if (inforForPrinting == null)
+                {
+                    return;
+                }
+                
+                DataProviderSessionIFace session = null;
+                try
+                {
+                    session = DataProviderFactory.getInstance().createSession();
+                    
+                    String hql ="FROM CollectionObject WHERE id = "+colObj.getId();
+                    
+                    colObj = (CollectionObject)session.getData(hql);
+                    
+                    Set<Determination> deters = colObj.getDeterminations();
+                    if (deters != null && deters.size() == 0)
+                    {
+                        UIRegistry.displayErrorDlg(getResourceString("NO_DETERS_ERROR"));
+                        
+                    } else
+                    {
+                        RecordSet rs = new RecordSet();
+                        rs.initialize();
+                        rs.setName(colObj.getIdentityTitle());
+                        rs.setDbTableId(CollectionObject.getClassTableId());
+                        rs.addItem(colObj.getId());
+                        
+                        dispatchReport(inforForPrinting, rs, "ColObjLabel");
+                    }
+                } finally
+                {
+                    if (session != null)
+                    {
+                        session.close();
+                    }
+                }
+            }
+        }
+    }
     
+    /**
+     * @return a loan invoice if one exists.
+     * 
+     * If more than one report is defined for loan then user must choose.
+     * 
+     * Fairly goofy code. Eventually may want to add ui to allow labeling resources as "invoice" (see printLoan()).
+     */
+    public InfoForTaskReport getLabelReportInfo()
+    {
+        DataProviderSessionIFace session = null;
+        ChooseFromListDlg<InfoForTaskReport> dlg = null;
+        try
+        {
+            session = DataProviderFactory.getInstance().createSession();
+            List<AppResourceIFace> reps = AppContextMgr.getInstance().getResourceByMimeType(ReportsBaseTask.LABELS_MIME);
+            reps.addAll(AppContextMgr.getInstance().getResourceByMimeType(ReportsBaseTask.REPORTS_MIME));
+            Vector<InfoForTaskReport> repInfo = new Vector<InfoForTaskReport>();
+            
+            for (AppResourceIFace rep : reps)
+            {
+                Properties params = rep.getMetaDataMap();
+                String     tableid = params.getProperty("tableid"); 
+                SpReport   spReport = null;
+                boolean    includeIt = false;
+                try
+                {
+                    Integer tblId = null;
+                    try
+                    {
+                        tblId = Integer.valueOf(tableid);
+                    }
+                    catch (NumberFormatException ex)
+                    {
+                        //continue;
+                    }
+                    if (tblId == null)
+                    {
+                        continue;
+                    }
+                    
+                    if (tblId.equals(CollectionObject.getClassTableId()))
+                    {
+                        includeIt = true;
+                    }
+                    else if (tblId.equals(-1))
+                    {
+                        QueryIFace q = session.createQuery("from SpReport spr join spr.appResource apr "
+                              + "join spr.query spq "
+                              + "where apr.id = " + ((SpAppResource )rep).getId() 
+                              + " and spq.contextTableId = " + CollectionObject.getClassTableId(), false);
+                        List<?> spReps = q.list();
+                        if (spReps.size() > 0)
+                        {
+                            includeIt = true;
+                            spReport = (SpReport )((Object[] )spReps.get(0))[0];
+                            spReport.forceLoad();
+                            if (spReps.size() > 1)
+                            {
+                                //should never happen
+                                log.error("More than SpReport exists for " + rep.getName());
+                            }
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    UsageTracker.incrHandledUsageCount();
+                    edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(InteractionsTask.class, ex);
+                    //skip this res
+                }
+                if (includeIt)
+                {
+                    repInfo.add(new InfoForTaskReport((SpAppResource )rep, spReport));
+                }
+            }
+            
+            if (repInfo.size() == 0)
+            {
+                UIRegistry.displayInfoMsgDlgLocalized("InteractionsTask.NoInvoiceFound", 
+                            DBTableIdMgr.getInstance().getTitleForId(CollectionObject.getClassTableId()));
+                return null;
+            }
+            
+            if (repInfo.size() == 1)
+            {
+                return repInfo.get(0);
+            }
+            
+            dlg = new ChooseFromListDlg<InfoForTaskReport>((Frame) UIRegistry.getTopWindow(), getResourceString("REP_CHOOSE_INVOICE"), repInfo);
+            dlg.setVisible(true);
+            if (dlg.isCancelled()) 
+            { 
+                return null; 
+            }
+            return dlg.getSelectedObject();
+
+        }
+        finally
+        {
+            session.close();
+            if (dlg != null)
+            {
+                dlg.dispose();
+            }
+        }
+    }
+    
+    /* (non-Javadoc)
+     * @see edu.ku.brc.af.tasks.BaseTask#getPermEditorPanel()
+     */
+    @Override
+    public PermissionEditorIFace getPermEditorPanel()
+    {
+        return new BasicPermisionPanel(null, "ENABLE");
+    }
+
     /**
      * @return the permissions array
      */
@@ -1473,7 +1758,14 @@ public class DataEntryTask extends BaseTask
     {
         if (!processRecordSetCommand(cmdAction, stdViews))
         {
-            processRecordSetCommand(cmdAction, miscViews);
+            if (!processRecordSetCommand(cmdAction, miscViews) && cmdAction.getDstObj() instanceof RecordSetIFace)
+            {
+                FormPane formPane = createFormFor(this, "", null, null, (RecordSetIFace)cmdAction.getDstObj());
+                if (formPane != null)
+                {
+                    addSubPaneToMgr(formPane);
+                }
+            }
         }
         
         /*

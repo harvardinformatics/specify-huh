@@ -75,25 +75,30 @@ public class InstSetupPanel extends GenericFormPanel
      * @param nextBtn
      * @param makeStretchy
      */
-    public InstSetupPanel(String name, 
-                          String title, 
-                          String helpContext, 
-                          String[] labels,
-                          String[] fields, 
-                          JButton nextBtn, 
-                          JButton prevBtn,
-                          boolean makeStretchy)
+    public InstSetupPanel(final String name, 
+                          final String title, 
+                          final String helpContext, 
+                          final String[] labels,
+                          final String[] fields, 
+                          final Integer[] numCols, 
+                          final JButton nextBtn, 
+                          final JButton prevBtn,
+                          final boolean makeStretchy)
     {
-        super(name, title, helpContext, labels, fields, nextBtn, prevBtn, makeStretchy);
+        super(name, title, helpContext, labels, fields, numCols, nextBtn, prevBtn, makeStretchy);
     }
     
     /* (non-Javadoc)
-     * @see edu.ku.brc.specify.config.init.GenericFormPanel#init(java.lang.String, java.lang.String[], boolean[], java.lang.String[])
+     * @see edu.ku.brc.specify.config.init.GenericFormPanel#init(java.lang.String, java.lang.String[], boolean[], java.lang.String[], java.lang.Integer[])
      */
     @Override
-    protected void init(String title, String[] fields, boolean[] required, String[] types)
+    protected void init(final String    title, 
+                        final String[]  fields, 
+                        final boolean[] required,
+                        final String[] types,
+                        final Integer[] numColumns)
     {
-        super.init(title, fields, required, types);
+        super.init(title, fields, required, types, numColumns);
 
         label   = UIHelper.createLabel("", SwingConstants.CENTER);
         testBtn = UIHelper.createI18NButton("CREATEINST_BTN");
@@ -197,7 +202,7 @@ public class InstSetupPanel extends GenericFormPanel
                         
                         bsd.setSession(HibernateUtil.getCurrentSession());
                         
-                        isOK = bsd.createEmptyInstitution(properties, false, false);
+                        isOK = bsd.createEmptyInstitution(properties, false, false, true);
                         
                         AppContextMgr.getInstance().setClassObject(DataType.class, bsd.getDataType());
 
@@ -211,10 +216,11 @@ public class InstSetupPanel extends GenericFormPanel
                         
                         String userName = properties.getProperty("usrUsername");
                         String password = properties.getProperty("usrPassword");
+                        String dbName   = properties.getProperty("dbName");
                         
                         firePropertyChange(propName, 0, 2);
                         
-                        isOK = tryLogginIn(userName, password);
+                        isOK = tryLogginIn(userName, password, dbName);
                         if (!isOK)
                         {
                             errorKey = "BAD_LOGIN";
@@ -282,41 +288,38 @@ public class InstSetupPanel extends GenericFormPanel
     /**
      * @param usrName
      * @param pwd
+     * @param databaseName is optional (can be null) 
      * @return
      */
-    protected boolean tryLogginIn(final String usrName, final String pwd)
+    protected boolean tryLogginIn(final String usrName, final String userPwd, final String databaseName)
     {
-        String uUserName = properties.getProperty("usrUsername");
-        String uPassword = properties.getProperty("usrPassword");
-        
-        String encryptedMasterUP = UserAndMasterPasswordMgr.getInstance().encrypt(
+        String encryptedMasterUP = UserAndMasterPasswordMgr.encrypt(
                                         properties.getProperty("saUserName"), 
                                         properties.getProperty("saPassword"), 
-                                        uPassword);
+                                        userPwd);
         
         AppPreferences ap = AppPreferences.getLocalPrefs();
-        ap.put(uUserName+"_master.islocal",  "true");
-        ap.put(uUserName+"_master.path",     encryptedMasterUP);
+        ap.put(UserAndMasterPasswordMgr.getIsLocalPrefPath(usrName, databaseName, true),  "true");
+        ap.put(UserAndMasterPasswordMgr.getMasterPrefPath(usrName, databaseName, true),     encryptedMasterUP);
         
         DatabaseLoginPanel.MasterPasswordProviderIFace usrPwdProvider = new DatabaseLoginPanel.MasterPasswordProviderIFace()
         {
             @Override
-            public boolean hasMasterUserAndPwdInfo(final String username, final String password)
+            public boolean hasMasterUserAndPwdInfo(final String username, final String password, final String dbName)
             {
                 if (StringUtils.isNotEmpty(username) && StringUtils.isNotEmpty(password))
                 {
-                    UserAndMasterPasswordMgr.getInstance().setUsersUserName(username);
-                    UserAndMasterPasswordMgr.getInstance().setUsersPassword(password);
+                    UserAndMasterPasswordMgr.getInstance().set(username, password, dbName);
+                    
                     return UserAndMasterPasswordMgr.getInstance().hasMasterUsernameAndPassword();
                 }
                 return false;
             }
 
             @Override
-            public Pair<String, String> getUserNamePassword(final String username, final String password)
+            public Pair<String, String> getUserNamePassword(final String username, final String password, final String dbName)
             {
-                UserAndMasterPasswordMgr.getInstance().setUsersUserName(username);
-                UserAndMasterPasswordMgr.getInstance().setUsersPassword(password);
+                UserAndMasterPasswordMgr.getInstance().set(username, password, dbName);
                 
                 Pair<String, String> usrPwd = UserAndMasterPasswordMgr.getInstance().getUserNamePasswordForDB();
                 
@@ -324,25 +327,24 @@ public class InstSetupPanel extends GenericFormPanel
             }
 
             @Override
-            public boolean editMasterInfo(final String username, final boolean askForCredentials)
+            public boolean editMasterInfo(final String username, final String dbName, final boolean askForCredentials)
             {
-                return UserAndMasterPasswordMgr.getInstance().editMasterInfo(username, askForCredentials);
+                return UserAndMasterPasswordMgr.getInstance().editMasterInfo(username, dbName, askForCredentials);
             }
         };
         
-        Pair<String, String> masterUsrPwd = usrPwdProvider.getUserNamePassword(usrName, pwd);
+        Pair<String, String> masterUsrPwd = usrPwdProvider.getUserNamePassword(usrName, userPwd, databaseName);
         
         if (masterUsrPwd != null)
         {
-            String dbName   = properties.getProperty("dbName");
             String hostName = properties.getProperty("hostName");
             
             DatabaseDriverInfo driverInfo = (DatabaseDriverInfo)properties.get("driverObj");
             
-            String connStr = driverInfo.getConnectionStr(DatabaseDriverInfo.ConnectionType.Create, hostName, dbName);
+            String connStr = driverInfo.getConnectionStr(DatabaseDriverInfo.ConnectionType.Create, hostName, databaseName);
             if (connStr == null)
             {
-                connStr = driverInfo.getConnectionStr(DatabaseDriverInfo.ConnectionType.Open, hostName,  dbName);
+                connStr = driverInfo.getConnectionStr(DatabaseDriverInfo.ConnectionType.Open, hostName,  databaseName);
             }
             
             firePropertyChange(propName, 0, 2);
@@ -350,7 +352,7 @@ public class InstSetupPanel extends GenericFormPanel
             // tryLogin sets up DBConnection
             boolean isLoggedIn = UIHelper.tryLogin(driverInfo.getDriverClassName(), 
                                                     driverInfo.getDialectClassName(), 
-                                                    dbName, 
+                                                    databaseName, 
                                                     connStr, 
                                                     masterUsrPwd.first, 
                                                     masterUsrPwd.second);

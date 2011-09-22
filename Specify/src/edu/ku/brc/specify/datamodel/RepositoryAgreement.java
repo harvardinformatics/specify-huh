@@ -22,6 +22,7 @@ package edu.ku.brc.specify.datamodel;
 import java.util.Calendar;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.Vector;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -41,6 +42,8 @@ import javax.persistence.Transient;
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.CascadeType;
 import org.hibernate.annotations.Index;
+
+import edu.ku.brc.specify.conversion.BasicSQLUtils;
 
 /**
 
@@ -424,8 +427,32 @@ public class RepositoryAgreement extends DataModelObjBase implements AttachmentO
     {
         this.division = division;
     }
-    
 
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.datamodel.DataModelObjBase#getParentId()
+     */
+    @Override
+    @Transient
+    public Integer getParentId()
+    {
+        
+        if (division != null)
+        {
+            parentTblId = Division.getClassTableId();
+            return division.getId();
+        }
+        
+        Vector<Object> ids = BasicSQLUtils.querySingleCol("SELECT AccessionID FROM accession WHERE RepositoryAgreementID = "+ repositoryAgreementId);
+        if (ids.size() == 1)
+        {
+            parentTblId = Accession.getClassTableId();
+            return (Integer)ids.get(0);
+        }
+        
+        parentTblId = null;
+        return null;
+    }
+    
     /* (non-Javadoc)
      * @see edu.ku.brc.ui.forms.FormDataObjIFace#getTableId()
      */

@@ -48,7 +48,7 @@ import edu.ku.brc.util.Orderable;
 @org.hibernate.annotations.Entity(dynamicInsert=true, dynamicUpdate=true)
 @org.hibernate.annotations.Proxy(lazy = false)
 @Table(name = "agentspecialty", uniqueConstraints = { @UniqueConstraint(columnNames = {"AgentID", "OrderNumber"}) })
-public class AgentSpecialty extends DataModelObjBase implements Serializable, Orderable, Comparable<AgentSpecialty>
+public class AgentSpecialty extends DataModelObjBase implements Serializable, Orderable, Comparable<AgentSpecialty>, Cloneable
 {
 
     protected Integer agentSpecialtyId;
@@ -197,7 +197,27 @@ public class AgentSpecialty extends DataModelObjBase implements Serializable, Or
      */
     public int compareTo(AgentSpecialty obj)
     {
-        return orderNumber.compareTo(obj.orderNumber);
+        return orderNumber != null && obj != null && obj.orderNumber != null ? orderNumber.compareTo(obj.orderNumber) : 0;
+    }
+    
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.datamodel.DataModelObjBase#getParentTableId()
+     */
+    @Override
+    @Transient
+    public Integer getParentTableId()
+    {
+        return Agent.getClassTableId();
+    }
+
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.datamodel.DataModelObjBase#getParentId()
+     */
+    @Override
+    @Transient
+    public Integer getParentId()
+    {
+        return agent != null ? agent.getId() : null;
     }
     
     @Override
@@ -217,4 +237,17 @@ public class AgentSpecialty extends DataModelObjBase implements Serializable, Or
         
         return super.getIdentityTitle();
     }
+
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.datamodel.DataModelObjBase#clone()
+     */
+    @Override
+    public Object clone() throws CloneNotSupportedException
+    {
+        AgentSpecialty obj = (AgentSpecialty) super.clone();
+        obj.setAgentSpecialtyId(null);
+        return obj;
+    }
+    
+    
 }

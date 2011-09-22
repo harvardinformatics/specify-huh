@@ -23,6 +23,7 @@ import java.io.Serializable;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
@@ -104,7 +105,7 @@ public class DNASequencingRunAttachment extends DataModelObjBase implements Obje
         this.remarks = remarks;
     }
 
-    @ManyToOne
+    @ManyToOne(cascade = {}, fetch = FetchType.LAZY)
     @JoinColumn(name = "DnaSequencingRunID", nullable = false)
     public DNASequencingRun getDnaSequencingRun()
     {
@@ -116,9 +117,9 @@ public class DNASequencingRunAttachment extends DataModelObjBase implements Obje
         this.dnaSequencingRun = dnaSequencingRun;
     }
 
-    @ManyToOne
+    @ManyToOne(cascade = {}, fetch = FetchType.LAZY)
     @JoinColumn(name = "AttachmentID", nullable = false)
-    @Cascade( {CascadeType.SAVE_UPDATE, CascadeType.MERGE, CascadeType.LOCK} )
+    @Cascade( { CascadeType.ALL, CascadeType.DELETE_ORPHAN })
     public Attachment getAttachment()
     {
         return this.attachment;
@@ -162,6 +163,26 @@ public class DNASequencingRunAttachment extends DataModelObjBase implements Obje
     }
     
     /* (non-Javadoc)
+     * @see edu.ku.brc.specify.datamodel.DataModelObjBase#getParentTableId()
+     */
+    @Override
+    @Transient
+    public Integer getParentTableId()
+    {
+        return DNASequencingRun.getClassTableId();
+    }
+
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.datamodel.DataModelObjBase#getParentId()
+     */
+    @Override
+    @Transient
+    public Integer getParentId()
+    {
+        return dnaSequencingRun != null ? dnaSequencingRun.getId() : null;
+    }
+    
+    /* (non-Javadoc)
      * @see edu.ku.brc.specify.datamodel.DataModelObjBase#getDataClass()
      */
     @Override
@@ -200,7 +221,11 @@ public class DNASequencingRunAttachment extends DataModelObjBase implements Obje
      */
     public int compareTo(DNASequencingRunAttachment obj)
     {
-        return ordinal.compareTo(obj.ordinal);
+        if (ordinal != null && obj != null && obj.ordinal != null)
+        {
+            return ordinal.compareTo(obj.ordinal);
+        }
+        return 0;
     }
 
 }

@@ -59,7 +59,7 @@ public class GenericPrefsPanel extends JPanel implements PrefsSavable, PrefsPane
 {
     private static final Logger log  = Logger.getLogger(GenericPrefsPanel.class);
     
-    private static final String  securityPrefix    = "Prefs."; //$NON-NLS-1$
+    private static final String  prefsPrefix    = "Prefs."; //$NON-NLS-1$
 
     protected String    name;
     protected String    title;
@@ -155,33 +155,36 @@ public class GenericPrefsPanel extends JPanel implements PrefsSavable, PrefsPane
     public void getChangedFields(final Properties changeHash)
     {
         FormViewObj fvo = (FormViewObj)form;
-        Hashtable<String, String> idToNameHash = fvo.getIdToNameHash();
-        
-        Vector<String> ids = new Vector<String>();
-        fvo.getFieldIds(ids);
-        for (String id : ids)
+        if (form != null)
         {
-            Component comp = fvo.getCompById(id);
-            if (comp instanceof UIValidatable && ((UIValidatable)comp).isChanged())
+            Hashtable<String, String> idToNameHash = fvo.getIdToNameHash();
+            
+            Vector<String> ids = new Vector<String>();
+            fvo.getFieldIds(ids);
+            for (String id : ids)
             {
-                String nameForHash = idToNameHash.get(id);
-                if (StringUtils.isNotEmpty(nameForHash))
+                Component comp = fvo.getCompById(id);
+                if (comp instanceof UIValidatable && ((UIValidatable)comp).isChanged())
                 {
-                    Object value = comp instanceof GetSetValueIFace ? ((GetSetValueIFace)comp).getValue() : "";
-                    if (value != null)
+                    String nameForHash = idToNameHash.get(id);
+                    if (StringUtils.isNotEmpty(nameForHash))
                     {
-                        changeHash.put(nameForHash, value); //$NON-NLS-1$
+                        Object value = comp instanceof GetSetValueIFace ? ((GetSetValueIFace)comp).getValue() : "";
+                        if (value != null)
+                        {
+                            changeHash.put(nameForHash, value); //$NON-NLS-1$
+                        }
                     }
                 }
+                //System.err.println("ID: "+id+"  Name: "+idToNameHash.get(id)+" changed: "+(comp instanceof UIValidatable && ((UIValidatable)comp).isChanged()));
+                /*Object newVal = FormViewObj.getValueFromComponent(comp, false, false, id);
+                Object oldVal = oldValues.get(id);
+                System.err.println("["+newVal.toString()+"]["+oldVal.toString()+"] "+(!newVal.toString().equals(oldVal.toString())));
+                if (!newVal.toString().equals(oldVal.toString()))
+                {
+                    System.err.println("id: "+id+" changed.");
+                }*/
             }
-            //System.err.println("ID: "+id+"  Name: "+idToNameHash.get(id)+" changed: "+(comp instanceof UIValidatable && ((UIValidatable)comp).isChanged()));
-            /*Object newVal = FormViewObj.getValueFromComponent(comp, false, false, id);
-            Object oldVal = oldValues.get(id);
-            System.err.println("["+newVal.toString()+"]["+oldVal.toString()+"] "+(!newVal.toString().equals(oldVal.toString())));
-            if (!newVal.toString().equals(oldVal.toString()))
-            {
-                System.err.println("id: "+id+" changed.");
-            }*/
         }
     }
     
@@ -205,9 +208,12 @@ public class GenericPrefsPanel extends JPanel implements PrefsSavable, PrefsPane
      */
     public void savePrefs()
     {
-        if (form != null && form.getValidator() == null || form.getValidator().hasChanged())
+        if (form != null)
         {
-            form.getDataFromUI();
+            if (form.getValidator() == null || form.getValidator().hasChanged())
+            {
+                form.getDataFromUI();
+            }
         }
     }
 
@@ -243,7 +249,7 @@ public class GenericPrefsPanel extends JPanel implements PrefsSavable, PrefsPane
     {
         if (permissions == null)
         {
-            permissions = SecurityMgr.getInstance().getPermission(securityPrefix + getPermissionName());
+            permissions = SecurityMgr.getInstance().getPermission(prefsPrefix + getPermissionName());
         }
         return permissions;
     }

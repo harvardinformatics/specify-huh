@@ -19,8 +19,6 @@
 */
 package edu.ku.brc.ui.dnd;
 
-import static edu.ku.brc.ui.UIHelper.isMacOS;
-
 import java.awt.AWTEvent;
 import java.awt.AlphaComposite;
 import java.awt.Color;
@@ -34,6 +32,7 @@ import java.awt.Insets;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.RenderingHints;
+import java.awt.Stroke;
 import java.awt.Transparency;
 import java.awt.event.AWTEventListener;
 import java.awt.event.KeyEvent;
@@ -44,10 +43,12 @@ import java.awt.image.BufferedImage;
 
 import javax.swing.JFrame;
 import javax.swing.JLabel;
-import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 
 import org.apache.commons.lang.StringUtils;
+
+import edu.ku.brc.ui.ProgressGlassPane;
+import edu.ku.brc.ui.UIHelper;
 
 /**
  * Simple glass pane that writes and centers text while fading the background.
@@ -59,7 +60,7 @@ import org.apache.commons.lang.StringUtils;
  * Created Date: Sep 2, 2008
  *
  */
-public class SimpleGlassPane extends JPanel implements AWTEventListener
+public class SimpleGlassPane extends ProgressGlassPane implements AWTEventListener
 {
     private String text;
     private int    pointSize;
@@ -67,10 +68,11 @@ public class SimpleGlassPane extends JPanel implements AWTEventListener
     private Color  fillColor    = new Color(0, 0, 0, 50);
     private Insets margin       = new Insets(0,0,0,0);
     
-    private  boolean          useBGImage       = false;
-    private  boolean          hideOnClick      = false;
-    private  BufferedImage    img              = null;
-    private  DelegateRenderer delegateRenderer = null;
+    private  boolean          useBGImage       		= false;
+    private  boolean          hideOnClick      		= false;
+    private  boolean		  dblClickProgBar		= true;
+    private  BufferedImage    img              		= null;
+    private  DelegateRenderer delegateRenderer 		= null;
     
     private JFrame frame = null; 
 
@@ -82,19 +84,35 @@ public class SimpleGlassPane extends JPanel implements AWTEventListener
     public SimpleGlassPane(final String text, 
                            final int pointSize)
     {
-        this(text, pointSize, true);
+        this(text, pointSize, true, false);
     }
     
     /**
      * @param text
      * @param pointSize
+     * @param doBlockMouseEvents
      */
     public SimpleGlassPane(final String text, 
                            final int pointSize,
                            final boolean doBlockMouseEvents)
     {
+    	this(text, pointSize, doBlockMouseEvents, false);
+    }
+    
+    /**
+     * @param text
+     * @param pointSize
+     * @param doBlockMouseEvents
+     * @param dblClickProgBar
+     */
+    public SimpleGlassPane(final String text, 
+                           final int pointSize,
+                           final boolean doBlockMouseEvents,
+                           final boolean dblClickProgBar)
+    {
         this.text      = text;
         this.pointSize = pointSize;
+        this.dblClickProgBar = dblClickProgBar;
         
         setBackground(fillColor);
         setOpaque(false);
@@ -165,6 +183,9 @@ public class SimpleGlassPane extends JPanel implements AWTEventListener
         }
     }
 
+    /* (non-Javadoc)
+     * @see javax.swing.JComponent#setVisible(boolean)
+     */
     public void setVisible(boolean value)
     {
         super.setVisible(value);
@@ -214,8 +235,24 @@ public class SimpleGlassPane extends JPanel implements AWTEventListener
             }
         }*/
     }
-
     
+    /**
+     * @param text the text to set
+     */
+    public void setText(String text)
+    {
+        this.text = text;
+        repaint(); // not efficient
+    }
+
+    /**
+     * @return the text
+     */
+    public String getText()
+    {
+        return text;
+    }
+
     /**
      * @return
      */
@@ -235,12 +272,14 @@ public class SimpleGlassPane extends JPanel implements AWTEventListener
     protected void checkMouseEvent(MouseEvent e)
     {
         Rectangle r = getInternalBounds();
-        Point p = e.getPoint();
+        Point     p = e.getPoint();
         
         if (r.contains(p))
         {
-            //System.out.println("consumed");
-            e.consume();
+            if (!dblClickProgBar || !getProgressBarRect().contains(p))
+            {
+            	e.consume();
+            }
         }
     }
     /**
@@ -265,6 +304,7 @@ public class SimpleGlassPane extends JPanel implements AWTEventListener
     public void setFillColor(Color fillColor)
     {
         this.fillColor = fillColor;
+        setBackground(fillColor);
     }
 
     /**
@@ -346,7 +386,9 @@ public class SimpleGlassPane extends JPanel implements AWTEventListener
             // Copy our intermediate image to the screen
             g.drawImage(img, rect.x, rect.y, null);
         }
-        
+
+        super.paintComponent(graphics);
+
         if (StringUtils.isNotEmpty(text))
         {
             Graphics2D g2 = (Graphics2D)graphics;
@@ -364,22 +406,62 @@ public class SimpleGlassPane extends JPanel implements AWTEventListener
             
             int expand = 20;
             int arc    = expand * 2;
-            g2.setColor(Color.LIGHT_GRAY);
+            
+            g2.setColor(new Color(0, 0, 0, 50));
             
             int x = margin.left + tx - (expand / 2);
             int y = margin.top  + ty-fm.getAscent()-(expand / 2);
             
-            g2.fillRoundRect(x+4, y+6, tw+expand, th+expand, arc, arc);
+            drawBGContainer(g2, true, x+4, y+6, tw+expand, th+expand, arc, arc);
             
-            g2.setColor(isMacOS() ? Color.WHITE : new Color(200, 220, 255));
-            g2.fillRoundRect(x, y, tw+expand, th+expand, arc, arc);
+            g2.setColor(new Color(255, 255, 255, 220));
+            drawBGContainer(g2, true, x, y, tw+expand, th+expand, arc, arc);
             
-            g2.setColor(Color.BLACK);
-            g2.drawRoundRect(x, y, tw+expand, th+expand, arc, arc);
+            g2.setColor(Color.DARK_GRAY);
+            drawBGContainer(g2, false, x, y, tw+expand, th+expand, arc, arc);
             
             g2.setColor(textColor == null ? Color.BLACK : textColor);
             g2.drawString(text, tx, ty);
         }
+    }
+    
+    /**
+     * @param g2
+     * @param x
+     * @param y
+     * @param w
+     * @param h
+     * @param arcW
+     * @param arcH
+     */
+    private void drawBGContainer(final Graphics2D g2, final boolean doFill, final int x, final int y, final int w, final int h, final int arcW, final int arcH)
+    {
+        Stroke cacheStroke = g2.getStroke();
+        
+        g2.setStroke(UIHelper.getStdLineStroke());
+        
+        if (UIHelper.isWindows())
+        {
+            if (doFill)
+            {
+                //g2.fillRect(x, y, w, h); // Make ugly for Windows
+                g2.fillRoundRect(x, y, w, h, 4, 4);
+            } else
+            {
+                //g2.drawRect(x, y, w, h); // Make ugly for Windows
+                g2.drawRoundRect(x, y, w, h, 4, 4);
+            }
+        } else
+        {
+            if (doFill)
+            {
+                g2.fillRoundRect(x, y, w, h, arcW, arcH);
+            } else
+            {
+                g2.drawRoundRect(x, y, w, h, arcW, arcH);
+            }
+        }
+        g2.setStroke(cacheStroke);
     }
     
     /* (non-Javadoc)
@@ -398,7 +480,7 @@ public class SimpleGlassPane extends JPanel implements AWTEventListener
                     SimpleGlassPane.this.setVisible(false);
                 }
             });
-        } else
+        } else if (!dblClickProgBar || !getProgressBarRect().contains(e.getPoint()))
         {
             e.consume();
         }

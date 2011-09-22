@@ -38,7 +38,6 @@ import edu.ku.brc.specify.datamodel.Shipment;
  */
 public class LoanGiftShipmentBusRules extends BaseBusRules
 {
-
     //private static final Logger log = Logger.getLogger(LoanGiftShipmentBusRules.class);
 
     public static final String SHIPMETHOD  = "loans.shipmeth"; 

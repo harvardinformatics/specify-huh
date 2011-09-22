@@ -36,6 +36,8 @@ import java.awt.Toolkit;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.InputEvent;
+import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
@@ -49,6 +51,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
+import java.util.Enumeration;
+import java.util.List;
 import java.util.Locale;
 import java.util.MissingResourceException;
 import java.util.NoSuchElementException;
@@ -60,6 +64,7 @@ import java.util.prefs.BackingStoreException;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
+import javax.swing.BorderFactory;
 import javax.swing.ImageIcon;
 import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JEditorPane;
@@ -71,11 +76,8 @@ import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JTabbedPane;
-import javax.swing.JTextArea;
 import javax.swing.JToolBar;
-import javax.swing.ScrollPaneConstants;
+import javax.swing.KeyStroke;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
@@ -85,8 +87,9 @@ import javax.swing.event.HyperlinkListener;
 import javax.swing.event.MenuEvent;
 import javax.swing.event.MenuListener;
 
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Level;
+import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
 import com.install4j.api.launcher.ApplicationLauncher;
@@ -102,13 +105,14 @@ import com.jgoodies.looks.plastic.theme.ExperienceBlue;
 
 import edu.ku.brc.af.auth.SecurityMgr;
 import edu.ku.brc.af.auth.UserAndMasterPasswordMgr;
-import edu.ku.brc.af.auth.specify.SpecifySecurityMgr;
 import edu.ku.brc.af.core.AppContextMgr;
 import edu.ku.brc.af.core.FrameworkAppIFace;
+import edu.ku.brc.af.core.GenericLSIDGeneratorFactory;
 import edu.ku.brc.af.core.MacOSAppHandler;
 import edu.ku.brc.af.core.MainPanel;
 import edu.ku.brc.af.core.RecordSetFactory;
 import edu.ku.brc.af.core.SchemaI18NService;
+import edu.ku.brc.af.core.SpecialMsgNotifier;
 import edu.ku.brc.af.core.SubPaneIFace;
 import edu.ku.brc.af.core.SubPaneMgr;
 import edu.ku.brc.af.core.TaskMgr;
@@ -124,6 +128,7 @@ import edu.ku.brc.af.prefs.PreferencesDlg;
 import edu.ku.brc.af.tasks.BaseTask;
 import edu.ku.brc.af.tasks.StatsTrackerTask;
 import edu.ku.brc.af.tasks.subpane.FormPane;
+import edu.ku.brc.af.ui.ProcessListUtil;
 import edu.ku.brc.af.ui.db.DatabaseLoginListener;
 import edu.ku.brc.af.ui.db.DatabaseLoginPanel;
 import edu.ku.brc.af.ui.forms.FormHelper;
@@ -133,7 +138,6 @@ import edu.ku.brc.af.ui.forms.ResultSetController;
 import edu.ku.brc.af.ui.forms.ViewFactory;
 import edu.ku.brc.af.ui.forms.formatters.DataObjFieldFormatMgr;
 import edu.ku.brc.af.ui.forms.formatters.UIFieldFormatterMgr;
-import edu.ku.brc.af.ui.forms.persist.ViewLoader;
 import edu.ku.brc.af.ui.forms.validation.TypeSearchForQueryFactory;
 import edu.ku.brc.af.ui.forms.validation.ValComboBoxFromQuery;
 import edu.ku.brc.af.ui.weblink.WebLinkMgr;
@@ -147,8 +151,10 @@ import edu.ku.brc.dbsupport.QueryExecutor;
 import edu.ku.brc.dbsupport.SchemaUpdateService;
 import edu.ku.brc.exceptions.ExceptionTracker;
 import edu.ku.brc.helpers.Encryption;
+import edu.ku.brc.helpers.ProxyHelper;
 import edu.ku.brc.helpers.SwingWorker;
 import edu.ku.brc.helpers.XMLHelper;
+import edu.ku.brc.services.gpx.GPXPanel;
 import edu.ku.brc.specify.config.CollectingEventsAndAttrsMaint;
 import edu.ku.brc.services.filteredpush.FilteredPushEvent;
 import edu.ku.brc.services.filteredpush.FilteredPushListenerIFace;
@@ -157,10 +163,13 @@ import edu.ku.brc.services.filteredpush.FpFormViewObj;
 import edu.ku.brc.specify.config.DebugLoggerDialog;
 import edu.ku.brc.specify.config.DisciplineType;
 import edu.ku.brc.specify.config.FeedBackDlg;
+import edu.ku.brc.specify.config.FixDBAfterLogin;
 import edu.ku.brc.specify.config.LoggerDialog;
 import edu.ku.brc.specify.config.SpecifyAppContextMgr;
 import edu.ku.brc.specify.config.SpecifyAppPrefs;
+import edu.ku.brc.specify.config.init.DataBuilder;
 import edu.ku.brc.specify.config.init.RegisterSpecify;
+import edu.ku.brc.specify.config.init.SpecifyDBSetupWizardFrame;
 import edu.ku.brc.specify.conversion.BasicSQLUtils;
 import edu.ku.brc.specify.datamodel.AccessionAttachment;
 import edu.ku.brc.specify.datamodel.AgentAttachment;
@@ -189,11 +198,10 @@ import edu.ku.brc.specify.datamodel.SpecifyUser;
 import edu.ku.brc.specify.datamodel.Storage;
 import edu.ku.brc.specify.datamodel.Taxon;
 import edu.ku.brc.specify.datamodel.TaxonAttachment;
-import edu.ku.brc.specify.extras.ViewToSchemaReview;
 import edu.ku.brc.specify.prefs.SystemPrefs;
 import edu.ku.brc.specify.tasks.subpane.JasperReportsCache;
 import edu.ku.brc.specify.tasks.subpane.wb.wbuploader.Uploader;
-import edu.ku.brc.specify.tools.FormDisplayer;
+import edu.ku.brc.specify.ui.AppBase;
 import edu.ku.brc.specify.ui.HelpMgr;
 import edu.ku.brc.ui.CommandAction;
 import edu.ku.brc.ui.CommandDispatcher;
@@ -239,6 +247,9 @@ public class Specify extends JPanel implements DatabaseLoginListener, CommandLis
     private static final String sendStatsPrefName    = "usage_tracking.send_stats";
     private static final String sendISAStatsPrefName = "usage_tracking.send_isa_stats";
     private static final String ATTACHMENT_PATH_PREF = "attachment.path";
+    private static final String UPDATE_CHK_ERROR     = "Specify.UPDATE_CHK_ERROR";
+    private static final String ERRMSG               = "ERRMSG";
+    private static final String STATS_SEND_DONE      = "STATS_SEND_DONE";
     
     // The preferred size of the demo
     private static final int    PREFERRED_WIDTH    = 1024;
@@ -267,19 +278,21 @@ public class Specify extends JPanel implements DatabaseLoginListener, CommandLis
     
     private String               appName             = "Specify"; //$NON-NLS-1$
     private String               appVersion          = "6.0"; //$NON-NLS-1$
-
     private String               appBuildVersion     = "(Unknown)"; //$NON-NLS-1$
     
     protected static CacheManager cacheManager        = new CacheManager();
 
-    private FilteredPushListenerIFace fpListener; // FP MMK
-    protected JMenuItem               fpConnMenuItem; // FP MMK
+    // added by HUH for FP
+    private FilteredPushListenerIFace fpListener;
+    protected JMenuItem               fpConnMenuItem;
+    // end HUH additions
+    
     /**
      * Constructor.
      */
     public Specify()
     {
-        
+        isWorkbenchOnly = UIRegistry.isMobile();
     }
     
     /**
@@ -290,29 +303,10 @@ public class Specify extends JPanel implements DatabaseLoginListener, CommandLis
         //UIHelper.attachUnhandledException();
         
         // we simply need to create this class, not use it
-        //@SuppressWarnings("unused") MacOSAppHandler macoshandler = new MacOSAppHandler(this);
         new MacOSAppHandler(this);
 
         // Name factories
         setUpSystemProperties();
-    }
-    
-    /**
-     * Starts up Specify with the initializer that enables the user to create a new empty database. 
-     */
-    public void startWithInitializer(final boolean doLoginOnly, final boolean assumeDerby)
-    {
-        preStartUp();
-        
-        if (true)
-        {
-            SpecifyInitializer specifyInitializer = new SpecifyInitializer(doLoginOnly, assumeDerby);
-            specifyInitializer.setup(this);
-            
-        } else
-        {
-            startUp();
-        }
     }
     
     /**
@@ -346,10 +340,28 @@ public class Specify extends JPanel implements DatabaseLoginListener, CommandLis
         remotePrefs.getBoolean("Interactions.Doing.Exchanges."+ds, Discipline.isCurrentDiscipline(DisciplineType.STD_DISCIPLINES.botany), true); //$NON-NLS-1$
         remotePrefs.getBoolean("Agent.Use.Variants."+ds, Discipline.isCurrentDiscipline(DisciplineType.STD_DISCIPLINES.botany), true); //$NON-NLS-1$
         
-        try
+        remotePrefs.load(); // Loads prefs from the database
+        
+        /*try
         {
             remotePrefs.flush();
+            
         } catch (BackingStoreException ex) {}
+        */
+    }
+    
+    
+    /**
+     * Check for and kills and existing embedded MySQl processes.
+     */
+    public static void checkForSpecifyAppsRunning()
+    {
+        List<Integer> ids = ProcessListUtil.getProcessIdWithText("exe4j.moduleName", "specify.jar", "SpiReport");
+        if (ids.size() > 1)
+        {
+            UIRegistry.showLocalizedMsg("WARNING", "Specify.TOO_MANY_SP");
+            System.exit(0);
+        }
     }
     
     /**
@@ -359,10 +371,25 @@ public class Specify extends JPanel implements DatabaseLoginListener, CommandLis
     {
     	log.debug("StartUp..."); //$NON-NLS-1$
     	
+    	if (UIHelper.isLinux())
+    	{
+    	    checkForSpecifyAppsRunning();
+    	}
+    	
+    	if (UIRegistry.isEmbedded())
+    	{
+    	    SpecifyDBSetupWizardFrame.checkForMySQLProcesses();
+    	}
+    	
         // Adjust Default Swing UI Default Resources (Color, Fonts, etc) per Platform
         UIHelper.adjustUIDefaults();
         
         setupDefaultFonts();
+        
+        if (!UIRegistry.doesAppversionsMatch())
+        {
+            System.exit(0);
+        }
         
         // Attachment related helpers
         Thumbnailer thumb = new Thumbnailer();
@@ -399,14 +426,31 @@ public class Specify extends JPanel implements DatabaseLoginListener, CommandLis
         
         AttachmentManagerIface attachMgr          = null;
         File                   attachmentLocation = null;
-        File location = UIRegistry.getAppDataSubDir("AttachmentStorage", true); //$NON-NLS-1$
+        final File             location           = UIRegistry.getAppDataSubDir("AttachmentStorage", true); //$NON-NLS-1$
+            
         try
         {
             String path = localPrefs.get(ATTACHMENT_PATH_PREF, null);
-            attachmentLocation = path != null ? new File(path) : location;
+            attachmentLocation = path != null && !UIRegistry.isMobile() ? new File(path) : location;
             if (!AttachmentUtils.isAttachmentDirMounted(attachmentLocation))
             {
-                UIRegistry.showLocalizedError("AttachmentUtils.LOC_BAD", location.getAbsolutePath());
+                final File attchLocDir = attachmentLocation;
+                SwingUtilities.invokeLater(new Runnable()
+                {
+                    @Override
+                    public void run()
+                    {
+                        String pathStr;
+                        try
+                        {
+                            pathStr = attchLocDir.getCanonicalPath();
+                        } catch (IOException e)
+                        {
+                            pathStr = attchLocDir.getAbsolutePath();
+                        }
+                        UIRegistry.showLocalizedError("AttachmentUtils.LOC_BAD", pathStr);
+                    }
+                });
                 
             } else
             {
@@ -491,7 +535,7 @@ public class Specify extends JPanel implements DatabaseLoginListener, CommandLis
 //            e1.printStackTrace();
 //        }
         
-        log.info("Creating Database configuration "); //$NON-NLS-1$
+        //log.info("Creating Database configuration "); //$NON-NLS-1$
 
         if (!isWorkbenchOnly)
         {
@@ -507,25 +551,25 @@ public class Specify extends JPanel implements DatabaseLoginListener, CommandLis
         
         CommandDispatcher.register(BaseTask.APP_CMD_TYPE, this);
         
+        CommandDispatcher.register(ERRMSG, this);
+        
         DatabaseLoginPanel.MasterPasswordProviderIFace usrPwdProvider = new DatabaseLoginPanel.MasterPasswordProviderIFace()
         {
             @Override
-            public boolean hasMasterUserAndPwdInfo(final String username, final String password)
+            public boolean hasMasterUserAndPwdInfo(final String username, final String password, final String dbName)
             {
                 if (StringUtils.isNotEmpty(username) && StringUtils.isNotEmpty(password))
                 {
-                    UserAndMasterPasswordMgr.getInstance().setUsersUserName(username);
-                    UserAndMasterPasswordMgr.getInstance().setUsersPassword(password);
+                    UserAndMasterPasswordMgr.getInstance().set(username, password, dbName);
                     return UserAndMasterPasswordMgr.getInstance().hasMasterUsernameAndPassword();
                 }
                 return false;
             }
 
             @Override
-            public Pair<String, String> getUserNamePassword(final String username, final String password)
+            public Pair<String, String> getUserNamePassword(final String username, final String password, final String dbName)
             {
-                UserAndMasterPasswordMgr.getInstance().setUsersUserName(username);
-                UserAndMasterPasswordMgr.getInstance().setUsersPassword(password);
+                UserAndMasterPasswordMgr.getInstance().set(username, password, dbName);
                 
                 Pair<String, String> usrPwd = UserAndMasterPasswordMgr.getInstance().getUserNamePasswordForDB();
                 
@@ -533,12 +577,63 @@ public class Specify extends JPanel implements DatabaseLoginListener, CommandLis
             }
 
             @Override
-            public boolean editMasterInfo(final String username, final boolean askForCredentials)
+            public boolean editMasterInfo(final String username, final String databaseNameArg, final boolean askForCredentials)
             {
-                return UserAndMasterPasswordMgr.getInstance().editMasterInfo(username, askForCredentials);
+                return UserAndMasterPasswordMgr.getInstance().editMasterInfo(username, databaseNameArg, askForCredentials);
             }
             
         };
+        
+        if (UIRegistry.isMobile())
+        {
+            DBConnection.setShutdownUI(new DBConnection.ShutdownUIIFace() 
+            {
+                CustomDialog processDlg;
+                
+                /* (non-Javadoc)
+                 * @see edu.ku.brc.dbsupport.DBConnection.ShutdownUIIFace#displayInitialDlg()
+                 */
+                @Override
+                public void displayInitialDlg()
+                {
+                    SwingUtilities.invokeLater(new Runnable() {
+                        @Override
+                        public void run()
+                        {
+                            UIRegistry.showLocalizedMsg(JOptionPane.INFORMATION_MESSAGE, "MOBILE_INFO", "MOBILE_INTRO");
+                        }
+                    });
+                }
+    
+                /* (non-Javadoc)
+                 * @see edu.ku.brc.dbsupport.DBConnection.ShutdownUIIFace#displayFinalShutdownDlg()
+                 */
+                @Override
+                public void displayFinalShutdownDlg()
+                {
+                    processDlg.setVisible(false);
+                    UIRegistry.showLocalizedMsg(JOptionPane.INFORMATION_MESSAGE, "MOBILE_INFO", "MOBILE_FINI");
+                }
+    
+                /* (non-Javadoc)
+                 * @see edu.ku.brc.dbsupport.DBConnection.ShutdownUIIFace#displayShutdownMsgDlg()
+                 */
+                @Override
+                public void displayShutdownMsgDlg()
+                {
+                    JPanel panel = new JPanel(new BorderLayout());
+                    panel.setBorder(BorderFactory.createEmptyBorder(14, 14, 14, 14));
+                    
+                    panel.add(new JLabel(IconManager.getIcon(getLargeIconName()), SwingConstants.CENTER), BorderLayout.WEST);
+                    panel.add(UIHelper.createI18NLabel("MOBILE_SHUTTING_DOWN", SwingConstants.CENTER), BorderLayout.CENTER);
+                    processDlg = new CustomDialog((Frame)null, "Shutdown", false, CustomDialog.NONE_BTN, panel);
+                    processDlg.setAlwaysOnTop(true);
+                    
+                    UIHelper.centerAndShow(processDlg);
+                    
+                }
+            });
+        }
         
         /*long lastSaved = AppPreferences.getLocalPrefs().getLong("update_time", 0L);
         if (lastSaved > 0)
@@ -546,7 +641,7 @@ public class Specify extends JPanel implements DatabaseLoginListener, CommandLis
             Date now = Calendar.getInstance().getTime();
             
             double elapsedMinutes = (now.getTime() - lastSaved) / 60000.0;
-            System.out.println(elapsedMinutes);
+            log.debug(elapsedMinutes);
             if (elapsedMinutes < 1.0)
             {
                 AppPreferences.setBlockTimer();
@@ -554,11 +649,12 @@ public class Specify extends JPanel implements DatabaseLoginListener, CommandLis
                 System.exit(0);
             }
         }*/
-        
-        dbLoginPanel = UIHelper.doLogin(usrPwdProvider, false, false, this, "SpecifyLargeIcon", getTitle(), null, "SpecifyWhite32", "login"); // true means do auto login if it can, second bool means use dialog instead of frame
+        UIRegistry.dumpPaths();
+
+        dbLoginPanel = UIHelper.doLogin(usrPwdProvider, true, false, false, this, getLargeIconName(), getTitle(), null, getOpaqueIconName(), "login"); // true means do auto login if it can, second bool means use dialog instead of frame
         localPrefs.load();
         
-        // FP MMK TODO: should this go here?
+        // added by HUH for FP MMK TODO: should this go here?
         FilteredPushMgr.getInstance().registerListener(getFilteredPushListener());
 
         boolean doFpStartUp = AppPreferences.getLocalPrefs().getBoolean("fp.autologin", false);
@@ -568,6 +664,7 @@ public class Specify extends JPanel implements DatabaseLoginListener, CommandLis
             // set up FilteredPushListener
             FilteredPushMgr.getInstance().connectToFilteredPush();
         }
+        // end HUH addition
     }
     
 
@@ -578,8 +675,10 @@ public class Specify extends JPanel implements DatabaseLoginListener, CommandLis
     {
         // Name factories
         System.setProperty(ViewFactory.factoryName,                     "edu.ku.brc.specify.config.SpecifyViewFactory");        // Needed by ViewFactory //$NON-NLS-1$
+        
         System.setProperty(AppContextMgr.factoryName,                   "edu.ku.brc.specify.config.SpecifyAppContextMgr");      // Needed by AppContextMgr //$NON-NLS-1$
         System.setProperty(AppPreferences.factoryName,                  "edu.ku.brc.specify.config.AppPrefsDBIOIImpl");         // Needed by AppReferences //$NON-NLS-1$
+        System.setProperty(AppPreferences.factoryGlobalName,            "edu.ku.brc.specify.config.AppPrefsGlobalDBIOIImpl");         // Needed by AppReferences //$NON-NLS-1$
         System.setProperty("edu.ku.brc.ui.ViewBasedDialogFactoryIFace", "edu.ku.brc.specify.ui.DBObjDialogFactory");            // Needed By UIRegistry //$NON-NLS-1$ //$NON-NLS-2$
         System.setProperty("edu.ku.brc.ui.forms.DraggableRecordIdentifierFactory", "edu.ku.brc.specify.ui.SpecifyDraggableRecordIdentiferFactory"); // Needed By the Form System //$NON-NLS-1$ //$NON-NLS-2$
         System.setProperty("edu.ku.brc.dbsupport.AuditInterceptor",     "edu.ku.brc.specify.dbsupport.AuditInterceptor");       // Needed By the Form System for updating Lucene and logging transactions //$NON-NLS-1$ //$NON-NLS-2$
@@ -590,18 +689,22 @@ public class Specify extends JPanel implements DatabaseLoginListener, CommandLis
         System.setProperty(QueryAdjusterForDomain.factoryName,          "edu.ku.brc.specify.dbsupport.SpecifyQueryAdjusterForDomain"); // Needed for ExpressSearch //$NON-NLS-1$
         System.setProperty(SchemaI18NService.factoryName,               "edu.ku.brc.specify.config.SpecifySchemaI18NService");         // Needed for Localization and Schema //$NON-NLS-1$
         System.setProperty(WebLinkMgr.factoryName,                      "edu.ku.brc.specify.config.SpecifyWebLinkMgr");                // Needed for WebLnkButton //$NON-NLS-1$
-        System.setProperty(DataObjFieldFormatMgr.factoryName,           "edu.ku.brc.specify.config.SpecifyDataObjFieldFormatMgr");         // Needed for WebLnkButton //$NON-NLS-1$
+        System.setProperty(DataObjFieldFormatMgr.factoryName,           "edu.ku.brc.specify.config.SpecifyDataObjFieldFormatMgr");     // Needed for WebLnkButton //$NON-NLS-1$
         System.setProperty(RecordSetFactory.factoryName,                "edu.ku.brc.specify.config.SpecifyRecordSetFactory");          // Needed for Searching //$NON-NLS-1$
         System.setProperty(DBTableIdMgr.factoryName,                    "edu.ku.brc.specify.config.SpecifyDBTableIdMgr");              // Needed for Tree Field Names //$NON-NLS-1$
         System.setProperty(SecurityMgr.factoryName,                     "edu.ku.brc.af.auth.specify.SpecifySecurityMgr");              // Needed for Tree Field Names //$NON-NLS-1$
         //System.setProperty(UserAndMasterPasswordMgr.factoryName,               "edu.ku.brc.af.auth.specify.SpecifySecurityMgr");              // Needed for Tree Field Names //$NON-NLS-1$
         System.setProperty(BackupServiceFactory.factoryName,            "edu.ku.brc.af.core.db.MySQLBackupService");                   // Needed for Backup and Restore //$NON-NLS-1$
         System.setProperty(ExceptionTracker.factoryName,                "edu.ku.brc.specify.config.SpecifyExceptionTracker");                   // Needed for Backup and Restore //$NON-NLS-1$
+        System.setProperty(TypeSearchForQueryFactory.factoryName,       "edu.ku.brc.specify.ui.SpecifyTypeSearchForQueryFactory"); // Needed by ViewFactory //$NON-NLS-1$
+        
         System.setProperty(DBMSUserMgr.factoryName,                     "edu.ku.brc.dbsupport.MySQLDMBSUserMgr");
-        System.setProperty(SchemaUpdateService.factoryName,             "edu.ku.brc.dbsupport.MySQLDMBSUserMgr");
+        System.setProperty(SchemaUpdateService.factoryName,             "edu.ku.brc.specify.dbsupport.SpecifySchemaUpdateService");   // needed for updating the schema
+        System.setProperty(GenericLSIDGeneratorFactory.factoryName,     "edu.ku.brc.specify.config.SpecifyLSIDGeneratorFactory");
  
-        // MMK TODO: FP is this the right place to implement this?
+        // added by HUH for FP TODO: is this the right place to implement this?
         System.setProperty(FilteredPushMgr.factoryName, "edu.ku.brc.services.filteredpush.FilteredPushMgr");
+        // end HUH addition
     }
 
     /**
@@ -624,7 +727,7 @@ public class Specify extends JPanel implements DatabaseLoginListener, CommandLis
             return;
         }
  
-        TaskMgr.readRegistry();
+        TaskMgr.getInstance().readRegistry(UIRegistry.isMobile());
         
         TaskMgr.initializePlugins();
         
@@ -669,14 +772,18 @@ public class Specify extends JPanel implements DatabaseLoginListener, CommandLis
         setPreferredSize(new Dimension(1024, 768)); // For demo
 
         topFrame = new JFrame(gc);
-        topFrame.setIconImage(IconManager.getImage("AppIcon").getImage()); //$NON-NLS-1$
+        topFrame.setIconImage(IconManager.getImage(getIconName()).getImage()); //$NON-NLS-1$
         //topFrame.setAlwaysOnTop(true);
         
         topFrame.setGlassPane(glassPane = GhostGlassPane.getInstance());
         topFrame.setLocationRelativeTo(null);
         Toolkit.getDefaultToolkit().setDynamicLayout(true);
         UIRegistry.register(UIRegistry.GLASSPANE, glassPane);
-
+        
+        // Don't check everytime, too annoying
+        //AppPreferences.getLocalPrefs().remove("SYSTEM.HasOpenGL"); // clear prop so it is checked
+        UIHelper.checkForOpenGL();
+        
         JPanel top = new JPanel();
         top.setLayout(new BorderLayout());
         add(top, BorderLayout.NORTH);
@@ -686,7 +793,6 @@ public class Specify extends JPanel implements DatabaseLoginListener, CommandLis
         menuBar = createMenus();
         if (menuBar != null)
         {
-            //top.add(menuBar, BorderLayout.NORTH);
             topFrame.setJMenuBar(menuBar);
         }
         UIRegistry.register(UIRegistry.MENUBAR, menuBar);
@@ -701,7 +807,7 @@ public class Specify extends JPanel implements DatabaseLoginListener, CommandLis
 
         mainPanel = new MainPanel();
 
-        int[] sections = {5, 5, 5, 1, 1}; // MMK: add a spot in the status bar for fp status icon
+        int[] sections = {5, 5, 5, 1, 1}; // modified by HUH for FP: add a spot in the status bar for fp status icon
         statusField = new JStatusBar(sections);
         statusField.setErrorIcon(IconManager.getIcon("Error", IconManager.IconSize.Std16)); //$NON-NLS-1$
         statusField.setWarningIcon(IconManager.getIcon("Warning", IconManager.IconSize.Std16)); //$NON-NLS-1$
@@ -718,9 +824,33 @@ public class Specify extends JPanel implements DatabaseLoginListener, CommandLis
             secLbl.setToolTipText(getResourceString("Specify.SEC_" + (isSecurityOn ? "ON" : "OFF")));
         }
 
-        updateFpConnectionStatus();
+        updateFpConnectionStatus(); // added by HUH for FP
 
         add(statusField, BorderLayout.SOUTH);
+    }
+
+    /**
+     * @return
+     */
+    public static String getIconName()
+    {
+        return IconManager.makeIconName("AppIcon");
+    }
+    
+    /**
+     * @return icon for Windows or Linux.
+     */
+    public static String getOpaqueIconName()
+    {
+        return IconManager.makeIconName("SpecifyWhite32");
+    }
+    
+    /**
+     * @return
+     */
+    public static String getLargeIconName()
+    {
+        return IconManager.makeIconName("SpecifyLargeIcon");
     }
     
     /**
@@ -728,7 +858,7 @@ public class Specify extends JPanel implements DatabaseLoginListener, CommandLis
      */
     protected void setAppIcon(final String imgEncoded)
     {
-        String appIconName      = "AppIcon";
+        String appIconName      = getIconName();
         String innerAppIconName = "InnerAppIcon";
         
         ImageIcon appImgIcon = null;
@@ -748,8 +878,13 @@ public class Specify extends JPanel implements DatabaseLoginListener, CommandLis
         appIcon.setIcon(appImgIcon);
         if (!UIHelper.isMacOS())
         {
-        	appImgIcon = IconManager.getImage("SpecifyWhite32", IconManager.IconSize.Std32); //$NON-NLS-1$
+            ImageIcon otherAppIcon = IconManager.getImage(getOpaqueIconName(), IconManager.IconSize.Std32); //$NON-NLS-1$
+            if (otherAppIcon != null)
+            {
+                appImgIcon = otherAppIcon;
+            }
         }
+        
         CustomDialog.setAppIcon(appImgIcon);
         CustomFrame.setAppIcon(appImgIcon);
         IconManager.register(innerAppIconName, appImgIcon, null, IconManager.IconSize.Std32);
@@ -874,7 +1009,13 @@ public class Specify extends JPanel implements DatabaseLoginListener, CommandLis
         //--------------------------------------------------------------------
         //-- File Menu
         //--------------------------------------------------------------------
-        JMenu menu = UIHelper.createLocalizedMenu(mb, "Specify.FILE_MENU", "Specify.FILE_MNEU"); //$NON-NLS-1$ //$NON-NLS-2$
+        
+        JMenu menu = null;
+        
+        if (!UIHelper.isMacOS() || !isWorkbenchOnly)
+        {
+            menu = UIHelper.createLocalizedMenu(mb, "Specify.FILE_MENU", "Specify.FILE_MNEU"); //$NON-NLS-1$ //$NON-NLS-2$
+        }
 
         if (!isWorkbenchOnly)
         {
@@ -899,10 +1040,8 @@ public class Specify extends JPanel implements DatabaseLoginListener, CommandLis
     
             
             menu.addMenuListener(new MenuListener() {
-                @Override
-                public void menuCanceled(MenuEvent e) {}
-                @Override
-                public void menuDeselected(MenuEvent e) {}
+                @Override public void menuCanceled(MenuEvent e) {}
+                @Override public void menuDeselected(MenuEvent e) {}
                 @Override
                 public void menuSelected(MenuEvent e)
                 {
@@ -918,10 +1057,17 @@ public class Specify extends JPanel implements DatabaseLoginListener, CommandLis
 
         if (UIHelper.getOSType() != UIHelper.OSTYPE.MacOSX)
         {
-            menu.addSeparator();
+            if (!UIRegistry.isMobile())
+            {
+                menu.addSeparator();
+            }
             String title = "Specify.EXIT"; //$NON-NLS-1$
             String mnu = "Specify.Exit_MNEU"; //$NON-NLS-1$
-            mi = UIHelper.createLocalizedMenuItem(menu, title, mnu, title, true, null); 
+            mi = UIHelper.createLocalizedMenuItem(menu, title, mnu, title, true, null);
+            if (!UIHelper.isMacOS())
+            {
+                mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Q, InputEvent.CTRL_DOWN_MASK));
+            }
             mi.addActionListener(new ActionListener()
                     {
                         public void actionPerformed(ActionEvent ae)
@@ -933,6 +1079,7 @@ public class Specify extends JPanel implements DatabaseLoginListener, CommandLis
        
         menu = UIRegistry.getInstance().createEditMenu();
         mb.add(menu);
+        
         //menu = UIHelper.createMenu(mb, "EditMenu", "EditMneu");
         if (UIHelper.getOSType() != UIHelper.OSTYPE.MacOSX)
         {
@@ -949,43 +1096,6 @@ public class Specify extends JPanel implements DatabaseLoginListener, CommandLis
                     });
             mi.setEnabled(true);
         }
-                
-
-
-        /*JMenuItem mi2;
-        JMenu fileMenu2 = (JMenu) mb.add(new JMenu("Log off"));
-
-
-        fileMenu2.setMnemonic('O');
-        mi2 = UIHelper.createMenuItem(fileMenu2, "Log off", "O", "Log off database", false, null);
-        mi2.addActionListener(new ActionListener()
-                {
-                    public void actionPerformed(ActionEvent ae)
-                    {
-                        if (hasChanged)
-                        {
-
-                        }
-                        try {
-                            if (mSessionFactory != null)
-                            {
-                                mSessionFactory.close();
-                            }
-                            if (mSession != null)
-                            {
-                                mSession.close();
-                            }
-                        } catch (Exception e)
-                        {
-                            log.error("UIHelper.createMenus - ", e);
-                        }
-                        //frame.dispose();
-                        final Window parentWindow = SwingUtilities.getWindowAncestor(Specify.this);
-                        parentWindow.dispose();
-                        Specify ha = new Specify(grc);
-                    }
-                });
-        */
         
         //--------------------------------------------------------------------
         //-- Data Menu
@@ -1030,6 +1140,7 @@ public class Specify extends JPanel implements DatabaseLoginListener, CommandLis
         UIRegistry.registerAction("ConfigCarryForward", configCarryForwardAction); //$NON-NLS-1$
         mb.add(dataMenu);
 
+        // added by HUH for FP
         // TODO: FP MMK put this somewhere, make it conditional somehow, do something, I dunno...
         // Configure Carry Forward
         Action configFilteredPushAction = new AbstractAction(getResourceString("Specify.CONFIG_FP_MENU")) { //$NON-NLS-1$
@@ -1048,6 +1159,7 @@ public class Specify extends JPanel implements DatabaseLoginListener, CommandLis
         UIRegistry.register("ConfigFilteredPush", configFPWMI); //$NON-NLS-1$
         UIRegistry.registerAction("ConfigFilteredPush", configFilteredPushAction); //$NON-NLS-1$
         mb.add(dataMenu);
+        // end HUH addition
         
         //---------------------------------------
         // Carry Forward Menu Item (On / Off)
@@ -1069,55 +1181,76 @@ public class Specify extends JPanel implements DatabaseLoginListener, CommandLis
         UIRegistry.registerAction("CarryForward", carryForwardAction); //$NON-NLS-1$
         mb.add(dataMenu);
         
-        //---------------------------------------
-        // AutoNumber Menu Item (On / Off)
-        Action autoNumberOnOffAction = new AbstractAction(getResourceString("FormViewObj.SET_AUTONUMBER_ONOFF")) { //$NON-NLS-1$
-            public void actionPerformed(ActionEvent e)
-            {
-                FormViewObj fvo = getCurrentFVO();
-                if (fvo != null)
+        if (!isWorkbenchOnly)
+        {
+            //---------------------------------------
+            // AutoNumber Menu Item (On / Off)
+            Action autoNumberOnOffAction = new AbstractAction(getResourceString("FormViewObj.SET_AUTONUMBER_ONOFF")) { //$NON-NLS-1$
+                public void actionPerformed(ActionEvent e)
                 {
-                    fvo.toggleAutoNumberOnOffState();
-                    ((JCheckBoxMenuItem)e.getSource()).setSelected(fvo.isAutoNumberOn());
+                    FormViewObj fvo = getCurrentFVO();
+                    if (fvo != null)
+                    {
+                        fvo.toggleAutoNumberOnOffState();
+                        ((JCheckBoxMenuItem)e.getSource()).setSelected(fvo.isAutoNumberOn());
+                    }
                 }
-            }
-        };
-        autoNumberOnOffAction.setEnabled(false);
-        JCheckBoxMenuItem autoNumCBMI = new JCheckBoxMenuItem(autoNumberOnOffAction);
-        dataMenu.add(autoNumCBMI);
-        UIRegistry.register("AutoNumbering", autoNumCBMI); //$NON-NLS-1$
-        UIRegistry.registerAction("AutoNumbering", autoNumberOnOffAction); //$NON-NLS-1$
-        mb.add(dataMenu);
+            };
+            autoNumberOnOffAction.setEnabled(false);
+            JCheckBoxMenuItem autoNumCBMI = new JCheckBoxMenuItem(autoNumberOnOffAction);
+            dataMenu.add(autoNumCBMI);
+            UIRegistry.register("AutoNumbering", autoNumCBMI); //$NON-NLS-1$
+            UIRegistry.registerAction("AutoNumbering", autoNumberOnOffAction); //$NON-NLS-1$
+        }
+
+
+        if (System.getProperty("user.name").equals("rods"))
+        {
+            dataMenu.addSeparator();
+            
+            
+            AbstractAction gpxAction = new AbstractAction("GPS Data") {
+                @Override
+                public void actionPerformed(ActionEvent e)
+                {
+                    GPXPanel.getDlgInstance().setVisible(true);
+                }
+            };
+            JMenuItem gpxMI = new JMenuItem(gpxAction);
+            dataMenu.add(gpxMI);
+            UIRegistry.register("GPXDlg", gpxMI); //$NON-NLS-1$
+            UIRegistry.registerAction("GPXDlg", gpxAction); //$NON-NLS-1$
+        }
         
+        
+        mb.add(dataMenu);
+
+        SubPaneMgr.getInstance(); // force creating of the Mgr so the menu Actions are created.
+
         //--------------------------------------------------------------------
         //-- System Menu
         //--------------------------------------------------------------------
         
-        // TODO This needs to be moved into the SystemTask, but right now there is no way
-        // to ask a task for a menu.
-        menu = UIHelper.createLocalizedMenu(mb, "Specify.SYSTEM_MENU", "Specify.SYSTEM_MNEU"); //$NON-NLS-1$ //$NON-NLS-2$
-        
-        JMenu treesMenu = UIHelper.createLocalizedMenu(mb, "Specify.TREES_MENU", "Specify.TREES_MNEU"); //$NON-NLS-1$ //$NON-NLS-2$
-        menu.insert(treesMenu, 0); 
-        JMenu setupMenu = UIHelper.createLocalizedMenu(mb, "Specify.COLSETUP_MENU", "Specify.COLSETUP_MNEU"); //$NON-NLS-1$ //$NON-NLS-2$
-        menu.insert(setupMenu, 0); // insert at the top
-        
-
-        /*if (true)
+        if (!isWorkbenchOnly)
         {
-            menu = UIHelper.createMenu(mb, "Forms", "o");
-            Action genForms = new AbstractAction()
+            // TODO This needs to be moved into the SystemTask, but right now there is no way
+            // to ask a task for a menu.
+            menu = UIHelper.createLocalizedMenu(mb, "Specify.SYSTEM_MENU", "Specify.SYSTEM_MNEU"); //$NON-NLS-1$ //$NON-NLS-2$
+            
+            /*if (true)
             {
-                public void actionPerformed(ActionEvent ae)
+                menu = UIHelper.createMenu(mb, "Forms", "o");
+                Action genForms = new AbstractAction()
                 {
-                    FormGenerator fg = new FormGenerator();
-                    fg.generateForms();
-                }
-            };
-            mi = UIHelper.createMenuItemWithAction(menu, "Generate All Forms", "G", "", true, genForms);
-        }*/
-
-        SubPaneMgr.getInstance(); // force creating of the Mgr so the menu Actions are created.
+                    public void actionPerformed(ActionEvent ae)
+                    {
+                        FormGenerator fg = new FormGenerator();
+                        fg.generateForms();
+                    }
+                };
+                mi = UIHelper.createMenuItemWithAction(menu, "Generate All Forms", "G", "", true, genForms);
+            }*/
+        }
         
         //--------------------------------------------------------------------
         //-- Tab Menu
@@ -1127,10 +1260,18 @@ public class Specify extends JPanel implements DatabaseLoginListener, CommandLis
         String ttl = UIRegistry.getResourceString("Specify.SBP_CLOSE_CUR_MENU"); 
         String mnu = UIRegistry.getResourceString("Specify.SBP_CLOSE_CUR_MNEU"); 
         mi = UIHelper.createMenuItemWithAction(menu, ttl, mnu, ttl, true, getAction("CloseCurrent")); 
+        if (!UIHelper.isMacOS())
+        {
+            mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_W, InputEvent.CTRL_DOWN_MASK));
+        }
 
         ttl = UIRegistry.getResourceString("Specify.SBP_CLOSE_ALL_MENU"); 
         mnu = UIRegistry.getResourceString("Specify.SBP_CLOSE_ALL_MNEU"); 
         mi = UIHelper.createMenuItemWithAction(menu, ttl, mnu, ttl, true, getAction("CloseAll")); 
+        if (!UIHelper.isMacOS())
+        {
+            mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_W, InputEvent.CTRL_DOWN_MASK | InputEvent.SHIFT_DOWN_MASK));
+        }
         
         ttl = UIRegistry.getResourceString("Specify.SBP_CLOSE_ALLBUT_MENU"); 
         mnu = UIRegistry.getResourceString("Specify.SBP_CLOSE_ALLBUT_MNEU"); 
@@ -1180,54 +1321,6 @@ public class Specify extends JPanel implements DatabaseLoginListener, CommandLis
     
             menu.addSeparator();
             
-            final String reloadViews = "reload_views"; //$NON-NLS-1$
-            JCheckBoxMenuItem cbMenuItem = new JCheckBoxMenuItem(getResourceString("Specify.RELOAD_VIEWS")); //$NON-NLS-1$
-            menu.add(cbMenuItem);
-            cbMenuItem.setSelected(AppPreferences.getLocalPrefs().getBoolean(reloadViews, false));
-            cbMenuItem.addActionListener(new ActionListener() {
-                        public void actionPerformed(ActionEvent ae)
-                        {
-                            boolean isReload = !AppPreferences.getLocalPrefs().getBoolean(reloadViews, false);                       
-                            AppPreferences.getLocalPrefs().putBoolean(reloadViews, isReload);
-                            ((JMenuItem)ae.getSource()).setSelected(isReload);
-                        }});
-    
-            final String reloadBackViews = "reload_backstop_views"; //$NON-NLS-1$
-            cbMenuItem = new JCheckBoxMenuItem(getResourceString("Specify.RELOAD_BACKSTOPVIEWS")); //$NON-NLS-1$
-            menu.add(cbMenuItem);
-            cbMenuItem.setSelected(AppPreferences.getLocalPrefs().getBoolean(reloadBackViews, false));
-            cbMenuItem.addActionListener(new ActionListener() {
-                        public void actionPerformed(ActionEvent ae)
-                        {
-                            boolean isReload = !AppPreferences.getLocalPrefs().getBoolean(reloadBackViews, false);                       
-                            AppPreferences.getLocalPrefs().putBoolean(reloadBackViews, isReload);
-                            ((JMenuItem)ae.getSource()).setSelected(isReload);
-                        }});
-    
-            final String verifyFields = "verify_field_names"; //$NON-NLS-1$
-            cbMenuItem = new JCheckBoxMenuItem(getResourceString("Specify.VERIFY_FIELDS")); //$NON-NLS-1$
-            menu.add(cbMenuItem);
-            cbMenuItem.setSelected(AppPreferences.getLocalPrefs().getBoolean(verifyFields, false));
-            cbMenuItem.addActionListener(new ActionListener() {
-                        public void actionPerformed(ActionEvent ae)
-                        {
-                            boolean isVerify = !AppPreferences.getLocalPrefs().getBoolean(verifyFields, false);                       
-                            AppPreferences.getLocalPrefs().putBoolean(verifyFields, isVerify);
-                            ((JMenuItem)ae.getSource()).setSelected(isVerify);
-                            ViewLoader.setDoFieldVerification(isVerify);
-                        }});
-    
-            cbMenuItem = new JCheckBoxMenuItem(getResourceString("Specify.SHOW_FORM_DEBUG")); //$NON-NLS-1$
-            menu.add(cbMenuItem);
-            cbMenuItem.setSelected(FormViewObj.isUseDebugForm());
-            cbMenuItem.addActionListener(new ActionListener() {
-                        public void actionPerformed(ActionEvent ae)
-                        {
-                            boolean useDebugForm = !FormViewObj.isUseDebugForm();
-                            FormViewObj.setUseDebugForm(useDebugForm);
-                            ((JMenuItem)ae.getSource()).setSelected(useDebugForm);
-                        }});
-            menu.addSeparator();
             ttle = "Specify.CONFIG_LOGGERS";//$NON-NLS-1$ 
             mneu = "Specify.CONFIG_LOGGERS_MNEU";//$NON-NLS-1$ 
             desc = "Specify.CONFIG_LOGGER";//$NON-NLS-1$ 
@@ -1256,58 +1349,6 @@ public class Specify extends JPanel implements DatabaseLoginListener, CommandLis
                         }
                     });
             
-            menu.addSeparator();
-            ttle = "Specify.CREATE_FORM_IMAGES";//$NON-NLS-1$ 
-            mneu = "Specify.CREATE_FORM_IMAGES_MNEU";//$NON-NLS-1$ 
-            desc = "Specify.CREATE_FORM_IMAGES";//$NON-NLS-1$ 
-            mi = UIHelper.createLocalizedMenuItem(menu, ttle , mneu, desc, true, null);  
-            mi.addActionListener(new ActionListener()
-                    {
-                        @SuppressWarnings("synthetic-access") //$NON-NLS-1$
-                        public void actionPerformed(ActionEvent ae)
-                        {
-                            FormDisplayer fd = new FormDisplayer();
-                            fd.generateFormImages();
-                        }
-                    });
-            ttle = "Specify.CREATE_FORM_LIST";//$NON-NLS-1$ 
-            mneu = "Specify.CREATE_FORM_LIST_MNEU";//$NON-NLS-1$ 
-            desc = "Specify.CREATE_FORM_LIST";//$NON-NLS-1$ 
-            mi = UIHelper.createLocalizedMenuItem(menu, ttle , mneu, desc, true, null);  
-            mi.addActionListener(new ActionListener()
-                    {
-                        @SuppressWarnings("synthetic-access") //$NON-NLS-1$
-                        public void actionPerformed(ActionEvent ae)
-                        {
-                            FormDisplayer fd = new FormDisplayer();
-                            fd.createViewListing(UIRegistry.getUserHomeDir());
-                        }
-                    }); //$NON-NLS-1$ // TODO: mmk: add menu item for fp
-            ttle = "Specify.FORM_FIELD_LIST";//$NON-NLS-1$ 
-            mneu = "Specify.FORM_FIELD_LIST_MNEU";//$NON-NLS-1$ 
-            desc = "Specify.FORM_FIELD_LIST";//$NON-NLS-1$ 
-            mi = UIHelper.createLocalizedMenuItem(menu, ttle , mneu, desc, true, null);  
-            mi.addActionListener(new ActionListener()
-                    {
-                        @SuppressWarnings("synthetic-access") //$NON-NLS-1$
-                        public void actionPerformed(ActionEvent ae)
-                        {
-                            ViewToSchemaReview.dumpFormFieldList();
-                        }
-                    });
-            
-            ttle = "Specify.VIEW_REVIEW_LIST";//$NON-NLS-1$ 
-            mneu = "Specify.VIEW_REVIEW_LIST_MNEU";//$NON-NLS-1$ 
-            desc = "Specify.VIEW_REVIEW_LIST";//$NON-NLS-1$ 
-            mi = UIHelper.createLocalizedMenuItem(menu, ttle , mneu, desc, true, null);  
-            mi.addActionListener(new ActionListener()
-                    {
-                        @SuppressWarnings("synthetic-access") //$NON-NLS-1$
-                        public void actionPerformed(ActionEvent ae)
-                        {
-                            (new ViewToSchemaReview()).checkSchemaAndViews();
-                        }
-                    });
             menu.addSeparator();
             
             ttle = "Specify.SHOW_MEM_STATS";//$NON-NLS-1$ 
@@ -1379,8 +1420,25 @@ public class Specify extends JPanel implements DatabaseLoginListener, CommandLis
                         }
                     });
 
+            ttle = "Load GPX Points";//$NON-NLS-1$ 
+            mneu = "a";//$NON-NLS-1$ 
+            desc = "";//$NON-NLS-1$ 
+            mi = UIHelper.createMenuItemWithAction(menu, ttle, mneu , desc, true, null); 
+            mi.addActionListener(new ActionListener()
+                    {
+                        @SuppressWarnings("synthetic-access") //$NON-NLS-1$
+                        public void actionPerformed(ActionEvent ae)
+                        {
+                            CustomDialog dlg = GPXPanel.getDlgInstance();
+                            if (dlg != null)
+                            {
+                                dlg.setVisible(true);
+                            }
+                        }
+                    });
+
         
-            cbMenuItem = new JCheckBoxMenuItem("Security Activated"); //$NON-NLS-1$ // TODO: mmk: add menu item for fp
+            JCheckBoxMenuItem cbMenuItem = new JCheckBoxMenuItem("Security Activated"); //$NON-NLS-1$
             menu.add(cbMenuItem);
             cbMenuItem.setSelected(AppContextMgr.isSecurityOn());
             cbMenuItem.addActionListener(new ActionListener() {
@@ -1408,6 +1466,7 @@ public class Specify extends JPanel implements DatabaseLoginListener, CommandLis
                         }});
         }
         
+        // added by HUH for FP
         // TODO: FP MMK poplulate the task bar and menu bar via TaskMgr.registerWithUI
         
         //----------------------------------------------------
@@ -1441,14 +1500,14 @@ public class Specify extends JPanel implements DatabaseLoginListener, CommandLis
                 
             }
         });
-        
+        // end HUH addition
         
         //----------------------------------------------------
         //-- Helper Menu
         //----------------------------------------------------
         
         JMenu helpMenu = UIHelper.createLocalizedMenu(mb, "Specify.HELP_MENU", "Specify.HELP_MNEU"); //$NON-NLS-1$ //$NON-NLS-2$
-        HelpMgr.createHelpMenuItem(helpMenu, "Specify"); //$NON-NLS-1$
+        HelpMgr.createHelpMenuItem(helpMenu, getResourceString("SPECIFY_HELP")); //$NON-NLS-1$
         helpMenu.addSeparator();
         
         String ttle = "Specify.LOG_SHOW_FILES";//$NON-NLS-1$ 
@@ -1458,10 +1517,10 @@ public class Specify extends JPanel implements DatabaseLoginListener, CommandLis
         helpMenu.addSeparator();
         mi.addActionListener(new ActionListener()
         {
-            @SuppressWarnings("synthetic-access") //$NON-NLS-1$
+            @Override
             public void actionPerformed(ActionEvent ae)
             {
-                dumpSpecifyLogFile();
+                AppBase.displaySpecifyLogFiles();
             }
         });
                 
@@ -1487,7 +1546,7 @@ public class Specify extends JPanel implements DatabaseLoginListener, CommandLis
             @Override
             public void actionPerformed(ActionEvent ae)
             {
-                RegisterSpecify.register(true);
+                RegisterSpecify.register(true, 0);
             }
         });
         
@@ -1543,44 +1602,56 @@ public class Specify extends JPanel implements DatabaseLoginListener, CommandLis
      */
     protected void checkForUpdates()
     {
+        String  errKey     = null;
+        String  updatePath = UIRegistry.getResourceString("UPDATE_PATH");
         try
         {
-            UpdateDescriptor updateDesc = UpdateChecker.getUpdateDescriptor(UIRegistry.getResourceString("UPDATE_PATH"),
-                                                                           ApplicationDisplayMode.UNATTENDED);
-
-            UpdateDescriptorEntry entry = updateDesc.getPossibleUpdateEntry();
-
-            if (entry != null)
+            UpdateDescriptor updateDesc = UpdateChecker.getUpdateDescriptor(updatePath, ApplicationDisplayMode.UNATTENDED);
+            if (updateDesc != null)
             {
-                Object[] options = { getResourceString("Specify.INSTALLUPDATE"),  //$NON-NLS-1$
-                        getResourceString("Specify.SKIP")  //$NON-NLS-1$
-                      };
-                int userChoice = JOptionPane.showOptionDialog(UIRegistry.getTopWindow(), 
-                                                             getLocalizedMessage("Specify.UPDATE_AVAIL", entry.getNewVersion()),  //$NON-NLS-1$
-                                                             getResourceString("Specify.UPDATE_AVAIL_TITLE"),  //$NON-NLS-1$
-                                                             JOptionPane.YES_NO_CANCEL_OPTION,
-                                                             JOptionPane.QUESTION_MESSAGE, null, options, options[0]);
-                if (userChoice == JOptionPane.YES_OPTION)
+                UpdateDescriptorEntry entry = updateDesc.getPossibleUpdateEntry();
+    
+                if (entry != null)
                 {
-                    if (!doExit(false))
+                    Object[] options = { getResourceString("Specify.INSTALLUPDATE"),  //$NON-NLS-1$
+                                         getResourceString("Specify.SKIP")  //$NON-NLS-1$
+                                       };
+                    int userChoice = JOptionPane.showOptionDialog(UIRegistry.getTopWindow(), 
+                                                                 getLocalizedMessage("Specify.UPDATE_AVAIL", entry.getNewVersion()),  //$NON-NLS-1$
+                                                                 getResourceString("Specify.UPDATE_AVAIL_TITLE"),  //$NON-NLS-1$
+                                                                 JOptionPane.YES_NO_CANCEL_OPTION,
+                                                                 JOptionPane.QUESTION_MESSAGE, null, options, options[0]);
+                    if (userChoice == JOptionPane.YES_OPTION)
+                    {
+                        if (!doExit(false))
+                        {
+                            return;
+                        }
+                        
+                    } else
                     {
                         return;
                     }
-                    
                 } else
                 {
-                    return;
+                    errKey = "Specify.NO_UPDATE_AVAIL";
                 }
             } else
             {
-                UIRegistry.showLocalizedError("Specify.NO_UPDATE_AVAIL");
-                return ;
+                errKey = UPDATE_CHK_ERROR;
             }
             
         } catch (Exception ex)
         {
+            errKey = UPDATE_CHK_ERROR;
             ex.printStackTrace();
-            UIRegistry.showLocalizedError("Specify.UPDATE_CHK_ERROR");
+            log.error(ex);
+        }
+        
+        if (errKey != null)
+        {
+            log.error(String.format("Update Error: %s - %s", errKey, updatePath));
+            UIRegistry.showLocalizedError(errKey);
             return;
         }
         
@@ -1590,12 +1661,12 @@ public class Specify extends JPanel implements DatabaseLoginListener, CommandLis
            {
                public void exited(int exitValue)
                {
-                   System.err.println("exitValue: "+exitValue);
+                   log.error("exitValue: "+exitValue);
                    //startApp(doConfig);
                }
                public void prepareShutdown()
                {
-                   System.err.println("prepareShutdown");
+                   log.error("prepareShutdown");
                    
                }
             };
@@ -1603,7 +1674,8 @@ public class Specify extends JPanel implements DatabaseLoginListener, CommandLis
             
         } catch (Exception ex)
         {
-            System.err.println("EXPCEPTION");
+            log.error(ex);
+            log.error("EXPCEPTION");
         }
     }
     
@@ -1643,7 +1715,7 @@ public class Specify extends JPanel implements DatabaseLoginListener, CommandLis
         
         for (Storage node : parent.getChildren())
         {
-            System.out.println("["+node.getName()+"]["+nodeStr+"]");
+            //log.debug("["+node.getName()+"]["+nodeStr+"]");
             if (node.getName().equals(nodeStr))
             {
                 if (StringUtils.isNotEmpty(pathStr))
@@ -1771,10 +1843,10 @@ public class Specify extends JPanel implements DatabaseLoginListener, CommandLis
         //btnOpts |= cellField.getPropertyAsBoolean("newbtn", true) ? ValComboBoxFromQuery.CREATE_NEW_BTN : 0;
         //btnOpts |= cellField.getPropertyAsBoolean("searchbtn", true) ? ValComboBoxFromQuery.CREATE_SEARCH_BTN : 0;
         
-        ValComboBoxFromQuery taxonCBX = TypeSearchForQueryFactory.createValComboBoxFromQuery("Taxon", btnOpts, null, null);
+        ValComboBoxFromQuery taxonCBX = TypeSearchForQueryFactory.getInstance().createValComboBoxFromQuery("Taxon", btnOpts, null, null);
         taxonCBX.setRequired(true);
         
-        ValComboBoxFromQuery storageCBX = TypeSearchForQueryFactory.createValComboBoxFromQuery("Storage", btnOpts, null, null);
+        ValComboBoxFromQuery storageCBX = TypeSearchForQueryFactory.getInstance().createValComboBoxFromQuery("Storage", btnOpts, null, null);
         storageCBX.setRequired(true);
         //cbx.setSearchDlgName("TaxonSearch");
         //cbx.setDisplayDlgName("Taxon");
@@ -1818,72 +1890,8 @@ public class Specify extends JPanel implements DatabaseLoginListener, CommandLis
     }
     
     /**
-     * CReates a scrollpane with the text fro the log file.
-     * @param path the path to the files
-     * @param doError indicates it should display the erro log
-     * @return the scrollpane.
+     * 
      */
-    protected JScrollPane getLogFilePanel(final String path, final boolean doError)
-    {
-        JTextArea textArea = new JTextArea();
-        File      logFile  = new File(path + (doError ? "error.log" : "specify.log")); //$NON-NLS-1$ //$NON-NLS-2$
-        if (logFile.exists())
-        {
-            try
-            {
-                textArea.setText(FileUtils.readFileToString(logFile));
-                
-            } catch (Exception ex) {} // no catch on purpose
-            
-        } else
-        {
-            textArea.setText(doError ? getResourceString("Specify.LOG_NO_ERRORS") : getResourceString("Specify.LOG_EMPTY")); //$NON-NLS-1$ //$NON-NLS-2$
-        }
-        textArea.setEditable(false);
-            
-        return new JScrollPane(textArea, ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED, ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-    }
-    
-    /**
-     * Creates a modal dialog displaying the the error and specify log files. 
-     */
-    protected void dumpSpecifyLogFile()
-    {
-        String logFilePath = UIRegistry.getDefaultWorkingPath() + File.separator;
-        File logFile = new File(logFilePath + "specify.log"); //$NON-NLS-1$
-        if (logFile != null)
-        {
-            logFilePath = "";  //$NON-NLS-1$
-            logFile     = new File("specify.log"); //$NON-NLS-1$
-            
-            if (!logFile.exists())
-            {
-                logFile = new File(logFilePath + "error.log"); //$NON-NLS-1$
-                if (logFile != null)
-                {
-                    logFilePath = "";  //$NON-NLS-1$
-                    logFile     = new File("error.log"); //$NON-NLS-1$
-                }
-            }
-        }
-        
-        if (logFile != null && logFile.exists())
-        {
-            JTabbedPane tabPane = new JTabbedPane();
-            tabPane.add(getResourceString("Specify.ERROR"), getLogFilePanel(logFilePath, true)); //$NON-NLS-1$
-            tabPane.add("Specify",                          getLogFilePanel(logFilePath, false)); //$NON-NLS-1$
-            
-            String title = getResourceString("Specify.LOG_FILES_TITLE");//$NON-NLS-1$
-            CustomDialog dialog = new CustomDialog((JFrame)UIRegistry.getTopWindow(), title, true, CustomDialog.OK_BTN, tabPane); 
-            String okLabel = getResourceString("Specify.CLOSE");//$NON-NLS-1$
-            dialog.setOkLabel(okLabel); 
-            dialog.createUI();
-            dialog.setSize(800, 600);
-            UIHelper.centerWindow(dialog);
-            dialog.setVisible(true);
-        }
-    }
-    
     protected void localities()
     {
         Connection connection = DBConnection.getInstance().getConnection();
@@ -1903,11 +1911,11 @@ public class Specify extends JPanel implements DatabaseLoginListener, CommandLis
                 {
                     String localityName = rs1.getString(2);
                     int    distance     = StringUtils.getLevenshteinDistance(currLocalityName, localityName);
-                    //System.err.println(rs.getInt(1) + "  "+ rs1.getInt(1) + "  "+ distance);
+                    //log.error(rs.getInt(1) + "  "+ rs1.getInt(1) + "  "+ distance);
                     if (distance < 6)
                     {
-                        System.err.println("----- "+distance+"\n"+currLocalityName+"\n"+localityName);
-                        System.err.println(rs.getBigDecimal(4)+","+rs.getBigDecimal(5)+"\n"+rs1.getBigDecimal(4)+","+rs1.getBigDecimal(5));
+                        log.error("----- "+distance+"\n"+currLocalityName+"\n"+localityName);
+                        log.error(rs.getBigDecimal(4)+","+rs.getBigDecimal(5)+"\n"+rs1.getBigDecimal(4)+","+rs1.getBigDecimal(5));
                     }
                 }
                 rs1.close();
@@ -1944,7 +1952,7 @@ public class Specify extends JPanel implements DatabaseLoginListener, CommandLis
         AppContextMgr acm        = AppContextMgr.getInstance();
         boolean       hasContext = acm.hasContext();
         
-        int baseNumRows = 9;
+        int baseNumRows = 11;
         String serverName = AppPreferences.getLocalPrefs().get("login.servers_selected", null);
         if (serverName != null)
         {
@@ -2003,6 +2011,14 @@ public class Specify extends JPanel implements DatabaseLoginListener, CommandLis
             
             infoPB.add(UIHelper.createI18NFormLabel("Specify.BLD"), cc.xy(1, y));
             infoPB.add(UIHelper.createLabel(appBuildVersion),cc.xy(3, y)); y += 2;
+            
+            UIRegistry.loadAndPushResourceBundle("bld");
+            infoPB.add(UIHelper.createFormLabel("SVN"), cc.xy(1, y));
+            infoPB.add(UIHelper.createLabel(getResourceString("build")),cc.xy(3, y)); y += 2;
+            
+            infoPB.add(UIHelper.createI18NFormLabel("Specify.BLD_TM"), cc.xy(1, y));
+            infoPB.add(UIHelper.createLabel(getResourceString("buildtime")),cc.xy(3, y)); y += 2;
+            UIRegistry.popResourceBundle();
             
             infoPB.add(UIHelper.createI18NFormLabel("Specify.REG"), cc.xy(1, y));
             infoPB.add(UIHelper.createI18NLabel(hasReged ? "Specify.HASREG" : "Specify.NOTREG"),cc.xy(3, y)); y += 2;
@@ -2099,12 +2115,12 @@ public class Specify extends JPanel implements DatabaseLoginListener, CommandLis
         return "<html><font face=\"sans-serif\" size=\"11pt\">"+appNameArg+" " + appVersionArg +  //$NON-NLS-1$ //$NON-NLS-2$
         "<br><br>Specify Software Project<br>" +//$NON-NLS-1$
         "Biodiversity Institute<br>University of Kansas<br>1345 Jayhawk Blvd.<br>Lawrence, KS  USA 66045<br><br>" +  //$NON-NLS-1$
-        "<a href=\"http://www.specifysoftware .org\">www.specifysoftware.org</a>"+ //$NON-NLS-1$
+        "<a href=\"http://www.specifysoftware.org\">www.specifysoftware.org</a>"+ //$NON-NLS-1$
         "<br><a href=\"mailto:specify@ku.edu\">specify@ku.edu</a><br>" +  //$NON-NLS-1$
         "<p>The Specify Software Project is "+ //$NON-NLS-1$
         "funded by the Advances in Biological Informatics Program, " + //$NON-NLS-1$
-        "U.S. National Science Foundation  (Award DBI-0446544 and earlier awards).<br><br>" + //$NON-NLS-1$
-        "Specify 6.0 Copyright \u00A9 2009 University of Kansas Center for Research. " + 
+        "U.S. National Science Foundation  (Award DBI-0960913 and earlier awards).<br><br>" + //$NON-NLS-1$
+        "Specify 6.0 Copyright \u00A9 2011 University of Kansas Center for Research. " + 
         "Specify comes with ABSOLUTELY NO WARRANTY.<br><br>" + //$NON-NLS-1$
         "This is free software licensed under GNU General Public License 2 (GPL2).</P></font></html>"; //$NON-NLS-1$
 
@@ -2164,7 +2180,7 @@ public class Specify extends JPanel implements DatabaseLoginListener, CommandLis
                     
                 } catch (Exception ex)
                 {
-                    
+                    log.error(ex);
                 }
                 
                 // Returns false if it isn't doing a backup.
@@ -2183,7 +2199,6 @@ public class Specify extends JPanel implements DatabaseLoginListener, CommandLis
                         AppPreferences.getLocalPrefs().putInt("APP.H", r.height);
             		}
             
-                    //AppPreferences.shutdownLocalPrefs();
                     AppPreferences.getLocalPrefs().flush();
                     
              		// save the long term cache mapping info
@@ -2246,41 +2261,45 @@ public class Specify extends JPanel implements DatabaseLoginListener, CommandLis
                     {
                         UIRegistry.getTopWindow().setVisible(false);
                         statsTrackerTask.setSendSecondaryStatsAllowed(canSendISAStats);
-                        statsTrackerTask.sendStats(true, false); // false means don't do it silently
+                        statsTrackerTask.sendStats(false, false, true); // don't exit, show progress and send done event
+                        
                         return false;
                     }
-                    DataProviderFactory.getInstance().shutdown();
-                    DBConnection.shutdown();
                     
                 } else
                 {
-                    DataProviderFactory.getInstance().shutdown();
-                    DBConnection.shutdown();
-                    System.exit(0);
+                    // Fake like we sent stats, needs to  to be placed into the event queue 
+                    // so any other events can be processed.
+                    SwingUtilities.invokeLater(new Runnable()
+                    {
+                        @Override
+                        public void run()
+                        {
+                            try
+                            {
+                                Thread.sleep(500); // wait half second before sending 'faked' done event.
+                            } catch (Exception ex) {}
+                            CommandDispatcher.dispatch(new CommandAction(BaseTask.APP_CMD_TYPE, STATS_SEND_DONE, null));
+                        }
+                    });
                 }
-                
             }
         }
         return okToShutdown;
     }
     
     /**
-     * If the version number is '(Unknown)' then it wasn't installed with install4j.
-     * @return the title for Specify which may include the version number.
+     * (To be replaced by method in AppBase)
      */
     protected String getTitle()
     {
-        String title        = "";
-        String install4JStr = UIHelper.getInstall4JInstallString();
-        if (StringUtils.isNotEmpty(install4JStr))
+        String resAppVersion = UIRegistry.getAppVersion();
+        if (StringUtils.isNotEmpty(resAppVersion))
         {
-            appVersion = install4JStr;
-            title = appName + " " + appVersion; //$NON-NLS-1$
-        } else
-        {
-            title = appName + " " + appVersion + "  - " + appBuildVersion; //$NON-NLS-1$ //$NON-NLS-2$
+            appVersion = resAppVersion;
         }
-        return title;
+        
+        return AppBase.getTitle(appVersion, appBuildVersion, appName);
     }
 
     /**
@@ -2319,7 +2338,11 @@ public class Specify extends JPanel implements DatabaseLoginListener, CommandLis
      */
     public JFrame getFrame()
     {
-      return topFrame;
+        if (topFrame == null)
+        {
+            topFrame = new JFrame(); // There was an error at start up
+        }
+        return topFrame;
     }
 
     /**
@@ -2372,7 +2395,7 @@ public class Specify extends JPanel implements DatabaseLoginListener, CommandLis
     }
     
     /**
-     * 
+     * This is called when switching Collections and NOT logging off.
      */
     protected void checkAndSendStats()
     {
@@ -2392,7 +2415,7 @@ public class Specify extends JPanel implements DatabaseLoginListener, CommandLis
             if (statsTrackerTask != null)
             {
                 statsTrackerTask.setSendSecondaryStatsAllowed(canSendISAStats);
-                statsTrackerTask.sendStats(false, true);
+                statsTrackerTask.sendStats(false, true, false);
             }
         }
     }
@@ -2411,7 +2434,6 @@ public class Specify extends JPanel implements DatabaseLoginListener, CommandLis
                            final boolean startOver, 
                            final boolean firstTime)
     {
-        
         log.debug("restartApp"); //$NON-NLS-1$
         if (dbLoginPanel != null)
         {
@@ -2422,6 +2444,8 @@ public class Specify extends JPanel implements DatabaseLoginListener, CommandLis
         {
             checkAndSendStats();
         }
+        
+        UIRegistry.dumpPaths();
         
         try
         {
@@ -2436,7 +2460,7 @@ public class Specify extends JPanel implements DatabaseLoginListener, CommandLis
         //
         // NOTE: AppPreferences.startup(); is called inside setContext's implementation.
         //
-        AppContextMgr.CONTEXT_STATUS status = AppContextMgr.getInstance().setContext(databaseNameArg, userNameArg, startOver);
+        AppContextMgr.CONTEXT_STATUS status = AppContextMgr.getInstance().setContext(databaseNameArg, userNameArg, startOver, firstTime, !firstTime);
         if (status == AppContextMgr.CONTEXT_STATUS.OK)
         {
             // XXX Temporary Fix!
@@ -2448,7 +2472,7 @@ public class Specify extends JPanel implements DatabaseLoginListener, CommandLis
                 
                 if (StringUtils.isNotEmpty(dbPassword) && 
                         (!StringUtils.isAlphanumeric(dbPassword) ||
-                         !SpecifySecurityMgr.isAllCaps(dbPassword) ||
+                         !UIHelper.isAllCaps(dbPassword) ||
                          dbPassword.length() < 25))
                 {
                     String encryptedPassword = Encryption.encrypt(spUser.getPassword(), spUser.getPassword());
@@ -2534,15 +2558,58 @@ public class Specify extends JPanel implements DatabaseLoginListener, CommandLis
                 window.setVisible(false);
             }
             
+            // General DB Fxies independent of a release.
+            if (!AppPreferences.getGlobalPrefs().getBoolean("CollectingEventsAndAttrsMaint1", false))
+            {
+                // Temp Code to Fix issues with Release 6.0.9 and below
+                SwingUtilities.invokeLater(new Runnable() 
+                {
+                    @Override
+                    public void run()
+                    {
+                        CollectingEventsAndAttrsMaint dbMaint = new CollectingEventsAndAttrsMaint();
+                        dbMaint.performMaint();
+                    }
+                });
+            }
+            
+            /*if (!AppPreferences.getGlobalPrefs().getBoolean("FixAgentToDisciplinesV2", false))
+            {
+                // Temp Code to Fix issues with Release 6.0.9 and below
+                SwingUtilities.invokeLater(new Runnable() 
+                {
+                    @Override
+                    public void run()
+                    {
+                        FixDBAfterLogin fixer = new FixDBAfterLogin();
+                        fixer.fixAgentToDisciplines();
+                    }
+                });
+            }*/
+
             // Temp Code to Fix issues with Release 6.0.9 and below
             SwingUtilities.invokeLater(new Runnable() 
             {
                 @Override
                 public void run()
                 {
-                    CollectingEventsAndAttrsMaint.performMaint();
+                    if (!AppPreferences.getGlobalPrefs().getBoolean("FixUploaderRecordsets", false))
+                    {
+                        FixDBAfterLogin fixer = new FixDBAfterLogin();
+                        fixer.fixUploaderRecordsets();
+                    }
+                    
+                    if (!AppPreferences.getGlobalPrefs().getBoolean("FixNullEmbeddedCollectingEvents", false))
+                    {
+                        FixDBAfterLogin.fixNullEmbeddedCollectingEvents();
+                    }
+                    
+                    FixDBAfterLogin fixer = new FixDBAfterLogin();
+                    fixer.checkMultipleLocalities();
                 }
             });
+            
+            DataBuilder.mergeStandardGroups(AppContextMgr.getInstance().getClassObject(Collection.class));
             
         } else if (status == AppContextMgr.CONTEXT_STATUS.Error)
         {
@@ -2658,7 +2725,8 @@ public class Specify extends JPanel implements DatabaseLoginListener, CommandLis
     public void loggedIn(final Window window, final String databaseNameArg, final String userNameArg)
     {
         log.debug("loggedIn - database["+databaseNameArg+"] username["+ userNameArg +"]"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-        boolean firstTime = this.databaseName == null;
+        
+        boolean firstTime = this.databaseName == null; // shouldn't be null and switching collection
         
         this.databaseName = databaseNameArg;
         this.userName     = userNameArg;
@@ -2670,9 +2738,11 @@ public class Specify extends JPanel implements DatabaseLoginListener, CommandLis
         
         restartApp(window, databaseName, userName, false, firstTime);
         
-        statusField.setSectionText(2, userName);
-        statusField.setSectionToolTipText(2, DBTableIdMgr.getInstance().getTitleForId(SpecifyUser.getClassTableId()));
-        
+        if (statusField != null)
+        {
+            statusField.setSectionText(2, userName);
+            statusField.setSectionToolTipText(2, DBTableIdMgr.getInstance().getTitleForId(SpecifyUser.getClassTableId()));
+        }
     }
     
     /**
@@ -2680,18 +2750,32 @@ public class Specify extends JPanel implements DatabaseLoginListener, CommandLis
      */
     protected void setDatabaseNameAndCollection()
     {
-        AppContextMgr mgr = AppContextMgr.getInstance();
-        String disciplineName = mgr.getClassObject(Discipline.class).getName();
-        String collectionName = mgr.getClassObject(Collection.class) != null ? mgr.getClassObject(Collection.class).getCollectionName() : ""; //$NON-NLS-1$ //$NON-NLS-2$
-        statusField.setSectionText(0, disciplineName);
-        statusField.setSectionText(1, collectionName);
-        
-        statusField.setSectionToolTipText(0, DBTableIdMgr.getInstance().getTitleForId(Discipline.getClassTableId()));
-        statusField.setSectionToolTipText(1, DBTableIdMgr.getInstance().getTitleForId(Collection.getClassTableId()));
-        
-        AppPreferences.getLocalPrefs().put("CURRENT_DB", databaseName);
+        if (statusField != null)
+        {
+            AppContextMgr mgr = AppContextMgr.getInstance();
+            String disciplineName = mgr.getClassObject(Discipline.class).getName();
+            String collectionName = mgr.getClassObject(Collection.class) != null ? mgr.getClassObject(Collection.class).getCollectionName() : ""; //$NON-NLS-1$ //$NON-NLS-2$
+            if (!UIRegistry.isMobile())
+            {
+                statusField.setSectionText(0, disciplineName);
+                statusField.setSectionText(1, collectionName);
+                
+                statusField.setSectionToolTipText(0, DBTableIdMgr.getInstance().getTitleForId(Discipline.getClassTableId()));
+                statusField.setSectionToolTipText(1, DBTableIdMgr.getInstance().getTitleForId(Collection.getClassTableId()));
+            } else
+            {
+                statusField.setSectionText(0, "Specify Mobile");
+                statusField.setSectionText(1, "WorkBench");
+                
+                statusField.setSectionToolTipText(0, null);
+                statusField.setSectionToolTipText(1, null); 
+            }
+            
+            AppPreferences.getLocalPrefs().put("CURRENT_DB", databaseName);
+        }
     }
     
+    // added by HUH for FP
     /**
      * Update the Filtered Push connection menu item and icon in the status bar
      */
@@ -2713,16 +2797,17 @@ public class Specify extends JPanel implements DatabaseLoginListener, CommandLis
             fpLbl.setText("");
             fpLbl.setToolTipText(getResourceString("Specify.FP_" + (isFpOn ? ( hasNewMsgs ? "MSG" : "ON") : "OFF")));
         }
-        
-        AppPreferences.getLocalPrefs().put("CURRENT_DB", databaseName);
     }
+    // end HUH addition
 
     /* (non-Javadoc)
      * @see edu.ku.brc.ui.db.DatabaseLoginListener#cancelled()
      */
     public void cancelled()
     {
-        System.exit(0);
+        DataProviderFactory.getInstance().shutdown();
+        DBConnection.shutdown();
+        DBConnection.shutdownFinalConnection(true, false); // true means System.exit
     }
     
     /**
@@ -2733,8 +2818,8 @@ public class Specify extends JPanel implements DatabaseLoginListener, CommandLis
         String language = AppPreferences.getLocalPrefs().get("locale.lang", null); //$NON-NLS-1$
         if (language != null)
         {
-            String country  = AppPreferences.getLocalPrefs().get("locale.country", null); //$NON-NLS-1$
-            String variant  = AppPreferences.getLocalPrefs().get("locale.var",     null); //$NON-NLS-1$
+            String country  = AppPreferences.getLocalPrefs().get("locale.country", ""); //$NON-NLS-1$
+            String variant  = AppPreferences.getLocalPrefs().get("locale.var",     ""); //$NON-NLS-1$
             
             Locale prefLocale = new Locale(language, country, variant);
             
@@ -2807,10 +2892,37 @@ public class Specify extends JPanel implements DatabaseLoginListener, CommandLis
             } else if (cmdAction.isAction("CheckForUpdates"))
             {
                 checkForUpdates();
+                
+            } else if (cmdAction.isAction(STATS_SEND_DONE))
+            {
+                AppPreferences.shutdownAllPrefs();
+                
+                if (UIRegistry.isMobile())
+                {
+                    
+                    DataProviderFactory.getInstance().shutdown();
+                    DBConnection.shutdown();
+                    DBConnection.shutdownFinalConnection(true, false); // true means System.exit
+                    
+                } else
+                {
+                    DataProviderFactory.getInstance().shutdown();
+                    DBConnection.shutdown();
+                    System.exit(0);
+                }
             }
+        } else if (cmdAction.isType(ERRMSG) && cmdAction.isAction("DISPLAY"))
+        {
+            SwingUtilities.invokeLater(new Runnable()
+            {
+                @Override
+                public void run()
+                {
+                    UIRegistry.displayErrorDlgLocalized((String)cmdAction.getData());
+                }
+            });
         }
     }
-
 
     // *******************************************************
     // *****************   Static Methods  *******************
@@ -2867,7 +2979,7 @@ public class Specify extends JPanel implements DatabaseLoginListener, CommandLis
   //-- Application MAIN
   //-----------------------------------------------------------------------------
 
-  public static void startApp(final boolean doConfig)
+  public static void startApp()
   {
       
       // XXX RELEASE
@@ -2918,7 +3030,7 @@ public class Specify extends JPanel implements DatabaseLoginListener, CommandLis
                       }
                   } else
                   {
-                      System.err.println(msg);
+                      log.error(msg);
                   }
               }
               
@@ -2946,34 +3058,6 @@ public class Specify extends JPanel implements DatabaseLoginListener, CommandLis
             });
       }
       
-      try
-      {
-          UIHelper.OSTYPE osType = UIHelper.getOSType();
-          if (osType == UIHelper.OSTYPE.Windows )
-          {
-              //UIManager.setLookAndFeel(new WindowsLookAndFeel());
-              UIManager.setLookAndFeel(new PlasticLookAndFeel());
-              PlasticLookAndFeel.setPlasticTheme(new ExperienceBlue());
-              
-          } else if (osType == UIHelper.OSTYPE.Linux )
-          {
-              //UIManager.setLookAndFeel(new GTKLookAndFeel());
-              UIManager.setLookAndFeel(new PlasticLookAndFeel());
-              //PlasticLookAndFeel.setPlasticTheme(new SkyKrupp());
-              //PlasticLookAndFeel.setPlasticTheme(new DesertBlue());
-              //PlasticLookAndFeel.setPlasticTheme(new ExperienceBlue());
-              //PlasticLookAndFeel.setPlasticTheme(new DesertGreen());
-             
-          } else
-          {
-              //PlafOptions.setAsLookAndFeel();
-          }
-      }
-      catch (Exception e)
-      {
-          log.error("Can't change L&F: ", e); //$NON-NLS-1$
-      }
-      
       // Setup base font AFTER setting Look and Feel
       Font defFont = (createLabel("")).getFont();
       UIRegistry.setDefaultFont(defFont);
@@ -2989,12 +3073,12 @@ public class Specify extends JPanel implements DatabaseLoginListener, CommandLis
       Font newBaseFont = fontName != null && fontSize != null ? new Font(fontName, Font.PLAIN, fontSize) : sysBaseFont;
       UIRegistry.setBaseFont(newBaseFont);
           
-      SkinsMgr.getInstance().setSkin("Metal");
+      //SkinsMgr.getInstance().setSkin("giraffe");
       
       BaseTask.setToolbarBtnFont(newBaseFont); // For ToolbarButtons
       RolloverCommand.setDefaultFont(newBaseFont);
       
-      ImageIcon helpIcon = IconManager.getIcon("AppIcon",IconSize.Std16); //$NON-NLS-1$
+      ImageIcon helpIcon = IconManager.getIcon(getIconName(),IconSize.Std16); //$NON-NLS-1$
       HelpMgr.initializeHelp("SpecifyHelp", helpIcon.getImage()); //$NON-NLS-1$
       
       // Startup Specify
@@ -3002,19 +3086,11 @@ public class Specify extends JPanel implements DatabaseLoginListener, CommandLis
       
       RolloverCommand.setHoverImg(IconManager.getIcon("DropIndicator")); //$NON-NLS-1$
       
-      if (doConfig)
-      {
-          // For a WorkBench Only Release  
-          specify.startWithInitializer(true, true);  // true, true means doLoginOnly and assume Derby
-          
-      } else
-      {
-          // THis type of start up ALWAYS assumes the .Specify directory is in there "home" directory.
-          specify.preStartUp();
-          specify.startUp();    
-      }
+      specify.preStartUp();
+      specify.startUp();
   }
   
+  // added by HUH for FP
   private FilteredPushListenerIFace getFilteredPushListener()
   {
       if (fpListener == null)
@@ -3031,7 +3107,8 @@ public class Specify extends JPanel implements DatabaseLoginListener, CommandLis
       }
       return fpListener;
   }
-
+  // end HUH addition
+  
   /**
    * @return
    */
@@ -3060,95 +3137,40 @@ public class Specify extends JPanel implements DatabaseLoginListener, CommandLis
       } 
   }*/
   
+  public static void checkDebugLoggerSettings()
+  {
+      AppPreferences localPrefs = AppPreferences.getLocalPrefs();
+      
+      for (Enumeration<?> e=LogManager.getCurrentLoggers(); e.hasMoreElements();)
+      {
+          Logger logger = (Logger)e.nextElement();
+          int inx = logger.getName().lastIndexOf('.');
+          if (inx > -1)
+          {
+              String  className = logger.getName().substring(inx+1);
+              boolean isOn      = localPrefs.getBoolean(className+".debug", false);
+              if (isOn)
+              {
+                  logger.setLevel(Level.DEBUG); 
+              }
+          }
+      }
+  }
+  
   /**
    *
    */
   public static void main(String[] args)
   {
-      /*UIDefaults uiDefaults = UIManager.getDefaults();
-      Enumeration<Object> e = uiDefaults.keys();
-      while (e.hasMoreElements())
-      {
-          Object key = e.nextElement();
-          if (key.toString().startsWith("Label"))
-          {
-              System.out.println(key);
-          }
-      }*/
-      /*if (true)
-      {
-          File[] files = (new File("iReportLibs")).listFiles();
-          for (File f : files)
-          {
-              System.err.println("            <string>$JAVAROOT/"+f.getName()+"</string>");
-          }
-          return;
-      }*/
-      /*
-      try
-      {
-          List<String> lines = (List<String>)FileUtils.readLines(new File("/Users/rod/Downloads/types.html"));
-          for (String line : lines)
-          {
-              if (StringUtils.contains(line, "//rs.tdwg.org/ontology/voc/"))
-              {
-                  int inx  = line.indexOf('>');
-                  int eInx = line.indexOf('<', inx);
-                  String name = line.substring(inx+1, eInx);
-                  System.out.println("      <picklistitem title=\""+UIHelper.makeNamePretty(name)+"\" value=\""+name+"\"/>");
-              }
-          }
-          
-      } catch (Exception ex)
-      {
-          
-      }
-      if (true) return;*/
       
-      log.debug("********* Current ["+(new File(".").getAbsolutePath())+"]"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+      // Set App Name, MUST be done very first thing!
+      UIRegistry.setAppName("Specify");  //$NON-NLS-1$
+
+      //log.debug("********* Current ["+(new File(".").getAbsolutePath())+"]"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
       
-      UIRegistry.setEmbeddedDBDir(UIRegistry.getDefaultEmbeddedDBPath()); // on the local machine
+      AppBase.processArgs(args);
+      AppBase.setupTeeForStdErrStdOut(true, false);
       
-      for (String s : args)
-      {
-          String[] pairs = s.split("="); //$NON-NLS-1$
-          if (pairs.length == 2)
-          {
-              if (pairs[0].startsWith("-D")) //$NON-NLS-1$
-              {
-                  System.setProperty(pairs[0].substring(2, pairs[0].length()), pairs[1]);
-              } 
-          } else
-          {
-              String symbol = pairs[0].substring(2, pairs[0].length());
-              System.setProperty(symbol, symbol);
-          }
-      }
-      
-      // Now check the System Properties
-      String appDir = System.getProperty("appdir");
-      if (StringUtils.isNotEmpty(appDir))
-      {
-          UIRegistry.setDefaultWorkingPath(appDir);
-      }
-      
-      String appdatadir = System.getProperty("appdatadir");
-      if (StringUtils.isNotEmpty(appdatadir))
-      {
-          UIRegistry.setBaseAppDataDir(appdatadir);
-      }
-      
-      String embeddeddbdir = System.getProperty("embeddeddbdir");
-      if (StringUtils.isNotEmpty(embeddeddbdir))
-      {
-          UIRegistry.setEmbeddedDBDir(embeddeddbdir);
-      }
-      
-      String mobile = System.getProperty("mobile");
-      if (StringUtils.isNotEmpty(mobile))
-      {
-          UIRegistry.setEmbeddedDBDir(UIRegistry.getMobileEmbeddedDBPath());
-      }
       SwingUtilities.invokeLater(new Runnable() {
           @SuppressWarnings("synthetic-access") //$NON-NLS-1$
         public void run()
@@ -3156,18 +3178,64 @@ public class Specify extends JPanel implements DatabaseLoginListener, CommandLis
               log.debug("Checking for update....");
               try
               {
-                  // Set App Name, MUST be done very first thing!
-                  UIRegistry.setAppName("Specify");  //$NON-NLS-1$
+                  try
+                  {
+                      UIHelper.OSTYPE osType = UIHelper.getOSType();
+                      if (osType == UIHelper.OSTYPE.Windows )
+                      {
+                          //UIManager.setLookAndFeel(new WindowsLookAndFeel());
+                          UIManager.setLookAndFeel(new PlasticLookAndFeel());
+                          PlasticLookAndFeel.setPlasticTheme(new ExperienceBlue());
+                          
+                      } else if (osType == UIHelper.OSTYPE.Linux )
+                      {
+                          //UIManager.setLookAndFeel(new GTKLookAndFeel());
+                          UIManager.setLookAndFeel(new PlasticLookAndFeel());
+                          //PlasticLookAndFeel.setPlasticTheme(new SkyKrupp());
+                          //PlasticLookAndFeel.setPlasticTheme(new DesertBlue());
+                          //PlasticLookAndFeel.setPlasticTheme(new ExperienceBlue());
+                          //PlasticLookAndFeel.setPlasticTheme(new DesertGreen());
+                         
+                      } else
+                      {
+                          //PlafOptions.setAsLookAndFeel();
+                      }
+                  }
+                  catch (Exception e)
+                  {
+                      log.error("Can't change L&F: ", e); //$NON-NLS-1$
+                  }
                   
                   // Load Local Prefs
                   AppPreferences localPrefs = AppPreferences.getLocalPrefs();
                   localPrefs.setDirPath(UIRegistry.getAppDataDir());
+                  
+                  ProxyHelper.setProxySettingsFromPrefs();
+                  
+                  checkDebugLoggerSettings();
+                  
+                  //log.error("LocalPrefs: "+(new File(UIRegistry.getAppDataDir())).getCanonicalPath());
                   
                   // Check to see if we should check for a new version
                   String VERSION_CHECK = "version_check.auto";
                   if (localPrefs.getBoolean(VERSION_CHECK, null) == null)
                   {
                       localPrefs.putBoolean(VERSION_CHECK, true);
+                  }
+                  
+                  SpecialMsgNotifier smn = new SpecialMsgNotifier();
+                  smn.checkForMessages();
+                  
+                  
+                  if (UIRegistry.isEmbedded() && !UIRegistry.isMobile())
+                  {
+                      String EZDB_FIRSTTIME = "ezdb.firsttime";
+                      if (localPrefs.getBoolean(EZDB_FIRSTTIME, null) == null)
+                      {
+                          UIRegistry.showLocalizedMsg("EZDB_FIRSTTIME");
+                          localPrefs.putBoolean(EZDB_FIRSTTIME, true);
+                          localPrefs.flush();
+                      }
                   }
 
                   String EXTRA_CHECK = "extra.check";
@@ -3178,17 +3246,20 @@ public class Specify extends JPanel implements DatabaseLoginListener, CommandLis
                       localPrefs.putBoolean(EXTRA_CHECK, isExtraCheck);
                   }
 
-                  if (localPrefs.getBoolean(VERSION_CHECK, true) && isExtraCheck)
+                  if (localPrefs.getBoolean(VERSION_CHECK, true))
                   {
                       try
                       {
                     	 com.install4j.api.launcher.SplashScreen.hide();
                          ApplicationLauncher.Callback callback = new ApplicationLauncher.Callback()
                          {
+                             @Override
                              public void exited(int exitValue)
                              {
-                                 startApp(false);
+                                 startApp();
                              }
+                             
+                             @Override
                              public void prepareShutdown()
                              {
                                  
@@ -3198,19 +3269,22 @@ public class Specify extends JPanel implements DatabaseLoginListener, CommandLis
                           
                       } catch (Exception ex)
                       {
-                          startApp(false);
+                          ex.printStackTrace();
+                          log.error(ex);
+                          startApp();
                       }
                   } else
                   {
-                      if (!isExtraCheck)
+                      if (!isExtraCheck && StringUtils.isNotEmpty(UIRegistry.getAppVersion()))
                       {
                           UIRegistry.showLocalizedMsg(null, "SpReg.NOT_REGISTERED");
                       }
-                      startApp(false);
+                      startApp( );
                   }
               } catch (Exception ex)
               {
                   ex.printStackTrace();
+                  log.error(ex);
               }
           }
       });

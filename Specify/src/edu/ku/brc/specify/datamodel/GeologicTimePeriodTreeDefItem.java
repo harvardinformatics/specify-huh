@@ -52,6 +52,7 @@ public class GeologicTimePeriodTreeDefItem extends DataModelObjBase implements S
 
 	protected Integer				    geologicTimePeriodTreeDefItemId;
 	protected String				name;
+	protected String				title;
 	protected String				remarks;
 	protected Integer				rankId;
 	protected Boolean				isEnforced;
@@ -87,6 +88,7 @@ public class GeologicTimePeriodTreeDefItem extends DataModelObjBase implements S
         super.init();
 		geologicTimePeriodTreeDefItemId = null;
 		name = null;
+		title = null;
 		remarks = null;
 		rankId = null;
 		isEnforced = null;
@@ -153,6 +155,43 @@ public class GeologicTimePeriodTreeDefItem extends DataModelObjBase implements S
 	public void setName(String name)
 	{
 		this.name = name;
+	}
+
+    /**
+     * @return the title
+     */
+    @Column(name = "Title", nullable=true, length = 64)
+	public String getTitle()
+	{
+		return this.title;
+	}
+
+    /**
+     * @param title the title to set
+     */
+    public void setTitle(String title)
+	{
+		this.title = title;
+	}
+
+    
+    /* (non-Javadoc)
+	 * @see edu.ku.brc.specify.datamodel.TreeDefItemIface#getDisplayText()
+	 */
+	@Override
+	@Transient
+	public String getDisplayText()
+	{
+		return (title != null ? title : name);
+	}
+
+	/* (non-Javadoc)
+	 * @see edu.ku.brc.specify.datamodel.TreeDefItemIface#setDisplayText(java.lang.String)
+	 */
+	@Override
+	public void setDisplayText(String text)
+	{
+		setTitle(text);
 	}
 
 	/**
@@ -366,6 +405,26 @@ public class GeologicTimePeriodTreeDefItem extends DataModelObjBase implements S
 		}
 		return false;
 	}
+    
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.datamodel.DataModelObjBase#getParentTableId()
+     */
+    @Override
+    @Transient
+    public Integer getParentTableId()
+    {
+        return GeologicTimePeriodTreeDef.getClassTableId();
+    }
+
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.datamodel.DataModelObjBase#getParentId()
+     */
+    @Override
+    @Transient
+    public Integer getParentId()
+    {
+        return parent != null ? parent.getId() : null;
+    }
     
     /* (non-Javadoc)
      * @see edu.ku.brc.ui.forms.FormDataObjIFace#getTableId()

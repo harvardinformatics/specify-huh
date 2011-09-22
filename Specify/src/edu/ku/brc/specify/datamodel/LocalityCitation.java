@@ -43,17 +43,17 @@ import org.hibernate.annotations.Index;
         @UniqueConstraint(columnNames = { "ReferenceWorkID", "LocalityID" }) 
         })
 @org.hibernate.annotations.Table(appliesTo="localitycitation", indexes =
-    {   @Index (name="LocCitColMemIDX", columnNames={"CollectionMemberID"})
+    {   @Index (name="LocCitDspMemIDX", columnNames={"DisciplineID"})
     })
-public class LocalityCitation extends CollectionMember implements java.io.Serializable 
+public class LocalityCitation extends DisciplineMember implements java.io.Serializable, Cloneable
 {
 
     // Fields    
 
-     protected Integer localityCitationId;
-     protected String remarks;
+     protected Integer       localityCitationId;
+     protected String        remarks;
      protected ReferenceWork referenceWork;
-     protected Locality locality;
+     protected Locality      locality;
 
 
     // Constructors
@@ -68,14 +68,13 @@ public class LocalityCitation extends CollectionMember implements java.io.Serial
         this.localityCitationId = localityCitationId;
     }
    
-    
-    
 
     // Initializer
     @Override
     public void initialize()
     {
         super.init();
+        
         localityCitationId = null;
         remarks = null;
         referenceWork = null;
@@ -133,6 +132,18 @@ public class LocalityCitation extends CollectionMember implements java.io.Serial
         this.remarks = remarks;
     }
 
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.datamodel.DataModelObjBase#clone()
+     */
+    @Override
+    public Object clone() throws CloneNotSupportedException
+    {
+        LocalityCitation lc = (LocalityCitation)super.clone();
+        localityCitationId = null;
+        
+        return lc;
+    }
+
     /**
      *      * ID of work citing locality
      */
@@ -158,7 +169,27 @@ public class LocalityCitation extends CollectionMember implements java.io.Serial
     public void setLocality(Locality locality) {
         this.locality = locality;
     }
+    
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.datamodel.DataModelObjBase#getParentTableId()
+     */
+    @Override
+    @Transient
+    public Integer getParentTableId()
+    {
+        return Locality.getClassTableId();
+    }
 
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.datamodel.DataModelObjBase#getParentId()
+     */
+    @Override
+    @Transient
+    public Integer getParentId()
+    {
+        return locality != null ? locality.getId() : null;
+    }
+    
     /* (non-Javadoc)
      * @see edu.ku.brc.ui.forms.FormDataObjIFace#getTableId()
      */

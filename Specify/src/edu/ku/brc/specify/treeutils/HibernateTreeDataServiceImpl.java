@@ -180,32 +180,34 @@ public class HibernateTreeDataServiceImpl <T extends Treeable<T,D,I>,
     @SuppressWarnings("unchecked")
     public List<TreeNode> getChildTreeNodes(final T parent)
     {
-        Vector<TreeNode> treeNodes = null;
+        Vector<TreeNode> treeNodes = new Vector<TreeNode>();
         
-        Session session = getNewSession(parent);
-        try
+        if (parent != null)
         {
-            String childQueryString = TreeFactory.getChildQueryString(parent);
-            Query  getNodeInfoList  = session.createQuery(childQueryString);
-            getNodeInfoList.setParameter("PARENT", parent);
-            List list = getNodeInfoList.list();
-            List<Object[]> nodeInfoList = list;
+        	Session session = getNewSession(parent);
+        	try
+        	{
+        		String childQueryString = TreeFactory.getChildQueryString(parent);
+        		Query  getNodeInfoList  = session.createQuery(childQueryString);
+        		getNodeInfoList.setParameter("PARENT", parent);
+        		List list = getNodeInfoList.list();
+        		List<Object[]> nodeInfoList = list;
             
-            treeNodes = new Vector<TreeNode>();
-            for (Object[] nodeInfo: nodeInfoList)
-            {
-                treeNodes.add(createNode(nodeInfo,parent));
-            }
+        		for (Object[] nodeInfo: nodeInfoList)
+        		{
+        			treeNodes.add(createNode(nodeInfo,parent));
+        		}
             
-        } catch (Exception ex)
-        {
-            edu.ku.brc.af.core.UsageTracker.incrHandledUsageCount();
-            edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(HibernateTreeDataServiceImpl.class, ex);
-            log.error(ex);
+        	} catch (Exception ex)
+        	{
+        		edu.ku.brc.af.core.UsageTracker.incrHandledUsageCount();
+        		edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(HibernateTreeDataServiceImpl.class, ex);
+        		log.error(ex);
             
-        } finally
-        {
-            session.close();
+        	} finally
+        	{
+        		session.close();
+        	}
         }
         return treeNodes;
     }
@@ -338,6 +340,10 @@ public class HibernateTreeDataServiceImpl <T extends Treeable<T,D,I>,
         {
             return (T)session.load(clazz, id);
             
+        } catch (org.hibernate.ObjectNotFoundException e)
+        {
+        	log.error(e);
+        	
         } catch (Exception ex)
         {
             edu.ku.brc.af.core.UsageTracker.incrHandledUsageCount();
@@ -436,7 +442,7 @@ public class HibernateTreeDataServiceImpl <T extends Treeable<T,D,I>,
         //log.debug("refreshing " + nodeDebugInfo(node));
         try
         {
-            session.refresh(node);
+            //session.refresh(node);
             Integer nodeNum = node.getNodeNumber();
             Integer highChild = node.getHighestChildNodeNumber();
             
@@ -468,17 +474,21 @@ public class HibernateTreeDataServiceImpl <T extends Treeable<T,D,I>,
     /* (non-Javadoc)
      * @see edu.ku.brc.specify.treeutils.TreeDataService#deleteTreeNode(edu.ku.brc.specify.datamodel.Treeable)
      */
-    public synchronized boolean deleteTreeNode(final T node)
+    @SuppressWarnings("unchecked")
+    public synchronized boolean deleteTreeNode(final T nodeToDelete)
     {
-        Session session = getNewSession(node);
+        //Session session = getNewSession(node);
+    	Session session = HibernateUtil.getSessionFactory().openSession();
         try
         {
-            // refresh the node data so we have correct information for the following calculation
+            T node = (T )mergeIntoSession(session, nodeToDelete);
+        	// refresh the node data so we have correct information for the following calculation
             session.refresh(node);
             T parent = node.getParent();
             if (parent != null)
             {
-                session.refresh(parent);
+                parent = (T )mergeIntoSession(session, parent);
+            	session.refresh(parent);
             }
     
             Transaction tx = session.beginTransaction();
@@ -496,7 +506,7 @@ public class HibernateTreeDataServiceImpl <T extends Treeable<T,D,I>,
             BusinessRulesIFace busRulesObj = DBTableIdMgr.getInstance().getBusinessRule(node);
             if (busRulesObj != null)
             {
-                busRulesObj.beforeDelete(node, sessionWrapper);
+                node = (T)busRulesObj.beforeDelete(node, sessionWrapper);
             }
             session.delete(node);
             
@@ -652,12 +662,15 @@ public class HibernateTreeDataServiceImpl <T extends Treeable<T,D,I>,
         	 */
 
     		//basically just makes sure NodeNumbers are refreshed from the db
+
     		QueryIFace q = session.createQuery("select nodeNumber, highestChildNodeNumber from " + node.getClass().getSimpleName().toLowerCase() + 
-    			" where " + node.getClass().getSimpleName() + "ID = " + node.getTreeId(), true);
+    			" where " + node.getClass().getSimpleName() + "ID = " + node.getTreeId() 
+    			+ " and " + node.getClass().getSimpleName() + "TreeDefID = " + node.getDefinition().getTreeDefId(), true);
     		Object resObj = q.uniqueResult();
     		Object[] result = (Object[] )resObj;
     		node.setNodeNumber((Integer )result[0]);
     		node.setHighestChildNodeNumber((Integer )result[1]);
+    		
     	}
     	return true;		
     }

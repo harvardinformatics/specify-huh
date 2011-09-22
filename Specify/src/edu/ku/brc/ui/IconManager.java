@@ -36,6 +36,7 @@ import java.util.List;
 import java.util.StringTokenizer;
 import java.util.Vector;
 
+import javax.swing.GrayFilter;
 import javax.swing.ImageIcon;
 
 import org.apache.commons.lang.StringUtils;
@@ -593,6 +594,26 @@ public class IconManager extends Component
     }
 
     /**
+     * Creates a Black and White image from the color
+     * @param img the image to be converted
+     * @return new B&W image
+     */
+    public static ImageIcon createFadedImage(final ImageIcon icon)
+    {
+        Image image = GrayFilter.createDisabledImage(icon.getImage());
+        return new ImageIcon(image);
+        
+        /*BufferedImage bi = new BufferedImage(img.getIconWidth(), img.getIconHeight(), BufferedImage.TYPE_INT_ARGB);
+        Graphics g = bi.createGraphics();
+        g.drawImage(img.getImage(), 0, 0, null);
+        g.setColor(new Color(255, 255, 255, 128));
+        g.fillRect(0, 0, bi.getWidth(), bi.getHeight());
+        ImageIcon icon = new ImageIcon(bi);
+        g.dispose();
+        return icon;*/
+    }
+
+    /**
      * Returns an URL for the path to the image in the "images" directory that is relative to the application class.
      * <br> For example &lt;app class&gt;/images/&lt;file name&gt;
      * @param imageName the image name
@@ -676,6 +697,23 @@ public class IconManager extends Component
     	//else
     	log.error("Couldn't find icon [" + iconSize + "] to scale to [" + scaledIconSize + "]");
     	return null;
+    }
+    
+    
+    /**
+     * @return an icon name with 'E' or 'M' for embedded or mobile
+     */
+    public static String makeIconName(final String baseName)
+    {
+        String postFix = "";
+        if (UIRegistry.isEmbedded())
+        {
+            postFix = "E";
+        } else if (UIRegistry.isMobile())
+        {
+            postFix = "M";
+        }
+        return baseName + postFix;
     }
  
 }

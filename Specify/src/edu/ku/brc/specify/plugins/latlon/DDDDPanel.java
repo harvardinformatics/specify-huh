@@ -51,6 +51,7 @@ import com.jgoodies.forms.builder.PanelBuilder;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
 
+import edu.ku.brc.af.prefs.AppPreferences;
 import edu.ku.brc.af.ui.forms.ViewFactory;
 import edu.ku.brc.af.ui.forms.formatters.NumberMinMaxFormatter;
 import edu.ku.brc.af.ui.forms.validation.DataChangeListener;
@@ -300,6 +301,11 @@ public class DDDDPanel extends JPanel implements LatLonUIIFace, DataChangeListen
             
         } else
         {
+            latitudeDir.removeItemListener(this);
+            boolean isDefNorth = AppPreferences.getRemote().getBoolean(LatLonUI.LAT_PREF, true);
+            latitudeDir.setSelectedIndex(isDefNorth ? 0 : 1);
+            latitudeDir.addItemListener(this);
+            
             latitudeDD.setText("");
             if (latitudeDirTxt != null)
             {
@@ -322,6 +328,11 @@ public class DDDDPanel extends JPanel implements LatLonUIIFace, DataChangeListen
             
         } else
         {
+            longitudeDir.removeItemListener(this);
+            boolean isDefWest = AppPreferences.getRemote().getBoolean(LatLonUI.LON_PREF, true);
+            longitudeDir.setSelectedIndex(isDefWest ? 1 : 0);
+            longitudeDir.addItemListener(this);
+            
             longitudeDD.setText("");
             if (latitudeDirTxt != null)
             {
@@ -500,7 +511,7 @@ public class DDDDPanel extends JPanel implements LatLonUIIFace, DataChangeListen
     /**
      * @return
      */
-    public String getLatitudeStr(final boolean inclZeroes)
+    public String getLatitudeStr(@SuppressWarnings("unused") final boolean inclZeroes)
     {
         return latitudeDD.getText() + LatLonConverter.DEGREES_SYMBOL + " " + NORTH_SOUTH[latitudeDir.getSelectedIndex()];
     }
@@ -508,7 +519,7 @@ public class DDDDPanel extends JPanel implements LatLonUIIFace, DataChangeListen
     /**
      * @return
      */
-    public String getLongitudeStr(final boolean inclZeroes)
+    public String getLongitudeStr(@SuppressWarnings("unused") final boolean inclZeroes)
     {
         return longitudeDD.getText() + LatLonConverter.DEGREES_SYMBOL + " " + EAST_WEST[longitudeDir.getSelectedIndex()];
     }
@@ -630,8 +641,8 @@ public class DDDDPanel extends JPanel implements LatLonUIIFace, DataChangeListen
     {
         if (srcLatitudeStr != null && srcLongitudeStr != null)
         {
-            latInfoOrig = adjustLatLonStr(srcLatitudeStr, null, true, true, LATLON.Latitude);
-            lonInfoOrig = adjustLatLonStr(srcLongitudeStr, null, true, true, LATLON.Longitude);
+            latInfoOrig = adjustLatLonStr(srcLatitudeStr, srcFormat, true, true, LATLON.Latitude);
+            lonInfoOrig = adjustLatLonStr(srcLongitudeStr, srcFormat, true, true, LATLON.Longitude);
     
             if (srcFormat != defaultFormat)
             {

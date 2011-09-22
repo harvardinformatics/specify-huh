@@ -28,6 +28,7 @@ import javax.swing.event.DocumentEvent;
 
 import edu.ku.brc.af.ui.PasswordStrengthUI;
 import edu.ku.brc.af.ui.forms.ViewFactory;
+import edu.ku.brc.af.ui.forms.validation.ValPlainTextDocument;
 import edu.ku.brc.helpers.Encryption;
 import edu.ku.brc.ui.DocumentAdaptor;
 import edu.ku.brc.ui.UIHelper;
@@ -59,10 +60,11 @@ public class UserInfoPanel extends GenericFormPanel
                          final String[] labels, 
                          final String[] fields, 
                          final boolean[] isReq, 
+                         final Integer[] numColumns, 
                          final JButton  nextBtn, 
                          final JButton  prevBtn)
     {
-        super(name, title, helpContext, labels, fields, isReq, nextBtn, prevBtn, true);
+        super(name, title, helpContext, labels, fields, isReq,  numColumns, nextBtn, prevBtn, true);
     }
 
     /* (non-Javadoc)
@@ -81,22 +83,29 @@ public class UserInfoPanel extends GenericFormPanel
     protected void init(final String    title, 
                         final String[]  fields, 
                         final boolean[] required,
-                        final String[] types)
+                        final String[] types,
+                        final Integer[] numColumns)
     {
-        super.init(title, fields, required, types);
+        super.init(title, fields, required, types, numColumns);
         
         statusLbl = UIHelper.createLabel("");
         
         PasswordStrengthUI pwdStrength = new PasswordStrengthUI();
         builder.add(createI18NFormLabel("PWDSTRENGTH"), cc.xy(1, row));
         builder.add(pwdStrength,                        cc.xyw(3, row, 2)); row += 2;
-        builder.add(statusLbl,                           cc.xyw(3, row, 2)); row += 2;
+        builder.add(statusLbl,                          cc.xyw(3, row, 2)); row += 2;
         
         final JTextField pwdTF = (JTextField)comps.get("usrPassword");
+        ValPlainTextDocument valDoc = new ValPlainTextDocument(64);
+        pwdTF.setDocument(valDoc);
+        valDoc.addDocumentListener(createDocChangeAdaptor(pwdTF));
+        
         pwdStrength.setPasswordField(pwdTF, null);
         
         encryptedTF = UIHelper.createTextField(20);
         ViewFactory.changeTextFieldUIForDisplay(encryptedTF, false);
+        
+        encryptedTF.setDocument(new ValPlainTextDocument(64));
         
         pwdTF.getDocument().addDocumentListener(new DocumentAdaptor() {
             @Override
@@ -120,6 +129,14 @@ public class UserInfoPanel extends GenericFormPanel
             String dbUsername  = properties.getProperty("dbUserName");
             String saUserName  = properties.getProperty("saUserName");
             String usrUserName = ((JTextField)comps.get("usrUsername")).getText();
+            String usrPassword = ((JTextField)comps.get("usrPassword")).getText();
+            
+            if (!DatabasePanel.checkForValidText(statusLbl, usrUserName, "ERR_BAD_USRNAME", "NO_SPC_USRNAME", false) ||
+                !DatabasePanel.checkForValidText(statusLbl, usrPassword,  null,             "NO_SPC_PWDNAME", false))
+            {
+                nextBtn.setEnabled(false);
+                return false;
+            }
             
             if (usrUserName.equals(saUserName))
             {

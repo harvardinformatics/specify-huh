@@ -47,6 +47,7 @@ import org.hibernate.annotations.CascadeType;
 import org.hibernate.annotations.Index;
 
 import edu.ku.brc.af.ui.forms.FormDataObjIFace;
+import edu.ku.brc.ui.UIRegistry;
 import edu.ku.brc.util.AttachmentManagerIface;
 import edu.ku.brc.util.AttachmentUtils;
 import edu.ku.brc.util.thumbnails.Thumbnailer;
@@ -70,6 +71,7 @@ public class Attachment extends DataModelObjBase implements Serializable
     protected String                  copyrightDate;
     protected String                  credit;
     protected String                  dateImaged;
+        
     protected Calendar                fileCreatedDate;
     protected String                  remarks;
     protected String                  attachmentLocation;
@@ -77,6 +79,7 @@ public class Attachment extends DataModelObjBase implements Serializable
     protected SpecifyUser             visibilitySetBy;
     protected Set<AttachmentMetadata> metadata;
     protected Set<AttachmentTag>      tags;
+    protected AttachmentImageAttribute   attachmentImageAttribute;
     
     // transient field
     protected boolean                 storeFile;
@@ -88,7 +91,7 @@ public class Attachment extends DataModelObjBase implements Serializable
     protected Set<CollectionObjectAttachment>        collectionObjectAttachments;
     protected Set<ConservDescriptionAttachment>      conservDescriptionAttachments;
     protected Set<ConservEventAttachment>            conservEventAttachments;
-    protected Set<DNASequencingRunAttachment>             dnaSequenceAttachments;
+    protected Set<DNASequencingRunAttachment>        dnaSequenceAttachments;
     protected Set<FieldNotebookAttachment>           fieldNotebookAttachments;
     protected Set<FieldNotebookPageAttachment>       fieldNotebookPageAttachments;
     protected Set<FieldNotebookPageSetAttachment>    fieldNotebookPageSetAttachments;
@@ -124,6 +127,12 @@ public class Attachment extends DataModelObjBase implements Serializable
         fileCreatedDate    = null;
         remarks            = null;
         attachmentLocation = null;
+        title              = null;
+        license            = null;
+        copyrightHolder    = null;
+        credit             = null;
+        copyrightDate      = null;
+        dateImaged         = null;
         metadata           = new HashSet<AttachmentMetadata>();
         tags               = new HashSet<AttachmentTag>();
         
@@ -280,7 +289,9 @@ public class Attachment extends DataModelObjBase implements Serializable
         this.dateImaged = dateImaged;
     }
 
-    @Temporal(TemporalType.DATE)
+    
+
+	@Temporal(TemporalType.DATE)
     @Column(name = "FileCreatedDate")
     public Calendar getFileCreatedDate()
     {
@@ -360,7 +371,8 @@ public class Attachment extends DataModelObjBase implements Serializable
         this.tags = tags;
     }
 
-    @OneToMany(mappedBy = "attachment")
+
+	@OneToMany(mappedBy = "attachment")
     @Cascade( {CascadeType.ALL} )
     public Set<AccessionAttachment> getAccessionAttachments()
     {
@@ -552,6 +564,26 @@ public class Attachment extends DataModelObjBase implements Serializable
         this.taxonAttachments = taxonAttachments;
     }
 
+    /**
+     * @return
+     */
+    @ManyToOne(cascade = {javax.persistence.CascadeType.ALL}, fetch = FetchType.LAZY)
+    @org.hibernate.annotations.Cascade( { org.hibernate.annotations.CascadeType.ALL, org.hibernate.annotations.CascadeType.DELETE_ORPHAN })
+    @JoinColumn(name = "AttachmentImageAttributeID", unique = false, nullable = true, insertable = true, updatable = true)
+    public AttachmentImageAttribute getAttachmentImageAttribute() 
+    {
+        return this.attachmentImageAttribute;
+    }
+
+    /**
+     * @param attachmentImageAttribute
+     */
+    public void setAttachmentImageAttribute(AttachmentImageAttribute attachmentImageAttribute) 
+    {
+        this.attachmentImageAttribute = attachmentImageAttribute;
+    }
+
+    
     /* (non-Javadoc)
      * @see edu.ku.brc.ui.forms.FormDataObjIFace#getTableId()
      */
@@ -605,13 +637,16 @@ public class Attachment extends DataModelObjBase implements Serializable
         this.storeFile = storeFile;
     }
 
-    public void storeFile() throws IOException
+    /**
+     * @throws IOException
+     */
+    public void storeFile(final boolean doDisplayErrors) throws IOException
     {
         // Copy the attachment file to the file storage system
-        Thumbnailer thumbnailGen = AttachmentUtils.getThumbnailer();
+        Thumbnailer            thumbnailGen  = AttachmentUtils.getThumbnailer();
         AttachmentManagerIface attachmentMgr = AttachmentUtils.getAttachmentManager();
-        File origFile = new File(origFilename);
-        File thumbFile = null;
+        File                   origFile      = new File(origFilename);
+        File                   thumbFile     = null;
         
         try
         {
@@ -623,9 +658,24 @@ public class Attachment extends DataModelObjBase implements Serializable
         {
             thumbFile = null;
         }
-        attachmentMgr.storeAttachmentFile(this, origFile, thumbFile);
         
-        this.storeFile = false;
+        try
+        {
+            attachmentMgr.storeAttachmentFile(this, origFile, thumbFile);
+            
+        } catch (IOException ex)
+        {
+            if (doDisplayErrors)
+            {
+                UIRegistry.showLocalizedError("ATTCH_NOT_SAVED_REPOS", origFilename);
+                return;
+            }
+            throw ex;
+            
+        } finally
+        {
+            this.storeFile = false;
+        }
     }
     
     /**

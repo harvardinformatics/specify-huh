@@ -19,6 +19,8 @@
 */
 package edu.ku.brc.specify.datamodel;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -33,6 +35,8 @@ import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.persistence.Transient;
 
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang.StringUtils;
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.CascadeType;
 import org.hibernate.annotations.Index;
@@ -49,7 +53,7 @@ import edu.ku.brc.af.core.AppContextMgr;
 @org.hibernate.annotations.Table(appliesTo="spappresourcedir", indexes =
     {   @Index (name="SpAppResourceDirDispTypeIDX", columnNames={"DisciplineType"})
     })
-public class SpAppResourceDir extends DataModelObjBase implements java.io.Serializable
+public class SpAppResourceDir extends DataModelObjBase implements java.io.Serializable, Cloneable
 {
 
     // Fields
@@ -121,6 +125,28 @@ public class SpAppResourceDir extends DataModelObjBase implements java.io.Serial
     public Integer getSpAppResourceDirId() 
     {
         return this.spAppResourceDirId;
+    }
+
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.datamodel.DataModelObjBase#forceLoad()
+     */
+    @Override
+    public void forceLoad()
+    {
+        if (collection != null)
+        {
+            collection.getCollectionName();
+        }
+        if (discipline != null)
+        {
+            discipline.getName();
+        }
+        if (specifyUser != null)
+        {
+            specifyUser.getName();
+        }
+        getSpPersistedAppResources();
+        getSpPersistedViewSets();
     }
 
     /* (non-Javadoc)
@@ -481,6 +507,71 @@ public class SpAppResourceDir extends DataModelObjBase implements java.io.Serial
     }
     
     /**
+     * For AppResourceDirs that have not been saved yet, this will take the transient resources
+     * and move them over to the Persistent Sets so they too will be saved.
+     */
+    public void mergeTransientResourceAndViewSets()
+    {
+
+        if (spAppResources != null)
+        {
+            for (SpAppResource appRes : spAppResources)
+            {
+                if (appRes.getSpAppResourceDatas().size() == 0)
+                {
+                    File file = new File(appRes.getFileName());
+                    if (file.exists())
+                    {
+                        try
+                        {
+                            String data = FileUtils.readFileToString(file);
+                            if (StringUtils.isNotEmpty(data))
+                            {
+                                appRes.setDataStr(data);
+                                appRes.setSpAppResourceDir(this);
+                                spPersistedAppResources.add(appRes);
+                            }
+                            
+                        } catch (IOException ex)
+                        {
+                            ex.printStackTrace();
+                        }
+                    }
+                }
+            }
+        }
+        
+        if (spViewSets != null)
+        {
+            for (SpViewSetObj vso : spViewSets)
+            {
+                if (vso.getSpAppResourceDatas().size() == 0)
+                {
+                    File file = new File(vso.getFileName());
+                    if (file.exists())
+                    {
+                        try
+                        {
+                            String data = FileUtils.readFileToString(file);
+                            if (StringUtils.isNotEmpty(data))
+                            {
+                                vso.setDataAsString(data);
+                                vso.setSpAppResourceDir(this);
+                                spPersistedViewSets.add(vso);
+                            }
+                            
+                        } catch (IOException ex)
+                        {
+                            ex.printStackTrace();
+                        }
+                    }
+                }
+                
+            }
+        }
+    }
+    
+    /**
      * @param appRes
      * 
      * Removes appRes from spPersistedAppResources and spAppResources sets.
@@ -527,4 +618,40 @@ public class SpAppResourceDir extends DataModelObjBase implements java.io.Serial
         }
         return false; 
     }
+
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.datamodel.DataModelObjBase#clone()
+     */
+    @Override
+    public Object clone() throws CloneNotSupportedException
+    {
+        SpAppResourceDir dir = (SpAppResourceDir)super.clone();
+        
+        dir.spPersistedAppResources = new HashSet<SpAppResource>();
+        dir.spPersistedViewSets     = new HashSet<SpViewSetObj>();
+        dir.spAppResources          = new HashSet<SpAppResource>();
+        dir.spViewSets              = new HashSet<SpViewSetObj>();
+        
+        for (SpAppResource ar : spPersistedAppResources)
+        {
+            dir.spPersistedAppResources.add(ar);
+        }
+        for (SpViewSetObj vso : spPersistedViewSets)
+        {
+            dir.spPersistedViewSets.add(vso);
+        }
+        
+        for (SpAppResource ar : getSpAppResources())
+        {
+            dir.spAppResources.add(ar);
+        }
+    
+        for (SpViewSetObj vso : getSpViewSets())
+        {
+            dir.spViewSets.add(vso);
+        }
+        return dir;
+    }
+    
+    
 }

@@ -50,8 +50,10 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.Vector;
 
+import javax.swing.ComboBoxModel;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -61,6 +63,7 @@ import javax.swing.JTextField;
 import javax.swing.KeyStroke;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.SwingUtilities;
+import javax.swing.border.LineBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.DocumentEvent;
@@ -75,6 +78,7 @@ import edu.ku.brc.af.ui.forms.validation.ValCheckBox;
 import edu.ku.brc.af.ui.forms.validation.ValTextArea;
 import edu.ku.brc.af.ui.forms.validation.ValTextField;
 import edu.ku.brc.specify.datamodel.Workbench;
+import edu.ku.brc.specify.datamodel.WorkbenchDataItem;
 import edu.ku.brc.specify.datamodel.WorkbenchRow;
 import edu.ku.brc.specify.datamodel.WorkbenchTemplateMappingItem;
 import edu.ku.brc.specify.tasks.WorkbenchTask;
@@ -99,8 +103,8 @@ import edu.ku.brc.ui.dnd.GhostMouseInputAdapter;
  * Mar 8, 2007
  *
  */
-public class FormPane extends JPanel implements ResultSetControllerListener, 
-                                                GhostActionable
+@SuppressWarnings("serial")
+public class FormPane extends JPanel implements FormPaneWrapper
 {
     private static final Logger log = Logger.getLogger(FormPane.class);
     
@@ -118,9 +122,7 @@ public class FormPane extends JPanel implements ResultSetControllerListener,
     protected boolean            isInImageMode     = false;
     protected JButton            controlPropsBtn   = null;
     
-    // begin Filtered Push
-    protected JButton            filteredPushBtn   = null;
-    // end Filtered Push
+    protected JButton            filteredPushBtn   = null; // added by HUH for FP
 
     protected Component          firstComp         = null;
     
@@ -168,6 +170,7 @@ public class FormPane extends JPanel implements ResultSetControllerListener,
             {
                 stateChange();
             }
+            
         };
         
         changeListener = new ChangeListener() {
@@ -229,11 +232,13 @@ public class FormPane extends JPanel implements ResultSetControllerListener,
         int maxWidthOffset = 0;
         for (WorkbenchTemplateMappingItem wbtmi : headers)
         {
-            // TODO: FP MMK need to make this configurable
+            // added by HUH for FP TODO: FP MMK need to make this configurable
             if (wbtmi.getCaption().equals("Collectors") || wbtmi.getCaption().equals("Collector") || wbtmi.getCaption().equals("CollectorNumber"))
             {
                 wbtmi.setIsFpMagic(true);
             }
+            // end HUH addition
+            
             // Create the InputPanel and make it draggable
             InputPanel panel = new InputPanel(wbtmi, wbtmi.getCaption(), createUIComp(wbtmi), this, clickable);
 
@@ -357,7 +362,8 @@ public class FormPane extends JPanel implements ResultSetControllerListener,
      */
     protected void selectControl(final Object uiObj)
     {
-        selectedInputPanel = getInputPanel(uiObj); // NOTE: This also requests the focus if it finds one
+        //System.out.println("!!!!!!!!!FOCUS GAINED!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+    	selectedInputPanel = getInputPanel(uiObj); // NOTE: This also requests the focus if it finds one
         controlPropsBtn.setEnabled(true);
         
         if (controlPropsDlg != null)
@@ -366,12 +372,10 @@ public class FormPane extends JPanel implements ResultSetControllerListener,
         }
     }
     
-    /**
-     * Sets in a new Workbench and all the WBTMI have different object pointer because of the merge
-     * that was done with the session. So we need to match up Record Ids and replace all the old WBTMIs
-     * with the new ones.
-     * @param workbench the new wb
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.tasks.subpane.wb.FormPaneWrapper#setWorkbench(edu.ku.brc.specify.datamodel.Workbench)
      */
+    @Override
     public void setWorkbench(final Workbench workbench)
     {
         this.workbench = workbench;
@@ -417,31 +421,38 @@ public class FormPane extends JPanel implements ResultSetControllerListener,
         return initialSize;
     }
 
-    public JScrollPane getScrollPane()
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.tasks.subpane.wb.FormPaneWrapper#getScrollPane()
+     */
+    @Override
+    public JScrollPane getPane()
     {
         return scrollPane;
     }
 
-    /**
-     * @return the WorkbenchPaneSS
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.tasks.subpane.wb.FormPaneWrapper#getWorkbenchPane()
      */
+    @Override
     public WorkbenchPaneSS getWorkbenchPane()
     {
         return workbenchPane;
     }
 
-    /**
-     * @return the controlPropsBtn
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.tasks.subpane.wb.FormPaneWrapper#getControlPropsBtn()
      */
+    @Override
     public JButton getControlPropsBtn()
     {
         return controlPropsBtn;
     }
 
 
-    /**
-     * Clean up and listeners etc.
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.tasks.subpane.wb.FormPaneWrapper#cleanup()
      */
+    @Override
     public void cleanup()
     {
         removeAll();
@@ -490,7 +501,7 @@ public class FormPane extends JPanel implements ResultSetControllerListener,
     protected JScrollPane createTextArea(final short len, final short rows, final boolean isFpMagic)
     {
         ValTextArea textArea = new ValTextArea("", rows, len);
-        textArea.setRequired(isFpMagic); // TODO: FP MMK I can't tell if this is working
+        textArea.setRequired(isFpMagic); // added by HUH for FP TODO: MMK I can't tell if this is working
         textArea.setLineWrap(true);
         textArea.setWrapStyleWord(true);
         textArea.getDocument().addDocumentListener(docListener);
@@ -515,11 +526,12 @@ public class FormPane extends JPanel implements ResultSetControllerListener,
                             wbtmi.getDataFieldLength(), 
                             getColumns(wbtmi),
                             getRows(wbtmi),
-                            wbtmi.getIsFpMagic()); // FP MMK
+                            wbtmi,
+                            wbtmi.getIsFpMagic()); // added by HUH for FP
     }
     
     /**
-     * Determinaes whether it is a TextField or whether it SHOULD be a TextField
+     * Determines whether it is a TextField or whether it SHOULD be a TextField
      * @param fieldName the name of the field
      * @param fieldType the type of field
      * @param fieldLen the length of the data 
@@ -612,8 +624,10 @@ public class FormPane extends JPanel implements ResultSetControllerListener,
                                       final Short    fieldLength, 
                                       final short    columns,
                                       final short    rows,
-                                      final boolean  isFpMagic)
+                                      final WorkbenchTemplateMappingItem wbtmi,
+                                      final boolean  isFpMagic) // added by HUH for FP
     {
+        short uiType = WorkbenchTemplateMappingItem.UNKNOWN;
         //System.out.println(wbtmi.getCaption()+" "+wbtmi.getDataType()+" "+wbtmi.getFieldLength());
         Class<?> dbFieldType = dbFieldTypeArg;
         if (dbFieldType == null)
@@ -631,43 +645,99 @@ public class FormPane extends JPanel implements ResultSetControllerListener,
             //ValFormattedTextField txt = new ValFormattedTextField("Date"); 
             //txt.setColumns(columns == -1 ? DEFAULT_TEXTFIELD_COLS : columns);
             ValTextField txt = new ValTextField(columns);
-            txt.setRequired(isFpMagic); // FP MMK
+            txt.setRequired(isFpMagic); // added by HUH for FP
             txt.getDocument().addDocumentListener(docListener);
             comp      = txt;
             focusComp = comp;
-            
+            uiType = WorkbenchTemplateMappingItem.TEXTFIELD_DATE;
         }
         else if (dbFieldType.equals(Boolean.class)) // strings
         {
             ValCheckBox checkBox = new ValCheckBox(caption, false, false);
-            checkBox.setRequired(isFpMagic); // FP MMK
+            checkBox.setRequired(isFpMagic); //  added by HUH for FP
             checkBox.addChangeListener(changeListener);
             comp      = checkBox;
             focusComp = comp;
+            uiType = WorkbenchTemplateMappingItem.CHECKBOX;
+        }
+        else if (useComboBox(wbtmi))
+        {
+        	//ValComboBox comboBox = new ValComboBox(getValues(wbtmi), true);
+        	
+        	final JComboBox comboBox = new JComboBox(getValues(wbtmi));
+        	comboBox.setName("Form Combo");
+        	comboBox.setEditable(true);
+        	comboBox.addActionListener(new ActionListener() {
+
+				/* (non-Javadoc)
+				 * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
+				 */
+				@Override
+				public void actionPerformed(ActionEvent arg0) {
+					if (arg0.getSource() == comboBox)
+					{
+						System.out.println("ComboBox Action!" + ((JComboBox )arg0.getSource()).getName());
+						stateChange();
+					}
+				}
+        		
+        	});
+//        	comboBox.getEditor().getEditorComponent().addFocusListener(new FocusListener() {
+//
+//				/* (non-Javadoc)
+//				 * @see java.awt.event.FocusListener#focusGained(java.awt.event.FocusEvent)
+//				 */
+//				@Override
+//				public void focusGained(FocusEvent arg0) {
+//					System.out.println("FOCUS GAINED");
+//					
+//				}
+//
+//				/* (non-Javadoc)
+//				 * @see java.awt.event.FocusListener#focusLost(java.awt.event.FocusEvent)
+//				 */
+//				@Override
+//				public void focusLost(FocusEvent arg0) {
+//					System.out.println("FOCUS LOST");
+//					
+//				}
+//        		
+//        	});
+        	comp = comboBox;
+        	focusComp = comp;
+        	uiType = WorkbenchTemplateMappingItem.COMBOBOX;        	
         }
         else if (useTextField(fieldName, fieldType, fieldLength))
         {
             ValTextField txt = new ValTextField(columns);
-            txt.setRequired(isFpMagic); // FP MMK
+            txt.setRequired(isFpMagic); //  added by HUH for FP
             txt.getDocument().addDocumentListener(docListener);
             txt.setInputVerifier(new LengthInputVerifier(caption, fieldLength));
             comp      = txt;
             focusComp = comp;
+            uiType = WorkbenchTemplateMappingItem.TEXTFIELD;
+
         }
         else
         {
-            JScrollPane taScrollPane = createTextArea(columns, rows, isFpMagic);
+            JScrollPane taScrollPane = createTextArea(columns, rows, isFpMagic); // modified by HUH for FP
             ((JTextArea)taScrollPane.getViewport().getView()).setInputVerifier(new LengthInputVerifier(caption, fieldLength));
             comp = taScrollPane;
             focusComp = taScrollPane.getViewport().getView();
+            uiType = WorkbenchTemplateMappingItem.TEXTAREA;
         }
+        
+        wbtmi.setFieldType(uiType);
         
         focusComp.addFocusListener(new FocusListener() {
             public void focusGained(FocusEvent e)
             {
                 selectControl(e.getSource());
             }
-            public void focusLost(FocusEvent e) {}
+            public void focusLost(FocusEvent e) 
+            {
+            	//stateChange();
+            }
         });
         
         
@@ -692,11 +762,45 @@ public class FormPane extends JPanel implements ResultSetControllerListener,
         return comp;
     }
     
-    /**
-     * Swaps out a TextField for a TextArea and vs.
-     * @param inputPanel the InputPanel that hold the text component
-     * @param fieldLen the length of the text field component (columns)
+    protected Vector<Object> getValues(final WorkbenchTemplateMappingItem wbtmi)
+    {
+        Vector<WorkbenchTemplateMappingItem> wbtmis = new Vector<WorkbenchTemplateMappingItem>();
+        wbtmis.addAll(workbench.getWorkbenchTemplate().getWorkbenchTemplateMappingItems());
+        Collections.sort(wbtmis);
+        int wbCol = -1;
+    	for (int c = 0; c < wbtmis.size(); c++)
+    	{
+    		if (wbtmis.get(c) == wbtmi)
+    		{
+    			wbCol = c;
+    			break;
+    		}
+    	}
+    	if (wbCol != -1)
+    	{
+    		if (workbenchPane.getSpreadSheet().getColumnModel().getColumn(wbCol).getCellEditor() instanceof WorkbenchPaneSS.GridCellListEditor)
+    		{
+    			ComboBoxModel model = ((WorkbenchPaneSS.GridCellListEditor )workbenchPane.getSpreadSheet().getColumnModel().getColumn(wbCol).getCellEditor()).getList();
+    			Vector<Object> result = new Vector<Object>();
+    			for (int i = 0; i < model.getSize(); i++)
+    			{
+    				result.add(model.getElementAt(i));
+    			}
+    			return result;
+    		}
+    	}
+    	return null;
+    }
+    
+    protected boolean useComboBox(final WorkbenchTemplateMappingItem wbtmi)
+    {
+    	return getValues(wbtmi) != null;
+    }
+    
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.tasks.subpane.wb.FormPaneWrapper#swapTextFieldType(edu.ku.brc.specify.tasks.subpane.wb.InputPanel, short)
      */
+    @Override
     public void swapTextFieldType(final InputPanel inputPanel, final short fieldLen)
     {
         JTextComponent oldComp;
@@ -726,7 +830,8 @@ public class FormPane extends JPanel implements ResultSetControllerListener,
                                         wbtmi.getDataFieldLength(), 
                                         fieldLen,
                                         rows,
-                                        wbtmi.getIsFpMagic()));  // FP MMK
+                                        wbtmi,
+                                        wbtmi.getIsFpMagic()));  // added by HUH for FP
         
         ignoreChanges = true;
         ((JTextComponent)inputPanel.getComp()).setText(oldComp.getText());
@@ -787,10 +892,10 @@ public class FormPane extends JPanel implements ResultSetControllerListener,
         }
     }
 
-    /**
-     * Tells the form it is being hidden.
-     * @param show true - show, false hide
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.tasks.subpane.wb.FormPaneWrapper#aboutToShowHide(boolean)
      */
+    @Override
     public void aboutToShowHide(final boolean show)
     {
         if (!show)
@@ -814,10 +919,10 @@ public class FormPane extends JPanel implements ResultSetControllerListener,
         }
     }
     
-    /**
-     * Tells the pane whether it is about to show or not when the parent pane is being shown or not.
-     * @param show true show, false hide
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.tasks.subpane.wb.FormPaneWrapper#showingPane(boolean)
      */
+    @Override
     public void showingPane(final boolean show)
     {
         if (show)
@@ -837,69 +942,61 @@ public class FormPane extends JPanel implements ResultSetControllerListener,
         }
     }
     
-    /**
-     * Copies the data from the form into the row.
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.tasks.subpane.wb.FormPaneWrapper#copyDataFromForm()
      */
+    @Override
     public void copyDataFromForm()
     {
         copyDataFromForm(currentIndex);
     }
     
     /**
-     * Copies the data from the form into the row.
-     * @param index the index of the row
+     * @param p
+     * @param wbRow
      */
-    protected void copyDataFromForm(final int index)
+    protected void copyDataFromForm(final InputPanel p, final WorkbenchRow wbRow)
     {
-        if (!changesInForm)
+        short col = p.getWbtmi().getViewOrder();
+        
+        if (p.getComp() instanceof JTextComponent)
         {
-            return;
-        }
-        
-        ignoreChanges = true;
-        
-        changesInForm = false;
-        
-        WorkbenchRow wbRow = workbench.getWorkbenchRowsAsList().get(index);
-        for (InputPanel p : uiComps)
-        {
-            short col = p.getWbtmi().getViewOrder();
-            
-            if (p.getComp() instanceof JTextComponent)
+            String data     = ((JTextComponent)p.getComp()).getText();
+            String cellData = wbRow.getData(col);
+            if (StringUtils.isNotEmpty(cellData) || data != null)
             {
-                String data     = ((JTextComponent)p.getComp()).getText();
-                String cellData = wbRow.getData(col);
-                if (StringUtils.isNotEmpty(cellData) || data != null)
-                {
-                    wbRow.setData(data == null ? "" : data, col, true);
-                }
-                
-            } else if (p.getComp() instanceof GetSetValueIFace)
-            {
-                Object data     = ((GetSetValueIFace)p.getComp()).getValue();
-                String cellData = wbRow.getData(col);
-                if (StringUtils.isNotEmpty(cellData) || data != null)
-                {
-                    wbRow.setData(data == null ? "" : data.toString(), col, true);
-                }
-                
-            } else if (p.getComp() instanceof JScrollPane)
-            {
-                JScrollPane sc   = (JScrollPane)p.getComp();
-                Component   comp = sc.getViewport().getView();
-                if (comp instanceof JTextArea)
-                {
-                    wbRow.setData(((JTextArea)comp).getText(), col, true);
-                }
-            } else
-            {
-               log.error("Can't get data from control["+p.getLabelText()+"]");
+                wbRow.setData(data == null ? "" : data, col, true);
             }
+            
+        } else if (p.getComp() instanceof GetSetValueIFace)
+        {
+            Object data     = ((GetSetValueIFace)p.getComp()).getValue();
+            String cellData = wbRow.getData(col);
+            if (StringUtils.isNotEmpty(cellData) || data != null)
+            {
+                wbRow.setData(data == null ? "" : data.toString(), col, true);
+            }
+            
+        } else if (p.getComp() instanceof JScrollPane)
+        {
+            JScrollPane sc   = (JScrollPane)p.getComp();
+            Component   comp = sc.getViewport().getView();
+            if (comp instanceof JTextArea)
+            {
+                wbRow.setData(((JTextArea)comp).getText(), col, true);
+            }
+        } else if (p.getComp() instanceof JComboBox)
+        {
+        	JComboBox cb = (JComboBox )p.getComp();
+        	wbRow.setData(cb.getSelectedItem().toString(), col, true);
         }
-        ignoreChanges = false;
+        else
+        {
+           log.error("Can't get data from control["+p.getLabelText()+"]");
+        }
     }
     
-    // begin Filtered Push
+    // added by HUH for FP
     /**
      * Copies the data from the row into the form.
      */
@@ -957,7 +1054,7 @@ public class FormPane extends JPanel implements ResultSetControllerListener,
         }
         ignoreChanges = false;
     }
-    // end Filtered Push
+    // end HUH addition
     
     /* (non-Javadoc)
      * @see javax.swing.JComponent#setVisible(boolean)
@@ -1016,7 +1113,8 @@ public class FormPane extends JPanel implements ResultSetControllerListener,
         
         ignoreChanges = true; // turn off change notification
         
-        WorkbenchRow wbRow = workbench.getWorkbenchRowsAsList().get(index);
+        int modelIndex = workbenchPane.getSpreadSheet().convertRowIndexToModel(index);
+        WorkbenchRow wbRow = workbench.getWorkbenchRowsAsList().get(modelIndex);
         for (InputPanel p : uiComps)
         {
             int col = p.getWbtmi().getViewOrder();
@@ -1025,7 +1123,11 @@ public class FormPane extends JPanel implements ResultSetControllerListener,
             {
                 ((GetSetValueIFace)p.getComp()).setValue(wbRow.getData(col), wbRow.getData(col));
                 
-            } else if (p.getComp() instanceof JScrollPane)
+            } else if (p.getComp() instanceof JComboBox)
+            {
+            	((JComboBox )p.getComp()).setSelectedItem(wbRow.getData(col));
+            }
+            else if (p.getComp() instanceof JScrollPane)
             {
                 JScrollPane sc = (JScrollPane)p.getComp();
                 Component comp = sc.getViewport().getView();
@@ -1067,6 +1169,10 @@ public class FormPane extends JPanel implements ResultSetControllerListener,
         {
             currentIndex  = newIndex;
             setDataIntoForm(currentIndex);
+            if (workbenchPane.isDoIncremental())
+            {
+            	updateValidationUI();
+            }
             
             if (firstComp != null)
             {
@@ -1209,10 +1315,73 @@ public class FormPane extends JPanel implements ResultSetControllerListener,
      */
     protected void stateChange()
     {
-        if (!ignoreChanges)
+        //System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!STATE CHANGE!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+    	if (!ignoreChanges)
         {
             changesInForm = true;
             workbenchPane.setChanged(true);
+            if (workbenchPane.isDoIncremental())
+            {
+                ignoreChanges = true;
+            	WorkbenchRow wbRow = workbench.getWorkbenchRowsAsList().get(currentIndex);
+            	copyDataFromForm();
+            	workbenchPane.updateRowValidationStatus(currentIndex, -1, null);
+            	updateValidationUI(wbRow);
+            	ignoreChanges = false;
+            }
         }
+    }
+    
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.tasks.subpane.wb.FormPaneWrapper#updateValidationUI()
+     */
+    @Override
+    public void updateValidationUI()
+    {
+    	updateValidationUI(workbench.getWorkbenchRowsAsList().get(currentIndex));
+    }
+    
+    /**
+     * @param wbRow
+     * 
+     * Updates validation status display for all controls.
+     */
+    protected void updateValidationUI(final WorkbenchRow wbRow)
+    {
+    	for (InputPanel ip : uiComps)
+    	{
+    		updateValidationUI(ip, wbRow);
+    	}
+    }
+    
+    /**
+     * @param ip
+     */
+    protected void updateValidationUI(InputPanel ip, WorkbenchRow wbRow)
+    {
+		//for some reason addAttributes() is not working on the form pane.
+//		workbenchPane.getCellDecorator().addAttributes(ip.getLabel(), wbCell, 
+//				workbenchPane.isDoIncrementalValidation(),
+//				workbenchPane.isDoIncrementalMatching());			
+		//System.out.println("Updating validation UI for " + ip.getLabelText());
+    	String toolTip = null;
+		LineBorder border = null;
+		WorkbenchDataItem wbCell = wbRow.getItems().get(ip.getWbtmi().getViewOrder());
+		if (wbCell != null)
+		{ 
+			toolTip = wbCell.getStatusText();
+			if( wbCell.getEditorValidationStatus() == WorkbenchDataItem.VAL_ERROR && workbenchPane.isDoIncrementalValidation())
+			{				
+				border = new LineBorder(workbenchPane.getCellDecorator().errorBorder);
+			} else if (wbCell.getEditorValidationStatus() == WorkbenchDataItem.VAL_NEW_DATA && workbenchPane.isDoIncrementalMatching())
+			{
+				border = new LineBorder(workbenchPane.getCellDecorator().newDataBorder);
+			} else
+			{
+				toolTip = null;
+			}
+		} 			
+		ip.getLabel().setToolTipText(toolTip);
+		ip.getLabel().setBorder(border);
     }
  }

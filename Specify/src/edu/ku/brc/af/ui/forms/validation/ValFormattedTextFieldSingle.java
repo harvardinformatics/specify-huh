@@ -35,6 +35,8 @@ import java.awt.event.FocusEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.math.BigDecimal;
+import java.text.DecimalFormatSymbols;
+import java.text.NumberFormat;
 import java.text.ParseException;
 import java.util.Calendar;
 import java.util.Date;
@@ -62,7 +64,6 @@ import edu.ku.brc.af.ui.forms.formatters.UIFieldFormatterIFace;
 import edu.ku.brc.af.ui.forms.formatters.UIFieldFormatterMgr;
 import edu.ku.brc.ui.ColorWrapper;
 import edu.ku.brc.ui.DocumentAdaptor;
-import edu.ku.brc.ui.GetSetValueIFace;
 import edu.ku.brc.ui.UIHelper;
 import edu.ku.brc.ui.UIRegistry;
 
@@ -79,13 +80,15 @@ import edu.ku.brc.ui.UIRegistry;
  *
  */
 @SuppressWarnings("serial")
-public class ValFormattedTextFieldSingle extends JTextField implements UIValidatable,
-                                                                       GetSetValueIFace,
-                                                                       UIRegistry.UndoableTextIFace,
-                                                                       AutoNumberableIFace
+public class ValFormattedTextFieldSingle extends JTextField implements ValFormattedTextFieldIFace,
+                                                                       UIRegistry.UndoableTextIFace
 {
     private static final Logger log  = Logger.getLogger(ValFormattedTextFieldSingle.class);
 
+    protected DecimalFormatSymbols    formatSymbols      = new DecimalFormatSymbols(Locale.getDefault());
+    protected NumberFormat            numberFormatter    = NumberFormat.getNumberInstance(Locale.getDefault());
+    protected NumberFormat            numIntFormatter    = NumberFormat.getIntegerInstance(Locale.getDefault());
+    
     protected static ColorWrapper     valTextColor       = null;
     protected static ColorWrapper     viewBGColor        = null;
     protected static ColorWrapper     requiredFieldColor = null;  
@@ -123,8 +126,7 @@ public class ValFormattedTextFieldSingle extends JTextField implements UIValidat
 
     
     /**
-     * Constructor
-     * @param dataObjFormatterName the formatters name
+     * Constructor.
      */
     protected ValFormattedTextFieldSingle()
     {
@@ -336,6 +338,7 @@ public class ValFormattedTextFieldSingle extends JTextField implements UIValidat
             bgStr = formatter.toPattern();
     
             document = new JFormattedDoc(this, formatter, requiredLength);
+            document.setIgnoreLenForValidation(isPartialOK);
             setDocument(document);
             document.addDocumentListener(new DocumentAdaptor() {
                 @Override
@@ -800,38 +803,44 @@ public class ValFormattedTextFieldSingle extends JTextField implements UIValidat
      */
     protected UIValidatable.ErrorType validateNumeric(final String value)
     {
-        Class<?> cls      = formatter.getDataClass();
+        Class<?> cls = formatter.getDataClass();
         
         try
         {
             if (cls == Long.class)
             {
-                Long val  = Long.parseLong(value);
-                    return !isMinMaxOK(val) || (val > Long.MAX_VALUE || val < -(Long.MAX_VALUE)) ? UIValidatable.ErrorType.Error : UIValidatable.ErrorType.Valid;
+                Number num  = numIntFormatter.parse(value);
+                Long  val = num.longValue();
+                return !isMinMaxOK(val) || (val > Long.MAX_VALUE || val < -(Long.MAX_VALUE)) ? UIValidatable.ErrorType.Error : UIValidatable.ErrorType.Valid;
                 
             } else if (cls == Integer.class)
             {
-                Integer val  = Integer.parseInt(value);
+                Number num  = numIntFormatter.parse(value);
+                Integer  val = num.intValue();
                 return !isMinMaxOK(val) || (val > Integer.MAX_VALUE || val < -(Integer.MAX_VALUE)) ? UIValidatable.ErrorType.Error : UIValidatable.ErrorType.Valid;
     
             } else if (cls == Short.class)
             {
-                Short val  = Short.parseShort(value);
+                Number num  = numIntFormatter.parse(value);
+                Short  val = num.shortValue();
                 return !isMinMaxOK(val) || (val > Short.MAX_VALUE || val < -(Short.MAX_VALUE)) ? UIValidatable.ErrorType.Error : UIValidatable.ErrorType.Valid;
     
             } else if (cls == Byte.class)
             {
-                Byte val  = Byte.parseByte(value);
+                Number num  = numIntFormatter.parse(value);
+                Byte  val = num.byteValue();
                 return !isMinMaxOK(val) || (val > Byte.MAX_VALUE || val < -(Byte.MAX_VALUE)) ? UIValidatable.ErrorType.Error : UIValidatable.ErrorType.Valid;
     
             } else if (cls == Double.class)
             {
-                Double val  = Double.parseDouble(value);
+                Number num  = numberFormatter.parse(value);
+                Double val = num.doubleValue();
                 return !isMinMaxOK(val) || (val > Double.MAX_VALUE || val < -(Double.MAX_VALUE)) ? UIValidatable.ErrorType.Error : UIValidatable.ErrorType.Valid;
     
             } else if (cls == Float.class)
             {
-                Float val  = Float.parseFloat(value);
+                Number num  = numberFormatter.parse(value);
+                Float  val = num.floatValue();
                 return !isMinMaxOK(val) || (val.floatValue() > Float.MAX_VALUE || val < -(Float.MAX_VALUE)) ? UIValidatable.ErrorType.Error : UIValidatable.ErrorType.Valid;
     
             } else if (cls == BigDecimal.class)
@@ -1098,6 +1107,19 @@ public class ValFormattedTextFieldSingle extends JTextField implements UIValidat
         }
 
         /**
+         * @param string
+         * @return
+         */
+        public boolean isNumber(final String string) 
+        {
+            try
+            {
+                return (numberFormatter.parse(string) != null);
+            } catch (ParseException e) {}
+            return false;
+        }
+        
+        /**
          * Check to see if the input was correct (doesn't check against the separator)
          * @param field the field info
          * @param str the str to be checked
@@ -1119,11 +1141,19 @@ public class ValFormattedTextFieldSingle extends JTextField implements UIValidat
 
             } else if (field.getType() == UIFieldFormatterField.FieldType.numeric)
             {
-                // we really need to check to make sure this is a Double, Float or BigDecimal
-                String s = StringUtils.remove(str, '.');
-                s = StringUtils.remove(str, '.');
-                return s.length() == 0 || StringUtils.isNumericSpace(s);
-
+                char   decSep = formatSymbols.getDecimalSeparator();
+                String str1   = StringUtils.remove(str, decSep);
+                String str2   = StringUtils.remove(str1, '-');
+                if (StringUtils.isNumeric(str2))
+                {
+                    Class<?> cls = formatter.getDataClass();
+                    if (cls == java.lang.Integer.class || cls == java.lang.Long.class || cls == java.lang.Short.class || cls == java.lang.Byte.class)
+                    {
+                        return str1.length() == str.length(); 
+                    }
+                    return str2.length() == 0 || StringUtils.isNumericSpace(str2);
+                } 
+                return false;
             }
             return true;
         }

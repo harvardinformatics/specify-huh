@@ -23,6 +23,7 @@ import java.math.BigDecimal;
 import java.util.Calendar;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.Vector;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -42,6 +43,8 @@ import org.apache.commons.lang.StringUtils;
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.CascadeType;
 import org.hibernate.annotations.Index;
+
+import edu.ku.brc.specify.conversion.BasicSQLUtils;
 
 /**
  * @author rod
@@ -285,6 +288,29 @@ public class Appraisal extends DataModelObjBase
     public Integer getId()
     {
         return appraisalId;
+    }
+
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.datamodel.DataModelObjBase#getParentId()
+     */
+    @Override
+    @Transient
+    public Integer getParentId()
+    {
+        if (accession != null)
+        {
+            parentTblId = Accession.getClassTableId();
+            return accession.getId();
+        } 
+        
+        Vector<Object> ids = BasicSQLUtils.querySingleCol("SELECT CollectionObjectID FROM collectionobject WHERE AppraisalID = "+ appraisalId);
+        if (ids.size() == 1)
+        {
+            parentTblId = CollectionObject.getClassTableId();
+            return (Integer)ids.get(0);
+        }
+        parentTblId = null;
+        return null;
     }
     
     /* (non-Javadoc)

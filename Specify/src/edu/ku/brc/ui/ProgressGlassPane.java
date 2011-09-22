@@ -33,6 +33,7 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Paint;
 import java.awt.Point;
+import java.awt.Rectangle;
 import java.awt.RenderingHints;
 
 import javax.swing.JComponent;
@@ -48,8 +49,8 @@ public class ProgressGlassPane extends JComponent
     private static final int     DEF_BAR_WIDTH      = 400;
     private static final int     DEF_BAR_HEIGHT     = 20;
 
+    private static final Color   GRADIENT_COLOR1    = Color.DARK_GRAY;
     private static final Color   GRADIENT_COLOR2    = Color.WHITE;
-    private static final Color   GRADIENT_COLOR1    = Color.GRAY;
 
     private int                  progress           = -1;
     private int                  textOffset         = 50;
@@ -124,6 +125,19 @@ public class ProgressGlassPane extends JComponent
         }
     }
 
+    /**
+     * @return the bounds of the progress bar.
+     */
+    protected Rectangle getProgressBarRect()
+    {
+        int x = (getWidth() - barWidth) / 2;
+        int y = (getHeight() - barHeight) / 2;
+        FontMetrics metrics = getGraphics().getFontMetrics(getFont());
+        y += metrics.getDescent() / 2;
+        y += textOffset;
+        return new Rectangle(x, y, barWidth, barHeight+1);
+    	
+    }
     /* (non-Javadoc)
      * @see javax.swing.JComponent#paintComponent(java.awt.Graphics)
      */
@@ -133,9 +147,9 @@ public class ProgressGlassPane extends JComponent
         if (progress > -1)
         {
             Dimension size = getSize();
-            if (size.width < barWidth)
+            if (size.width < barWidth || barWidth < 10)
             {
-                barWidth = size.width - 20;
+                barWidth = size.width - (size.width / 2);
             }
             
             // enables anti-aliasing

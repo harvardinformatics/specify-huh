@@ -27,11 +27,14 @@ import java.awt.event.ItemListener;
 
 import javax.swing.JCheckBox;
 
+import edu.ku.brc.af.core.db.DBTableInfo;
+import edu.ku.brc.af.ui.forms.FormDataObjIFace;
 import edu.ku.brc.af.ui.forms.Viewable;
 import edu.ku.brc.af.ui.forms.persist.AltViewIFace.CreationMode;
 import edu.ku.brc.af.ui.forms.validation.ValComboBoxFromQuery;
 import edu.ku.brc.dbsupport.DataProviderSessionIFace;
 import edu.ku.brc.specify.config.DisciplineType;
+import edu.ku.brc.specify.conversion.BasicSQLUtils;
 import edu.ku.brc.specify.datamodel.Discipline;
 import edu.ku.brc.specify.datamodel.Taxon;
 import edu.ku.brc.specify.datamodel.TaxonTreeDef;
@@ -137,7 +140,12 @@ public class TaxonBusRules extends BaseTreeBusRules<Taxon, TaxonTreeDef, TaxonTr
     {
         if (dataObj instanceof Taxon)
         {
-            return super.okToDeleteNode((Taxon)dataObj);
+            Taxon taxon = (Taxon)dataObj;
+            int citCnt = BasicSQLUtils.getCountAsInt("SELECT COUNT(*) FROM taxoncitation WHERE TaxonID = " + taxon.getId());
+            if (citCnt < 1)
+            {
+                return super.okToDeleteNode(taxon);
+            }
         }
         else if (dataObj instanceof TaxonTreeDefItem)
         {
@@ -172,6 +180,26 @@ public class TaxonBusRules extends BaseTreeBusRules<Taxon, TaxonTreeDef, TaxonTr
         
         return true;
     }
+
+    /* (non-Javadoc)
+     * @see edu.ku.brc.af.ui.forms.BaseBusRules#afterSaveCommit(java.lang.Object, edu.ku.brc.dbsupport.DataProviderSessionIFace)
+     */
+    @Override
+    public boolean afterSaveCommit(final Object dataObj, final DataProviderSessionIFace session)
+    {
+        setLSID((FormDataObjIFace)dataObj);
+
+        return super.afterSaveCommit(dataObj, session);
+    }
+    
+    /* (non-Javadoc)
+     * @see edu.ku.brc.af.ui.forms.BaseBusRules#getExtraWhereColumns(edu.ku.brc.af.core.db.DBTableInfo)
+     */
+    @Override
+    protected String getExtraWhereColumns(final DBTableInfo tableInfo)
+    {
+        return null;
+    }
     
     /* (non-Javadoc)
      * @see edu.ku.brc.specify.datamodel.busrules.BaseTreeBusRules#getRelatedTableAndColumnNames()
@@ -182,7 +210,11 @@ public class TaxonBusRules extends BaseTreeBusRules<Taxon, TaxonTreeDef, TaxonTr
         String[] relationships = 
         {
                 "determination", "TaxonID",
-                "taxoncitation", "TaxonID",
+                "collectingeventattribute", "HostTaxonID",
+                
+                //allow cascade deletes for citations
+                //"taxoncitation", "TaxonID", 
+                
                 "taxon",         "HybridParent1ID",
                 "taxon",         "HybridParent2ID",
                 "taxon",         "AcceptedID"
@@ -191,7 +223,29 @@ public class TaxonBusRules extends BaseTreeBusRules<Taxon, TaxonTreeDef, TaxonTr
         return relationships;
     }
 
+    
     /* (non-Javadoc)
+     * @see edu.ku.brc.specify.datamodel.busrules.BaseTreeBusRules#getAllRelatedTableAndColumnNames()
+     */
+    @Override
+	public String[] getAllRelatedTableAndColumnNames() 
+    {
+    	//XXX probably better to use DBTableInfo for this? (trickiness with PreferredTaxonID).
+    	String[] relationships = 
+        {
+                "determination", "TaxonID",
+                "determination", "PreferredTaxonID",
+                "collectingeventattribute", "HostTaxonID",
+                "taxoncitation", "TaxonID", 
+                "taxon",         "HybridParent1ID",
+                "taxon",         "HybridParent2ID",
+                "taxon",         "AcceptedID"
+        };
+
+        return relationships;
+	}
+
+	/* (non-Javadoc)
      * @see edu.ku.brc.specify.datamodel.busrules.BaseTreeBusRules#beforeSave(java.lang.Object, edu.ku.brc.dbsupport.DataProviderSessionIFace)
      */
     @Override

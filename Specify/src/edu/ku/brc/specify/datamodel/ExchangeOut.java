@@ -51,7 +51,6 @@ import org.hibernate.annotations.Index;
 @org.hibernate.annotations.Table(appliesTo="exchangeout", indexes =
     {   @Index (name="ExchangeOutdateIDX", columnNames={"ExchangeDate"}),
 		@Index (name="DescriptionOfMaterialIDX", columnNames={"DescriptionOfMaterial"})
-		
     })
 public class ExchangeOut extends DataModelObjBase implements java.io.Serializable {
 
@@ -78,6 +77,7 @@ public class ExchangeOut extends DataModelObjBase implements java.io.Serializabl
     protected Agent           agentCatalogedBy;
     protected Set<Shipment>   shipments;
     protected Division        division;
+    protected Set<ExchangeOutPrep> exchangeOutPreps;
 
 
     // Constructors
@@ -91,8 +91,6 @@ public class ExchangeOut extends DataModelObjBase implements java.io.Serializabl
     public ExchangeOut(Integer exchangeOutId) {
         this.exchangeOutId = exchangeOutId;
     }
-   
-    
     
 
     // Initializer
@@ -118,6 +116,8 @@ public class ExchangeOut extends DataModelObjBase implements java.io.Serializabl
         agentSentTo      = null;
         agentCatalogedBy = null;
         shipments        = new HashSet<Shipment>();
+        exchangeOutPreps = new HashSet<ExchangeOutPrep>();
+
         division         = null;
     }
     // End Initializer
@@ -400,6 +400,19 @@ public class ExchangeOut extends DataModelObjBase implements java.io.Serializabl
     {
         this.addressOfRecord = addressOfRecord;
     }
+
+    /**
+     * 
+     */
+    @OneToMany(cascade = {}, fetch = FetchType.LAZY, mappedBy = "exchangeOut")
+    @Cascade( { CascadeType.ALL, CascadeType.DELETE_ORPHAN })
+    public Set<ExchangeOutPrep> getExchangeOutPreps() {
+        return this.exchangeOutPreps;
+    }
+    
+    public void setExchangeOutPreps(Set<ExchangeOutPrep> exchangeOutPreps) {
+        this.exchangeOutPreps = exchangeOutPreps;
+    }
     
     /**
      * @return the division
@@ -418,8 +431,27 @@ public class ExchangeOut extends DataModelObjBase implements java.io.Serializabl
     {
         this.division = division;
     }
+    
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.datamodel.DataModelObjBase#getParentTableId()
+     */
+    @Override
+    @Transient
+    public Integer getParentTableId()
+    {
+        return Division.getClassTableId();
+    }
 
-
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.datamodel.DataModelObjBase#getParentId()
+     */
+    @Override
+    @Transient
+    public Integer getParentId()
+    {
+        return division != null ? division.getId() : null;
+    }
+    
     /* (non-Javadoc)
      * @see edu.ku.brc.ui.forms.FormDataObjIFace#getTableId()
      */

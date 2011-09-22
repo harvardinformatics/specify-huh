@@ -21,6 +21,7 @@ package edu.ku.brc.af.auth;
 
 import static edu.ku.brc.ui.UIHelper.createI18NButton;
 import static edu.ku.brc.ui.UIHelper.createI18NFormLabel;
+import static edu.ku.brc.ui.UIHelper.createIconBtn;
 import static edu.ku.brc.ui.UIHelper.createPasswordField;
 import static edu.ku.brc.ui.UIHelper.createTextField;
 import static edu.ku.brc.ui.UIRegistry.getFormattedResStr;
@@ -72,11 +73,13 @@ import edu.ku.brc.af.ui.db.ViewBasedDisplayDialog;
 import edu.ku.brc.af.ui.forms.FormViewObj;
 import edu.ku.brc.af.ui.forms.MultiView;
 import edu.ku.brc.af.ui.forms.validation.ValPasswordField;
+import edu.ku.brc.dbsupport.DBConnection;
 import edu.ku.brc.helpers.Encryption;
 import edu.ku.brc.specify.datamodel.DataModelObjBase;
 import edu.ku.brc.specify.datamodel.SpecifyUser;
 import edu.ku.brc.ui.CustomDialog;
 import edu.ku.brc.ui.DocumentAdaptor;
+import edu.ku.brc.ui.IconManager;
 import edu.ku.brc.ui.UIHelper;
 import edu.ku.brc.ui.UIRegistry;
 import edu.ku.brc.util.Pair;
@@ -114,7 +117,8 @@ public class UserAndMasterPasswordMgr
     private Pair<String, String> dbUsernameAndPassword = null;
     private String               usersUserName         = null;
     private String               usersPassword         = null;
-
+    private String               databaseName          = null;
+    
     
     /**
      * Protected Constructor
@@ -126,17 +130,72 @@ public class UserAndMasterPasswordMgr
     }
     
     /**
+     * @param includeDBName
+     * @return
+     */
+    public String getIsLocalPrefPath(final boolean includeDBName)
+    {
+        return getIsLocalPrefPath(usersUserName, databaseName, includeDBName);
+    }
+    
+    /**
+     * @param usrName
+     * @param dbName
+     * @param includeDBName
+     * @return
+     */
+    public static String getIsLocalPrefPath(final String usrName, final String dbName, final boolean includeDBName)
+    {
+        return (StringUtils.isNotEmpty(dbName) && includeDBName? (dbName + '_') : "") + usrName + "_" + MASTER_LOCAL;
+    }
+    
+    /**
+     * @param includeDBName
+     * @return
+     */
+    public String getMasterPrefPath(final boolean includeDBName)
+    {
+        return getMasterPrefPath(usersUserName, databaseName, includeDBName);
+    }
+    
+    /**
+     * @param usrName
+     * @param dbName
+     * @param includeDBName
+     * @return
+     */
+    public static String getMasterPrefPath(final String usrName, final String dbName, final boolean includeDBName)
+    {
+        return (StringUtils.isNotEmpty(dbName) && includeDBName? (dbName + '_') : "") + usrName + "_" + MASTER_PATH;
+    }
+    
+    /**
      * Displays a dialog that is used for changing the Mast Username and Password.
      * @param username the current user's username
      * @return true if changed successfully
      */
-    public boolean editMasterInfo(final String username, final boolean askForCredentials)
+    public boolean editMasterInfo(final String username, final String dbName, final boolean askForCredentials)
     {
         String uNameCached = username != null ? username: usersUserName;
         usersUserName = username;
         
-        Boolean isLocal   = AppPreferences.getLocalPrefs().getBoolean(usersUserName+"_"+MASTER_LOCAL, null);
-        String  masterKey = AppPreferences.getLocalPrefs().get(usersUserName+"_"+MASTER_PATH, null); 
+        Boolean isLocal = AppPreferences.getLocalPrefs().getBoolean(getIsLocalPrefPath(true), null);
+        if (isLocal == null)
+        {
+            isLocal = AppPreferences.getLocalPrefs().getBoolean(getIsLocalPrefPath(false), null); 
+        } else
+        {
+            AppPreferences.getLocalPrefs().remove(getIsLocalPrefPath(false));
+        }
+        
+        String  masterKey = AppPreferences.getLocalPrefs().get(getMasterPrefPath(true), null); 
+        if (StringUtils.isEmpty(masterKey))
+        {
+            masterKey = AppPreferences.getLocalPrefs().get(getMasterPrefPath(false), null); 
+        } else
+        {
+            AppPreferences.getLocalPrefs().remove(getMasterPrefPath(false));
+        }
         
         if (masterKey == null)
         {
@@ -145,7 +204,7 @@ public class UserAndMasterPasswordMgr
                 return false;
             }
         }
-        boolean isOK = askForInfo(isLocal, masterKey);
+        boolean isOK = askForInfo(isLocal, usersUserName, dbName, masterKey);
         
         if (StringUtils.isEmpty(usersUserName) && StringUtils.isNotEmpty(uNameCached))
         {
@@ -154,23 +213,21 @@ public class UserAndMasterPasswordMgr
         
         return isOK;
     }
-
-    /**
-     * @param usersPassword
-     */
-    public void setUsersPassword(String usersPassword)
+    
+    public void set(final String usersUserName, final String usersPassword, final String databaseName)
     {
+        this.usersUserName = usersUserName;
         this.usersPassword = usersPassword;
+        this.databaseName  = databaseName;
         clear();
     }
 
     /**
-     * @param usersUserName
+     * @return the databaseName
      */
-    public void setUsersUserName(final String usersUserName)
+    public String getDatabaseName()
     {
-        this.usersUserName = usersUserName;
-        clear();
+        return databaseName;
     }
 
     /**
@@ -186,12 +243,21 @@ public class UserAndMasterPasswordMgr
      */
     public boolean hasMasterUsernameAndPassword()
     {
-        Boolean isLocal = AppPreferences.getLocalPrefs().getBoolean(usersUserName+"_"+MASTER_LOCAL, true);
+        Boolean isLocal = AppPreferences.getLocalPrefs().getBoolean(getIsLocalPrefPath(true), null);
+        if (isLocal == null)
+        {
+            isLocal = AppPreferences.getLocalPrefs().getBoolean(getIsLocalPrefPath(false), true); 
+        }
+        
         if (isLocal)
         {
-            return AppPreferences.getLocalPrefs().get(usersUserName+"_"+MASTER_PATH, null) != null;
+            String masterKey = AppPreferences.getLocalPrefs().get(getMasterPrefPath(true), null); 
+            if (StringUtils.isEmpty(masterKey))
+            {
+                return AppPreferences.getLocalPrefs().get(getMasterPrefPath(false), null) != null;
+            }
         }
-        return true; // using network approaqch
+        return true; // using network approach
     }
     
     /**
@@ -234,8 +300,17 @@ public class UserAndMasterPasswordMgr
     {
         Pair<String, String> noUP = new Pair<String, String>("", "");
         
-        Boolean isLocal   = AppPreferences.getLocalPrefs().getBoolean(usersUserName+"_"+MASTER_LOCAL, null);
-        String  masterKey = AppPreferences.getLocalPrefs().get(usersUserName+"_"+MASTER_PATH, null);
+        Boolean isLocal = AppPreferences.getLocalPrefs().getBoolean(getIsLocalPrefPath(true), null);
+        if (isLocal == null)
+        {
+            isLocal = AppPreferences.getLocalPrefs().getBoolean(getIsLocalPrefPath(false), null); 
+        }
+        
+        String masterKey = AppPreferences.getLocalPrefs().get(getMasterPrefPath(true), null); 
+        if (StringUtils.isEmpty(masterKey))
+        {
+            masterKey = AppPreferences.getLocalPrefs().get(getMasterPrefPath(false), null); 
+        }
         
         if (isLocal == null || StringUtils.isEmpty(masterKey))
         {
@@ -244,7 +319,7 @@ public class UserAndMasterPasswordMgr
                 return null;
             }
             
-            if (!askForInfo(null, null))
+            if (!askForInfo(null, null, null, null))
             {
                 return noUP;//getUserNamePassword();
             }
@@ -301,18 +376,20 @@ public class UserAndMasterPasswordMgr
     /**
      * Displays a dialog used for editing the Master Username and Password.
      * @param isLocal whether u/p is stored locally or not
+     * @param usrName
+     * @param dbName
      * @param masterPath the path to the password
      * @return whether to ask for the information because it wasn't found
      */
     protected boolean askForInfo(final Boolean isLocal, 
+                                 final String  usrName, 
+                                 final String  dbName,
                                  final String  masterPath)
     {
         loadAndPushResourceBundle("masterusrpwd");
         
-        FormLayout layout = new FormLayout("p, 2px, f:p:g, 4px, p", "p,2px,p,2px,p,2dlu,p,2dlu,p");
+        FormLayout layout = new FormLayout("p, 2px, f:p:g, 4px, p, 4px, p, 4px, p", "p,2px,p,2px,p,2dlu,p,2dlu,p");
                  
-        //layout.setRowGroups(new int[][] { { 1, 3, 5 } });
-
         PanelBuilder pb = new PanelBuilder(layout);
         pb.setDefaultDialogBorder();
         
@@ -329,6 +406,24 @@ public class UserAndMasterPasswordMgr
         final JLabel     urlLbl      = createI18NFormLabel("URL");
         final JButton    createBtn   = createI18NButton("CREATE_KEY");
         
+        final JButton    copyCBBtn   = createIconBtn("ClipboardCopy", IconManager.IconSize.Std24, "CPY_TO_CB_TT", null);
+        final JButton    pasteCBBtn  = createIconBtn("ClipboardPaste", IconManager.IconSize.Std24, "CPY_FROM_CB_TT", null);
+        
+        // retrieves the encrypted key for the current settings in the dialog
+        String dbNameFromForm = AppPreferences.getLocalPrefs().get("login.databases_selected", null);
+        if (isNotEmpty(dbNameFromForm) && isNotEmpty(usersUserName))
+        {
+            String masterKey = getMasterPrefPath(usersUserName, dbNameFromForm, true);
+            if (isNotEmpty(masterKey))
+            {
+                String encryptedKey = AppPreferences.getLocalPrefs().get(masterKey, null);
+                if (isNotEmpty(encryptedKey))
+                {
+                    keyTxt.setText(encryptedKey);
+                }
+            }
+        }
+        
         CellConstraints cc = new CellConstraints(); 
         
         int y = 1;
@@ -336,15 +431,17 @@ public class UserAndMasterPasswordMgr
         pb.add(isPrefBasedRB, cc.xy(3, y)); y += 2;
         pb.add(isNetworkRB,   cc.xy(3, y)); y += 2;
         
-        pb.addSeparator("", cc.xyw(1, y, 5));  y += 2;
+        pb.addSeparator("", cc.xyw(1, y, 9));  y += 2;
         pb.add(keyLbl,    cc.xy(1, y)); 
         pb.add(keyTxt,    cc.xy(3, y)); 
-        pb.add(createBtn, cc.xy(5, y));  y += 2;
+        pb.add(createBtn, cc.xy(5, y));  
+        pb.add(copyCBBtn, cc.xy(7, y));  
+        pb.add(pasteCBBtn, cc.xy(9, y));  y += 2;
         
         pb.add(urlLbl,    cc.xy(1, y)); 
         pb.add(urlTxt,    cc.xy(3, y));  y += 2;
         
-        boolean isEditMode = isLocal != null && StringUtils.isNotEmpty(masterPath);
+        boolean isEditMode = isLocal != null && isNotEmpty(masterPath);
         if (isEditMode)
         {
             isPrefBasedRB.setSelected(isLocal);
@@ -357,6 +454,23 @@ public class UserAndMasterPasswordMgr
             }
         }
         
+        copyCBBtn.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e)
+            {
+                // Copy to Clipboard
+                UIHelper.setTextToClipboard(keyTxt.getText());
+            }
+        });
+        
+        pasteCBBtn.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e)
+            {
+                keyTxt.setText(UIHelper.getTextFromClipboard());
+            }
+        });
+        
         final CustomDialog dlg = new CustomDialog((Frame)null, getResourceString("MASTER_TITLE"), true, CustomDialog.OKCANCELHELP, pb.getPanel());
         if (!isEditMode)
         {
@@ -368,6 +482,8 @@ public class UserAndMasterPasswordMgr
         dlg.getOkBtn().setEnabled(false);
         urlLbl.setEnabled(false);  
         urlTxt.setEnabled(false);
+        copyCBBtn.setEnabled(true);  
+        pasteCBBtn.setEnabled(true);  
         
         DocumentListener dl = new DocumentAdaptor()
         {
@@ -389,6 +505,8 @@ public class UserAndMasterPasswordMgr
                 keyLbl.setEnabled(!isNet);  
                 keyTxt.setEnabled(!isNet);  
                 createBtn.setEnabled(!isNet);  
+                copyCBBtn.setEnabled(!isNet);  
+                pasteCBBtn.setEnabled(!isNet);  
                 urlLbl.setEnabled(isNet);  
                 urlTxt.setEnabled(isNet);
                 dlg.getOkBtn().setEnabled((isPrefBasedRB.isSelected() && !keyTxt.getText().isEmpty()) || 
@@ -399,7 +517,7 @@ public class UserAndMasterPasswordMgr
         isNetworkRB.addChangeListener(chgListener);
         isPrefBasedRB.addChangeListener(chgListener);
         
-        boolean isPref = AppPreferences.getLocalPrefs().getBoolean(usersUserName+"_"+MASTER_LOCAL, true);
+        boolean isPref = AppPreferences.getLocalPrefs().getBoolean(getIsLocalPrefPath(usrName, dbName, true), true);
         isNetworkRB.setSelected(!isPref);
         isPrefBasedRB.setSelected(isPref);
         
@@ -436,8 +554,9 @@ public class UserAndMasterPasswordMgr
             {
                 value = keyTxt.getText();
             }
-            AppPreferences.getLocalPrefs().putBoolean(usersUserName+"_"+MASTER_LOCAL, !isNetworkRB.isSelected());
-            AppPreferences.getLocalPrefs().put(usersUserName+"_"+MASTER_PATH, value);
+            
+            AppPreferences.getLocalPrefs().putBoolean(getIsLocalPrefPath(usrName, dbName, true), !isNetworkRB.isSelected());
+            AppPreferences.getLocalPrefs().put(getMasterPrefPath(usrName, dbName, true), value);
             return true;
         }
         return false;
@@ -493,6 +612,7 @@ public class UserAndMasterPasswordMgr
         final CustomDialog dlg = new CustomDialog((Frame)null, getResourceString("MASTER_INFO_TITLE"), 
                                                   true, CustomDialog.OKCANCELAPPLYHELP, pb.getPanel());
         dlg.setOkLabel(getResourceString("GENERATE_KEY"));
+        dlg.setHelpContext("MASTERPWD_GEN");
         dlg.setApplyLabel(showPwdLabel);
 
         dlg.createUI();
@@ -500,22 +620,25 @@ public class UserAndMasterPasswordMgr
         
         popResourceBundle();
         
-        DocumentListener docListener = new DocumentListener() {
-            
-            public void check()
+        DocumentListener docListener = new DocumentAdaptor() {
+            @Override
+            protected void changed(DocumentEvent e)
             {
-                boolean enable = !dbUsrTxt.getText().isEmpty() &&
+                String dbUserStr = dbUsrTxt.getText();
+                
+                boolean enable = !dbUserStr.isEmpty() &&
                                  !((JTextField)dbPwdTxt).getText().isEmpty() &&
                                  !usrText.getText().isEmpty() &&
                                  !((JTextField)pwdText).getText().isEmpty();
+                if (enable && isNotEmpty(dbUserStr) && dbUserStr.equalsIgnoreCase("root"))
+                {
+                    loadAndPushResourceBundle("masterusrpwd");
+                    UIRegistry.showLocalizedError("MASTER_NO_ROOT");
+                    popResourceBundle();
+                    enable = false;
+                }
                 dlg.getOkBtn().setEnabled(enable);
             }
-            @Override
-            public void changedUpdate(DocumentEvent e) { check(); }
-            @Override
-            public void insertUpdate(DocumentEvent e) { check(); }
-            @Override
-            public void removeUpdate(DocumentEvent e) { check(); }
         };
         
         dbUsrTxt.getDocument().addDocumentListener(docListener);
@@ -555,17 +678,17 @@ public class UserAndMasterPasswordMgr
      * the user's password.
      */
     protected String getResourceStringFromURL(final String urlLoc,
-                                   final String username,
-                                   final String password)
+                                              final String username,
+                                              final String password)
     {
-        String encrytpedStr = Encryption.encrypt(username+","+password, password);
-        String fullURL      = urlLoc + "?data=" + encrytpedStr;
+        String encrytpedStr = Encryption.encrypt(username+","+password, username);
+        String fullURL      = urlLoc + "?data=" + encrytpedStr + ";db=" + DBConnection.getInstance().getDatabaseName();
         
         Exception exception = null;
         BufferedReader bufRdr = null;
         try 
         {
-            URL url = new URL(fullURL);
+            URL url = new URL(fullURL); 
 
             URLConnection urlConn = url.openConnection(); 
             urlConn.setDoInput(true); 
@@ -624,9 +747,9 @@ public class UserAndMasterPasswordMgr
      * @param encyptionKey
      * @return
      */
-    public String encrypt(final String username, 
-                          final String password,
-                          final String encyptionKey)
+    public static String encrypt(final String username, 
+                                 final String password,
+                                 final String encyptionKey)
     {
         return Encryption.encrypt(username+","+password, encyptionKey);
     }
@@ -737,14 +860,12 @@ public class UserAndMasterPasswordMgr
                                      final String newPwd)
     {
         SpecifyUser spUser    = AppContextMgr.getInstance().getClassObject(SpecifyUser.class);
-        String      username  = spUser.getName();
-
         Pair<String, String> masterPwd = UserAndMasterPasswordMgr.getInstance().getUserNamePasswordForDB();
         
-        String encryptedMasterUP = UserAndMasterPasswordMgr.getInstance().encrypt(masterPwd.first, masterPwd.second, newPwd);
-        if (StringUtils.isNotEmpty(encryptedMasterUP))
+        String encryptedMasterUP = UserAndMasterPasswordMgr.encrypt(masterPwd.first, masterPwd.second, newPwd);
+        if (isNotEmpty(encryptedMasterUP))
         {
-            AppPreferences.getLocalPrefs().put(username+"_"+UserAndMasterPasswordMgr.MASTER_PATH, encryptedMasterUP);
+            AppPreferences.getLocalPrefs().put(getMasterPrefPath(true), encryptedMasterUP);
             spUser.setPassword(newPwd);
             if (DataModelObjBase.save(spUser))
             {

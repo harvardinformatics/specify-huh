@@ -86,6 +86,7 @@ import edu.ku.brc.af.core.db.DBRelationshipInfo;
 import edu.ku.brc.af.core.db.DBTableChildIFace;
 import edu.ku.brc.af.core.db.DBTableIdMgr;
 import edu.ku.brc.af.core.db.DBTableInfo;
+import edu.ku.brc.af.prefs.AppPreferences;
 import edu.ku.brc.af.ui.db.PickListIFace;
 import edu.ku.brc.af.ui.forms.formatters.UIFieldFormatterIFace;
 import edu.ku.brc.af.ui.forms.formatters.UIFormatterListEdtDlg;
@@ -191,6 +192,9 @@ public class FieldItemPanel extends LocalizerBasePanel implements LocalizableIOI
     protected List<PickList>   pickLists      = new Vector<PickList>();
     protected DisciplineType   disciplineType = null;
     protected String           disciplineName = null;
+ 
+    protected Byte             schemaType;
+
     
     /**
      * @param schemaPanel
@@ -207,12 +211,34 @@ public class FieldItemPanel extends LocalizerBasePanel implements LocalizableIOI
                           final boolean              isDBSchema,
                           final PropertyChangeListener pcl)
     {
+        this(schemaPanel, webLinkMgrCache, includeHiddenUI, includeFormatAndAutoNumUI, 
+        		isDBSchema, pcl, SpLocaleContainer.CORE_SCHEMA);
+    }
+
+    /**
+     * @param schemaPanel
+     * @param webLinkMgrCache
+     * @param includeHiddenUI
+     * @param includeFormatAndAutoNumUI
+     * @param isDBSchema
+     * @param pcl
+     * @param schemaType
+     */
+    public FieldItemPanel(final SchemaLocalizerPanel schemaPanel,
+                          final WebLinkMgr           webLinkMgrCache,
+                          final boolean              includeHiddenUI, 
+                          final boolean              includeFormatAndAutoNumUI, 
+                          final boolean              isDBSchema,
+                          final PropertyChangeListener pcl,
+                          final Byte schemaType)
+    {
         this.schemaPanel     = schemaPanel;
         this.webLinkMgrCache = webLinkMgrCache;
         this.includeHiddenUI = includeHiddenUI;
         this.includeFormatAndAutoNumUI = includeFormatAndAutoNumUI;
         this.isDBSchema      = isDBSchema;
         this.pcl             = pcl;
+        this.schemaType      = schemaType;
         
         init();
         
@@ -473,7 +499,7 @@ public class FieldItemPanel extends LocalizerBasePanel implements LocalizableIOI
                 
                 PickList selectedItem = (PickList)pickListCBX.getSelectedItem();
                 
-                PickListEditorDlg dlg = new PickListEditorDlg(localizableIO.hasUpdatablePickLists() ? null : localizableIO, false);
+                PickListEditorDlg dlg = new PickListEditorDlg(localizableIO.hasUpdatablePickLists() ? null : localizableIO, true, true);
                 dlg.setTableInfo(tableInfo);
                 dlg.setFieldInfo(fieldInfo);
                 dlg.createUI();
@@ -642,20 +668,22 @@ public class FieldItemPanel extends LocalizerBasePanel implements LocalizableIOI
                 {
                     String ts      = fi.getType();
                     String typeStr = ts.indexOf('.') > -1 ? StringUtils.substringAfterLast(fi.getType(), ".") : ts;
-                    if (StringUtils.isNotEmpty(typeStr) && !typeStr.equals("text"))
+                    if (StringUtils.isNotEmpty(typeStr))
                     {
                         formatSwitcherCombo.addItem(SL_FORMAT);
                         formatSwitcherCombo.addItem(SL_WEBLINK);
                         formatSwitcherCombo.addItem(SL_PICKLIST);
                     }
-                } else if (fi.getDataClass() == Byte.class)
+                } else if (fi.getDataClass() == Byte.class || 
+                           fi.getDataClass() == Short.class || 
+                           fi.getDataClass() == Integer.class)
                 {
                     formatSwitcherCombo.addItem(SL_PICKLIST);  
                 }
             }
         }
         
-        formatSwitcherCombo.setEnabled(formatSwitcherCombo.getModel().getSize() > 1);
+        formatSwitcherCombo.setEnabled(formatSwitcherCombo.getModel().getSize() > 1 && schemaType != SpLocaleContainer.WORKBENCH_SCHEMA);
     }
 
     /**
@@ -829,8 +857,7 @@ public class FieldItemPanel extends LocalizerBasePanel implements LocalizableIOI
         
         cbxModel.addElement(SL_NONE); // Add None
         
-        if (fieldInfo.getType().equals("java.lang.String") ||
-        	UIHelper.isClassNumeric(fieldInfo.getDataClass()))
+        if (fieldInfo.getDataClass() == String.class || UIHelper.isClassNumeric(fieldInfo.getDataClass(), true))
         {
             formatCombo.setEnabled(true);
             formatMoreBtn.setEnabled(true);
@@ -872,13 +899,8 @@ public class FieldItemPanel extends LocalizerBasePanel implements LocalizableIOI
             Collection collection = AppContextMgr.getInstance().getClassObject(Collection.class);
             if (collection != null && collection.getNumberingSchemes().size() > 0)
             {
-                enableFormatter = false;
+                enableFormatter = AppPreferences.getLocalPrefs().getBoolean("EDIT_CATNUM", false);
             }
-            
-        } else if (tableInfo.getTableId() == CollectionObject.getClassTableId() &&
-                   fieldInfo.getName().equals("catalogNumber"))
-        {
-        
         }
             
         
@@ -887,9 +909,9 @@ public class FieldItemPanel extends LocalizerBasePanel implements LocalizableIOI
         
         formatCombo.setSelectedIndex(selectedInx);
 
-        formatSwitcherCombo.setEnabled(enableFormatter);
-        formatCombo.setEnabled(enableFormatter);
-        formatMoreBtn.setEnabled(enableFormatter);
+        formatSwitcherCombo.setEnabled(enableFormatter && schemaType != SpLocaleContainer.WORKBENCH_SCHEMA);
+        formatCombo.setEnabled(enableFormatter && schemaType != SpLocaleContainer.WORKBENCH_SCHEMA);
+        formatMoreBtn.setEnabled(enableFormatter && schemaType != SpLocaleContainer.WORKBENCH_SCHEMA);
         
         return selectedFmt;
     }
@@ -927,10 +949,14 @@ public class FieldItemPanel extends LocalizerBasePanel implements LocalizableIOI
         currContainer = container;
         currJListItem = jListContainerItem;
         
-        String cName = currContainer.getName();
-        if (cName.equals("taxononly"))
+        String cName = null;
+        if (currContainer != null)
         {
-            cName = "taxon";
+            cName = currContainer.getName();
+            if (cName.equals("taxononly"))
+            {
+                cName = "taxon";
+            }
         }
         tableInfo = currContainer == null ? null : DBTableIdMgr.getInstance().getInfoByTableName(cName);
         
@@ -1009,29 +1035,29 @@ public class FieldItemPanel extends LocalizerBasePanel implements LocalizableIOI
         
         fieldHideChk.setEnabled(enable);
         
-        fieldTypeLbl.setEnabled(enable);
-        fieldTypeTxt.setEnabled(enable);
+        fieldTypeLbl.setEnabled(enable && schemaType != SpLocaleContainer.WORKBENCH_SCHEMA);
+        fieldTypeTxt.setEnabled(enable && schemaType != SpLocaleContainer.WORKBENCH_SCHEMA);
         
-        fieldReqChk.setEnabled(!mustBeRequired && enable);
+        fieldReqChk.setEnabled(!mustBeRequired && enable && schemaType != SpLocaleContainer.WORKBENCH_SCHEMA);
         //log.debug("mustBeRequired: "+mustBeRequired+" !mustBeRequired && enable: "+(!mustBeRequired && enable));
         
-        fieldLengthLbl.setEnabled(enable);
-        fieldLengthTxt.setEnabled(enable);
+        fieldLengthLbl.setEnabled(enable && schemaType != SpLocaleContainer.WORKBENCH_SCHEMA);
+        fieldLengthTxt.setEnabled(enable && schemaType != SpLocaleContainer.WORKBENCH_SCHEMA);
         
-        formatSwitcherCombo.setEnabled(enable);
+        formatSwitcherCombo.setEnabled(enable && schemaType != SpLocaleContainer.WORKBENCH_SCHEMA);
         
         if (pickListLbl != null)
         {
-            pickListLbl.setEnabled(enable);
+            pickListLbl.setEnabled(enable && schemaType != SpLocaleContainer.WORKBENCH_SCHEMA);
         }
-        pickListCBX.setEnabled(enable);
+        pickListCBX.setEnabled(enable && schemaType != SpLocaleContainer.WORKBENCH_SCHEMA);
         
         if (formatLbl != null)
         {
-            formatLbl.setEnabled(enable);
-            formatCombo.setEnabled(enable);
-            formatMoreBtn.setEnabled(enable);
-            webLinkCombo.setEnabled(enable);
+            formatLbl.setEnabled(enable && schemaType != SpLocaleContainer.WORKBENCH_SCHEMA);
+            formatCombo.setEnabled(enable && schemaType != SpLocaleContainer.WORKBENCH_SCHEMA);
+            formatMoreBtn.setEnabled(enable && schemaType != SpLocaleContainer.WORKBENCH_SCHEMA);
+            webLinkCombo.setEnabled(enable && schemaType != SpLocaleContainer.WORKBENCH_SCHEMA);
         }
         
         if (!enable)
@@ -1147,7 +1173,7 @@ public class FieldItemPanel extends LocalizerBasePanel implements LocalizableIOI
     }
     
     /**
-     * 
+     * Gets all the Data from the form.
      */
     public boolean getAllDataFromUI()
     {
@@ -1220,11 +1246,15 @@ public class FieldItemPanel extends LocalizerBasePanel implements LocalizableIOI
                     UIRegistry.showLocalizedMsg("SL_WARN_PL_CREATION");
                 }
                 
-            } else if (formatCombo != null)
+            }
+            
+            if (formatCombo != null)
             {
                 getFormatterFromUI(prevField);
                     
-            } else if (webLinkCombo != null && webLinkCombo.getSelectedIndex() > 0)
+            }
+            
+            if (webLinkCombo != null && webLinkCombo.getSelectedIndex() > 0)
             {
                 WebLinkDef wld = (WebLinkDef)webLinkCombo.getSelectedItem();
                 prevField.setWebLinkName(wld.getName());
@@ -1527,8 +1557,8 @@ public class FieldItemPanel extends LocalizerBasePanel implements LocalizableIOI
         {
             DBRelationshipInfo.RelationshipType relType = relInfo != null ? relInfo.getType() : null;
             
-            String  typeStr  = fieldInfo != null ? fieldInfo.getType() : null;
-            boolean isTypeOK = typeStr != null && (typeStr.equals("java.lang.String") || typeStr.equals("java.lang.Byte") || typeStr.equals("string"));
+            Class<?> typeCls  = fieldInfo != null ? fieldInfo.getDataClass() : null;
+            boolean  isTypeOK = typeCls != null && (typeCls == String.class || UIHelper.isClassNumeric(typeCls, true));
             
             int selectedIndex = 0;
             DefaultComboBoxModel plCbxModel = (DefaultComboBoxModel)pickListCBX.getModel();

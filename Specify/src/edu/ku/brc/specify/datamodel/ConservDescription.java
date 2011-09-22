@@ -54,7 +54,7 @@ import org.hibernate.annotations.Index;
 @org.hibernate.annotations.Table(appliesTo="conservdescription", indexes =
     {   @Index (name="ConservDescShortDescIDX", columnNames={"ShortDesc"})
     })
-public class ConservDescription extends DataModelObjBase implements AttachmentOwnerIFace<ConservDescriptionAttachment>, java.io.Serializable
+public class ConservDescription extends DataModelObjBase implements AttachmentOwnerIFace<ConservDescriptionAttachment>, java.io.Serializable, Cloneable
 {
     // Fields    
     protected Integer            conservDescriptionId;
@@ -396,6 +396,42 @@ public class ConservDescription extends DataModelObjBase implements AttachmentOw
     {
         this.conservDescriptionAttachments = conservDescriptionAttachments;
     }
+    
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.datamodel.DataModelObjBase#getParentTableId()
+     */
+    @Override
+    @Transient
+    public Integer getParentTableId()
+    {
+        if (division != null)
+        {
+            return Division.getClassTableId();
+        }
+        if (collectionObject != null)
+        {
+            return CollectionObject.getClassTableId();
+        }
+        return null;
+    }
+
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.datamodel.DataModelObjBase#getParentId()
+     */
+    @Override
+    @Transient
+    public Integer getParentId()
+    {
+        if (division != null)
+        {
+            return division.getId();
+        }
+        if (collectionObject != null)
+        {
+            return collectionObject.getId();
+        }
+        return null;
+    }
 
     /**
      * Generic Getter for the ID Property.
@@ -442,4 +478,21 @@ public class ConservDescription extends DataModelObjBase implements AttachmentOw
         return conservDescriptionAttachments;
     }
 
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.datamodel.DataModelObjBase#clone()
+     */
+    @Override
+    public Object clone() throws CloneNotSupportedException
+    {
+        ConservDescription obj = (ConservDescription)super.clone();
+        
+        obj.conservDescriptionId = null;
+        obj.collectionObject     = null;
+        obj.division             = null;
+        
+        obj.events = new HashSet<ConservEvent>();
+        obj.conservDescriptionAttachments = new HashSet<ConservDescriptionAttachment>();
+        
+        return obj;
+    }
 }

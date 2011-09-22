@@ -31,6 +31,7 @@ import java.util.Date;
 import java.util.Vector;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
 
 import edu.ku.brc.af.core.db.AutoNumberIFace;
 import edu.ku.brc.af.prefs.AppPrefsCache;
@@ -52,15 +53,17 @@ import edu.ku.brc.util.Pair;
  */
 public class UIFieldFormatter implements UIFieldFormatterIFace, Cloneable
 {
-    //private static final Logger log = Logger.getLogger(UIFieldFormatter.class);
+    private static final Logger log = Logger.getLogger(UIFieldFormatter.class);
     protected static DateWrapper scrDateFormat = AppPrefsCache.getDateWrapper("ui", "formatting", "scrdateformat");
     
     public static int[]            daysInMon = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31}; 
     protected static final String  deftitle = UIRegistry.getResourceString("FFE_DEFAULT");     
+    protected static final String  systitle = UIRegistry.getResourceString("FFE_SYSTEM");     
 
     protected String               fieldName;
     protected String               name;
     protected boolean              isSystem;
+    protected boolean              isExternal;
     protected String               title;
     protected Class<?>             dataClass;
     protected FormatterType        type;
@@ -76,15 +79,18 @@ public class UIFieldFormatter implements UIFieldFormatterIFace, Cloneable
     
     protected Number               minValue = null;
     protected Number               maxValue = null;
+    protected Boolean              hasDash  = null;
     
     // Transient
-
+    private Integer                fieldLength = null;
+    
     /**
      * Default constructor
      */
     public UIFieldFormatter() 
     {
         fields = new Vector<UIFieldFormatterField>();
+        this.isExternal = false;
     }
     
     /**
@@ -109,6 +115,7 @@ public class UIFieldFormatter implements UIFieldFormatterIFace, Cloneable
     {
         this.name            = name;
         this.isSystem        = isSystem;
+        this.isExternal      = false;
         this.fieldName       = fieldName;
         this.dataClass       = dataClass;
         this.partialDateType = partialDateType;
@@ -133,6 +140,22 @@ public class UIFieldFormatter implements UIFieldFormatterIFace, Cloneable
     public boolean isSystem()
     {
         return isSystem;
+    }
+
+    /**
+     * @return the isExternal
+     */
+    public boolean isExternal()
+    {
+        return isExternal;
+    }
+
+    /**
+     * @param isExternal the isExternal to set
+     */
+    public void setExternal(boolean isExternal)
+    {
+        this.isExternal = isExternal;
     }
 
     /* (non-Javadoc)
@@ -177,6 +200,7 @@ public class UIFieldFormatter implements UIFieldFormatterIFace, Cloneable
      */
     public void addField(UIFieldFormatterField field)
     {
+        fieldLength = null;
     	if (fields == null) 
     	{
     		resetFields();
@@ -190,6 +214,7 @@ public class UIFieldFormatter implements UIFieldFormatterIFace, Cloneable
      */
     public void resetFields()
     {
+        fieldLength = null;
    		fields = new Vector<UIFieldFormatterField>();
     }
 
@@ -310,7 +335,7 @@ public class UIFieldFormatter implements UIFieldFormatterIFace, Cloneable
     @Override
     public boolean isDate()
     {
-        return type == FormatterType.date;
+        return type == FormatterType.date && (partialDateType == null || partialDateType != PartialDateEnum.Search);
     }
 
     /* (non-Javadoc)
@@ -332,10 +357,16 @@ public class UIFieldFormatter implements UIFieldFormatterIFace, Cloneable
         if (maxValue == null && dataClass == BigDecimal.class)
         {
             // This is kind lame, but it works
-            String nines = "99999999999999999999";
-            String mask = nines.substring(0, precision-scale)+"."+nines.substring(0, scale);
-            //System.err.println(mask);
-            maxValue = new BigDecimal(Double.parseDouble(mask));
+            if (precision > 0 && (precision-scale) > 0)
+            {
+                String nines = "99999999999999999999";
+                String mask = nines.substring(0, precision-scale)+"."+nines.substring(0, scale);
+                //System.err.println(mask);
+                maxValue = new BigDecimal(Double.parseDouble(mask));
+            } else
+            {
+                maxValue = Double.MAX_VALUE;
+            }
         }
         return maxValue;
     }
@@ -347,7 +378,7 @@ public class UIFieldFormatter implements UIFieldFormatterIFace, Cloneable
     {
         if (minValue == null && dataClass == BigDecimal.class)
         {
-            minValue = 0;
+            minValue = Double.MIN_VALUE;
         }
         return minValue;
     }
@@ -415,12 +446,16 @@ public class UIFieldFormatter implements UIFieldFormatterIFace, Cloneable
     @Override
     public int getLength()
     {
-        int len = 0;
-        for (UIFieldFormatterField field : fields)
+        if (fieldLength == null)
         {
-            len += field.getSize();
+            int len = 0;
+            for (UIFieldFormatterField field : fields)
+            {
+                len += field.getSize();
+            }
+            fieldLength = len;
         }
-        return len;
+        return fieldLength;
     }
     
     /* (non-Javadoc)
@@ -556,9 +591,19 @@ public class UIFieldFormatter implements UIFieldFormatterIFace, Cloneable
     @Override
     public String getNextNumber(String value)
     {
+        return getNextNumber(value, false);
+    }
+
+    
+    /* (non-Javadoc)
+	 * @see edu.ku.brc.af.ui.forms.formatters.UIFieldFormatterIFace#getNextNumber(java.lang.String, boolean)
+	 */
+	@Override
+	public String getNextNumber(String value, boolean incrementValue) 
+	{
         if (autoNumber != null)
         {
-            String number = autoNumber.getNextNumber(this, value);
+            String number = autoNumber.getNextNumber(this, value, incrementValue);
             if (number == null && autoNumber.isInError())
             {
                 UIRegistry.showError(autoNumber.getErrorMsg());
@@ -568,9 +613,9 @@ public class UIFieldFormatter implements UIFieldFormatterIFace, Cloneable
             }
         }
         return null;
-    }
+	}
 
-    /* (non-Javadoc)
+	/* (non-Javadoc)
      * @see edu.ku.brc.ui.forms.formatters.UIFieldFormatterIFace#formatInBound(java.lang.Object)
      */
     @Override
@@ -643,12 +688,25 @@ public class UIFieldFormatter implements UIFieldFormatterIFace, Cloneable
         str.append(" [");
         for (UIFieldFormatterField field : fields)
         {
-            str.append(field.getValue());
+            String val = field.getValue();
+            if (StringUtils.isEmpty(val))
+            {
+                val = field.getSample();
+            }
+            str.append(val);
         }
         str.append("]");
 
-        str.append(isDefault ? (' ' + deftitle) : "");
+        if (isSystem || isDefault)
+        {
+            str.append(" (");
         
+            str.append(isDefault ? deftitle : "");
+            str.append(isSystem ? ((isDefault ? ", " : "") + systitle) : "");
+        
+            str.append(")");
+        }
+
     	return str.toString();
     }
 
@@ -796,8 +854,16 @@ public class UIFieldFormatter implements UIFieldFormatterIFace, Cloneable
         
         if (month != null)
         {
-            String val    = text.substring(monthInx, monthInx+month.getSize());
-            int    monVal = Integer.parseInt(val);
+            String val    = text.substring(monthInx, monthInx+month.getSize()).trim();
+            int    monVal = 0;
+            try
+            {
+                monVal = Integer.parseInt(val);
+            } catch (NumberFormatException ex)
+            {
+                log.debug(ex.toString());
+                return false;
+            }
             if (monVal < 1 || monVal > 12)
             {
                 return false;
@@ -851,13 +917,22 @@ public class UIFieldFormatter implements UIFieldFormatterIFace, Cloneable
                             String val = text.substring(pos, Math.min(pos+field.getSize(), txtLen));
                             switch (field.getType())
                             {
-                                case numeric:
-                                    if (!StringUtils.isNumeric(val))
-                                    {
-                                        return false;
-                                    }
-                                    break;
+                                case numeric: {
+                                    String str1 = StringUtils.remove(val, '.');
+                                    String str2 = StringUtils.remove(str1, '-');
                                     
+                                    if (StringUtils.isNumeric(str2))
+                                    {
+                                        Class<?> cls = formatter.getDataClass();
+                                        if (cls == java.lang.Integer.class || cls == java.lang.Long.class || cls == java.lang.Short.class || cls == java.lang.Byte.class)
+                                        {
+                                            return str1.length() == val.length();
+                                        } 
+                                        return true;
+                                    }
+                                    return false;
+                                }
+                                
                                 case alphanumeric:
                                     if (!isAlphanumeric(val))
                                     {
@@ -871,6 +946,14 @@ public class UIFieldFormatter implements UIFieldFormatterIFace, Cloneable
                                         return false;
                                     }
                                     break;
+                                    
+                                case year:
+                                    if (!StringUtils.isNumeric(val))
+                                    {
+                                        return false;
+                                    }
+                                    int year = Integer.parseInt(val);
+                                    return year > 0 && year < 2100;
                                     
                                 case constant:
                                 case separator:
@@ -903,6 +986,10 @@ public class UIFieldFormatter implements UIFieldFormatterIFace, Cloneable
     @Override
     public boolean isLengthOK(int lengthOfData)
     {
+        if (type == FormatterType.numeric)
+        {
+            return lengthOfData < getLength();
+        }
         return lengthOfData == getLength();
     }
 
@@ -953,6 +1040,12 @@ public class UIFieldFormatter implements UIFieldFormatterIFace, Cloneable
                 field.toXML(sb);
             }
         }
+        if (isExternal)
+        {
+            sb.append("    <external>");
+            sb.append("    <external>");
+            sb.append("    </extneral>\n");
+        }
         sb.append("  </format>\n\n");
     }
 
@@ -982,6 +1075,27 @@ public class UIFieldFormatter implements UIFieldFormatterIFace, Cloneable
 	{
 		this.type = type;
 	}
+
+    /* (non-Javadoc)
+     * @see edu.ku.brc.af.ui.forms.formatters.UIFieldFormatterIFace#hasDash()
+     */
+    @Override
+    public boolean hasDash()
+    {
+        if (hasDash == null)
+        {
+            hasDash = false;
+            for (UIFieldFormatterField fld : getFields())
+            {
+                if ((fld.isSeparator() || fld.isConstant()) && fld.getValue().equals("-"))
+                {
+                    hasDash = true;
+                    break;
+                }
+            }
+        }
+        return hasDash;
+    }
 
     /* (non-Javadoc)
      * @see java.lang.Object#clone()

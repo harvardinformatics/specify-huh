@@ -23,20 +23,16 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.List;
 import java.util.Properties;
 import java.util.Vector;
 
 import org.apache.log4j.Logger;
-import org.hibernate.Criteria;
-import org.hibernate.Query;
 import org.hibernate.Session;
-import org.hibernate.criterion.Order;
-import org.hibernate.criterion.Restrictions;
 
-import edu.ku.brc.af.auth.specify.policy.DatabaseService;
 import edu.ku.brc.af.core.AppContextMgr;
 import edu.ku.brc.af.core.db.AutoNumberGeneric;
+import edu.ku.brc.af.ui.forms.formatters.UIFieldFormatterIFace;
+import edu.ku.brc.dbsupport.DBConnection;
 import edu.ku.brc.specify.datamodel.AutoNumberingScheme;
 import edu.ku.brc.specify.datamodel.Collection;
 import edu.ku.brc.specify.datamodel.CollectionObject;
@@ -78,10 +74,11 @@ public class CollectionAutoNumber extends AutoNumberGeneric
     }
 
     /* (non-Javadoc)
-     * @see edu.ku.brc.af.core.db.AutoNumberGeneric#getHighestObject(org.hibernate.Session, java.lang.String, edu.ku.brc.util.Pair, edu.ku.brc.util.Pair)
+     * @see edu.ku.brc.af.core.db.AutoNumberGeneric#getHighestObject(edu.ku.brc.af.ui.forms.formatters.UIFieldFormatterIFace, org.hibernate.Session, java.lang.String, edu.ku.brc.util.Pair, edu.ku.brc.util.Pair)
      */
     @Override
-    protected Object getHighestObject(final Session session,
+    protected String getHighestObject(final UIFieldFormatterIFace formatter, 
+                                      final Session session,
                                       final String value,
                                       final Pair<Integer, Integer> yearPos,
                                       final Pair<Integer, Integer> pos) throws Exception
@@ -105,93 +102,56 @@ public class CollectionAutoNumber extends AutoNumberGeneric
             ids.add(collection.getCollectionId());
         }
         
-        // It is amazing how much faster the straigh MySQL is compared to
-        // the Hibernate. I don't think 'setMaxResults' really does much.
-        List<?> list = null;
-        if (false)
+
+        StringBuilder sb = new StringBuilder("SELECT CatalogNumber FROM collectionobject WHERE CollectionMemberID IN (");
+        Connection    conn = null;
+        Statement     stmt = null;
+        
+        for (int i=0;i<ids.size();i++)
         {
-            // XXX (Needs try block)
-            Criteria criteria = session.createCriteria(classObj);
-            criteria.addOrder( Order.desc(fieldName) );
-            criteria.createCriteria("collection").add(Restrictions.in("collectionId", ids));
-            criteria.setMaxResults(1);
-            if (doDebug) log.debug("Criteria ID: "+criteria.toString());
-            
-            list = criteria.list();
-        } else
+            if (i > 0) sb.append(',');
+            sb.append(ids.get(i));
+        }
+        sb.append(") ORDER BY CatalogNumber DESC");
+        log.debug(sb.toString());
+        
+        try
         {
-            StringBuilder sb = new StringBuilder("SELECT ");
-            Connection    conn = null;
-            Statement     stmt = null;
+            conn = DBConnection.getInstance().getConnection();
+            stmt = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+            ResultSet rs = stmt.executeQuery(sb.toString());
             
-            sb.append("CollectionObjectID FROM collectionobject INNER JOIN collection ON collectionobject.CollectionMemberID = collection.userGroupScopeId ");
-            sb.append("WHERE collection.userGroupScopeId IN (");
-            for (int i=0;i<ids.size();i++)
+            String catNum = null;
+            if (rs.next())
             {
-                if (i > 0) sb.append(',');
-                sb.append(ids.get(i));
+                catNum = rs.getString(1);
             }
-            sb.append(") ORDER BY ");
-            sb.append(fieldName);
-            sb.append(" desc");
-            log.debug(sb.toString());
+            rs.close();
             
+            return catNum;
+            
+        } catch (SQLException e)
+        {
+            edu.ku.brc.af.core.UsageTracker.incrSQLUsageCount();
+            edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(CollectionAutoNumber.class, e);
+            log.error("Exception caught: " + e); //$NON-NLS-1$
+            e.printStackTrace();
+            
+        } finally
+        {
             try
             {
-                conn = DatabaseService.getInstance().getConnection();
-                stmt = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
-                ResultSet rs = stmt.executeQuery(sb.toString());
-                
-                String idStr = null;
-                if (rs.next())
-                {
-                    idStr = rs.getString(1);
-                }
-                
-                if (idStr == null)
-                {
-                    return null;
-                }
-                
-                sb.setLength(0);
-                sb.append("FROM ");
-                sb.append(classObj.getSimpleName());
-                sb.append(" WHERE id = ");
-                sb.append(idStr);
-                
-                log.debug(sb.toString());
-                Query query = session.createQuery(sb.toString());
-                
-                list = query.list();
+                if (stmt != null)  stmt.close(); 
                 
             } catch (SQLException e)
             {
                 edu.ku.brc.af.core.UsageTracker.incrSQLUsageCount();
                 edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(CollectionAutoNumber.class, e);
-                log.error("Exception caught: " + e); //$NON-NLS-1$
+                log.error("Exception caught: " + e.toString()); //$NON-NLS-1$
                 e.printStackTrace();
-            } finally
-            {
-                try
-                {
-                    if (conn != null)  conn.close();
-                    if (stmt != null)  stmt.close(); 
-                    
-                } catch (SQLException e)
-                {
-                    edu.ku.brc.af.core.UsageTracker.incrSQLUsageCount();
-                    edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(CollectionAutoNumber.class, e);
-                    log.error("Exception caught: " + e.toString()); //$NON-NLS-1$
-                    e.printStackTrace();
-                }
             }
         }
         
-        if (list.size() == 1)
-        {
-            if (doDebug) System.out.println("Mac Obj: "+list.get(0));
-            return list.get(0);
-        }
         return null;
     }
     

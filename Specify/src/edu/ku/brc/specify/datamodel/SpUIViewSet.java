@@ -307,6 +307,16 @@ public class SpUIViewSet extends DataModelObjBase implements ViewSetIFace
     }
 
     /* (non-Javadoc)
+     * @see edu.ku.brc.af.ui.forms.persist.ViewSetIFace#isDiskBased()
+     */
+    @Override
+    public boolean isDiskBased()
+    {
+        return false;
+    }
+
+
+    /* (non-Javadoc)
      * @see edu.ku.brc.specify.datamodel.DataModelObjBase#getId()
      */
     @Override
@@ -363,7 +373,7 @@ public class SpUIViewSet extends DataModelObjBase implements ViewSetIFace
      */
     public int compareTo(ViewSetIFace obj)
     {
-        return name.compareTo(obj.getName());
+        return name != null && obj != null && obj.getName() != null ? name.compareTo(obj.getName()) : 0;
     }
 
 

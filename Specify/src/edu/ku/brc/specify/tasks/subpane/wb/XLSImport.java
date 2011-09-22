@@ -173,6 +173,10 @@ public class XLSImport extends DataImport implements DataImportIFace
                             continue;
                         }
                         int      type    = cell.getCellType();
+                        if (type == HSSFCell.CELL_TYPE_FORMULA)
+                        {
+                        	type = cell.getCachedFormulaResultType();
+                        }
                         String   value   = "";
                         boolean  skip    = false;
     
@@ -206,13 +210,14 @@ public class XLSImport extends DataImport implements DataImportIFace
     
                             case HSSFCell.CELL_TYPE_STRING:
                                 HSSFHyperlink hl = checkHyperlinks(cell, activeHyperlinks);
-                                if (hl == null)
+                                if (hl == null /*|| (hl != null && hl.getType() == HSSFHyperlink.LINK_EMAIL)*/)
                                 {
                                     value = cell.getRichStringCellValue().getString();
                                 }
                                 else
                                 {
-                                    value = hl.getAddress();
+                                    //value = hl.getAddress();
+                                	value = hl.getLabel();
                                 }
                                 break;
     
@@ -231,7 +236,7 @@ public class XLSImport extends DataImport implements DataImportIFace
                                 break;
                         }
     
-                        if (!skip)
+                        if (!skip && value != null && !value.trim().equals(""))
                         {
                             wbRow.setData(truncateIfNecessary(value, numRows, wbtmi), wbtmi.getViewOrder(), true);
                         }
@@ -297,17 +302,20 @@ public class XLSImport extends DataImport implements DataImportIFace
             HSSFCell imgCell = row.getCell(c);
             if (imgCell != null)
             {
-                String imagePath = imgCell.getRichStringCellValue().getString();
+                String imageSpec[] = imgCell.getRichStringCellValue().getString().split("\\t");
+                String imagePath = imageSpec[0];
+                String attachToTblName = imageSpec.length > 1 ? imageSpec[1] : null;
                 if (imagePath != null)
                 {
                     try
                     {
-                        wbRow.addImage(new File(imagePath));
+                        wbRow.addImage(new File(imagePath), attachToTblName);
                     }
                     catch (IOException e)
                     {
                         //edu.ku.brc.af.core.UsageTracker.incrHandledUsageCount();
                         //edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(XLSImport.class, e);
+                    	wbRow.addImagePath(imagePath, attachToTblName);
                         UIRegistry.getStatusBar().setErrorMessage(e.getMessage());
                         StringBuilder errMsg = new StringBuilder(getResourceString("WB_IMG_IMPORT_ERROR"));
                         errMsg.append(": ");

@@ -130,6 +130,8 @@ public class SpreadSheet  extends SearchableJXTable implements ActionListener
     
 	protected CellRenderer          customCellRenderer  = new CellRenderer();
 	
+	protected int[] pastedRows			= {-1, -1};  //initial row and number of rows pasted
+	
 	
     // XXX Fix for Mac OS X Java 5 Bug
     protected int prevRowSelInx = -1;
@@ -138,7 +140,7 @@ public class SpreadSheet  extends SearchableJXTable implements ActionListener
     //no editing allowed when isReadOnly is true
     protected boolean isReadOnly = false;
     
-    private Set<String> magicColumnNames;
+    private Set<String> magicColumnNames; // added by HUH for FP
     
     /**
      * Constructor for Spreadsheet from model
@@ -150,15 +152,18 @@ public class SpreadSheet  extends SearchableJXTable implements ActionListener
         
         this.model = model;
         
+        // added by HUH for FP
         this.magicColumnNames = new HashSet<String>();
         this.magicColumnNames.add("Collectors");
         this.magicColumnNames.add("CollectorNumber");
         
-        addHighlighter(getFpMagicHighlighter()); // FP MMK
+        addHighlighter(getFpMagicHighlighter());
+        // end HUH addition
+        
         buildSpreadsheet();
     }
     
-    // FP MMK
+    // added by HUH for FP
     private Highlighter getFpMagicHighlighter()
     {
         return new ColorHighlighter() {
@@ -225,7 +230,8 @@ public class SpreadSheet  extends SearchableJXTable implements ActionListener
             
         };
     }
-
+    // end HUH addition
+    
     /**
      * @return the Find Replace Panel.
      */
@@ -234,11 +240,15 @@ public class SpreadSheet  extends SearchableJXTable implements ActionListener
         log.debug("Getting mySearchPanel");
         if (findPanel == null)
         {
-            findPanel = new SearchReplacePanel(this);
+            findPanel = createSearchReplacePanel();
         }
         return findPanel;
     }
 
+    protected SearchReplacePanel createSearchReplacePanel()
+    {
+    	return new SearchReplacePanel(this);
+    }
     
     /* (non-Javadoc)
 	 * @see javax.swing.JTable#changeSelection(int, int, boolean, boolean)
@@ -371,31 +381,39 @@ public class SpreadSheet  extends SearchableJXTable implements ActionListener
         //i have no idea WHY this has to be called.  i rearranged
         //the table and find replace panel, 
         // i started getting an array index out of
-        //bounds on teh column header ON MAC ONLY.  
+        //bounds on the column header ON MAC ONLY.  
         //tried firing this off, first and it fixed the problem.//meg
         this.getModel().fireTableStructureChanged();
         
-        TableColumn       column   = getColumnModel().getColumn(0);
-        TableCellRenderer renderer = getTableHeader().getDefaultRenderer();
-        if (renderer == null)
-        {
-            renderer = column.getHeaderRenderer();
-        }
-        
-        // Calculate Row Height
-        Component   cellRenderComp = renderer.getTableCellRendererComponent(this, column.getHeaderValue(), false, false, -1, 0);
-        cellFont                   = cellRenderComp.getFont();
-        cellBorder                 = (Border)UIManager.getDefaults().get("TableHeader.cellBorder");
-        Insets      insets         = cellBorder.getBorderInsets(tableHeader);
-        FontMetrics metrics        = getFontMetrics(cellFont);
-
-        rowHeight = insets.bottom + metrics.getHeight() + insets.top;
-
         /*
          * Create the Row Header Panel
          */
         rowHeaderPanel = new JPanel((LayoutManager)null);
-        rowLabelWidth  = metrics.stringWidth("9999") + insets.right + insets.left;
+        
+        if (getColumnModel().getColumnCount() > 0)
+        {
+            TableColumn       column   = getColumnModel().getColumn(0);
+            TableCellRenderer renderer = getTableHeader().getDefaultRenderer();
+            if (renderer == null)
+            {
+                renderer = column.getHeaderRenderer();
+            }
+            
+            Component   cellRenderComp = renderer.getTableCellRendererComponent(this, column.getHeaderValue(), false, false, -1, 0);
+            cellFont                   = cellRenderComp.getFont();
+            
+        } else
+        {
+            cellFont = (new JLabel()).getFont();
+        }
+
+        // Calculate Row Height
+        cellBorder          = (Border)UIManager.getDefaults().get("TableHeader.cellBorder");
+        Insets      insets  = cellBorder.getBorderInsets(tableHeader);
+        FontMetrics metrics = getFontMetrics(cellFont);
+
+        rowHeight           = insets.bottom + metrics.getHeight() + insets.top;
+        rowLabelWidth       = metrics.stringWidth("9999") + insets.right + insets.left;            
         
         Dimension dim  = new Dimension(rowLabelWidth, rowHeight * numRows);
         rowHeaderPanel.setPreferredSize(dim); // need to call this when no layout manager is used.
@@ -474,7 +492,8 @@ public class SpreadSheet  extends SearchableJXTable implements ActionListener
         
         //add 3-state sort toggle
         setFilters(new CustomToggleSortOrderFP());
-        
+ 
+
     }
     
     
@@ -802,7 +821,7 @@ public class SpreadSheet  extends SearchableJXTable implements ActionListener
         	
         }
         
-        // TODO: FP MMK for demo
+        // added by HUH for FP TODO: for demo
         JMenuItem mi = pMenu.add(new JMenuItem("Create consensus record")); // I18N
         mi.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent ae)
@@ -810,6 +829,7 @@ public class SpreadSheet  extends SearchableJXTable implements ActionListener
                 log.debug("Spreadsheet: create consensus record");
             }
         });
+        // end HUH addition
         
         pMenu.setInvoker(this);
         return pMenu;
@@ -918,16 +938,8 @@ public class SpreadSheet  extends SearchableJXTable implements ActionListener
     }
     
     
-    /**
-     * @param isCut
-     * 
-     * Cut or copy selected cells into the Clipboard
-     */
-    public void cutOrCopy(final boolean isCut)
+    protected boolean canCutOrCopy()
     {
-        StringBuffer sbf = new StringBuffer();
-        // Check to ensure we have selected only a contiguous block of
-        // cells
         int   numcols      = getSelectedColumnCount();
         int   numrows      = getSelectedRowCount();
         int[] rowsselected = getSelectedRows();
@@ -937,8 +949,29 @@ public class SpreadSheet  extends SearchableJXTable implements ActionListener
         {
             //JOptionPane.showMessageDialog(null, "Invalid Copy Selection",
             //        "Invalid Copy Selection", JOptionPane.ERROR_MESSAGE);
-            return;
+            return false;
         }
+    	return true;
+    }
+    
+    /**
+     * @param isCut
+     * 
+     * Cut or copy selected cells into the Clipboard
+     */
+    public void cutOrCopy(final boolean isCut)
+    {
+        if (!canCutOrCopy())
+        {
+        	return;
+        }
+    	StringBuffer sbf = new StringBuffer();
+        // Check to ensure we have selected only a contiguous block of
+        // cells
+        int   numcols      = getSelectedColumnCount();
+        int   numrows      = getSelectedRowCount();
+        int[] rowsselected = getSelectedRows();
+        int[] colsselected = getSelectedColumns();
         
         for (int i = 0; i < numrows; i++)
         {
@@ -959,10 +992,7 @@ public class SpreadSheet  extends SearchableJXTable implements ActionListener
                 sbf.append("\n");
             }
         }
-        StringSelection stsel  = new StringSelection(sbf.toString());
-        Clipboard       sysClipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
-        sysClipboard.setContents(stsel, stsel);
-        
+        UIHelper.setTextToClipboard(sbf.toString());
     }     
     
     /**
@@ -983,9 +1013,12 @@ public class SpreadSheet  extends SearchableJXTable implements ActionListener
         //System.out.println("Trying to Paste");
         int[] rows = getSelectedRows();
         int[] cols = getSelectedColumns();
+        pastedRows[0] = -1;
+        pastedRows[1] = -1;
         if (rows != null && cols != null && rows.length > 0 && cols.length > 0)
         {
             int startRow = rows[0];
+            pastedRows[0] = startRow;
             int startCol = cols[0];
             try
             {
@@ -1016,6 +1049,7 @@ public class SpreadSheet  extends SearchableJXTable implements ActionListener
                 			}
                 			//System.out.println("Putting [" + tokens[j] + "] at row=" + startRow + i + "column=" + startCol + j);
                 		}
+                		pastedRows[1] = pastedRows[1] + 1;
                 	}
                 }
             } catch (IllegalStateException ex)

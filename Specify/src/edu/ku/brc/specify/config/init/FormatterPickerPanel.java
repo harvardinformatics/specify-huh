@@ -19,7 +19,6 @@
 */
 package edu.ku.brc.specify.config.init;
 
-import static edu.ku.brc.af.ui.forms.formatters.UIFieldFormatterMgr.createAutoNumber;
 import static edu.ku.brc.ui.UIHelper.createComboBox;
 import static edu.ku.brc.ui.UIHelper.createI18NFormLabel;
 import static edu.ku.brc.ui.UIHelper.createLabel;
@@ -46,6 +45,7 @@ import com.jgoodies.forms.builder.PanelBuilder;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
 
+import edu.ku.brc.af.core.AppContextMgr;
 import edu.ku.brc.af.core.db.AutoNumberIFace;
 import edu.ku.brc.af.core.db.DBFieldInfo;
 import edu.ku.brc.af.core.db.DBTableIdMgr;
@@ -56,6 +56,7 @@ import edu.ku.brc.af.ui.forms.formatters.UIFieldFormatterMgr;
 import edu.ku.brc.af.ui.forms.formatters.UIFormatterEditorDlg;
 import edu.ku.brc.specify.datamodel.Accession;
 import edu.ku.brc.specify.datamodel.CollectionObject;
+import edu.ku.brc.specify.datamodel.Institution;
 import edu.ku.brc.ui.UIHelper;
 import edu.ku.brc.util.Pair;
 
@@ -80,20 +81,31 @@ public class FormatterPickerPanel extends BaseSetupPanel
     protected UIFieldFormatterIFace       newFormatter = null;
     protected int                         newFmtInx    = 0;
     protected boolean                     wasUsed      = false;
+    protected String                      currFormatter;
+    protected boolean                     doingDisciplineCollection = false;
+
+    protected UIFieldFormatterMgr         uiFldFmtMgr;
     
     /**
      * @param nextBtn
      * @param doingCatNums
      */
-    public FormatterPickerPanel(final String panelName, 
-                                final String helpContext,
+    public FormatterPickerPanel(final String  panelName, 
+                                final String  helpContext,
                                 final JButton nextBtn, 
                                 final JButton prevBtn, 
-                                final boolean doingCatNums)
+                                final boolean doingCatNums,
+                                final String  currFormatter)
     {
         super(panelName, helpContext, nextBtn, prevBtn);
         
-        this.doingCatNums = doingCatNums;
+        //UIFieldFormatterMgr.setDoingLocal(true);
+        //uiFldFmtMgr = new SpecifyUIFieldFormatterMgr();
+        //UIFieldFormatterMgr.setDoingLocal(false);
+        uiFldFmtMgr = UIFieldFormatterMgr.getInstance();
+        
+        this.doingCatNums  = doingCatNums;
+        this.currFormatter = currFormatter;
         
         formatterCBX.addActionListener(createFrmCBXAL());
         
@@ -133,6 +145,14 @@ public class FormatterPickerPanel extends BaseSetupPanel
     }
     
     /**
+     * @param doingDisciplineColl
+     */
+    public void setDoingDisciplineCollection(final boolean doingDisciplineColl)
+    {
+        this.doingDisciplineCollection = doingDisciplineColl;
+    }
+    
+    /**
      * Launches the Field Formatter editor.
      */
     protected void addFieldFormatter()
@@ -149,14 +169,16 @@ public class FormatterPickerPanel extends BaseSetupPanel
         }
         
         newFormatter = new UIFieldFormatter();
-        UIFormatterEditorDlg dlg = new UIFormatterEditorDlg(null, fieldInfo, newFormatter, true, false, UIFieldFormatterMgr.getInstance());
+        UIFormatterEditorDlg dlg = new UIFormatterEditorDlg(null, fieldInfo, newFormatter, true, false, uiFldFmtMgr);
         dlg.setVisible(true);
         if (!dlg.isCancelled())
         {
-            if (!newFormatter.isUserInputNeeded())
+            if (newFormatter.isIncrementer())
             {
-                AutoNumberIFace autoNum = doingCatNums ? createAutoNumber("edu.ku.brc.specify.dbsupport.CollectionAutoNumber", "edu.ku.brc.specify.datamodel.CollectionObject", "catalogNumber") :
-                                                         createAutoNumber("edu.ku.brc.af.core.db.AutoNumberGeneric", "edu.ku.brc.specify.datamodel.Accession", "accessionNumber");
+                boolean isSingleField = newFormatter.getFields().size() == 1;
+                AutoNumberIFace autoNum = doingCatNums ? 
+                    UIFieldFormatterMgr.getInstance().createAutoNumber("edu.ku.brc.specify.dbsupport.CollectionAutoNumber", "edu.ku.brc.specify.datamodel.CollectionObject", "catalogNumber", isSingleField) :
+                    UIFieldFormatterMgr.getInstance().createAutoNumber("edu.ku.brc.af.core.db.AutoNumberGeneric", "edu.ku.brc.specify.datamodel.Accession", "accessionNumber", isSingleField);
                 newFormatter.setAutoNumber(autoNum);
             }
         } else
@@ -220,7 +242,7 @@ public class FormatterPickerPanel extends BaseSetupPanel
             formatterCBX.removeActionListener(al);
         }
         
-        fmtList = new Vector<UIFieldFormatterIFace>(UIFieldFormatterMgr.getInstance().getFormatterList(doingCatNums ? CollectionObject.class : Accession.class));
+        fmtList = new Vector<UIFieldFormatterIFace>(uiFldFmtMgr.getFormatterList(doingCatNums ? CollectionObject.class : Accession.class));
         if (newFormatter != null)
         {
             fmtList.add(newFormatter);
@@ -246,10 +268,16 @@ public class FormatterPickerPanel extends BaseSetupPanel
             ((DefaultComboBoxModel)formatterCBX.getModel()).addElement(fmt.getName());
         }
 
-        if (selectedFmt != null)
+        if (currFormatter != null)
+        {
+            formatterCBX.setSelectedItem(currFormatter);
+            nextBtn.setEnabled(true);
+            
+        } else if (selectedFmt != null)
         {
             formatterCBX.setSelectedItem(selectedFmt.getName());
             nextBtn.setEnabled(true);
+            
         } else
         {
             formatterCBX.setSelectedIndex(-1);
@@ -296,6 +324,8 @@ public class FormatterPickerPanel extends BaseSetupPanel
     @Override
     public void setValues(Properties values)
     {
+        super.setValues(values);
+        doingNext();
     }
     
     /* (non-Javadoc)
@@ -332,6 +362,40 @@ public class FormatterPickerPanel extends BaseSetupPanel
     public void doingNext()
     {
         updateBtnUI();
+        
+        Institution institution = null;
+        Boolean     isAccGlobal = null;
+        if (!doingCatNums)
+        {
+            if (AppContextMgr.getInstance() != null && AppContextMgr.getInstance().hasContext())
+            {
+                institution = AppContextMgr.getInstance().getClassObject(Institution.class);
+                if (institution != null)
+                {
+                    isAccGlobal = institution.getIsAccessionsGlobal();
+                }
+            }
+        
+            if (isAccGlobal == null && properties != null)
+            {
+                isAccGlobal = (Boolean)properties.get("accglobal");
+                isAccGlobal = isAccGlobal == null ? false : isAccGlobal;
+                
+            } else
+            {
+                isAccGlobal = false;
+            }
+            
+            if (institution != null && !doingDisciplineCollection)
+            {
+                formatterCBX.setEnabled(!isAccGlobal);
+                
+            } else if (currFormatter != null || (isAccGlobal && institution != null) || doingDisciplineCollection)
+            {
+                formatterCBX.setEnabled(false);
+            }
+        }
+
     }
 
     /* (non-Javadoc)
@@ -355,4 +419,6 @@ public class FormatterPickerPanel extends BaseSetupPanel
         list.add(new Pair<String, String>(lbl, value));
         return list;
     }
+    
+    
 }

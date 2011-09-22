@@ -178,6 +178,15 @@ public class ProgressFrame extends JFrame
     /**
      * 
      */
+    public void turnOnOverAll()
+    {
+        overallProgress.setVisible(true);
+        overallLbl.setVisible(true);
+    }
+    
+    /**
+     * 
+     */
     public synchronized void incOverall()
     {
         overallProgress.setValue(overallProgress.getValue() + 1);
@@ -255,9 +264,10 @@ public class ProgressFrame extends JFrame
             
         } else 
         {
-            if (value >=  processProgress.getMaximum())
+            int maxVal = processProgress.getMaximum();
+            if (value >=  maxVal)
             {
-                processProgress.setString(processProgress.getMaximum() +" / "+ processProgress.getMaximum());
+                processProgress.setString(maxVal +" / "+maxVal);
             } else
             {
                 processProgress.setValue(value);

@@ -50,17 +50,17 @@ import edu.ku.brc.specify.ui.treetables.TreeTableViewer;
  */
 public class ChildNodeCounter implements SQLExecutionListener, CustomQueryListener
 {
-    protected static final Logger log = Logger.getLogger(ChildNodeCounter.class);
+    protected static final Logger		log		= Logger.getLogger(ChildNodeCounter.class);
 
-	protected TreeNode node;
-	protected int step = 0;
-	protected int valStep = 2;
-	protected boolean isHQL = false;
+	protected TreeNode					node;
+	protected int						step	= 0;
+	protected int						valStep	= 2;
+	protected boolean					isHQL	= false;
 
-	protected String nodeNumQuery;
-	protected String countQuery;
-	protected int slotIndex;
-	protected TreeTableViewer<?, ?, ?> viewer;
+	protected String					nodeNumQuery;
+	protected String					countQuery;
+	protected int						slotIndex;
+	protected TreeTableViewer<?, ?, ?>	viewer;
     
     /**
      * Constructor.

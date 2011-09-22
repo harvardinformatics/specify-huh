@@ -75,7 +75,7 @@ public class IReportLauncher implements DatabaseLoginListener
         }
         
         //moved here because context needs to be set before loading prefs, we need to know the SpecifyUser
-        AppContextMgr.CONTEXT_STATUS status = AppContextMgr.getInstance().setContext(databaseName, userName, true);
+        AppContextMgr.CONTEXT_STATUS status = AppContextMgr.getInstance().setContext(databaseName, userName, true, true, true);
        // AppContextMgr.getInstance().
         SpecifyAppPrefs.initialPrefs();
         
@@ -98,9 +98,8 @@ public class IReportLauncher implements DatabaseLoginListener
                                               getResourceString("Specify.LOGIN_USER_MISMATCH"),  //$NON-NLS-1$
                                               getResourceString("Specify.LOGIN_USER_MISMATCH_TITLE"),  //$NON-NLS-1$
                                               JOptionPane.ERROR_MESSAGE);
-                System.exit(0);
             }
-        
+            System.exit(0);
         }
         //...end specify.restartApp snatch
         
@@ -141,7 +140,7 @@ public class IReportLauncher implements DatabaseLoginListener
                         Thread.currentThread().setContextClassLoader(MainFrame.reportClassLoader);
                         iReportMainFrame = new MainFrameSpecify(MainFrameSpecify.getDefaultArgs(), false, false);
                     }
-                    iReportMainFrame.refreshSpQBConnections();
+                    iReportMainFrame.refreshSpJRConnections();
                     iReportMainFrame.setVisible(true);
                 }
                 catch (Exception e)

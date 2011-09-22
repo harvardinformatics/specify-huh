@@ -26,10 +26,13 @@ import edu.ku.brc.af.core.AppContextMgr;
 import edu.ku.brc.af.core.db.DBRelationshipInfo;
 import edu.ku.brc.af.core.db.DBTableInfo;
 import edu.ku.brc.af.core.expresssearch.QueryAdjusterForDomain;
+import edu.ku.brc.af.prefs.AppPreferences;
+import edu.ku.brc.specify.SpecifyUserTypes.UserType;
 import edu.ku.brc.specify.datamodel.Accession;
 import edu.ku.brc.specify.datamodel.Agent;
 import edu.ku.brc.specify.datamodel.Collection;
 import edu.ku.brc.specify.datamodel.Discipline;
+import edu.ku.brc.specify.datamodel.Division;
 import edu.ku.brc.specify.datamodel.ExchangeIn;
 import edu.ku.brc.specify.datamodel.ExchangeOut;
 import edu.ku.brc.specify.datamodel.Geography;
@@ -58,6 +61,7 @@ import edu.ku.brc.specify.datamodel.TaxonTreeDef;
 public class SpecifyQueryAdjusterForDomain extends QueryAdjusterForDomain
 {
     protected static final Logger log = Logger.getLogger(SpecifyQueryAdjusterForDomain.class);
+    //private static final String CNT_TBL_SQL = "SELECT COUNT(*) FROM ";
     
     private static final String SPECIFYUSERID  = "SPECIFYUSERID";
     private static final String DIVID          = "DIVID";
@@ -71,12 +75,27 @@ public class SpecifyQueryAdjusterForDomain extends QueryAdjusterForDomain
     private static final String LITHOTREEDEFID = "LITHOTREEDEFID";
     private static final String GTPTREEDEFID   = "GTPTREEDEFID";
     private static final String GEOTREEDEFID   = "GEOTREEDEFID";
+    
+    private boolean permsOKForGlobalSearch = false;
+    
+    private int divisionCnt   = 0;
+    private int disciplineCnt = 0;
+    private int collectionCnt = 0;
 
+    /**
+     * 
+     */
     public SpecifyQueryAdjusterForDomain()
     {
-        // no op
+        permsOKForGlobalSearch = !AppContextMgr.isSecurityOn() || SpecifyUser.isCurrentUserType(UserType.Manager);
+        
+        // This kicks Global Search into gear if there is just one, but only for that one
+        //divisionCnt   = BasicSQLUtils.getCountAsInt(CNT_TBL_SQL+"division");
+        //disciplineCnt = BasicSQLUtils.getCountAsInt(CNT_TBL_SQL+"discipline");
+        //collectionCnt = BasicSQLUtils.getCountAsInt(CNT_TBL_SQL+"collection");
+        
     }
-
+    
     /* (non-Javadoc)
      * @see edu.ku.brc.af.core.expresssearch.QueryAdjusterForDomain#getSpecialColumns(edu.ku.brc.dbsupport.DBTableInfo, boolean, boolean, java.lang.String)
      */
@@ -96,7 +115,8 @@ public class SpecifyQueryAdjusterForDomain extends QueryAdjusterForDomain
                 criterion = COLMEMID;
                 
 
-            } else if (tableInfo.getTableId() == Accession.getClassTableId() ||
+            } else if (tableInfo.getTableId() == Agent.getClassTableId() ||
+                       tableInfo.getTableId() == Accession.getClassTableId() ||
                        tableInfo.getTableId() == RepositoryAgreement.getClassTableId() ||
                        tableInfo.getTableId() == ExchangeIn.getClassTableId() ||
                        tableInfo.getTableId() == ExchangeOut.getClassTableId())
@@ -180,34 +200,34 @@ public class SpecifyQueryAdjusterForDomain extends QueryAdjusterForDomain
                 fld = isHQL ? "discipline" : "DisciplineID";
                 criterion = DSPLNID;
                 
-            } else if (tableInfo.getTableId() == Agent.getClassTableId())
+            } /*else if (tableInfo.getTableId() == Agent.getClassTableId())
             {
                 if (StringUtils.isEmpty(prefix))
                 {
                     prefix = "ag.";
                 }
-                criterion = DSPLNID;
+                criterion = DIVID;
                 if (isHQL)
                 {
-                    fld = criterion + " in elements(" + prefix + "disciplines)";
+                    fld = criterion + " = " + prefix + "division.id";
                     adjustFldToSQL = false;
                 }
                 else
                 {
                     //this probably won't actually work without additional
                     //changes to the from clause for the query
-                    fld = "agent_discipline.DisciplineID"; 
+                    fld = criterion + " = " + prefix + "D";
                     prefix = "";
                     //throw new RuntimeException("Fix me I am probably broken!");
                 }
-            }
+            }*/
             
             if (criterion != null && fld != null)
             {
                 String sql;
                 if (adjustFldToSQL)
                 {
-                    sql = prefix + fld + " = " + criterion;
+                    sql = "(" + prefix + fld + " = " + criterion + ")";
                 }
                 else
                 {
@@ -268,23 +288,11 @@ public class SpecifyQueryAdjusterForDomain extends QueryAdjusterForDomain
             join = "inner join ";
         }
         
-        if (tableInfo.getTableId() == Agent.getClassTableId())
-        {
-            if (isHQL)
-            {
-                return join + alias + ".disciplines as dsp" + (aliasArg == null ? "" : alias);
-            }
-            if (aliasArg != null)
-            {
-                //return "";
-                //throw new RuntimeException("SpecifyQueryAdjuster.getJoinClause does not work for SQL with non-null alias.");
-            }
-            return join + "agent_discipline ON "+(aliasArg == null ? "" : alias)+".AgentID = agent_discipline.AgentID";
-            
-        } else if (tableInfo.getTableId() == Accession.getClassTableId() ||
-                    tableInfo.getTableId() == RepositoryAgreement.getClassTableId() ||
-                    tableInfo.getTableId() == ExchangeIn.getClassTableId() ||
-                    tableInfo.getTableId() == ExchangeOut.getClassTableId())
+        if (tableInfo.getTableId() == Agent.getClassTableId() ||
+            tableInfo.getTableId() == Accession.getClassTableId() ||
+            tableInfo.getTableId() == RepositoryAgreement.getClassTableId() ||
+            tableInfo.getTableId() == ExchangeIn.getClassTableId() ||
+            tableInfo.getTableId() == ExchangeOut.getClassTableId())
         {
             if (isHQL)
             {
@@ -314,25 +322,123 @@ public class SpecifyQueryAdjusterForDomain extends QueryAdjusterForDomain
             }
         }
         return super.getJoinClause(tableInfo, isHQL, alias, useLeftJoin);
+    }
+    
+    private int checkAhead(final String lowerSQL, final int startInx, final String key)
+    {
+        int bInx = lowerSQL.lastIndexOf(key, startInx);
+        int diff = startInx - bInx;
+        if (diff == key.length()+1)
+        {
+            return diff;
+        }
+        return 0;
+    }
+    
+    /**
+     * @param lowerSQL
+     * @param endInx
+     * @param key
+     * @return
+     */
+    private int checkAfter(final String lowerSQL, final int endInx, final String key)
+    {
+        int bInx = lowerSQL.indexOf(key, endInx);
+        if (bInx > -1)
+        {
+            int diff = bInx - endInx;
+            if (diff == 2)
+            {
+                return key.length()+1;
+            }
+        }
+        return 0;
+    }
+    
+    /**
+     * @param source
+     * @return
+     */
+    public static String itrim(String source) 
+    {
+        //return source.replaceAll("\\b\\s{2,}\\b", " ");
+        return source.replaceAll("\\s+", " ");   
+    }
 
-
-//        if (tableInfo.getTableId() == Agent.getClassTableId())
-//        {
-//            if (isHQL)
-//            {
-//                return "JOIN ag.disciplines as dsp";
-//            }
-//            return "INNER JOIN agent_discipline ON agent.AgentID = agent_discipline.AgentID";
-//            
-//        } else if (tableInfo.getRelationshipByName("discipline") != null)
-//        {
-//            if (isHQL)
-//            {
-//                return "JOIN "+tableInfo.getAbbrev()+".discipline as dsp";
-//            }
-//            return "INNER JOIN discipline as dsp ON "+tableInfo.getName()+".DisciplineID = discipline.DisciplineID";
-//        }
-//        return super.getJoinClause(tableInfo, isHQL);
+    /**
+     * @param specialSQL
+     * @param key
+     * @return
+     */
+    private String removeSpecialFilter(final String specialSQL, final String key)
+    {
+        String lowerSQL = specialSQL.toLowerCase();
+        
+        String frontStr = "";
+        String whereStr = "";
+        
+        int whereInx = lowerSQL.indexOf("where");
+        if (whereInx == -1)
+        {
+            whereInx = 0;
+            whereStr = specialSQL;
+        } else
+        {
+            whereInx += 6;
+            frontStr = specialSQL.substring(0, whereInx);
+            whereStr = itrim(specialSQL.substring(whereInx, specialSQL.length()));//.replaceAll("\n", ""));
+            lowerSQL = itrim(lowerSQL.substring(whereInx, specialSQL.length()));//.replaceAll("\n", ""));
+        }
+        
+        
+        //System.out.println("["+lowerSQL+"]\n["+whereStr+"]");
+        
+        int inx = whereStr.indexOf(key);
+        if (inx > -1)
+        {
+            int endInx = inx + key.length();
+            if (endInx < whereStr.length() && lowerSQL.charAt(endInx) == ')')
+            {
+                int startInx = lowerSQL.lastIndexOf('(', inx);
+                if (startInx > -1) // here we have source.replaceAll("\\b\\s{2,}\\b", " ");the bounds of the '(' to ')'
+                {
+                    // Now check to see what is ahead of it
+                    int bInx = checkAhead(lowerSQL, startInx, "and");
+                    if (bInx > 0)
+                    {
+                        startInx -= bInx;
+                    } else 
+                    {
+                        bInx = checkAhead(lowerSQL, startInx, "or");
+                        if (bInx > 0)
+                        {
+                            startInx -= bInx;
+                        } else
+                        {
+                            // check after
+                            int eInx = checkAfter(lowerSQL, endInx, "and");
+                            if (eInx > 0)
+                            {
+                                endInx += eInx;
+                            } else
+                            {
+                                endInx += checkAfter(lowerSQL, endInx, "or");
+                            }
+                        }
+                    } 
+                    String segment = whereStr.substring(startInx, endInx+1);
+                    String newStr = frontStr + StringUtils.remove(whereStr, segment);
+                    
+                    //System.out.println("["+specialSQL+"]\n["+newStr+"]");
+                    return newStr;
+                }
+            }
+            //System.out.println("Skipped1["+specialSQL+"]");
+        }/* else
+        {
+            System.out.println("Skipped2["+specialSQL+"]");
+        }*/
+        return null;
     }
 
 
@@ -342,6 +448,12 @@ public class SpecifyQueryAdjusterForDomain extends QueryAdjusterForDomain
     @Override
     public String adjustSQL(final String sql)
     {
+        AppPreferences locPrefs = AppPreferences.getLocalPrefs();
+        boolean doGlobalSearch = permsOKForGlobalSearch && locPrefs.getBoolean("GLOBAL_SEARCH_AVAIL", false) && locPrefs.getBoolean("GLOBAL_SEARCH", false);
+        //divisionCnt++;
+        //disciplineCnt++;
+        //collectionCnt++;
+        
         // SpecifyUser should NEVER be null nor the Id !
         SpecifyUser user = AppContextMgr.getInstance().getClassObject(SpecifyUser.class);
         if (user != null)
@@ -357,38 +469,95 @@ public class SpecifyQueryAdjusterForDomain extends QueryAdjusterForDomain
                 
                 if (StringUtils.contains(adjSQL, DIVID))
                 {
-                    Integer divId = Agent.getUserAgent().getDivision() != null ? Agent.getUserAgent().getDivision().getDivisionId() : null;
-                    if (divId != null)
+                    String adjustedSQL = null;
+                    if (doGlobalSearch || divisionCnt == 1)
                     {
-                        adjSQL = StringUtils.replace(adjSQL, DIVID, Integer.toString(divId));
+                        adjustedSQL = removeSpecialFilter(adjSQL, DIVID);
+                    }
+                    
+                    if (adjustedSQL == null)
+                    {
+                        Integer  divId    = null;
+                        Division division = AppContextMgr.getInstance().getClassObject(Division.class);
+                        if (division != null)
+                        {
+                            divId = division.getId();
+                        } else
+                        {
+                            divId = Agent.getUserAgent().getDivision() != null ? Agent.getUserAgent().getDivision().getDivisionId() : null;
+                        }
+                        
+                        if (divId != null)
+                        {
+                            adjSQL = StringUtils.replace(adjSQL, DIVID, Integer.toString(divId));
+                        }
+                    } else
+                    {
+                        adjSQL = adjustedSQL;
                     }
                 }
                 
                 //System.out.println(adjSQL);
                 if (StringUtils.contains(adjSQL, COLMEMID))
                 {
-                    Collection collection = AppContextMgr.getInstance().getClassObject(Collection.class);
-                    if (collection != null)
+                    String adjustedSQL = null;
+                    if (doGlobalSearch || collectionCnt == 1)
                     {
-                        adjSQL = StringUtils.replace(adjSQL, COLMEMID, Integer.toString(collection.getCollectionId()));
+                        adjustedSQL = removeSpecialFilter(adjSQL, COLMEMID);
+                    }
+                    
+                    if (adjustedSQL == null)
+                    {
+                        Collection collection = AppContextMgr.getInstance().getClassObject(Collection.class);
+                        if (collection != null)
+                        {
+                            adjSQL = StringUtils.replace(adjSQL, COLMEMID, Integer.toString(collection.getCollectionId()));
+                        }
+                    } else
+                    {
+                        adjSQL = adjustedSQL;
                     }
                 }
                 
                 if (StringUtils.contains(adjSQL, COLLID))
                 {
-                    Collection collection = AppContextMgr.getInstance().getClassObject(Collection.class);
-                    if (collection != null)
+                    String adjustedSQL = null;
+                    if (doGlobalSearch || collectionCnt == 1)
                     {
-                        adjSQL = StringUtils.replace(adjSQL, COLLID, Integer.toString(collection.getCollectionId()));
+                        adjustedSQL = removeSpecialFilter(adjSQL, COLLID);
+                    }
+                    
+                    if (adjustedSQL == null)
+                    {
+                        Collection collection = AppContextMgr.getInstance().getClassObject(Collection.class);
+                        if (collection != null)
+                        {
+                            adjSQL = StringUtils.replace(adjSQL, COLLID, Integer.toString(collection.getCollectionId()));
+                        }
+                    } else
+                    {
+                        adjSQL = adjustedSQL;
                     }
                 }
                 
                 if (StringUtils.contains(adjSQL, DSPLNID))
                 {
-                    Discipline discipline = AppContextMgr.getInstance().getClassObject(Discipline.class);
-                    if (discipline != null)
+                    String adjustedSQL = null;
+                    if (doGlobalSearch || disciplineCnt == 1)
                     {
-                        adjSQL = StringUtils.replace(adjSQL, DSPLNID, Integer.toString(discipline.getDisciplineId()));
+                        adjustedSQL = removeSpecialFilter(adjSQL, DSPLNID);
+                    }
+                    
+                    if (adjustedSQL == null)
+                    {
+                        Discipline discipline = AppContextMgr.getInstance().getClassObject(Discipline.class);
+                        if (discipline != null)
+                        {
+                            adjSQL = StringUtils.replace(adjSQL, DSPLNID, Integer.toString(discipline.getDisciplineId()));
+                        }
+                    } else
+                    {
+                        adjSQL = adjustedSQL;
                     }
                 }
                 
@@ -453,4 +622,33 @@ public class SpecifyQueryAdjusterForDomain extends QueryAdjusterForDomain
             throw new RuntimeException("The SpecifyUser cannot be null!");
         }
     }
-}
+
+    /**
+     * @return the permsOKForGlobalSearch
+     */
+    public boolean isPermsOKForGlobalSearch()
+    {
+        return permsOKForGlobalSearch;
+    }
+    
+    /*
+    public static void main(String[] args)
+    {
+        String str = "1  2   3    4444     555      666666   4444";
+        System.err.println(str+"-"+itrim(str));
+        
+        str = "a  bbb  cc     ff  ggggggg     rr   d";
+        System.err.println(str+"-"+itrim(str));
+        
+        str = ")   OR  (isClosed";
+        System.err.println("["+str+"]["+itrim(str)+"]");
+        
+        SpecifyQueryAdjusterForDomain qa = new SpecifyQueryAdjusterForDomain(true);
+        //qa.removeSpecialFilter("SELECT count(loanId) as OpenLoanCount FROM Loan l INNER JOIN l.discipline dsp WHERE (isClosed = 0 OR isClosed is null) AND (dsp.disciplineId = DSPLNID)", DSPLNID);
+        //qa.removeSpecialFilter("SELECT count(loanId) as OpenLoanCount FROM Loan l INNER JOIN l.discipline dsp WHERE (isClosed = 0 OR isClosed is null) OR (dsp.disciplineId = DSPLNID)", DSPLNID);
+        //qa.removeSpecialFilter("SELECT count(loanId) as OpenLoanCount FROM Loan l INNER JOIN l.discipline dsp WHERE (dsp.disciplineId = DSPLNID)  AND   (isClosed = 0 OR isClosed is null)", DSPLNID);
+        qa.removeSpecialFilter("SELECT count(loanId) as OpenLoanCount FROM Loan l INNER JOIN l.discipline dsp WHERE (dsp.disciplineId = DSPLNID)   OR  (isClosed = 0 OR isClosed is null)", DSPLNID);
+        qa.removeSpecialFilter("SELECT count(loanId) as OpenLoanCount FROM Loan l INNER JOIN l.discipline dsp WHERE (dsp.disciplineId = DSPLNID)   OR\n  (isClosed = 0 OR isClosed is null)", DSPLNID);
+    }
+    */
+} 

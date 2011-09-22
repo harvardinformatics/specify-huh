@@ -21,8 +21,10 @@ package edu.ku.brc.specify.config;
 
 import java.awt.Color;
 
+import edu.ku.brc.af.core.AppContextMgr;
 import edu.ku.brc.af.prefs.AppPreferences;
 import edu.ku.brc.af.prefs.AppPrefsCache;
+import edu.ku.brc.specify.datamodel.Discipline;
 import edu.ku.brc.ui.ColorWrapper;
 
 /**
@@ -36,6 +38,9 @@ import edu.ku.brc.ui.ColorWrapper;
  */
 public class SpecifyAppPrefs
 {
+    private static final String GL_HYWX    = "GEOLocate.HYWX";
+    private static final String GL_WTRBODY = "GEOLocate.WATERBODY";
+    
     private static boolean isInited        = false;
     private static boolean skipRemotePrefs = false;
     
@@ -55,6 +60,15 @@ public class SpecifyAppPrefs
     }
 
     /**
+     * Reloads the AppPrefsCache after loading a new set of remote preferences. 
+     */
+    public static void reloadPrefs()
+    {
+        isInited = false;
+        initialPrefs();
+    }
+    
+    /**
      * Initialize the prefs.
      */
     public static void initialPrefs()
@@ -68,11 +82,30 @@ public class SpecifyAppPrefs
                 AppPreferences.getRemote().load(); // Loads prefs from the database
             }
             
+            if (AppContextMgr.getInstance().hasContext())
+            {
+                boolean isFish = Discipline.isCurrentDiscipline(DisciplineType.STD_DISCIPLINES.fish);
+                if (isFish)
+                {
+                    if (AppPreferences.getRemote().getBoolean(GL_HYWX, null) == null)
+                    {
+                        AppPreferences.getRemote().putBoolean(GL_HYWX, true);
+                    }
+                
+                    if (AppPreferences.getRemote().getBoolean(GL_WTRBODY, null) == null)
+                    {
+                        AppPreferences.getRemote().putBoolean(GL_WTRBODY, true);
+                    }
+                }
+            }
             loadColorAndFormatPrefs();
             isInited = true;
         }
     }
     
+    /**
+     * Loads Default preferences into the AppPrefsCache.
+     */
     public static void loadColorAndFormatPrefs()
     {
         //FastDateFormat fastDateFormat = FastDateFormat.getDateInstance(FastDateFormat.SHORT);      

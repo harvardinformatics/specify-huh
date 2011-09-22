@@ -19,12 +19,28 @@
 */
 package edu.ku.brc.specify.datamodel.busrules;
 
+import java.awt.Dialog;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.util.Vector;
+
+import javax.swing.JButton;
+
+import edu.ku.brc.af.core.UsageTracker;
 import edu.ku.brc.af.core.db.DBTableIdMgr;
 import edu.ku.brc.af.core.db.DBTableInfo;
+import edu.ku.brc.af.ui.db.ViewBasedDisplayDialog;
 import edu.ku.brc.af.ui.forms.BusinessRulesOkDeleteIFace;
 import edu.ku.brc.af.ui.forms.FormDataObjIFace;
+import edu.ku.brc.af.ui.forms.MultiView;
+import edu.ku.brc.af.ui.forms.Viewable;
+import edu.ku.brc.dbsupport.DataProviderFactory;
 import edu.ku.brc.dbsupport.DataProviderSessionIFace;
+import edu.ku.brc.specify.conversion.BasicSQLUtils;
+import edu.ku.brc.specify.datamodel.Loan;
 import edu.ku.brc.specify.datamodel.Preparation;
+import edu.ku.brc.ui.UIHelper;
+import edu.ku.brc.ui.UIRegistry;
 
 /**
  * @author rod
@@ -39,6 +55,104 @@ public class PreparationBusRules extends AttachmentOwnerBaseBusRules
     public PreparationBusRules()
     {
         super(Preparation.class);
+    }
+
+    /* (non-Javadoc)
+     * @see edu.ku.brc.af.ui.forms.BaseBusRules#initialize(edu.ku.brc.af.ui.forms.Viewable)
+     */
+    @Override
+    public void initialize(final Viewable viewableArg)
+    {
+        super.initialize(viewableArg);
+        
+        if (formViewObj != null)
+        {
+            JButton btn = formViewObj.getCompById("ShowLoansBtn");
+            if (btn != null)
+            {
+                btn.addActionListener(new ActionListener() {
+                    @Override
+                    public void actionPerformed(ActionEvent e)
+                    {
+                        showLoans();
+                    }
+                });
+            }
+        }
+    }
+    
+    /**
+     * 
+     */
+    private void showLoans()
+    {
+        if (formViewObj != null)
+        {
+            Preparation prep = (Preparation)formViewObj.getDataObj();
+            if (prep != null)
+            {
+                /*
+                 * final Dialog  parentDialog,
+                                  final String  viewSetName,
+                                  final String  viewName,
+                                  final String  displayName,
+                                  final String  title,
+                                  final String  closeBtnTitle,
+                                  final String  className,
+                                  final String  idFieldName,
+                                  final boolean isEdit,
+                                  final int     options)
+                 */
+                ViewBasedDisplayDialog dlg = new ViewBasedDisplayDialog((Dialog)null,
+                        null,
+                        "Loan",
+                        null,
+                        "Loans", // I18N ?
+                        UIRegistry.getResourceString("CLOSE"),
+                        Loan.class.getName(),
+                        "loanId",
+                        false,
+                        MultiView.HIDE_SAVE_BTN |
+                        MultiView.RESULTSET_CONTROLLER);
+                
+                Vector<Loan> loans = new Vector<Loan>();
+                
+                DataProviderSessionIFace session = null;
+                try
+                {
+                    session = DataProviderFactory.getInstance().createSession();
+                    String sql = " SELECT DISTINCT loan.LoanID FROM loan Inner Join loanpreparation AS lp ON loan.LoanID = lp.LoanID WHERE loan.IsClosed <> 1 AND lp.PreparationID ="+prep.getId();
+                    //log.debug(sql);
+                    for (Integer id : BasicSQLUtils.queryForInts(sql))
+                    {
+                        Loan loan = session.get(Loan.class, id);
+                        if (loan != null)
+                        {
+                            loans.add(loan);
+                            loan.getLoanAgents().size();
+                            loan.getLoanPreparations().size();
+                            loan.getLoanAttachments().size();
+                        }
+                    }
+                    
+                } catch (Exception ex)
+                {
+                    edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(AccessionBusRules.class, ex);
+                    ex.printStackTrace();
+                    UsageTracker.incrNetworkUsageCount();
+                    
+                } finally
+                {
+                    if (session != null)
+                    {
+                        session.close();
+                    }
+                }
+                
+                dlg.setData(loans);
+                UIHelper.centerAndShow(dlg);
+            }
+        }
     }
 
     /* (non-Javadoc)
@@ -64,8 +178,8 @@ public class PreparationBusRules extends AttachmentOwnerBaseBusRules
             } else
             {
                 DBTableInfo tableInfo      = DBTableIdMgr.getInstance().getInfoById(Preparation.getClassTableId());
-                String[]    tableFieldList = gatherTableFieldsForDelete(new String[] {"preparation"}, tableInfo);
-                isOK = okToDelete(tableFieldList, dbObj.getId());
+                String[]    tableFieldList = gatherTableFieldsForDelete(new String[] {"preparation", "preparationattachment"}, tableInfo);
+                isOK = okToDelete(1, tableFieldList, dbObj.getId());
             }
             deletable.doDeleteDataObj(dataObj, session, isOK);
             

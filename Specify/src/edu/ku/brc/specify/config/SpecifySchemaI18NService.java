@@ -19,6 +19,8 @@
 */
 package edu.ku.brc.specify.config;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 import java.util.Vector;
 
@@ -59,8 +61,7 @@ public class SpecifySchemaI18NService extends SchemaI18NService
                                final Locale       locale)
     {
         // First do Just Hidden in case a table is missing a title or desc
-        String sql = "SELECT Name, IsHidden FROM  splocalecontainer WHERE " +
-                     "SchemaType = " + schemaType +" AND DisciplineID = " + disciplineId;
+        String sql = String.format("SELECT Name, IsHidden FROM  splocalecontainer WHERE SchemaType = %d AND DisciplineID = %d", schemaType, disciplineId);
 
         Vector<Object[]> rows = BasicSQLUtils.query(sql);
 
@@ -91,9 +92,9 @@ public class SpecifySchemaI18NService extends SchemaI18NService
                 ti.setTitle(row[1].toString());
                 ti.setAggregatorName(row[2] != null ? row[2].toString() : null);
                 
-                if (row[3] != null && row[4] != null)
+                if (row[4] != null)
                 {
-                    if ((Boolean)row[3])
+                    if (row[3] != null && ((Boolean)row[3]))
                     {
                         ti.setUiFormatter(row[4].toString());
                     } else
@@ -238,6 +239,45 @@ public class SpecifySchemaI18NService extends SchemaI18NService
                 log.error("Couldn't find table ["+nm+"]");
             }
         }
+    }
+
+    /* (non-Javadoc)
+     * @see edu.ku.brc.af.core.SchemaI18NService#getLocalesFromData(java.lang.Byte, int)
+     */
+    @Override
+    public List<Locale> getLocalesFromData(final Byte schemaType, final int disciplineId)
+    {
+        List<Locale> localesList = new ArrayList<Locale>();
+        
+        String sql = String.format("SELECT i.Language, i.Country, i.Variant FROM splocalecontainer cn INNER JOIN splocaleitemstr i ON " +
+                                   "cn.SpLocaleContainerID = i.SpLocaleContainerNameID WHERE cn.SchemaType = %d AND cn.DisciplineID = %d GROUP BY Language, Country, Variant",
+                                   schemaType, disciplineId);
+        for (Object[] row : BasicSQLUtils.query(sql))
+        {
+            String language = (String)row[0];
+            String country  = (String)row[1];
+            String variant  = (String)row[2];
+            
+            Locale locale = null;
+            
+            if (StringUtils.isNotEmpty(language) && StringUtils.isNotEmpty(country) && StringUtils.isNotEmpty(variant))
+            {
+                locale = new Locale(language, country, variant);
+                
+            } else if (StringUtils.isNotEmpty(language) && StringUtils.isNotEmpty(country))
+            {
+                locale = new Locale(language, country);
+                
+            } else if (StringUtils.isNotEmpty(language))
+            {
+                locale = new Locale(language);
+            }
+            if (locale != null)
+            {
+                localesList.add(locale);
+            }
+        }
+        return localesList;
     }
     
 }

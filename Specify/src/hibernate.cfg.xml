@@ -48,6 +48,7 @@
 		<mapping class="edu.ku.brc.specify.datamodel.AgentVariant"/>
 		<mapping class="edu.ku.brc.specify.datamodel.Appraisal"/>
 		<mapping class="edu.ku.brc.specify.datamodel.Attachment"/>
+		<mapping class="edu.ku.brc.specify.datamodel.AttachmentImageAttribute"/>
 		<mapping class="edu.ku.brc.specify.datamodel.AttachmentMetadata"/>
 		<mapping class="edu.ku.brc.specify.datamodel.AttachmentTag"/>
 		<mapping class="edu.ku.brc.specify.datamodel.AttributeDef"/>
@@ -91,8 +92,10 @@
 		<mapping class="edu.ku.brc.specify.datamodel.DNASequencingRun"/>
 		<mapping class="edu.ku.brc.specify.datamodel.DNASequencingRunAttachment"/>
 		<mapping class="edu.ku.brc.specify.datamodel.DNASequencingRunCitation"/>
-		<mapping class="edu.ku.brc.specify.datamodel.ExchangeIn"/>
-		<mapping class="edu.ku.brc.specify.datamodel.ExchangeOut"/>
+        <mapping class="edu.ku.brc.specify.datamodel.ExchangeIn"/>
+        <mapping class="edu.ku.brc.specify.datamodel.ExchangeInPrep"/>
+        <mapping class="edu.ku.brc.specify.datamodel.ExchangeOut"/>
+        <mapping class="edu.ku.brc.specify.datamodel.ExchangeOutPrep"/>
 		<mapping class="edu.ku.brc.specify.datamodel.Exsiccata"/>
 		<mapping class="edu.ku.brc.specify.datamodel.ExsiccataItem"/>
 		<mapping class="edu.ku.brc.specify.datamodel.FieldNotebook"/>
@@ -101,7 +104,6 @@
 		<mapping class="edu.ku.brc.specify.datamodel.FieldNotebookPageSetAttachment"/>
 		<mapping class="edu.ku.brc.specify.datamodel.FieldNotebookPage"/>
 		<mapping class="edu.ku.brc.specify.datamodel.FieldNotebookPageAttachment"/>
-		<mapping class="edu.ku.brc.specify.datamodel.FilteredPushMessage"/>
 		<mapping class="edu.ku.brc.specify.datamodel.GeoCoordDetail"/>
 		<mapping class="edu.ku.brc.specify.datamodel.Geography"/>
 		<mapping class="edu.ku.brc.specify.datamodel.GeographyTreeDef"/>
@@ -116,6 +118,8 @@
 		<mapping class="edu.ku.brc.specify.datamodel.InfoRequest"/>
 		<mapping class="edu.ku.brc.specify.datamodel.Institution"/>
 		<mapping class="edu.ku.brc.specify.datamodel.Journal"/>
+        <mapping class="edu.ku.brc.specify.datamodel.LatLonPolygon"/>
+        <mapping class="edu.ku.brc.specify.datamodel.LatLonPolygonPnt"/>
 		<mapping class="edu.ku.brc.specify.datamodel.LithoStrat"/>
 		<mapping class="edu.ku.brc.specify.datamodel.LithoStratTreeDef"/>
 		<mapping class="edu.ku.brc.specify.datamodel.LithoStratTreeDefItem"/>
@@ -129,6 +133,7 @@
 		<mapping class="edu.ku.brc.specify.datamodel.LocalityDetail"/>
 		<mapping class="edu.ku.brc.specify.datamodel.LocalityAttachment"/>
 		<mapping class="edu.ku.brc.specify.datamodel.LocalityNameAlias"/>
+		<mapping class="edu.ku.brc.specify.datamodel.MorphBankView"/>
 		<mapping class="edu.ku.brc.specify.datamodel.OtherIdentifier"/>
 		<mapping class="edu.ku.brc.specify.datamodel.PaleoContext"/>
 		<mapping class="edu.ku.brc.specify.datamodel.Permit"/>
@@ -150,10 +155,14 @@
 
 		<mapping class="edu.ku.brc.specify.datamodel.SpAppResourceDir"/>
 		<mapping class="edu.ku.brc.specify.datamodel.SpAppResource"/>
-		<mapping class="edu.ku.brc.specify.datamodel.SpAppResourceData"/>
+        <mapping class="edu.ku.brc.specify.datamodel.SpAppResourceData"/>
+        <mapping class="edu.ku.brc.specify.datamodel.SpAuditLog"/>
+        <mapping class="edu.ku.brc.specify.datamodel.SpAuditLogField"/>
 		<mapping class="edu.ku.brc.specify.datamodel.SpecifyUser"/>
 		<mapping class="edu.ku.brc.specify.datamodel.SpExportSchema"/>
 		<mapping class="edu.ku.brc.specify.datamodel.SpExportSchemaItem"/>
+		<mapping class="edu.ku.brc.specify.datamodel.SpExportSchemaItemMapping"/>
+		<mapping class="edu.ku.brc.specify.datamodel.SpExportSchemaMapping"/>
 		<mapping class="edu.ku.brc.specify.datamodel.SpFieldValueDefault"/>
 		<mapping class="edu.ku.brc.specify.datamodel.SpLocaleContainer"/>
 		<mapping class="edu.ku.brc.specify.datamodel.SpLocaleContainerItem"/>
@@ -164,10 +173,11 @@
 		<mapping class="edu.ku.brc.specify.datamodel.SpQueryField"/>
 		<mapping class="edu.ku.brc.specify.datamodel.SpReport"/>
 		<mapping class="edu.ku.brc.specify.datamodel.SpTaskSemaphore"/>
-       <!-- <mapping class="edu.ku.brc.specify.datamodel.SpVersion"/> -->
+        <mapping class="edu.ku.brc.specify.datamodel.SpVersion"/>
         <mapping class="edu.ku.brc.specify.datamodel.SpViewSetObj"/>
-		
-		
+        
+        <mapping class="edu.ku.brc.specify.datamodel.SpVisualQuery"/>
+        
 		<!--
 		<mapping class="edu.ku.brc.specify.datamodel.SpUIAltView"/>
 		<mapping class="edu.ku.brc.specify.datamodel.SpUICell"/>
@@ -190,11 +200,16 @@
 		<mapping class="edu.ku.brc.specify.datamodel.Workbench"/>
 		<mapping class="edu.ku.brc.specify.datamodel.WorkbenchDataItem"/>
 		<mapping class="edu.ku.brc.specify.datamodel.WorkbenchRow"/>
-		<mapping class="edu.ku.brc.specify.datamodel.WorkbenchRowFpMsg"/>
+		<mapping class="edu.ku.brc.specify.datamodel.WorkbenchRowExportedRelationship"/>
 		<mapping class="edu.ku.brc.specify.datamodel.WorkbenchRowImage"/>
 		<mapping class="edu.ku.brc.specify.datamodel.WorkbenchTemplate"/>
 		<mapping class="edu.ku.brc.specify.datamodel.WorkbenchTemplateMappingItem"/>
 		
+		<!-- added by HUH for FP -->
+		<mapping class="edu.ku.brc.specify.datamodel.FilteredPushMessage"/>
+		<mapping class="edu.ku.brc.specify.datamodel.WorkbenchRowFpMsg"/>
+		<!-- end HUH additions -->
+
 		<!--
 		<event type="post-commit-update">
 			<listener class="edu.ku.brc.specify.dbsupport.DBFlushEventListener"/>
@@ -213,11 +228,9 @@
 		<listener type="post-delete" class="edu.ku.brc.specify.dbsupport.PostDeleteEventListener" />
 		-->
 		
-		<!--
-		<listener type="post-commit-update" class="edu.ku.brc.specify.dbsupport.DBSaveEventListener"  />
-		<listener type="post-commit-insert" class="edu.ku.brc.specify.dbsupport.DBSaveEventListener"  />
-		<listener type="post-commit-delete" class="edu.ku.brc.specify.dbsupport.DBFlushEventListener" /> 
-		 -->
+		<listener type="post-commit-update" class="edu.ku.brc.specify.dbsupport.PostUpdateEventListener"  />
+		<listener type="post-commit-insert" class="edu.ku.brc.specify.dbsupport.PostInsertEventListener"  />
+		<listener type="post-commit-delete" class="edu.ku.brc.specify.dbsupport.PostDeleteEventListener" /> 
 		
 	</session-factory>
 

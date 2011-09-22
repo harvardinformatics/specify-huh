@@ -468,7 +468,7 @@ public class Geography extends DataModelObjBase implements java.io.Serializable,
         this.guid = guid;
     }
 
-    @ManyToOne
+    @ManyToOne(cascade = {}, fetch = FetchType.LAZY)
     @JoinColumn(name = "AcceptedID")
     public Geography getAcceptedGeography()
     {
@@ -509,7 +509,7 @@ public class Geography extends DataModelObjBase implements java.io.Serializable,
 	/**
 	 *
 	 */
-    @ManyToOne
+    @ManyToOne(cascade = {}, fetch = FetchType.LAZY)
     @JoinColumn(name = "GeographyTreeDefID", nullable = false)
 	public GeographyTreeDef getDefinition()
 	{
@@ -524,7 +524,7 @@ public class Geography extends DataModelObjBase implements java.io.Serializable,
 	/**
 	 *
 	 */
-    @ManyToOne
+    @ManyToOne(cascade = {}, fetch = FetchType.EAGER)
     @JoinColumn(name = "GeographyTreeDefItemID", nullable = false)
 	public GeographyTreeDefItem getDefinitionItem()
 	{
@@ -543,7 +543,7 @@ public class Geography extends DataModelObjBase implements java.io.Serializable,
 	/**
 	 *
 	 */
-    @ManyToOne
+    @ManyToOne(cascade = {}, fetch = FetchType.LAZY)
     @JoinColumn(name = "ParentID")
 	public Geography getParent()
 	{
@@ -638,7 +638,30 @@ public class Geography extends DataModelObjBase implements java.io.Serializable,
         }
 		return dir;
 	}
+    
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.datamodel.DataModelObjBase#getParentTableId()
+     */
+    @Override
+    @Transient
+    public Integer getParentTableId()
+    {
+        return Geography.getClassTableId();
+    }
 
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.datamodel.DataModelObjBase#getParentId()
+     */
+    @Override
+    @Transient
+    public Integer getParentId()
+    {
+        return parent != null ? parent.getId() : null;
+    }
+    
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.datamodel.Treeable#getFullNameSeparator()
+     */
     @Transient
 	public String getFullNameSeparator()
 	{

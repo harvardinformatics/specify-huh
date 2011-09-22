@@ -22,10 +22,13 @@ package edu.ku.brc.af.ui.forms.formatters;
 import static edu.ku.brc.helpers.XMLHelper.getAttr;
 
 import java.io.File;
+import java.math.BigDecimal;
 import java.security.AccessController;
+import java.util.Calendar;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.Enumeration;
 import java.util.Formatter;
 import java.util.Hashtable;
@@ -42,6 +45,7 @@ import org.dom4j.Element;
 import edu.ku.brc.af.auth.PermissionSettings;
 import edu.ku.brc.af.core.AppContextMgr;
 import edu.ku.brc.af.core.db.DBFieldInfo;
+import edu.ku.brc.af.core.db.DBRelationshipInfo;
 import edu.ku.brc.af.core.db.DBTableIdMgr;
 import edu.ku.brc.af.core.db.DBTableInfo;
 import edu.ku.brc.af.ui.forms.DataObjectGettable;
@@ -77,8 +81,9 @@ public class DataObjFieldFormatMgr
     
     protected static final Logger log = Logger.getLogger(DataObjFieldFormatMgr.class);
     
-    protected static DataObjFieldFormatMgr instance = null;
-    
+    protected static DataObjFieldFormatMgr instance   = null;
+    protected static boolean               doingLocal = false;
+
     protected boolean domFound = false;
 
     protected Hashtable<String,   DataObjSwitchFormatter> formatHash      = new Hashtable<String, DataObjSwitchFormatter>();
@@ -92,9 +97,8 @@ public class DataObjFieldFormatMgr
     
     protected String                                      localFileName   = null;
     protected boolean                                     hasChanged      = false;
-    
-    protected static boolean                              doingLocal      = false;
-    
+    protected AppContextMgr                               appContextMgr      = null;
+
     /**
      * Protected Constructor
      */
@@ -105,9 +109,19 @@ public class DataObjFieldFormatMgr
     }
     
     /**
+     * Constructor
+     */
+    public DataObjFieldFormatMgr(final AppContextMgr appContextMgr)
+    {
+        this.appContextMgr = appContextMgr;
+        init();
+        load();
+    }
+    
+    /**
      * Resets the Mgr so it gets reloaded.
      */
-    public static void reset()
+    public void reset()
     {
         if (instance != null)
         {
@@ -123,17 +137,41 @@ public class DataObjFieldFormatMgr
     {
         localFileName = "backstop"+File.separator+"dataobj_formatters.xml";
         
-        Object[] initTypeData = {"string", String.class, 
-                                 "int",     Integer.class, 
-                                 "float",   Float.class, 
-                                 "double",  Double.class, 
-                                 "boolean", Boolean.class};
+        Object[] initTypeData = {"string",     String.class, 
+                                 "int",        Integer.class, 
+                                 "long",       Long.class, 
+                                 "float",      Float.class, 
+                                 "double",     Double.class, 
+                                 "boolean",    Boolean.class,
+                                 "bigdecimal", BigDecimal.class,
+                                 "short",      Short.class,
+                                 "byte",       Byte.class};
         for (int i=0;i<initTypeData.length;i++)
         {
             typeHash.put((String)initTypeData[i], (Class<?>)initTypeData[i+1]);
             typeHashRevMap.put((Class<?>)initTypeData[i+1], (String)initTypeData[i]);
             i++;
         }
+    }
+    
+    /**
+     * @return the contextMgr
+     */
+    public AppContextMgr getAppContextMgr()
+    {
+        if (appContextMgr == null)
+        {
+            appContextMgr = AppContextMgr.getInstance();
+        }
+        return appContextMgr;
+    }
+
+    /**
+     * @param contextMgr the contextMgr to set
+     */
+    public void setAppContextMgr(AppContextMgr appContextMgr)
+    {
+        this.appContextMgr = appContextMgr;
     }
     
     /**
@@ -330,6 +368,8 @@ public class DataObjFieldFormatMgr
                             }
                         } else
                         {
+                            DBTableInfo tableInfo = switchFormatter.getTableInfo();
+                            
                             List<?> fieldsElements = switchElement.selectNodes("fields");
                             for (Object fieldsObj : fieldsElements)
                             {
@@ -343,18 +383,37 @@ public class DataObjFieldFormatMgr
                                 {
                                     Element  fieldElement  = (Element)fldObj;
                                     String   fieldName     = fieldElement.getTextTrim();
-                                    String   dataTypeStr   = getAttr(fieldElement, "type",      "string");
+                                    String   dataTypeStr   = getAttr(fieldElement, "type",      null);
                                     String   formatStr     = getAttr(fieldElement, "format",    null);
                                     String   sepStr        = getAttr(fieldElement, "sep",       null);
                                     String   formatterName = getAttr(fieldElement, "formatter", null);
                                     String   uifieldformatter = getAttr(fieldElement, "uifieldformatter", null);
                                     
-                                    Class<?> classObj      = typeHash.get(dataTypeStr);
+                                    DBFieldInfo        fieldInfo = tableInfo.getFieldByName(fieldName);
+                                    DBRelationshipInfo relInfo   = fieldInfo == null ? tableInfo.getRelationshipByName(fieldName) : null;
+                                    
+                                    Class<?> classObj;
+                                    if (dataTypeStr == null)
+                                    {
+                                        if (fieldInfo != null)
+                                        {
+                                            classObj = fieldInfo.getDataClass();
+                                        } else
+                                        {
+                                            classObj = String.class;
+                                        }
+                                    } else
+                                    {
+                                        classObj = typeHash.get(dataTypeStr);
+                                    }
+                                    
                                     if (classObj == null)
                                     {
                                         log.error("Couldn't map standard type["+dataTypeStr+"]");
                                     }
                                     fields[inx] = new DataObjDataField(fieldName, classObj, formatStr, sepStr, formatterName, uifieldformatter);
+                                    fields[inx].setDbInfo(tableInfo, fieldInfo, relInfo, true);
+                                    
                                     inx++;
                                 }
                                 switchFormatter.add(new DataObjDataFieldFormat(name, dataClass, isDefault, format, valueStr, fields));
@@ -408,6 +467,20 @@ public class DataObjFieldFormatMgr
             {
                 log.debug("Couldn't get resource [DataObjFormatters]");
             }
+            
+            // This needs to be refactored so we don't have to do this here
+            // I think it is because 'load' is being called from the constructor.
+            if (instance == null)
+            {
+                instance = this;
+            }
+            // now that all formats have been loaded, set table/field/formatter info\
+            // must be executed after the instance is set
+            for ( DataObjSwitchFormatter format : instance.formatHash.values() )
+            {
+                format.setTableAndFieldInfo();
+            }
+            
         } catch (Exception ex)
         {
             edu.ku.brc.af.core.UsageTracker.incrHandledUsageCount();
@@ -487,6 +560,8 @@ public class DataObjFieldFormatMgr
         sb.append("  </aggregators>\n");
         sb.append("\n\n</formatters>\n");
         
+        log.debug(sb.toString());
+        
         saveXML(sb.toString());
     }
     
@@ -506,9 +581,9 @@ public class DataObjFieldFormatMgr
                 
             } catch (Exception ex)
             {
+                ex.printStackTrace();
                 edu.ku.brc.af.core.UsageTracker.incrHandledUsageCount();
                 edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(DataObjFieldFormatMgr.class, ex);
-                ex.printStackTrace();
             }
         }
     }
@@ -677,8 +752,18 @@ public class DataObjFieldFormatMgr
                 StringBuilder strBuf = new StringBuilder(128);
                 for (DataObjDataField field : format.getFields())
                 {
+                    Class<?> fieldClass = field.getType();
+                    
                     Object[] values = getFieldValues(new String[]{field.getName()}, dataObj, getter);
                     Object   value  = values != null ? values[0] : null;
+                    
+                    // NOTE: if the field was a Date or Calendar object it has already been reformatted to a String
+                    // so we change the fieldClass to string so everything works out.
+                    if (fieldClass == Date.class || fieldClass == Calendar.class)
+                    {
+                        fieldClass = String.class;
+                    }
+                    
                     if (value != null)
                     {
                         if (AppContextMgr.isSecurityOn() && value instanceof FormDataObjIFace)
@@ -726,11 +811,10 @@ public class DataObjFieldFormatMgr
                                 strBuf.append(value);
                             }
                             
-                        } else if (value.getClass() == field.getType())
+                        } else if (value.getClass() == fieldClass)
                         {
                             // When format is null then it is a string
-                            if (field.getType() == String.class &&
-                                (field.getFormat() == null || format.equals("%s")))
+                            if (fieldClass == String.class && (field.getFormat() == null || format.equals("%s")))
                             {
                                 if (field.getSep() != null)
                                 {
@@ -744,17 +828,24 @@ public class DataObjFieldFormatMgr
                                 {
                                     strBuf.append(sep);
                                 }
-                                //log.debug("["+value+"]["+format.getFormat()+"]");
-                                args[0] = value;
-                                Formatter formatter = new Formatter();
-                                formatter.format(field.getFormat(), args);
-                                strBuf.append(formatter.toString());
-                                args[0] = null;
+                                //log.debug("["+value+"]["+format+"]");
+                                if (field.getFormat() != null)
+                                {
+                                    args[0] = value;
+                                    Formatter formatter = new Formatter();
+                                    formatter.format(field.getFormat(), args);
+                                    strBuf.append(formatter.toString());
+                                    args[0] = null;
+                                    
+                                } else
+                                {
+                                    strBuf.append(value.toString());
+                                }
                             }
                         } else
                         {
                             log.error("Mismatch of types data retrieved as class["+(value != null ? value.getClass().getSimpleName() : "N/A")+
-                                    "] and the format requires ["+(field != null ? (field.getType() != null ? field.getType().getSimpleName() : "N/A 2") : "N/A")+"]");
+                                    "] and the format requires ["+(field != null ? (fieldClass != null ? fieldClass.getSimpleName() : "N/A 2") : "N/A")+"]");
                         }
                     }
                 }
@@ -855,6 +946,64 @@ public class DataObjFieldFormatMgr
             StringBuilder aggStr = new StringBuilder(128);
             
             Collection<?> itemsAsCol = items;
+//            if (StringUtils.isNotBlank(agg.getOrderFieldName()))
+//            {
+//            	try
+//            	{
+//            		String orderFld = agg.getOrderFieldName();
+//            		String methodName = "get" + orderFld.substring(0,1).toUpperCase() + orderFld.substring(1);
+//            		final Method orderFldGetter = agg.getDataClass().getMethod(methodName, (Class<?>[])null);
+//            		if (Comparable.class.isAssignableFrom(orderFldGetter.getReturnType()))
+//            		{
+//            			List<Object> itemsList = new Vector<Object>();
+//            			itemsList.addAll(itemsAsCol);
+//            			Comparator<Object> comp = new Comparator<Object>() {
+//
+//            				@Override
+//            				public int compare(Object o1, Object o2) {
+//            					if (agg.getDataClass().isAssignableFrom(o1.getClass()) && agg.getDataClass().isAssignableFrom(o2.getClass()))
+//            					{
+//            						try
+//            						{
+//            							Comparable<Object> f1 = (Comparable<Object>)orderFldGetter.invoke(agg.getDataClass().cast(o1), (Object[])null);
+//            							Comparable<Object> f2 = (Comparable<Object>)orderFldGetter.invoke(agg.getDataClass().cast(o2), (Object[])null);
+//            							if (f1 != null)
+//            							{
+//            								return f1.compareTo(f2);
+//            							}
+//            							else if (f2 != null)
+//            							{
+//            								return -1;
+//            							} 
+//            							else
+//            							{
+//            								return 0;
+//            							}
+//            						}  catch (InvocationTargetException tex)
+//            		            	{
+//            		            		return 0;
+//            		            	}catch (IllegalAccessException acex)
+//            		            	{
+//            		            		return 0;
+//            		            	}catch (IllegalArgumentException arex)
+//            		            	{
+//            		            		return 0;
+//            		            	}
+//            					}
+//            					return 0;
+//            				}
+//            			};
+//            			Collections.sort(itemsList, comp);
+//            			itemsAsCol = itemsList;
+//            		}
+//            	} catch (NoSuchMethodException mex)
+//            	{
+//            		//sorting was a bad idea
+//            	} catch (SecurityException sex)
+//            	{
+//            		//sorting was a bad idea
+//            	}            
+//            }
             /*if (items != null && items.size() > 0)
             {
                 if (items.iterator().next() instanceof Comparable<?>)
@@ -921,7 +1070,7 @@ public class DataObjFieldFormatMgr
      */
     public String format(final Object dataObj, final String formatName)
     {
-        if (domFound)
+        if (domFound && StringUtils.isNotEmpty(formatName))
         {
             DataObjSwitchFormatter sf = formatHash.get(formatName);
             if (sf != null)

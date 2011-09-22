@@ -19,6 +19,8 @@
 */
 package edu.ku.brc.specify.tasks.subpane.qb;
 
+import java.util.List;
+
 import org.apache.commons.lang.StringUtils;
 
 import edu.ku.brc.af.core.db.DBRelationshipInfo;
@@ -121,11 +123,17 @@ public class RelQRI extends FieldQRI
      */
     public DataObjDataFieldFormatIFace getDataObjFormatter()
     {
-        DataObjSwitchFormatter sf = DataObjFieldFormatMgr.getInstance().getDataFormatter(getTableInfo().getShortClassName());
-        if (sf != null && sf.isSingle())
-        {
-            return sf.getSingle();
-        }
+    	List<DataObjSwitchFormatter> sfs = DataObjFieldFormatMgr.getInstance().getFormatterList(getTableInfo().getClassObj());
+    	for (DataObjSwitchFormatter sf : sfs)
+    	{
+    		if (sf.isDefault())
+    		{
+    	        if (sf.isSingle())
+    	        {
+    	            return sf.getSingle();
+    	        }
+    		}
+    	}
         return null;
     }
     
@@ -138,7 +146,8 @@ public class RelQRI extends FieldQRI
      * @see edu.ku.brc.specify.tasks.subpane.qb.FieldQRI#getSQLFldSpec(edu.ku.brc.specify.tasks.subpane.qb.TableAbbreviator)
      */
     @Override
-    public String getSQLFldSpec(TableAbbreviator ta, final boolean forWhereClause)
+    public String getSQLFldSpec(TableAbbreviator ta, final boolean forWhereClause, 
+    		final boolean forSchemaExport)
     {
         if (relationshipInfo.getType().equals(DBRelationshipInfo.RelationshipType.OneToMany)
                 || relationshipInfo.getType().equals(DBRelationshipInfo.RelationshipType.ZeroOrOne) /*What about ManyToMany?? And some OneToOnes???*/)
@@ -164,7 +173,7 @@ public class RelQRI extends FieldQRI
         
         //If the formatter only uses one field, just retrieve that field with hql.
         //XXX Formatter.getSingleField() checks for OneToOne rels
-        if (relationshipInfo.getType() == RelationshipType.ManyToOne)
+        if (relationshipInfo.getType() == RelationshipType.ManyToOne && !forWhereClause)
         {
             DataObjDataFieldFormatIFace formatter = getDataObjFormatter();
             if (formatter != null)

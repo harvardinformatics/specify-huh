@@ -79,7 +79,7 @@ public class AccessionAgentBusRules extends BaseBusRules
                     @Override
                     public void valueChanged(ListSelectionEvent e)
                     {
-                        if (!e.getValueIsAdjusting())
+                        if (e != null && !e.getValueIsAdjusting())  // Specify sometimes send a null event for updating the display
                         {
                             checkForDuplicate();
                         }
@@ -140,7 +140,7 @@ public class AccessionAgentBusRules extends BaseBusRules
         if (parentDataObj instanceof Accession)
         {
             Accession accession = (Accession)parentDataObj;
-            if (accession != null && agent != null && role != null && accession.getAccessionAgents() != null)
+            if (agent != null && role != null && accession.getAccessionAgents() != null)
             {
                 hash.clear();
                 for (AccessionAgent aa : accession.getAccessionAgents())
@@ -175,7 +175,10 @@ public class AccessionAgentBusRules extends BaseBusRules
             } 
         }
         
-        String key = agent.getId() + "_" + role;
+        String key = agent.getId() + "_";
+        hash.remove(key);
+        key += (role == null ? "" : role);
+        
         if (hash.get(key) != null)
         {
             UIRegistry.showLocalizedError("ACCESSION_DUP_AGENTROLE", agent.getIdentityTitle(), role);
@@ -195,7 +198,7 @@ public class AccessionAgentBusRules extends BaseBusRules
      * @see edu.ku.brc.af.ui.forms.BaseBusRules#beforeDelete(java.lang.Object, edu.ku.brc.dbsupport.DataProviderSessionIFace)
      */
     @Override
-    public void beforeDelete(Object dataObj, DataProviderSessionIFace session)
+    public Object beforeDelete(Object dataObj, DataProviderSessionIFace session)
     {
         AccessionAgent accAgent = (AccessionAgent)dataObj;
         Agent          agent    = accAgent.getAgent();
@@ -208,6 +211,7 @@ public class AccessionAgentBusRules extends BaseBusRules
             removeById(accAgent.getAccession().getAccessionAgents(), accAgent);
             accAgent.setAccession(null);
         }
+        return dataObj;
     }
 
 }

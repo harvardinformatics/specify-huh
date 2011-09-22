@@ -69,7 +69,6 @@ public class Discipline extends UserGroupScope implements java.io.Serializable, 
     //protected Set<Locality>             localities;
     //protected Set<SpAppResourceDir>     spAppResourceDirs;
     //protected Set<UserPermission>       userPermissions;
-    protected Set<Agent>                agents;
     protected Division                  division;
     
     //protected Set<DeterminationStatus>  determinationStatuss;
@@ -128,7 +127,6 @@ public class Discipline extends UserGroupScope implements java.io.Serializable, 
         //localities            = new HashSet<Locality>();
         //spAppResourceDirs     = new HashSet<SpAppResourceDir>();
         spLocaleContainers    = new HashSet<SpLocaleContainer>();
-        agents                = new HashSet<Agent>();
         spExportSchemas       = new HashSet<SpExportSchema>();
         numberingSchemes      = new HashSet<AutoNumberingScheme>();
      }
@@ -197,7 +195,7 @@ public class Discipline extends UserGroupScope implements java.io.Serializable, 
     /**
      *
      */
-    @ManyToOne
+    @ManyToOne(cascade = {}, fetch = FetchType.LAZY)
     @JoinColumn(name="DataTypeID", nullable=false)
     public DataType getDataType() {
         return this.dataType;
@@ -383,24 +381,6 @@ public class Discipline extends UserGroupScope implements java.io.Serializable, 
     }
 
     /**
-     * @return the agents
-     */
-    @ManyToMany(mappedBy="disciplines")
-    @Cascade( {CascadeType.ALL, CascadeType.DELETE_ORPHAN} )
-    public Set<Agent> getAgents()
-    {
-        return agents;
-    }
-
-    /**
-     * @param agents the agents to set
-     */
-    public void setAgents(Set<Agent> agents)
-    {
-        this.agents = agents;
-    }
-
-    /**
      * @return the division
      */
     @ManyToOne(fetch = FetchType.LAZY)
@@ -485,7 +465,26 @@ public class Discipline extends UserGroupScope implements java.io.Serializable, 
         return buffer.toString();*/
         return StringUtils.isNotEmpty(name) ? name :  type;
     }
+    
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.datamodel.DataModelObjBase#getParentTableId()
+     */
+    @Override
+    @Transient
+    public Integer getParentTableId()
+    {
+        return Division.getClassTableId();
+    }
 
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.datamodel.DataModelObjBase#getParentId()
+     */
+    @Override
+    @Transient
+    public Integer getParentId()
+    {
+        return division != null ? division.getId() : null;
+    }
     
     /* (non-Javadoc)
      * @see edu.ku.brc.specify.datamodel.DataModelObjBase#getIdentityTitle()
@@ -534,7 +533,7 @@ public class Discipline extends UserGroupScope implements java.io.Serializable, 
             return type.compareTo(obj.type);
         }
         // else
-        return timestampCreated.compareTo(obj.timestampCreated);
+        return timestampCreated != null && obj != null && obj.timestampCreated != null ? timestampCreated.compareTo(obj.timestampCreated) : 0;
     }
     
     /**

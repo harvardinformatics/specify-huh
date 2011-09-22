@@ -19,12 +19,21 @@
 */
 package edu.ku.brc.specify.datamodel;
 
+import java.sql.Connection;
+import java.sql.Timestamp;
+import java.text.SimpleDateFormat;
+import java.util.Vector;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.Table;
 import javax.persistence.Transient;
+
+import edu.ku.brc.dbsupport.DBConnection;
+import edu.ku.brc.dbsupport.DBMSUserMgr;
+import edu.ku.brc.specify.conversion.BasicSQLUtils;
 
 /**
 
@@ -188,7 +197,92 @@ public class SpVersion extends DataModelObjBase implements java.io.Serializable
      */
     public static int getClassTableId()
     {
-        return 527;
+        return 529;
+    }
+    
+    /**
+     * @param conn
+     * @param appVerNum
+     * @param dbVersion
+     * @return
+     */
+    private static boolean createInitialRecordInternal(final Connection conn, final String appVerNum, final String dbVersion)
+    {
+        // Create Version Record
+        SimpleDateFormat dateTimeFormatter = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
+        Timestamp        now               = new Timestamp(System.currentTimeMillis());
+
+        String sql = "INSERT INTO spversion (AppName, AppVersion, SchemaVersion, TimestampCreated, TimestampModified, Version) VALUES('Specify', '"+appVerNum+"', '"+dbVersion+"', '" + 
+                     dateTimeFormatter.format(now) + "', '" + dateTimeFormatter.format(now) + "', 1)";
+        
+        return BasicSQLUtils.update(conn, sql) == 1;
+    }
+    
+    /**
+     * @param conn
+     * @param appVerNum
+     * @param dbVersion
+     * @return
+     */
+    public static boolean createInitialRecord(final Connection conn, final String appVerNum, final String dbVersion)
+    {
+        int numRecords = BasicSQLUtils.getNumRecords(conn, "spversion");
+        if (numRecords == 0)
+        {
+            return createInitialRecordInternal(conn, appVerNum, dbVersion);
+        }
+        
+        int recVerNum = 1;
+        int spverId   = 1;
+        Vector<Object[]> row = BasicSQLUtils.query(conn, "SELECT SpVersionID, Version FROM spversion ORDER BY SpVersionID ASC");
+        if (row != null && row.size() > 0)
+        {
+            Object[] r = row.get(0);
+            spverId   = (Integer)r[0];
+            recVerNum = ((Integer)r[1]) + 1;
+            BasicSQLUtils.update(conn, "DELETE FROM spversion WHERE SpVersionID > " + spverId);
+        } else
+        {
+            return createInitialRecordInternal(conn, appVerNum, dbVersion); // fail safe, should never happen
+        }
+        
+        return updateRecord(conn, appVerNum, dbVersion, recVerNum, spverId);
+    }
+
+    /**
+     * @param conn
+     * @param appVerNum
+     * @param dbVersion
+     * @param recVerNum
+     * @param spverId
+     * @return
+     */
+    public static boolean updateRecord(final Connection conn, final String appVerNum, final String dbVersion, final int recVerNum, final int spverId)
+    {
+        // Create Version Record
+
+        String sql = "UPDATE spversion SET AppVersion='"+appVerNum+"', SchemaVersion='"+dbVersion+"', Version="+recVerNum+" WHERE SpVersionID = "+ spverId;
+        
+        return BasicSQLUtils.update(conn, sql) == 1;
+        
+    }
+
+    /**
+     * The original release of 6.3.00 had a bug that set the SchemaVersion version to the AppVersion number.
+     * @param conn the current connection
+     * @return true on success
+     */
+    public static boolean fixSchemaNumber(final DBConnection dbConn)
+    {
+        DBMSUserMgr mgr  = DBMSUserMgr.getInstance();
+        Connection  conn = dbConn.createConnection();
+        mgr.setConnection(conn);
+        if (mgr.doesDBHaveTable("spversion"))
+        {
+            String sql = "UPDATE spversion SET SchemaVersion='1.5' WHERE SchemaVersion ='6.3.00'";
+            return BasicSQLUtils.update(conn, sql) == 1;
+        }
+        return true;
     }
 
 }

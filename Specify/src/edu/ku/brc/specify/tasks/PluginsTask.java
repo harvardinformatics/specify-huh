@@ -19,7 +19,6 @@
 */
 package edu.ku.brc.specify.tasks;
 
-import static edu.ku.brc.helpers.XMLHelper.readDOMFromConfigDir;
 import static edu.ku.brc.ui.UIRegistry.getResourceString;
 
 import java.awt.Frame;
@@ -27,6 +26,7 @@ import java.awt.datatransfer.DataFlavor;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
+import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.List;
@@ -55,12 +55,12 @@ import edu.ku.brc.af.core.TaskMgr;
 import edu.ku.brc.af.core.ToolBarItemDesc;
 import edu.ku.brc.af.prefs.AppPreferences;
 import edu.ku.brc.af.prefs.PreferencesDlg;
-
 import edu.ku.brc.af.tasks.subpane.HtmlDescPane;
 import edu.ku.brc.af.ui.db.ViewBasedDisplayDialog;
 import edu.ku.brc.af.ui.db.ViewBasedDisplayIFace;
 import edu.ku.brc.dbsupport.RecordSetIFace;
 import edu.ku.brc.dbsupport.TableModel2Excel;
+import edu.ku.brc.helpers.XMLHelper;
 import edu.ku.brc.specify.datamodel.CollectionObject;
 import edu.ku.brc.specify.datamodel.Discipline;
 import edu.ku.brc.specify.rstools.RecordSetToolsIFace;
@@ -72,6 +72,7 @@ import edu.ku.brc.ui.RolloverCommand;
 import edu.ku.brc.ui.ToolBarDropDownBtn;
 import edu.ku.brc.ui.UIHelper;
 import edu.ku.brc.ui.UIRegistry;
+import edu.ku.brc.util.Pair;
 
 /**
  * A task to handle RecordSet data exporting.  This task provides a pluggable
@@ -244,9 +245,13 @@ public class PluginsTask extends BaseTask
                         //    roc.addDropDataFlavor(new DataFlavorTableExt(RecordSetTask.class, "Record_Set", tableId));
                         //}
                         
-                        DataFlavorTableExt df = new DataFlavorTableExt(RecordSetTask.RECORDSET_FLAVOR.getDefaultRepresentationClass(), 
-                                                                       RecordSetTask.RECORDSET_FLAVOR.getHumanPresentableName(), tool.getTableIds());
-                        roc.addDropDataFlavor(df);
+                        int[] tableIds = tool.getTableIds();
+                        if (tableIds != null && tableIds.length > 0)
+                        {
+                            DataFlavorTableExt df = new DataFlavorTableExt(RecordSetTask.RECORDSET_FLAVOR.getDefaultRepresentationClass(), 
+                                                                           RecordSetTask.RECORDSET_FLAVOR.getHumanPresentableName(), tableIds);
+                            roc.addDropDataFlavor(df);
+                        }
                         
                         toolsNavBoxList.add(nbi);
                     }
@@ -271,18 +276,24 @@ public class PluginsTask extends BaseTask
         //exportersRegistry.add(ExportToFile.class);
         //exportersRegistry.add(BGMRecordSetProcessor.class);
         
-        try
+        String fileName = "rstools_registry.xml";
+        
+        HashMap<String, Pair<String, Boolean>> rsPlugins = new HashMap<String, Pair<String, Boolean>>();
+        
+        String path = XMLHelper.getConfigDirPath(fileName);
+        readToolRegistry(path, rsPlugins);
+        
+        path = AppPreferences.getLocalPrefs().getDirPath() + File.separator + fileName;
+        readToolRegistry(path, rsPlugins);
+        
+        for (String rspName : rsPlugins.keySet())
         {
-            Element root  = readDOMFromConfigDir("rstools_registry.xml");
-            List<?> boxes = root.selectNodes("/tools/tool");
-            for ( Iterator<?> iter = boxes.iterator(); iter.hasNext(); )
+            Pair<String, Boolean> p = rsPlugins.get(rspName);
+            if (p != null)
             {
-                org.dom4j.Element pluginElement = (org.dom4j.Element)iter.next();
-
-                String clsName = pluginElement.attributeValue("class");
                 try
                 {
-                    Class<? extends RecordSetToolsIFace> cls = Class.forName(clsName).asSubclass(RecordSetToolsIFace.class);
+                    Class<? extends RecordSetToolsIFace> cls = Class.forName(p.first).asSubclass(RecordSetToolsIFace.class);
                     toolsRegistryList.add(cls);
                     
                 } catch (Exception ex)
@@ -295,6 +306,35 @@ public class PluginsTask extends BaseTask
                     // go to the next tool
                     continue;
                     // XXX Do we need a dialog here ???
+                }
+            }
+        }
+    }
+
+    /**
+     * @param path
+     * @param rsPlugins
+     */
+    protected void readToolRegistry(final String path, final HashMap<String, Pair<String, Boolean>> rsPlugins)
+    {
+        try
+        {
+            File file = new File(path);
+            if (file.exists())
+            {
+                Element root  = XMLHelper.readFileToDOM4J(file);
+                List<?> boxes = root.selectNodes("/tools/tool");
+                for ( Iterator<?> iter = boxes.iterator(); iter.hasNext(); )
+                {
+                    org.dom4j.Element pluginElement = (org.dom4j.Element)iter.next();
+    
+                    String  rspName = pluginElement.attributeValue("name");
+                    String  clsName = pluginElement.attributeValue("class");
+                    Boolean addToUI = XMLHelper.getAttr(pluginElement, "addui", false);
+                    if (StringUtils.isNotEmpty(rspName) && StringUtils.isNotEmpty(clsName))
+                    {
+                        rsPlugins.put(rspName, new Pair<String, Boolean>(clsName, addToUI));
+                    }
                 }
             }
             
@@ -376,7 +416,7 @@ public class PluginsTask extends BaseTask
      */
     protected void processToolDataFromList(final Object data, final Properties requestParams, final RecordSetToolsIFace exporter)
     {
-        if (data instanceof List)
+        if (data instanceof List<?>)
         {
             doProcessTool(exporter, (List<?>)data, requestParams);
         }
@@ -485,13 +525,11 @@ public class PluginsTask extends BaseTask
     public List<ToolBarItemDesc> getToolBarItems()
     {
         String label    = getResourceString("Plugins");
-        //String iconName = "Plugins";
         String hint     = getResourceString("export_hint");
         toolBarBtn      = createToolbarButton(label, iconName, hint);
         
         toolbarItems = new Vector<ToolBarItemDesc>();
-        String ds = AppContextMgr.getInstance().getClassObject(Discipline.class).getType();
-        if (AppPreferences.getRemote().getBoolean("ExportTask.OnTaskbar"+"."+ds, false))
+        if (AppPreferences.getRemote().getBoolean("PLUGINS_TASK", false))
         {
             toolbarItems.add(new ToolBarItemDesc(toolBarBtn));
         }
@@ -517,6 +555,7 @@ public class PluginsTask extends BaseTask
             JMenuItem mi        = UIHelper.createLocalizedMenuItem(menuTitle, mneu, desc, true, null);
             mi.addActionListener(new ActionListener()
             {
+                @Override
                 public void actionPerformed(ActionEvent ae)
                 {
                     PluginsTask.this.requestContext();
@@ -524,6 +563,7 @@ public class PluginsTask extends BaseTask
             });
             MenuItemDesc rsMI = new MenuItemDesc(mi, menuDesc);
             rsMI.setPosition(MenuItemDesc.Position.After);
+            rsMI.setSepPosition(MenuItemDesc.Position.Before);
             menuItems.add(rsMI);
         }
         
@@ -562,7 +602,7 @@ public class PluginsTask extends BaseTask
                 
                 // XXX Probably need to also get RSs with Localisties and or CollectingEvents
 
-                data = getRecordSetOfColObj(null, colObjRSList.size());
+                data = getRecordSetOfDataObjs(null, CollectionObject.class, "catalogNumber", colObjRSList.size());
             }
             
             processToolDataFromRecordSet(data, cmdAction.getProperties(), tool);

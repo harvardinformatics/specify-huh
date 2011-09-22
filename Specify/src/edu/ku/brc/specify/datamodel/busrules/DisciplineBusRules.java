@@ -24,6 +24,7 @@ import static edu.ku.brc.specify.config.init.DataBuilder.createGeologicTimePerio
 import static edu.ku.brc.specify.config.init.DataBuilder.createLithoStratTreeDef;
 import static edu.ku.brc.specify.config.init.DataBuilder.createTaxonTreeDef;
 import static edu.ku.brc.ui.UIRegistry.getLocalizedMessage;
+import static edu.ku.brc.ui.UIRegistry.getResourceString;
 
 import java.awt.Component;
 import java.awt.Frame;
@@ -36,6 +37,8 @@ import java.util.Properties;
 import java.util.Vector;
 
 import javax.swing.JButton;
+import javax.swing.JDialog;
+import javax.swing.SwingUtilities;
 import javax.swing.SwingWorker;
 
 import org.hibernate.Session;
@@ -174,14 +177,58 @@ public class DisciplineBusRules extends BaseBusRules implements CommandListener
     }
     
     /**
+     * @param name
+     * @return
+     */
+    private int getNameCount(final String name)
+    {
+        return BasicSQLUtils.getCountAsInt(String.format("SELECT COUNT(*) FROM discipline WHERE Name = '%s'", name));
+    }
+    
+    /* (non-Javadoc)
+     * @see edu.ku.brc.af.ui.forms.BaseBusRules#isOkToSave(java.lang.Object, edu.ku.brc.dbsupport.DataProviderSessionIFace)
+     */
+    @Override
+    public boolean isOkToSave(final Object dataObj, final DataProviderSessionIFace session)
+    {
+        reasonList.clear();
+        
+        if (formViewObj != null)
+        {
+            Component comp = formViewObj.getControlByName("name");
+            if (comp instanceof ValTextField)
+            {
+                Discipline discipline = (Discipline)formViewObj.getDataObj();
+                Integer    dspId      = discipline.getId();
+                
+                String name = ((ValTextField)comp).getText();
+                int cnt = getNameCount(name);
+                if (cnt == 0 || (cnt == 1 && dspId != null))
+                {
+                    return true;
+                }
+               reasonList.add(UIRegistry.getLocalizedMessage("DISPNAME_DUP", name));
+            }
+        }
+        return false;
+    }
+
+    /**
      * 
      */
     private void addNewDiscipline()
     {
+        if (!DivisionBusRules.checkForParentSave(formViewObj, Division.getClassTableId()))
+        {
+            return;
+        }
+        
         if (!DivisionBusRules.askForExitonChange("ASK_TO_ADD_DISP"))
         {
             return;
         }
+        
+        UIRegistry.loadAndPushResourceBundle("specifydbsetupwiz");
         
         UIRegistry.writeSimpleGlassPaneMsg("Building Discipline...", 20); // I18N
         isOKToCont = true;
@@ -227,7 +274,7 @@ public class DisciplineBusRules extends BaseBusRules implements CommandListener
         wizardPanel.processDataForNonBuild();
         
         final BuildSampleDatabase bldSampleDB   = new BuildSampleDatabase();
-        final ProgressFrame       progressFrame = bldSampleDB.createProgressFrame("Creating Disicipline");
+        final ProgressFrame       progressFrame = bldSampleDB.createProgressFrame("Creating Disicipline"); // I18N
         progressFrame.turnOffOverAll();
         
         progressFrame.setProcess(0, 17);
@@ -279,22 +326,7 @@ public class DisciplineBusRules extends BaseBusRules implements CommandListener
                     
                     bldSampleDB.setSession(session);
                     
-                    
-                    Agent newUserAgent = null;
-                    try
-                    {
-                        newUserAgent = (Agent)userAgent.clone();
-                        specifyAdminUser.getAgents().add(newUserAgent);
-                        newUserAgent.setSpecifyUser(specifyAdminUser);
-                        session.saveOrUpdate(newUserAgent);
-                        session.saveOrUpdate(specifyAdminUser);
-                        
-                    } catch (CloneNotSupportedException ex)
-                    {
-                        ex.printStackTrace();
-                    }
-                    
-                    pair = bldSampleDB.createEmptyDisciplineAndCollection(division, props, dispType, newUserAgent, 
+                    pair = bldSampleDB.createEmptyDisciplineAndCollection(division, props, dispType, userAgent, 
                                                                           specifyAdminUser, true, true);
                     
                     if (pair != null && pair.first != null && pair.second != null)
@@ -494,14 +526,68 @@ public class DisciplineBusRules extends BaseBusRules implements CommandListener
                             collBR.okToDelete(coll, null, null);
                         }*/
                         
-                        SpecifyDeleteHelper delHelper = new SpecifyDeleteHelper(true);
-                        delHelper.delRecordFromTable(Discipline.class, discipline.getId(), true);
-                        delHelper.done();
+                        final Integer             dispId    = discipline.getId();
+                        final SpecifyDeleteHelper delHelper = new SpecifyDeleteHelper();
                         
-                        // This is called instead of calling 'okToDelete' because we had the SpecifyDeleteHelper
-                        // delete the actual dataObj and now we tell the form to remove the dataObj from
-                        // the form's list and them update the controller appropriately
-                        formViewObj.updateAfterRemove(true); // true removes item from list and/or set
+                        SwingWorker<Integer, Integer> worker = new SwingWorker<Integer, Integer>()
+                        {
+                            /* (non-Javadoc)
+                             * @see javax.swing.SwingWorker#doInBackground()
+                             */
+                            @Override
+                            protected Integer doInBackground() throws Exception
+                            {
+                                try
+                                {
+                                    delHelper.delRecordFromTable(Discipline.class, dispId, true);
+                                    delHelper.done(false);
+                                    
+                                } catch (Exception ex)
+                                {
+                                    ex.printStackTrace();
+                                    edu.ku.brc.af.core.UsageTracker.incrHandledUsageCount();
+                                    edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(DivisionBusRules.class, ex);
+                                }
+                                return null;
+                            }
+
+                            /* (non-Javadoc)
+                             * @see javax.swing.SwingWorker#done()
+                             */
+                            @Override
+                            protected void done()
+                            {
+                                super.done();
+                                
+                                SwingUtilities.invokeLater(new Runnable()
+                                {
+                                    @Override
+                                    public void run()
+                                    {
+                                     // This is called instead of calling 'okToDelete' because we had the SpecifyDeleteHelper
+                                        // delete the actual dataObj and now we tell the form to remove the dataObj from
+                                        // the form's list and them update the controller appropriately
+                                        if (formViewObj != null)
+                                        {
+                                            formViewObj.updateAfterRemove(true); // true removes item from list and/or set
+                                        }
+                                        
+                                        UIRegistry.showLocalizedMsg("Specify.ABT_EXIT");
+                                        CommandDispatcher.dispatch(new CommandAction(BaseTask.APP_CMD_TYPE, BaseTask.APP_REQ_EXIT));
+                                    }
+                                });
+                            }
+                        };
+                        String title = String.format("%s %s", getResourceString("DELETING"), DBTableIdMgr.getInstance().getTitleForId(Discipline.getClassTableId()));
+                        JDialog dlg = delHelper.initProgress(worker, title);
+
+                        worker.execute();
+                        
+                        UIHelper.centerAndShow(dlg);
+                        
+                        System.out.println("");
+                        //worker.get();
+                        
                         
                     } catch (Exception ex)
                     {
@@ -616,6 +702,18 @@ public class DisciplineBusRules extends BaseBusRules implements CommandListener
     }
 
     /* (non-Javadoc)
+     * @see edu.ku.brc.af.ui.forms.BaseBusRules#afterDeleteCommit(java.lang.Object)
+     */
+    @Override
+    public void afterDeleteCommit(Object dataObj)
+    {
+        super.afterDeleteCommit(dataObj);
+        
+        UIRegistry.showLocalizedMsg("Specify.ABT_EXIT");
+        CommandDispatcher.dispatch(new CommandAction(BaseTask.APP_CMD_TYPE, BaseTask.APP_REQ_EXIT));
+    }
+
+    /* (non-Javadoc)
      * @see edu.ku.brc.ui.forms.BusinessRulesIFace#deleteMsg(java.lang.Object)
      */
     @Override
@@ -698,7 +796,7 @@ public class DisciplineBusRules extends BaseBusRules implements CommandListener
      * @see edu.ku.brc.af.ui.forms.BaseBusRules#beforeDelete(java.lang.Object, edu.ku.brc.dbsupport.DataProviderSessionIFace)
      */
     @Override
-    public void beforeDelete(Object dataObj, DataProviderSessionIFace session)
+    public Object beforeDelete(Object dataObj, DataProviderSessionIFace session)
     {
         super.beforeDelete(dataObj, session);
         
@@ -802,6 +900,7 @@ public class DisciplineBusRules extends BaseBusRules implements CommandListener
         }
 
 */
+        return dataObj;
     }
     
     /*public void disciplinehasBeenAdded(Division division, final Discipline discipline)
@@ -815,12 +914,12 @@ public class DisciplineBusRules extends BaseBusRules implements CommandListener
     @Override
     public void doCommand(final CommandAction cmdAction)
     {
-        if (cmdAction.isAction("DivisionSaved"))
+        if (cmdAction.isAction("DisciplineSaved"))
         {
             Division divsion = (Division)cmdAction.getData();
             formViewObj.getMVParent().getMultiViewParent().setData(divsion);
             
-        } else if (cmdAction.isAction("DivisionError"))
+        } else if (cmdAction.isAction("DisciplineError"))
         {
         }
         

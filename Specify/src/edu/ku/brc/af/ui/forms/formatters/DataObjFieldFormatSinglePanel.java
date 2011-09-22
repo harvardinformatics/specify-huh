@@ -56,6 +56,7 @@ import javax.swing.text.BadLocationException;
 import javax.swing.text.DefaultStyledDocument;
 import javax.swing.text.Document;
 import javax.swing.text.Element;
+import javax.swing.text.PlainDocument;
 import javax.swing.text.SimpleAttributeSet;
 import javax.swing.text.StyleConstants;
 import javax.swing.tree.DefaultMutableTreeNode;
@@ -147,6 +148,8 @@ public class DataObjFieldFormatSinglePanel extends DataObjFieldFormatPanel
         addFieldPB.add(sepLbl,      cc.xy(1,1));
         addFieldPB.add(sepText,     cc.xy(3,1));
         addFieldPB.add(addFieldBtn, cc.xy(5,1));
+        
+        sepText.setDocument(new FilteredDoc());
         
         addFieldBtn.setEnabled(false);
         sepLbl.setEnabled(false);
@@ -259,14 +262,11 @@ public class DataObjFieldFormatSinglePanel extends DataObjFieldFormatPanel
      */
     public void addFormatTextListeners()
     {
-        formatEditor.getDocument().addDocumentListener(new DocumentListener()
+        formatEditor.getDocument().addDocumentListener(new DocumentAdaptor()
         {
-            public void removeUpdate (DocumentEvent e) { changed(e); }
-            public void insertUpdate (DocumentEvent e) { changed(e); }
-            public void changedUpdate(DocumentEvent e) { changed(e); }
-
-            private void changed(@SuppressWarnings("unused") DocumentEvent e)
-            { 
+            @Override
+            protected void changed(DocumentEvent e)
+            {
                 if (!ignoreFmtChange)
                 {
                     formatChanged();
@@ -354,31 +354,39 @@ public class DataObjFieldFormatSinglePanel extends DataObjFieldFormatPanel
      */
     protected void fillWithObjFormatter(final DataObjDataFieldFormatIFace singleFormatter)
     {
-        formatEditor.setText("");
-        if (singleFormatter == null)
-        {
-            return;
-        }
-        
         ignoreFmtChange = true;
-        
-        Document doc = formatEditor.getDocument();
-        DataObjDataField[] fields = singleFormatter.getFields();
-        if (fields == null)
+        try
         {
-            return;
-        }
-        
-        for (DataObjDataField field : fields)
-        {
-            try
+            formatEditor.setText("");
+            
+            if (singleFormatter == null)
             {
-                doc.insertString(doc.getLength(), field.getSep(), null);
-                insertFieldIntoTextEditor(new DataObjDataFieldWrapper(field));
+                return;
             }
-            catch (BadLocationException ble) {}
+            
+            
+            Document doc = formatEditor.getDocument();
+            DataObjDataField[] fields = singleFormatter.getFields();
+            if (fields == null)
+            {
+                return;
+            }
+            
+            for (DataObjDataField field : fields)
+            {
+                try
+                {
+                    doc.insertString(doc.getLength(), field.getSep(), null);
+                    
+                    //System.err.println("["+field.getName()+"]["+field.getSep()+"]["+field.getFormat()+"]["+field.toString()+"]");
+                    insertFieldIntoTextEditor(new DataObjDataFieldWrapper(field));
+                }
+                catch (BadLocationException ble) {}
+            }
+        } finally
+        {
+            ignoreFmtChange = false;
         }
-        ignoreFmtChange = false;
     }
     
     /**
@@ -403,6 +411,7 @@ public class DataObjFieldFormatSinglePanel extends DataObjFieldFormatPanel
         {
             this.dataObjFieldWrapper = dataObjFieldWrapper;
             
+            //System.err.println("-------> ["+dataObjFieldWrapper.toString()+"]");
             setText(dataObjFieldWrapper.toString());
             setCursor(Cursor.getDefaultCursor());
             setFont(new Font("Arial", Font.PLAIN, 11));
@@ -595,8 +604,10 @@ public class DataObjFieldFormatSinglePanel extends DataObjFieldFormatPanel
             Element      element = doc.getCharacterElement(i);
             AttributeSet attrs   = element.getAttributes();
             Object       obj     = attrs.getAttribute(StyleConstants.ComponentAttribute);
+            int cnt = 0;
             if (obj instanceof FieldDefinitionComp)
             {
+                //System.out.println(cnt+"  "+obj);
                 // found button at the current position
                 // create corresponding field
                 String sepStr = (lastFieldPos < i - 1) ? text.substring(lastFieldPos, i) : "";
@@ -607,6 +618,7 @@ public class DataObjFieldFormatSinglePanel extends DataObjFieldFormatPanel
                 fields.add(fmtField);
                 
                 lastFieldPos = i+1;
+                cnt++;
             }
         }
 
@@ -621,5 +633,30 @@ public class DataObjFieldFormatSinglePanel extends DataObjFieldFormatPanel
         
         DataObjDataFieldFormat singleFormatter = fieldsArray.length == 0 ? null : new DataObjDataFieldFormat("", tableInfo.getClassObj(), false, "", "", fieldsArray);
         formatter.setSingle(singleFormatter);
+    }
+    
+    class FilteredDoc extends PlainDocument
+    {
+        /**
+         * 
+         */
+        public FilteredDoc()
+        {
+            super();
+        }
+        
+        /* (non-Javadoc)
+         * @see javax.swing.text.Document#insertString(int, java.lang.String, javax.swing.text.AttributeSet)
+         */
+        @Override
+        public void insertString(final int offset, final String strArg, final AttributeSet attr) throws BadLocationException
+        {
+            if (!StringUtils.contains(strArg, '\'') && 
+                !StringUtils.contains(strArg, '"') && 
+                !StringUtils.contains(strArg, '`'))
+            {
+                super.insertString(offset, strArg, attr);
+            }
+        }
     }
 }

@@ -23,6 +23,7 @@ import java.io.Serializable;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
@@ -93,7 +94,7 @@ public class TaxonAttachment extends DataModelObjBase implements ObjectAttachmen
         this.taxonAttachmentId = taxonAttachmentId;
     }
 
-    @ManyToOne
+    @ManyToOne(cascade = {}, fetch = FetchType.LAZY)
     @JoinColumn(name = "TaxonID", nullable = false)
     public Taxon getTaxon()
     {
@@ -105,8 +106,8 @@ public class TaxonAttachment extends DataModelObjBase implements ObjectAttachmen
         this.taxon = taxon;
     }
 
-    @ManyToOne()
-    @Cascade( {CascadeType.SAVE_UPDATE, CascadeType.MERGE, CascadeType.LOCK} )
+    @ManyToOne(cascade = {}, fetch = FetchType.EAGER)
+    @Cascade( { CascadeType.ALL, CascadeType.DELETE_ORPHAN })
     @JoinColumn(name = "AttachmentID", nullable = false)
     @OrderBy("ordinal ASC")
     public Attachment getAttachment()
@@ -178,7 +179,27 @@ public class TaxonAttachment extends DataModelObjBase implements ObjectAttachmen
     {
         return taxonAttachmentId;
     }
+    
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.datamodel.DataModelObjBase#getParentTableId()
+     */
+    @Override
+    @Transient
+    public Integer getParentTableId()
+    {
+        return Taxon.getClassTableId();
+    }
 
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.datamodel.DataModelObjBase#getParentId()
+     */
+    @Override
+    @Transient
+    public Integer getParentId()
+    {
+        return taxon != null ? taxon.getId() : null;
+    }
+    
     /* (non-Javadoc)
      * @see edu.ku.brc.specify.datamodel.DataModelObjBase#getTableId()
      */

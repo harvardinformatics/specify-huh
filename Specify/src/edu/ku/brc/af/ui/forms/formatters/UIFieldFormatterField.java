@@ -93,7 +93,7 @@ public class UIFieldFormatterField implements Cloneable
         this.incrementer = incrementer;
         this.byYear      = byYear;
         
-        if (incrementer)
+        if (incrementer && type == FieldType.numeric)
         {
             this.value = UIFieldFormatterMgr.getFormatterPattern(incrementer, null, size);
         }
@@ -238,7 +238,7 @@ public class UIFieldFormatterField implements Cloneable
 		        sample = String.format("%0"+size+"d", 1);
 		    } else
 		    {
-		        return anyNumericSample.substring(0, value.length());
+		        return anyNumericSample.substring(0, size);
 		    }
 		}
 
@@ -285,6 +285,22 @@ public class UIFieldFormatterField implements Cloneable
     {
         return byYear;
     }
+    
+    /**
+     * @return true if type is separator
+     */
+    public boolean isSeparator()
+    {
+        return type == FieldType.separator;
+    }
+    
+    /**
+     * @return true if type is separator
+     */
+    public boolean isConstant()
+    {
+        return type == FieldType.constant;
+    }
 
     /* (non-Javadoc)
      * @see java.lang.Object#toString()
@@ -323,6 +339,10 @@ public class UIFieldFormatterField implements Cloneable
 	public void setType(FieldType type)
     {
         this.type = type;
+        if (incrementer && type != FieldType.numeric)
+        {
+            incrementer = false;
+        }
     }
 
     public void setSize(int size)

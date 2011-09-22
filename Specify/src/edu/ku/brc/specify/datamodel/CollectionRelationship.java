@@ -29,6 +29,8 @@ import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 import javax.persistence.Transient;
 
+import org.apache.commons.lang.StringUtils;
+
 /**
  * @author rods
  *
@@ -179,13 +181,33 @@ public class CollectionRelationship extends DataModelObjBase implements java.io.
     {
         return collectionRelationshipId;
     }
+   
+    
+    /* (non-Javadoc)
+     * @see edu.ku.brc.ui.forms.FormDataObjIFace#getTableId()
+     */
+    @Override
+    @Transient
+    public int getTableId()
+    {
+        return getClassTableId();
+    }
 
     /* (non-Javadoc)
-     * @see edu.ku.brc.specify.datamodel.DataModelObjBase#getTableId()
+     * @see edu.ku.brc.specify.datamodel.DataModelObjBase#getIdentityTitle()
      */
     @Transient
     @Override
-    public int getTableId()
+    public String getIdentityTitle()
+    {
+        String relTypName = collectionRelType != null ? collectionRelType.getName() : null;
+        return StringUtils.isNotEmpty(relTypName) ? relTypName : super.getIdentityTitle();
+    }
+    
+    /**
+     * @return the Table ID for the class.
+     */
+    public static int getClassTableId()
     {
         return 99;
     }

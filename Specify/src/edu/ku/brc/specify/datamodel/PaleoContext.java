@@ -21,6 +21,7 @@ package edu.ku.brc.specify.datamodel;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.Vector;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -28,12 +29,15 @@ import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
+import javax.persistence.Lob;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.persistence.Transient;
 
 import org.hibernate.annotations.Index;
+
+import edu.ku.brc.specify.conversion.BasicSQLUtils;
 
 /**
  * @author rods
@@ -59,6 +63,8 @@ public class PaleoContext extends CollectionMember implements Cloneable
     protected String  direction;     // "up" or "down"
     protected String  positionState; // float or in-situ
     
+    protected String  remarks;
+    
     protected String  text1;
     protected String  text2;
     protected Boolean yesNo1;
@@ -69,6 +75,7 @@ public class PaleoContext extends CollectionMember implements Cloneable
     protected LithoStrat            lithoStrat;
     protected GeologicTimePeriod    bioStrat;
     protected GeologicTimePeriod    chronosStrat;
+    protected GeologicTimePeriod    chronosStratEnd;
     
     /**
      * Constructor.
@@ -113,12 +120,18 @@ public class PaleoContext extends CollectionMember implements Cloneable
         direction      = null;
         positionState  = null;
         
+        remarks        = null;
         text1          = null;
         text2          = null;
         yesNo1         = null;
         yesNo2         = null;
         
         collectionObjects = new HashSet<CollectionObject>();
+        
+        lithoStrat       = null;
+        bioStrat         = null;
+        chronosStrat     = null;
+        chronosStratEnd  = null;
 
     }
 
@@ -211,11 +224,24 @@ public class PaleoContext extends CollectionMember implements Cloneable
     {
         this.collectionObjects = collectionObjects;
     }
+    
+    /**
+     * 
+     */
+    @Lob
+    @Column(name = "Remarks", length = 4096)
+    public String getRemarks() {
+        return this.remarks;
+    }
+    
+    public void setRemarks(String remarks) {
+        this.remarks = remarks;
+    }
 
     /**
      * @return the text1
      */
-    @Column(name="Text1", unique=false, nullable=true, insertable=true, updatable=true, length=32)
+    @Column(name="Text1", unique=false, nullable=true, insertable=true, updatable=true, length=64)
     public String getText1()
     {
         return text1;
@@ -232,7 +258,7 @@ public class PaleoContext extends CollectionMember implements Cloneable
     /**
      * @return the text2
      */
-    @Column(name="Text2", unique=false, nullable=true, insertable=true, updatable=true, length=32)
+    @Column(name="Text2", unique=false, nullable=true, insertable=true, updatable=true, length=64)
     public String getText2()
     {
         return text2;
@@ -292,7 +318,7 @@ public class PaleoContext extends CollectionMember implements Cloneable
     /**
      * @return the bioStrat
      */
-    @ManyToOne
+    @ManyToOne(cascade = {}, fetch = FetchType.LAZY)
     @JoinColumn(name="BioStratID", unique=false, nullable=true, insertable=true, updatable=true)
     public GeologicTimePeriod getBioStrat()
     {
@@ -310,10 +336,7 @@ public class PaleoContext extends CollectionMember implements Cloneable
     /**
      * @return the chronosStrat
      */
-    /**
-    *
-    */
-    @ManyToOne
+    @ManyToOne(cascade = {}, fetch = FetchType.LAZY)
     @JoinColumn(name="ChronosStratID", unique=false, nullable=true, insertable=true, updatable=true)
     public GeologicTimePeriod getChronosStrat()
     {
@@ -329,9 +352,27 @@ public class PaleoContext extends CollectionMember implements Cloneable
     }
 
     /**
+     * @return the chronosStratEnd
+     */
+    @ManyToOne(cascade = {}, fetch = FetchType.LAZY)
+    @JoinColumn(name="ChronosStratEndID", unique=false, nullable=true, insertable=true, updatable=true)
+    public GeologicTimePeriod getChronosStratEnd()
+    {
+        return chronosStratEnd;
+    }
+
+    /**
+     * @param chronosStratEnd the chronosStratEnd to set
+     */
+    public void setChronosStratEnd(GeologicTimePeriod chronosStratEnd)
+    {
+        this.chronosStratEnd = chronosStratEnd;
+    }
+
+    /**
      * @return the lithoStrat
      */
-    @ManyToOne
+    @ManyToOne(cascade = {}, fetch = FetchType.LAZY)
     @JoinColumn(name="LithoStratID", unique=false, nullable=true, insertable=true, updatable=true)
     public LithoStrat getLithoStrat()
     {
@@ -365,7 +406,31 @@ public class PaleoContext extends CollectionMember implements Cloneable
     {
         return paleoContextId;
     }
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.datamodel.DataModelObjBase#getParentTableId()
+     */
+    @Override
+    @Transient
+    public Integer getParentTableId()
+    {
+        return CollectionObject.getClassTableId();
+    }
 
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.datamodel.DataModelObjBase#getParentId()
+     */
+    @Override
+    @Transient
+    public Integer getParentId()
+    {
+        Vector<Object> ids = BasicSQLUtils.querySingleCol("SELECT CollectionObjectID FROM collectionobject WHERE PaleoContextID = "+ paleoContextId);
+        if (ids.size() == 1)
+        {
+            return (Integer)ids.get(0);
+        }
+        return null;
+    }
+    
     /* (non-Javadoc)
      * @see edu.ku.brc.ui.forms.FormDataObjIFace#getTableId()
      */
@@ -391,7 +456,6 @@ public class PaleoContext extends CollectionMember implements Cloneable
     public Object clone() throws CloneNotSupportedException
     {
         PaleoContext pc = (PaleoContext)super.clone();
-        pc.init();
         
         pc.paleoContextId    = null;
         pc.collectionObjects = new HashSet<CollectionObject>();

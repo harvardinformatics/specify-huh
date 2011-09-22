@@ -23,6 +23,7 @@ import java.io.Serializable;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
@@ -55,11 +56,11 @@ public class CollectingEventAttachment extends CollectionMember implements Objec
                                                                            Serializable,
                                                                            Comparable<CollectingEventAttachment>
 {
-    protected Integer    collectingEventAttachmentId;
-    protected CollectingEvent     collectingEvent;
-    protected Attachment attachment;
-    protected Integer    ordinal;
-    protected String     remarks;
+    protected Integer         collectingEventAttachmentId;
+    protected CollectingEvent collectingEvent;
+    protected Attachment      attachment;
+    protected Integer         ordinal;
+    protected String          remarks;
     
     public CollectingEventAttachment()
     {
@@ -98,7 +99,7 @@ public class CollectingEventAttachment extends CollectionMember implements Objec
         this.collectingEventAttachmentId = collectingEventAttachmentId;
     }
 
-    @ManyToOne
+    @ManyToOne(cascade = {}, fetch = FetchType.LAZY)
     @JoinColumn(name = "CollectingEventID", nullable = false)
     public CollectingEvent getCollectingEvent()
     {
@@ -110,8 +111,8 @@ public class CollectingEventAttachment extends CollectionMember implements Objec
         this.collectingEvent = collectingEvent;
     }
 
-    @ManyToOne()
-    @Cascade( {CascadeType.SAVE_UPDATE, CascadeType.MERGE, CascadeType.LOCK} )
+    @ManyToOne(cascade = {}, fetch = FetchType.LAZY)
+    @Cascade( { CascadeType.ALL, CascadeType.DELETE_ORPHAN })
     @JoinColumn(name = "AttachmentID", nullable = false)
     @OrderBy("ordinal ASC")
     public Attachment getAttachment()
@@ -206,6 +207,26 @@ public class CollectingEventAttachment extends CollectionMember implements Objec
     }
     
     /* (non-Javadoc)
+     * @see edu.ku.brc.specify.datamodel.DataModelObjBase#getParentTableId()
+     */
+    @Override
+    @Transient
+    public Integer getParentTableId()
+    {
+        return CollectingEvent.getClassTableId();
+    }
+
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.datamodel.DataModelObjBase#getParentId()
+     */
+    @Override
+    @Transient
+    public Integer getParentId()
+    {
+        return collectingEvent != null ? collectingEvent.getId() : null;
+    }
+    
+    /* (non-Javadoc)
      * @see edu.ku.brc.specify.datamodel.DataModelObjBase#getIdentityTitle()
      */
     @Override
@@ -231,6 +252,10 @@ public class CollectingEventAttachment extends CollectionMember implements Objec
      */
     public int compareTo(CollectingEventAttachment obj)
     {
-        return ordinal.compareTo(obj.ordinal);
+        if (ordinal != null && obj != null && obj.ordinal != null)
+        {
+            return ordinal.compareTo(obj.ordinal);
+        }
+        return 0;
     }
 }

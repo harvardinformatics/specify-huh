@@ -50,7 +50,8 @@ import org.hibernate.annotations.Index;
     })
 public class Institution extends UserGroupScope implements java.io.Serializable 
 {
-
+    public static final byte MIN_PASSWORD_LEN = 8;
+    
     // Fields    
 
      protected Integer       institutionId;
@@ -58,6 +59,7 @@ public class Institution extends UserGroupScope implements java.io.Serializable
      protected String        altName;
      protected String        code;
      protected String        uri;
+     protected String        lsidAuthority;
      protected String        iconURI;
      protected String        ipr;
      protected String        copyright;
@@ -73,6 +75,14 @@ public class Institution extends UserGroupScope implements java.io.Serializable
      protected Boolean       hasBeenAsked;
      protected Boolean       isSecurityOn;
      protected Boolean       isAccessionsGlobal;
+     protected Boolean       isSingleGeographyTree;
+     protected Boolean       isSharingLocalities;
+     protected Boolean       isReleaseManagedGlobally;
+     
+     protected String        currentManagedRelVersion;
+     protected String        currentManagedSchemaVersion;
+     
+     protected Byte          minimumPwdLength;
      
      protected Address       address;
      protected Set<Agent>    technicalContacts;
@@ -103,6 +113,7 @@ public class Institution extends UserGroupScope implements java.io.Serializable
         altName           = null;
         code              = null;
         uri               = null;
+        lsidAuthority     = null;
         iconURI           = null;
         ipr               = null;
         copyright         = null;
@@ -118,6 +129,13 @@ public class Institution extends UserGroupScope implements java.io.Serializable
         regNumber         = null;
         isSecurityOn      = true;
         isAccessionsGlobal = true;
+        isSingleGeographyTree = false;
+        isSharingLocalities   = false;
+        isReleaseManagedGlobally = false;
+        currentManagedRelVersion = null;
+        currentManagedSchemaVersion = null;
+        minimumPwdLength   = MIN_PASSWORD_LEN;
+        
         technicalContacts = new HashSet<Agent>();
         contentContacts   = new HashSet<Agent>();
         divisions         = new HashSet<Division>();
@@ -289,6 +307,15 @@ public class Institution extends UserGroupScope implements java.io.Serializable
     }
 
     /**
+     * @return the lsidAuthority
+     */
+    @Column(name = "LsidAuthority", unique = false, nullable = true, insertable = true, updatable = true, length = 64)
+    public String getLsidAuthority()
+    {
+        return lsidAuthority;
+    }
+
+    /**
      * @param abbrev the abbrev to set
      */
     @Column(name = "Code", unique = false, nullable = true, insertable = true, updatable = true, length = 32)
@@ -313,6 +340,15 @@ public class Institution extends UserGroupScope implements java.io.Serializable
     public Boolean getIsAnonymous()
     {
         return isAnonymous == null ? false : isAnonymous;
+    }
+    
+    /**
+     * @return
+     */
+    @Transient
+    public boolean isSendStatsAnonymous()
+    {
+        return getIsAnonymous();
     }
 
     /**
@@ -352,6 +388,60 @@ public class Institution extends UserGroupScope implements java.io.Serializable
     }
 
     /**
+     * @return the isSingleGeographyTree
+     */
+    @Column(name = "IsSingleGeographyTree", unique = false, nullable = false, insertable = true, updatable = true)
+    public Boolean getIsSingleGeographyTree()
+    {
+        return isSingleGeographyTree;
+    }
+
+    /**
+     * @return the isSharingLocalities
+     */
+    @Column(name = "IsSharingLocalities", unique = false, nullable = false, insertable = true, updatable = true)
+    public Boolean getIsSharingLocalities()
+    {
+        return isSharingLocalities;
+    }
+
+    /**
+     * @return the isReleaseManagedGlobally
+     */
+    @Column(name = "IsReleaseManagedGlobally", unique = false, nullable = true, insertable = true, updatable = true)
+    public Boolean getIsReleaseManagedGlobally()
+    {
+        return isReleaseManagedGlobally == null ? false : isReleaseManagedGlobally;
+    }
+
+    /**
+     * @return the currentManagedRelVersion
+     */
+    @Column(name = "CurrentManagedRelVersion", unique = false, nullable = true, insertable = true, updatable = true, length = 8)
+    public String getCurrentManagedRelVersion()
+    {
+        return currentManagedRelVersion;
+    }
+
+    /**
+     * @return the currentManagedRelVersion
+     */
+    @Column(name = "CurrentManagedSchemaVersion", unique = false, nullable = true, insertable = true, updatable = true, length = 8)
+    public String getCurrentManagedSchemaVersion()
+    {
+        return currentManagedSchemaVersion;
+    }
+
+    /**
+     * @return the minimumPwdLength
+     */
+    @Column(name = "MinimumPwdLength", unique = false, nullable = true, insertable = true, updatable = true)
+    public Byte getMinimumPwdLength()
+    {
+        return minimumPwdLength ==  null ? 0 : minimumPwdLength;
+    }
+
+    /**
      * @param contentContacts the contentContacts to set
      */
     public void setContentContacts(Set<Agent> contentContacts)
@@ -388,7 +478,7 @@ public class Institution extends UserGroupScope implements java.io.Serializable
      */
     public void setInstitutionId(Integer institutionId)
     {
-    	setUserGroupScopeId(institutionId);
+        setUserGroupScopeId(institutionId);
     }
 
     /**
@@ -456,6 +546,14 @@ public class Institution extends UserGroupScope implements java.io.Serializable
     }
 
     /**
+     * @param lsidAuthority the lsidAuthority to set
+     */
+    public void setLsidAuthority(String lsidAuthority)
+    {
+        this.lsidAuthority = lsidAuthority;
+    }
+
+    /**
      * @param isServerBased the isServerBased to set
      */
     public void setIsServerBased(Boolean isServerBased)
@@ -504,6 +602,54 @@ public class Institution extends UserGroupScope implements java.io.Serializable
     }
 
     /**
+     * @param isSingleGeographyTree the isSingleGeographyTree to set
+     */
+    public void setIsSingleGeographyTree(Boolean isSingleGeographyTree)
+    {
+        this.isSingleGeographyTree = isSingleGeographyTree;
+    }
+
+    /**
+     * @param isSharingLocalities the isSharingLocalities to set
+     */
+    public void setIsSharingLocalities(Boolean isSharingLocalities)
+    {
+        this.isSharingLocalities = isSharingLocalities;
+    }
+
+    /**
+     * @param isReleaseManagedGlobally the isReleaseManagedGlobally to set
+     */
+    public void setIsReleaseManagedGlobally(Boolean isReleaseManagedGlobally)
+    {
+        this.isReleaseManagedGlobally = isReleaseManagedGlobally;
+    }
+
+    /**
+     * @param currentManagedRelVersion the currentManagedRelVersion to set
+     */
+    public void setCurrentManagedRelVersion(String currentManagedRelVersion)
+    {
+        this.currentManagedRelVersion = currentManagedRelVersion;
+    }
+
+    /**
+     * @param currentManagedSchemaVersion the currentManagedSchemaVersion to set
+     */
+    public void setCurrentManagedSchemaVersion(String currentManagedSchemaVersion)
+    {
+        this.currentManagedSchemaVersion = currentManagedSchemaVersion;
+    }
+
+    /**
+     * @param minimumPwdLength the minimumPwdLength to set
+     */
+    public void setMinimumPwdLength(Byte minimumPwdLength)
+    {
+        this.minimumPwdLength = minimumPwdLength;
+    }
+
+    /**
      * @return the address
      */
     @ManyToOne(cascade = {}, fetch = FetchType.LAZY)
@@ -543,7 +689,7 @@ public class Institution extends UserGroupScope implements java.io.Serializable
     /**
      * 
      */
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(cascade = {}, fetch = FetchType.LAZY)
     @Cascade( { CascadeType.ALL, CascadeType.DELETE_ORPHAN })
     @JoinColumn(name = "StorageTreeDefID")
     public StorageTreeDef getStorageTreeDef()

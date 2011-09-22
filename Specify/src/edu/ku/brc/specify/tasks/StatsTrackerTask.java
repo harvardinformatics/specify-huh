@@ -19,8 +19,12 @@
 */
 package edu.ku.brc.specify.tasks;
 
+import static edu.ku.brc.ui.UIRegistry.getResourceString;
+
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.net.URLEncoder;
+import java.util.Calendar;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Vector;
@@ -42,9 +46,15 @@ import com.jgoodies.forms.layout.FormLayout;
 
 import edu.ku.brc.af.core.AppContextMgr;
 import edu.ku.brc.af.core.expresssearch.QueryAdjusterForDomain;
+import edu.ku.brc.af.prefs.AppPreferences;
 import edu.ku.brc.af.ui.forms.FormDataObjIFace;
 import edu.ku.brc.helpers.XMLHelper;
+import edu.ku.brc.specify.conversion.BasicSQLUtils;
 import edu.ku.brc.specify.datamodel.Collection;
+import edu.ku.brc.specify.datamodel.Discipline;
+import edu.ku.brc.specify.datamodel.Division;
+import edu.ku.brc.specify.datamodel.Institution;
+import edu.ku.brc.specify.datamodel.SpecifyUser;
 import edu.ku.brc.ui.CommandAction;
 import edu.ku.brc.ui.CommandDispatcher;
 import edu.ku.brc.ui.IconManager;
@@ -70,6 +80,9 @@ public class StatsTrackerTask extends edu.ku.brc.af.tasks.StatsTrackerTask
     private Hashtable<Class<?>, Boolean> tablesHash          = new Hashtable<Class<?>, Boolean>();
     private Vector<Pair<String, String>> queries             = new Vector<Pair<String,String>>();
     private Collection                   collection          = null;  
+    private Discipline                   discipline          = null;  
+    private Division                     division            = null;  
+    private Institution                  institution         = null;  
     
     /**
      * Constructor.
@@ -156,7 +169,10 @@ public class StatsTrackerTask extends edu.ku.brc.af.tasks.StatsTrackerTask
     @Override
     protected void completed()
     {
-        collection = null;
+        collection  = null;
+        discipline  = null;
+        division    = null;
+        institution = null;
         queries.clear();
     }
 
@@ -169,6 +185,10 @@ public class StatsTrackerTask extends edu.ku.brc.af.tasks.StatsTrackerTask
         if (collection == null)
         {
             collection = AppContextMgr.getInstance().getClassObject(Collection.class);
+            discipline  = AppContextMgr.getInstance().getClassObject(Discipline.class);
+            division    = AppContextMgr.getInstance().getClassObject(Division.class);
+            institution = AppContextMgr.getInstance().getClassObject(Institution.class);
+            
             queries.clear();
             
             // Need to do this now before all the Cached Objects change
@@ -210,48 +230,227 @@ public class StatsTrackerTask extends edu.ku.brc.af.tasks.StatsTrackerTask
         };
     }
     
+    
+    
+    /* (non-Javadoc)
+     * @see edu.ku.brc.af.tasks.StatsTrackerTask#sendStats()
+     */
+    @Override
+    protected void sendStats() throws Exception
+    {
+        super.sendStats();
+        sendCollectionStats();
+        sendActivityStats(false);
+    }
+
     /**
      * Collection Statistics about the Collection (synchronously).
      */
     @Override
-    protected Vector<NameValuePair> collectSecondaryStats()
+    protected Vector<NameValuePair> collectSecondaryStats(final boolean doSendSecondaryStats)
     {
-        Vector<NameValuePair> stats = new Vector<NameValuePair>();
-        if (hasChanged)
+        boolean isAnon = false;
+        if (institution != null)
         {
-            if (progress != null) progress.setIndeterminate(true);
-            if (queries.size() > 0)
-            {
-                int    count = 0;
-                double total = queries.size();
-                for (Pair<String, String> p : queries)
-                {
-                    String  statsName   = p.first;
-                    if (StringUtils.isNotEmpty(statsName))
-                    {
-                        count++;
-                        addStat(statsName, stats, p.second);
-                        if (progress != null) progress.setIndeterminate(false);
-                        worker.setProgressValue((int)(100.0 * (count / total)));
-                    }
-                }
-                worker.setProgressValue(100);
-                
-            } else
-            {
-                log.error("Couldn't find resource ["+resourceName+"]"); //$NON-NLS-1$ //$NON-NLS-2$
-            }
+            isAnon = institution.isSendStatsAnonymous();
         }
         
-        // Gather Collection Counts;
-        Integer estSize = collection.getEstimatedSize();
-        String  estSizeStr = estSize != null ? Integer.toString(estSize) : ""; 
-        stats.add(new NameValuePair("Collection_estsize",  estSizeStr)); //$NON-NLS-1$
-        stats.add(new NameValuePair("Collection_number",  fixParam(collection.getRegNumber()))); //$NON-NLS-1$
-        stats.add(new NameValuePair("Collection_website", fixParam(collection.getWebSiteURI()))); //$NON-NLS-1$
-        stats.add(new NameValuePair("Collection_portal",  fixParam(collection.getWebPortalURI()))); //$NON-NLS-1$
+        if (doSendSecondaryStats || !isAnon)
+        {
+            Vector<NameValuePair> stats = new Vector<NameValuePair>();
+            appendBasicCollStats(stats);
+            
+            if (hasChanged)
+            {
+                if (progress != null) progress.setIndeterminate(true);
+                if (queries.size() > 0)
+                {
+                    int    count = 0;
+                    double total = queries.size();
+                    for (Pair<String, String> p : queries)
+                    {
+                        String  statsName   = p.first;
+                        if (StringUtils.isNotEmpty(statsName))
+                        {
+                            count++;
+                            addStat(statsName, stats, p.second);
+                            if (progress != null) progress.setIndeterminate(false);
+                            worker.setProgressValue((int)(100.0 * (count / total)));
+                        }
+                    }
+                    worker.setProgressValue(100);
+                    
+                } else
+                {
+                    log.error("Couldn't find resource ["+resourceName+"]"); //$NON-NLS-1$ //$NON-NLS-2$
+                }
+            }
+            
+            return stats;
+        }
+        return null;
+    }
+    
+    /**
+     * adds the basic stats about the Institution ... Collection
+     * @param stats the list of stats
+     */
+    protected void appendBasicCollStats(final Vector<NameValuePair> stats)
+    {
+        SpecifyUser su = AppContextMgr.getInstance().getClassObject(SpecifyUser.class);
+        if (su != null)
+        {
+            stats.add(new NameValuePair("specifyuser",  fixParam(su.getName()))); //$NON-NLS-1$
+        }
 
-        return stats;
+        // Gather Collection Counts;
+        if (collection != null)
+        {
+            Integer estSize = collection.getEstimatedSize();
+            String  estSizeStr = estSize != null ? Integer.toString(estSize) : "";
+            
+            stats.add(new NameValuePair("Collection_estsize",  estSizeStr)); //$NON-NLS-1$
+            stats.add(new NameValuePair("Collection_number",  fixParam(collection.getRegNumber()))); //$NON-NLS-1$
+            stats.add(new NameValuePair("Collection_website", fixParam(collection.getWebSiteURI()))); //$NON-NLS-1$
+            stats.add(new NameValuePair("Collection_portal",  fixParam(collection.getWebPortalURI()))); //$NON-NLS-1$
+            stats.add(new NameValuePair("Collection_name",    fixParam(collection.getCollectionName()))); //$NON-NLS-1$
+        }
+
+        if (discipline != null)
+        {
+            stats.add(new NameValuePair("Discipline_number",  fixParam(discipline.getRegNumber()))); //$NON-NLS-1$
+            stats.add(new NameValuePair("Discipline_name",    fixParam(discipline.getName()))); //$NON-NLS-1$
+        }
+
+        if (division != null)
+        {
+            stats.add(new NameValuePair("Division_number",  fixParam(division.getRegNumber()))); //$NON-NLS-1$
+            stats.add(new NameValuePair("Division_name",    fixParam(division.getName()))); //$NON-NLS-1$
+        }
+
+        if (institution != null)
+        {
+            stats.add(new NameValuePair("Institution_number",  fixParam(institution.getRegNumber()))); //$NON-NLS-1$
+            stats.add(new NameValuePair("Institution_name",    fixParam(institution.getName()))); //$NON-NLS-1$
+        }
+    }
+    
+    /**
+     * @param colId
+     * @param colNm
+     * @param regNum
+     * @param sql
+     * @param sb
+     */
+    private void collectStatsData(final String  colNm, 
+                                  final String  regNum, 
+                                  final String  sql,
+                                  final StringBuilder sb)
+    {
+        if (sb.length() > 0) sb.append(';');
+        sb.append(colNm);
+        sb.append(String.format("{%s, %s [", colNm, regNum));
+
+        int     c   = 0;
+        for (Object[] row : BasicSQLUtils.query(sql))
+        {
+            Integer yr  = (Integer)row[0];
+            Long    cnt = (Long)row[1];
+            if (yr != null)
+            {
+                if (c > 0) sb.append(',');
+                sb.append(String.format("%d=%d", yr, cnt));
+            }
+            c++;
+        }
+        sb.append("]}");
+    }
+    
+    /**
+     * @param stats
+     * @param valName
+     * @param value
+     */
+    private void addEncodedPair(final Vector<NameValuePair> stats, final String valName, final String value)
+    {
+        String val = "";
+        try
+        {
+            val = URLEncoder.encode(value, "UTF-8");
+        } catch (Exception ex) {}
+        //System.out.println(String.format("[%s][%s]", valName, val));
+        stats.add(new NameValuePair(valName, val));
+    }
+    
+    /**
+     * @param stats
+     */
+    private void appendCollectingStats(final Vector<NameValuePair> stats)
+    {
+        final String ALL_YEAR_CATS      = "ALL_YEAR_CATS_STAT"; 
+        final String LAST_COL_YEAR_STAT = "LAST_COL_YEAR_STAT"; 
+        //final String LAST_30_DAYS  = "LAST_30DAYS_STAT"; 
+        
+        int currentYear = Calendar.getInstance().get(Calendar.YEAR);
+        
+        AppPreferences  remotePrefs  = AppPreferences.getRemote();
+        int             lastColYear  = remotePrefs.getInt(LAST_COL_YEAR_STAT, -1);
+        boolean         doAllYears   = remotePrefs.getBoolean(ALL_YEAR_CATS, true);
+        
+        if (lastColYear != currentYear) // override when it is a new year
+        {
+            doAllYears = true; 
+        }
+        doAllYears = true;
+        
+        StringBuilder  allYearsSB   = new StringBuilder();
+        StringBuilder  last30DaysSB = new StringBuilder();
+        
+        for (Object[] colRow : BasicSQLUtils.query("SELECT CollectionID,CollectionName,RegNumber FROM collection"))
+        {
+            Integer colId  = (Integer)colRow[0];
+            String  colNm  = (String)colRow[1];
+            String  regNum = (String)colRow[2];
+            
+            if (doAllYears)
+            {
+                String  sql = String.format("SELECT YR,COUNT(YR) FROM (SELECT YEAR(if (CatalogedDate IS NULL, TimestampCreated, CatalogedDate)) AS YR FROM collectionobject WHERE CollectionMemberID = %d) T1 GROUP BY YR ORDER BY YR", colId);
+                collectStatsData(colNm, regNum, sql, allYearsSB);
+            }
+
+            // Cataloged by Month for current year
+            String tmp = "SELECT MN, COUNT(MN) FROM (SELECT MONTH(DT) MN, YEAR(DT) YR FROM (SELECT if (CatalogedDate IS NULL, TimestampCreated, CatalogedDate) AS DT FROM collectionobject WHERE CollectionMemberID = %d) T1 WHERE YEAR(DT) = %d) T2 GROUP BY MN";
+            String sql = String.format(tmp, colId, currentYear);
+            collectStatsData(colNm, regNum, sql, last30DaysSB);
+        }
+        
+        if (doAllYears)
+        {
+            addEncodedPair(stats, "catbyyr", allYearsSB.toString());
+            remotePrefs.putBoolean(ALL_YEAR_CATS, false);
+            remotePrefs.putInt(LAST_COL_YEAR_STAT, currentYear);
+        }
+        
+        addEncodedPair(stats, "catbymn", last30DaysSB.toString());
+        
+        // Audit Information 
+        Vector<Object[]> instRresults = BasicSQLUtils.query("SELECT Name, RegNumber FROM institution");
+        if (instRresults.size() > 0)
+        {
+            Object[] instRow = instRresults.get(0);
+            String   instName = (String)instRow[0];
+            String   regNum   = (String)instRow[1];
+
+            String[] actionStr = {"ins", "upd", "rmv"};
+            for (int action=0;action<3;action++)
+            {
+                StringBuilder auditSB = new StringBuilder();
+                String tmp  = "SELECT * FROM (SELECT a.TableNum, Count(a.TableNum) as Cnt FROM spauditlog AS a WHERE a.Action = %d GROUP BY a.TableNum) T1 ORDER BY Cnt DESC";
+                String sql = String.format(tmp, action);
+                collectStatsData(instName, regNum, sql, auditSB);
+                addEncodedPair(stats, "audit_"+actionStr[action], auditSB.toString());
+            }
+        }
     }
     
     /**
@@ -266,6 +465,54 @@ public class StatsTrackerTask extends edu.ku.brc.af.tasks.StatsTrackerTask
             {
                 hasChanged = true;
             }
+        }
+    }
+    
+    /**
+     * @throws Exception
+     */
+    private void sendCollectionStats() throws Exception
+    {
+        String collStatsCheckURL =  getResourceString("StatsTrackerTask.COLLSTATSURL"); //$NON-NLS-1$
+        if (StringUtils.isNotEmpty(collStatsCheckURL))
+        {
+            Vector<NameValuePair> stats = createPostParameters(false);
+            appendCollectingStats(stats);
+            sendStats(collStatsCheckURL, stats, getClass().getName());
+        }
+    }
+
+    /**
+     * @throws Exception
+     */
+    private void sendActivityStats(final boolean isLoggingIn) throws Exception
+    {
+        String url =  getResourceString("StatsTrackerTask.ACTIVITYSURL"); //$NON-NLS-1$
+        if (StringUtils.isNotEmpty(url))
+        {
+            Vector<NameValuePair> stats = createPostParameters(false);
+            appendBasicCollStats(stats);
+            stats.add(new NameValuePair("Type",  isLoggingIn ? "0" : "1")); //$NON-NLS-1$
+            
+            sendStats(url, stats, getClass().getName());
+        }
+    }
+    
+    /* (non-Javadoc)
+     * @see edu.ku.brc.af.tasks.BaseTask#doProcessAppCommands(edu.ku.brc.ui.CommandAction)
+     */
+    @Override
+    protected void doProcessAppCommands(CommandAction cmdAction)
+    {
+        super.doProcessAppCommands(cmdAction);
+        
+        if (cmdAction.isAction(APP_RESTART_ACT) ||
+            cmdAction.isAction(APP_START_ACT))
+        {
+            try
+            {
+                sendActivityStats(true);
+            } catch (Exception ex) {}
         }
     }
 

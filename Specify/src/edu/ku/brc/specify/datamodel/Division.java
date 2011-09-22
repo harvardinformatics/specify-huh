@@ -454,7 +454,26 @@ public class Division extends UserGroupScope implements java.io.Serializable, Co
     {
         this.institution = institution;
     }
+    
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.datamodel.DataModelObjBase#getParentTableId()
+     */
+    @Override
+    @Transient
+    public Integer getParentTableId()
+    {
+        return Institution.getClassTableId();
+    }
 
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.datamodel.DataModelObjBase#getParentId()
+     */
+    @Override
+    @Transient
+    public Integer getParentId()
+    {
+        return institution != null ? institution.getId() : null;
+    }
 
     /**
      * @param treatmentEvents the treatmentEvents to set
@@ -668,6 +687,6 @@ public class Division extends UserGroupScope implements java.io.Serializable, Co
             return name.compareTo(obj.name);
         }
         // else
-        return timestampCreated.compareTo(obj.timestampCreated);
+        return timestampCreated != null && obj != null && obj.timestampCreated != null ? timestampCreated.compareTo(obj.timestampCreated) : 0;
     }
  }

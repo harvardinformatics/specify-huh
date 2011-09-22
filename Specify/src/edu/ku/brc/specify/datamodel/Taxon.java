@@ -151,6 +151,7 @@ public class Taxon extends DataModelObjBase implements AttachmentOwnerIFace<Taxo
     protected List<Taxon>          ancestors; 
 
     private Set<TaxonAttachment> taxonAttachments;
+    private Set<CollectingEventAttribute> collectingEventAttributes;
     
 	/** default constructor */
 	public Taxon()
@@ -213,6 +214,7 @@ public class Taxon extends DataModelObjBase implements AttachmentOwnerIFace<Taxo
         rankId                        = null;
         groupNumber                   = null;
         visibility                    = null;
+        visibilitySetBy               = null;
         hybridParent1                 = null;
         hybridParent2                 = null;
         hybridChildren1               = new HashSet<Taxon>();
@@ -226,9 +228,15 @@ public class Taxon extends DataModelObjBase implements AttachmentOwnerIFace<Taxo
         children                      = new HashSet<Taxon>();
         ancestors                     = null;
         taxonAttachments              = new HashSet<TaxonAttachment>();
-        
+        collectingEventAttributes     = new HashSet<CollectingEventAttribute>();
+
         isAccepted                    = true; // null for isAccepted means the same as true.  true is more clear.  So, I put true in here.
         acceptedTaxon                 = null;
+        number1						  = null;
+        number2                       = null;
+        text1                         = null;
+        text2                         = null;
+        
         acceptedChildren              = new HashSet<Taxon>();
 
 	}
@@ -714,7 +722,7 @@ public class Taxon extends DataModelObjBase implements AttachmentOwnerIFace<Taxo
         this.visibilitySetBy = visibilitySetBy;
     }
     
-    @OneToMany(fetch = FetchType.EAGER, mappedBy = "acceptedTaxon")
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "acceptedTaxon")
     @Cascade( {CascadeType.SAVE_UPDATE, CascadeType.MERGE, CascadeType.LOCK} )
 	public Set<Taxon> getAcceptedChildren()
 	{
@@ -726,7 +734,7 @@ public class Taxon extends DataModelObjBase implements AttachmentOwnerIFace<Taxo
 		this.acceptedChildren = acceptedChildren;
 	}
 
-    @ManyToOne
+    @ManyToOne(cascade = {}, fetch = FetchType.LAZY)
     @JoinColumn(name = "AcceptedID")
 	public Taxon getAcceptedTaxon()
 	{
@@ -755,7 +763,7 @@ public class Taxon extends DataModelObjBase implements AttachmentOwnerIFace<Taxo
      * 
      * @returnthe the primary parent of the taxon, or null if the object doesn't represent a hybrid taxon
      */
-    @ManyToOne
+    @ManyToOne(cascade = {}, fetch = FetchType.LAZY)
     @JoinColumn(name = "HybridParent1ID")
     public Taxon getHybridParent1()
     {
@@ -772,7 +780,7 @@ public class Taxon extends DataModelObjBase implements AttachmentOwnerIFace<Taxo
      * 
      * @return the the secondary parent of the taxon, or null if the object doesn't represent a hybrid taxon
      */
-    @ManyToOne
+    @ManyToOne(cascade = {}, fetch = FetchType.LAZY)
     @JoinColumn(name = "HybridParent2ID")
     public Taxon getHybridParent2()
     {
@@ -848,8 +856,8 @@ public class Taxon extends DataModelObjBase implements AttachmentOwnerIFace<Taxo
         this.commonNames = commonNames;
     }
 
-    @OneToMany(mappedBy = "taxon")
-    @Cascade( {CascadeType.SAVE_UPDATE, CascadeType.MERGE, CascadeType.LOCK} )
+    @OneToMany(cascade = { javax.persistence.CascadeType.ALL }, fetch = FetchType.LAZY, mappedBy = "taxon")
+    @org.hibernate.annotations.Cascade( { org.hibernate.annotations.CascadeType.ALL, org.hibernate.annotations.CascadeType.DELETE_ORPHAN })
 	public Set<TaxonCitation> getTaxonCitations()
 	{
 		return this.taxonCitations;
@@ -860,7 +868,7 @@ public class Taxon extends DataModelObjBase implements AttachmentOwnerIFace<Taxo
 		this.taxonCitations = taxonCitations;
 	}
 
-    @ManyToOne
+    @ManyToOne(cascade = {}, fetch = FetchType.LAZY)
     @JoinColumn(name = "TaxonTreeDefID", nullable = false)
 	public TaxonTreeDef getDefinition()
 	{
@@ -872,7 +880,7 @@ public class Taxon extends DataModelObjBase implements AttachmentOwnerIFace<Taxo
 		this.definition = definition;
 	}
 
-    @ManyToOne
+    @ManyToOne(cascade = {}, fetch = FetchType.EAGER)
     @JoinColumn(name = "TaxonTreeDefItemID", nullable = false)
 	public TaxonTreeDefItem getDefinitionItem()
 	{
@@ -888,7 +896,7 @@ public class Taxon extends DataModelObjBase implements AttachmentOwnerIFace<Taxo
         }
 	}
 
-    @ManyToOne
+    @ManyToOne(cascade = {}, fetch = FetchType.LAZY)
     @JoinColumn(name = "ParentID")
 	public Taxon getParent()
 	{
@@ -939,6 +947,24 @@ public class Taxon extends DataModelObjBase implements AttachmentOwnerIFace<Taxo
     public void setTaxonAttachments(Set<TaxonAttachment> taxonAttachments)
     {
         this.taxonAttachments = taxonAttachments;
+    }
+
+    /**
+     * @return the collectingEventAttributes
+     */
+    @OneToMany(mappedBy = "hostTaxon")
+    @Cascade( {CascadeType.SAVE_UPDATE, CascadeType.MERGE, CascadeType.LOCK} )
+    public Set<CollectingEventAttribute> getCollectingEventAttributes()
+    {
+        return collectingEventAttributes;
+    }
+
+    /**
+     * @param collectingEventAttributes the collectingEventAttributes to set
+     */
+    public void setCollectingEventAttributes(Set<CollectingEventAttribute> collectingEventAttributes)
+    {
+        this.collectingEventAttributes = collectingEventAttributes;
     }
 
     /* (non-Javadoc)
@@ -1291,7 +1317,27 @@ public class Taxon extends DataModelObjBase implements AttachmentOwnerIFace<Taxo
 	{
 		return new TreeOrderSiblingComparator();
 	}
+    
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.datamodel.DataModelObjBase#getParentTableId()
+     */
+    @Override
+    @Transient
+    public Integer getParentTableId()
+    {
+        return Taxon.getClassTableId();
+    }
 
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.datamodel.DataModelObjBase#getParentId()
+     */
+    @Override
+    @Transient
+    public Integer getParentId()
+    {
+        return parent != null ? parent.getId() : null;
+    }
+    
     /* (non-Javadoc)
      * @see edu.ku.brc.ui.forms.FormDataObjIFace#getTableId()
      */

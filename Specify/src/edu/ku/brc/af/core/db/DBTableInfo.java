@@ -19,9 +19,11 @@
 */
 package edu.ku.brc.af.core.db;
 
+import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Vector;
 
 import javax.swing.ImageIcon;
@@ -73,6 +75,7 @@ public class DBTableInfo extends DBInfoBase
     // Transient 
     protected Hashtable<String, DBFieldInfo>        fieldsHash = null;
     protected Hashtable<String, DBRelationshipInfo> relsHash   = null;
+    protected HashMap<String, String>               tblIndexHash = null;
     
 
     public DBTableInfo(final int    tableId, 
@@ -117,6 +120,24 @@ public class DBTableInfo extends DBInfoBase
     {
         relationships.clear();
         fields.clear();
+    }
+    
+    public void addTableIndex(final String indexName, final String columnNames)
+    {
+        if (tblIndexHash == null)
+        {
+            tblIndexHash = new HashMap<String, String>();
+        }
+        
+        if (StringUtils.isNotEmpty(indexName) && StringUtils.isNotEmpty(columnNames))
+        {
+            tblIndexHash.put(indexName, columnNames);
+        }
+    }
+    
+    public Map<String, String> getTableIndexMap()
+    {
+        return tblIndexHash;
     }
 
     /**
@@ -286,6 +307,9 @@ public class DBTableInfo extends DBInfoBase
         this.businessRuleName = businessRule;
     }
     
+    /**
+     * @return
+     */
     public BusinessRulesIFace getBusinessRule()
     {
         if (StringUtils.isNotEmpty(businessRuleName))
@@ -296,6 +320,13 @@ public class DBTableInfo extends DBInfoBase
                 if (clazz.isAssignableFrom(BusinessRulesIFace.class))
                 {
                     return (BusinessRulesIFace)clazz.newInstance();
+                } else 
+                {
+                    Object obj = clazz.newInstance();
+                    if (BusinessRulesIFace.class.isInstance(obj))
+                    {
+                        return (BusinessRulesIFace)obj;
+                    }
                 }
                 
             } catch (Exception ex)
@@ -378,19 +409,29 @@ public class DBTableInfo extends DBInfoBase
      * @param columnName the name of the column
      * @return the field info
      */
-    public DBFieldInfo getFieldByColumnName(final String columnName)
+    public DBFieldInfo getFieldByColumnName(final String columnName, final boolean suppressError)
     {
         String      fName     = columnName.indexOf('.') > -1 ? StringUtils.substringAfterLast(columnName, ".") : columnName; //$NON-NLS-1$
         String      fieldName = fName.substring(0,1).toLowerCase() + fName.substring(1, fName.length());
         DBFieldInfo fi        = getFieldByName(fieldName);
         if (fi == null)
         {
-            if (!fieldName.endsWith("ID")) //$NON-NLS-1$
+            if (!suppressError && !fieldName.endsWith("ID")) //$NON-NLS-1$
             {
                 log.error("Couldn't find FieldName["+fieldName+"] in table ["+getTitle()+"]"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
             }
         }
         return fi;
+    }
+
+    /**
+     * Converts the Column Name to a field name and returns the FieldInfo
+     * @param columnName the name of the column
+     * @return the field info
+     */
+    public DBFieldInfo getFieldByColumnName(final String columnName)
+    {
+        return getFieldByColumnName(columnName, false);
     }
 
     /**

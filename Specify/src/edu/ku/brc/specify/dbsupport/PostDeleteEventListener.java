@@ -48,13 +48,15 @@ public class PostDeleteEventListener implements org.hibernate.event.PostDeleteEv
     {
         if (obj.getEntity() instanceof FormDataObjIFace)
         {
-            if (((FormDataObjIFace)obj.getEntity()).isChangeNotifier())
+            CommandDispatcher.dispatch(new CommandAction(PostInsertEventListener.DB_CMD_TYPE, PostInsertEventListener.DELETE_CMD_ACT, obj.getEntity()));
+            
+            if (PostInsertEventListener.isAuditOn())
             {
-                CommandDispatcher.dispatch(new CommandAction("Database", "Delete", obj.getEntity()));
+                if (((FormDataObjIFace)obj.getEntity()).isChangeNotifier())
+                {
+                    PostInsertEventListener.saveOnAuditTrail((byte)2, obj.getEntity());
+                }
             }
-        } else
-        {
-            CommandDispatcher.dispatch(new CommandAction("Database", "Delete", obj.getEntity()));
         }
     }
 

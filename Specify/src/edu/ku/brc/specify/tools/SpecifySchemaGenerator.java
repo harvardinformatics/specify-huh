@@ -29,24 +29,31 @@ import org.apache.log4j.Logger;
 import org.hibernate.cfg.AnnotationConfiguration;
 import org.hibernate.cfg.Configuration;
 import org.hibernate.tool.hbm2ddl.SchemaExport;
+import org.hibernate.tool.hbm2ddl.SchemaUpdate;
 
 import edu.ku.brc.af.core.db.DBFieldInfo;
 import edu.ku.brc.af.core.db.DBTableIdMgr;
 import edu.ku.brc.af.core.db.DBTableInfo;
 import edu.ku.brc.dbsupport.DBConnection;
 import edu.ku.brc.dbsupport.DatabaseDriverInfo;
+import edu.ku.brc.specify.dbsupport.SpecifySchemaUpdateService;
+import edu.ku.brc.ui.CommandAction;
+import edu.ku.brc.ui.CommandDispatcher;
+import edu.ku.brc.ui.UIRegistry;
 
 
 /**
  * This class provides the ability to create a DB schema from a Hibernate OR mapping.
  *
- * @code_status Beta
+ * @code_status Complete
+ * @author rods
  * @author jstewart
  */
 public class SpecifySchemaGenerator
 {
     protected static final Logger log = Logger.getLogger(SpecifySchemaGenerator.class);
-            
+     
+    
     /**
      * Drops (or deletes) the database and creates a new one by generating the schema.
      * @param dbdriverInfo the driver info
@@ -54,6 +61,7 @@ public class SpecifySchemaGenerator
      * @param databaseName the database name
      * @param userName the username
      * @param password the password
+     * @param doUpdate tells it to update the schema instead of creating it
      * @throws SQLException
      */
     public static void generateSchema(final DatabaseDriverInfo dbdriverInfo, 
@@ -62,37 +70,101 @@ public class SpecifySchemaGenerator
                                       final String             userName,
                                       final String             password) throws SQLException
     {
+        generateSchema(dbdriverInfo, hostname, databaseName, userName, password, false);
+    }
+    
+    /**
+     * Drops (or deletes) the database and creates a new one by generating the schema.
+     * @param dbdriverInfo the driver info
+     * @param hostname the host name ('localhost')
+     * @param databaseName the database name
+     * @param userName the username
+     * @param password the password
+     * @param doUpdate tells it to update the schema instead of creating it
+     * @throws SQLException
+     */
+    public static boolean updateSchema(final DatabaseDriverInfo dbdriverInfo, 
+                                       final String             hostname,
+                                       final String             databaseName,
+                                       final String             userName,
+                                       final String             password) throws SQLException
+    {
+        return generateSchema(dbdriverInfo, hostname, databaseName, userName, password, true);
+    }
+    
+    /**
+     * Drops (or deletes) the database and creates a new one by generating the schema.
+     * @param dbdriverInfo the driver info
+     * @param hostname the host name ('localhost')
+     * @param databaseName the database name
+     * @param userName the username
+     * @param password the password
+     * @param doUpdate tells it to update the schema instead of creating it
+     * @throws SQLException
+     */
+    public static boolean generateSchema(final DatabaseDriverInfo dbdriverInfo, 
+                                         final String             hostname,
+                                         final String             databaseName,
+                                         final String             userName,
+                                         final String             password,
+                                         final boolean            doUpdate) throws SQLException
+    {
         log.debug("generateSchema hostname:" + hostname);
         log.debug("generateSchema databaseName:" + databaseName);
-        //boolean isSQLServer = dbdriverInfo.getName().equals("SQLServer");
         
-        // Get the Create OR the Open String
-        // Note: Derby local databases have a different connection string for creating verses opening.
-        // So we need to get the Create string if it has one (Derby) or the open string if it doesn't
-        // Also notice that Derby wants a database name for the initial connection and the others do not
-        String connectionStr = dbdriverInfo.getConnectionCreateOpenStr(hostname, "", userName, password, dbdriverInfo.getName());
+        String connectionStr = dbdriverInfo.getConnectionStr(DatabaseDriverInfo.ConnectionType.Open, hostname, databaseName, false, true,
+                                                             userName, password, dbdriverInfo.getName());
         log.debug("generateSchema connectionStr: " + connectionStr);
         
-        log.debug("Creating database connection to: " + connectionStr);
+        //log.debug("Creating database connection to: " + connectionStr);
         // Now connect to other databases and "create" the Derby database
-        DBConnection dbConn = DBConnection.createInstance(dbdriverInfo.getDriverClassName(), dbdriverInfo.getDialectClassName(), databaseName, connectionStr, userName, password);
-
-        //log.debug("calling dropAndCreateDB(" + dbConn.toString() + ", " + databaseName +")");
-        dropAndCreateDB(dbConn, databaseName);
-        
-        connectionStr = dbdriverInfo.getConnectionStr(DatabaseDriverInfo.ConnectionType.Open, hostname, databaseName, userName, password, dbdriverInfo.getName());
-        
-        log.debug("Preparting to doGenSchema: " + connectionStr);
-        
-        // Generate the schema
-        doGenSchema(dbdriverInfo,
-                    connectionStr,
-                    userName,
-                    password);
-        
-        String       connStr           = dbdriverInfo.getConnectionStr(DatabaseDriverInfo.ConnectionType.Open, hostname, databaseName);
-        DBConnection dbConnForDatabase = DBConnection.createInstance(dbdriverInfo.getDriverClassName(), dbdriverInfo.getDialectClassName(), databaseName, connStr, userName, password);
-        fixFloatFields(dbConnForDatabase);
+        DBConnection dbConn = null;
+        try
+        {
+            dbConn = DBConnection.createInstance(dbdriverInfo.getDriverClassName(), dbdriverInfo.getDialectClassName(), databaseName, connectionStr, userName, password);
+            if (dbConn != null && dbConn.getConnection() != null)
+            {
+                //log.debug("calling dropAndCreateDB(" + dbConn.toString() + ", " + databaseName +")");
+                if (!doUpdate)
+                {
+                    dropAndCreateDB(dbConn, databaseName);
+                }
+                
+                connectionStr = dbdriverInfo.getConnectionStr(DatabaseDriverInfo.ConnectionType.Open, hostname, databaseName, userName, password, dbdriverInfo.getName());
+                
+                //log.debug("Preparing to doGenSchema: " + connectionStr);
+                
+                // Generate the schema
+                doGenSchema(dbdriverInfo,
+                            connectionStr,
+                            userName,
+                            password,
+                            doUpdate);
+                
+                String       connStr           = connectionStr;//dbdriverInfo.getConnectionStr(DatabaseDriverInfo.ConnectionType.Open, hostname, databaseName);
+                DBConnection dbConnForDatabase = DBConnection.createInstance(dbdriverInfo.getDriverClassName(), dbdriverInfo.getDialectClassName(), databaseName, connStr, userName, password);
+                if (!doUpdate)
+                {
+                    fixFloatFields(dbConnForDatabase);
+                    SpecifySchemaUpdateService.createSGRTables(dbConnForDatabase.getConnection());
+                }
+                dbConnForDatabase.close();
+                
+            } else
+            {
+                UIRegistry.showLocalizedError("SpecifySchemaGenerator.IT_UP_ERROR");
+                CommandDispatcher.dispatch(new CommandAction("App", "AppReqExit", null));
+                return false;
+            }
+            return true;
+            
+        } finally
+        {
+            if (dbConn != null)
+            {
+                dbConn.close();
+            }
+        }
     }
 
     /**
@@ -212,12 +284,14 @@ public class SpecifySchemaGenerator
      * @param connectionStr the connection string for creating or opening a database
      * @param user the username
      * @param passwd the password (plaintext)
+     * @param doUpdate tells it to update the schema instead of creating it
      * @return the generated Hibernate properties
      */
     protected static Properties getHibernateProperties(final DatabaseDriverInfo driverInfo,
                                                        final String connectionStr, // might be a create or an open connection string
                                                        final String user,
-                                                       final String passwd)
+                                                       final String passwd,
+                                                       final boolean doUpdate)
     {
         Properties props = new Properties();
         props.setProperty("hibernate.connection.driver_class", driverInfo.getDriverClassName());
@@ -228,6 +302,11 @@ public class SpecifySchemaGenerator
         props.setProperty("hibernate.max_fetch_depth",         "3");
         props.setProperty("hibernate.connection.pool_size",    "5");
         props.setProperty("hibernate.format_sql",              "true");
+        if (doUpdate)
+        {
+            props.setProperty("hibernate.hbm2ddl.auto=update",     "true");
+        }
+        
         log.debug("Hibernate Propereties: " + props.toString());
         return props;
     }
@@ -240,37 +319,61 @@ public class SpecifySchemaGenerator
      * @param databaseName the database name
      * @param user the username
      * @param passwd the password (clear text)
+     * @param doUpdate tells it to update the schema instead of creating it
      */
     protected static void doGenSchema(final DatabaseDriverInfo driverInfo,
                                       final String connectionStr, // might be a create or an open connection string
                                       final String user,
-                                      final String passwd)
+                                      final String passwd,
+                                      final boolean doUpdate)
     {
-        // setup the Hibernate configuartion
+        // setup the Hibernate configuration
         Configuration hibCfg = new AnnotationConfiguration();
-        hibCfg.setProperties(getHibernateProperties(driverInfo, connectionStr, user, passwd));
+        hibCfg.setProperties(getHibernateProperties(driverInfo, connectionStr, user, passwd, doUpdate));
         hibCfg.configure();
         
-        SchemaExport schemaExporter = new SchemaExport(hibCfg);
-        schemaExporter.setDelimiter(";");
-        
-        log.info("Generating schema");
-        //System.exit(0);
-        boolean printToScreen = false;
-        boolean exportToDb    = true;
-        boolean justDrop      = false;
-        boolean justCreate    = true;
-        log.info("Creating the DB schema");
-        schemaExporter.execute(printToScreen, exportToDb, justDrop, justCreate);
-        
-        log.info("DB schema creation completed");
-        
-        // log the exceptions that occurred
-        List<?> exceptions = schemaExporter.getExceptions();
-        for (Object o: exceptions)
+        if (doUpdate)
         {
-            Exception e = (Exception)o;
-            log.error(e.getMessage());
+            SchemaUpdate schemaUpdater = new SchemaUpdate(hibCfg);
+            
+            log.info("Updating schema");
+            //System.exit(0);
+            boolean doScript      = false;
+            log.info("Updating the DB schema");
+            schemaUpdater.execute(doScript, true);
+            
+            log.info("DB schema Updating completed");
+            
+            // log the exceptions that occurred
+            List<?> exceptions = schemaUpdater.getExceptions();
+            for (Object o: exceptions)
+            {
+                Exception e = (Exception)o;
+                log.error(e.getMessage());
+            }
+        } else
+        {
+            SchemaExport schemaExporter = new SchemaExport(hibCfg);
+            schemaExporter.setDelimiter(";");
+            
+            log.info("Generating schema");
+            //System.exit(0);
+            boolean printToScreen = false;
+            boolean exportToDb    = true;
+            boolean justDrop      = false;
+            boolean justCreate    = true;
+            log.info("Creating the DB schema");
+            schemaExporter.execute(printToScreen, exportToDb, justDrop, justCreate);
+            
+            log.info("DB schema creation completed");
+            
+            // log the exceptions that occurred
+            List<?> exceptions = schemaExporter.getExceptions();
+            for (Object o: exceptions)
+            {
+                Exception e = (Exception)o;
+                log.error(e.getMessage());
+            }
         }
     }
     
@@ -280,12 +383,12 @@ public class SpecifySchemaGenerator
      * @param args ignored
      * @throws SQLException if any DB error occurs
      */
-    /*public static void main(String[] args) throws SQLException
+    public static void main(String[] args) throws SQLException
     {
         DatabaseDriverInfo dbdriverInfo = DatabaseDriverInfo.getDriver("SQLServer");
         SpecifySchemaGenerator.generateSchema(dbdriverInfo, "localhost", "Fish_sp6", "sa", "Re4a22jiu");
    
         //DatabaseDriverInfo dbdriverInfo = DatabaseDriverInfo.getDriver("MySQL");
        // SpecifySchemaGenerator.generateSchema(dbdriverInfo, "localhost", "testdb", "rods", "rods");
-    }*/
+    }
 }

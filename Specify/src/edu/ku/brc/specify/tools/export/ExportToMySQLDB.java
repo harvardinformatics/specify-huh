@@ -41,20 +41,26 @@ public class ExportToMySQLDB
 	 * @param fld
 	 * @return mysql field type declaration.
 	 */
-	protected static String getFieldTypeDef(DBFieldInfo fld)
+	protected static String getFieldTypeDef(ERTICaptionInfo column)
 	{
-		if (fld == null)
+		DBFieldInfo fld = column.getFieldInfo();
+		Class<?> dataType = column.getColClass() != null ? column.getColClass() : (fld != null ? fld.getDataClass() : null);
+		if (dataType == null && fld == null)
 		{
-			//assume the column is formatted and/or aggregated
-			return "varchar(300)"; //a really long string
+			//assume it's format or aggregatated or otherwise special
+			return "varchar(256)";
 		}
 		
-		Class<?> dataType = fld.getDataClass();
 		if (dataType.equals(String.class))
 		{
-			return "varchar(" + fld.getLength() + ")";
+			String length = "256";
+			if (fld != null && fld.getLength() != -1 && fld.getLength() <= 256)
+			{
+				length = String.valueOf(fld.getLength());
+			}
+			return "varchar(" + length + ")";
 		}
-		if (dataType.equals(Integer.class) || dataType.equals(Byte.class))
+		if (dataType.equals(Integer.class) || dataType.equals(Byte.class) || dataType.equals(Short.class) || dataType.equals(Long.class))
 		{
 			return "int";
 		}
@@ -71,7 +77,7 @@ public class ExportToMySQLDB
 		{
 			return "bit(1)";
 		}
-		if (dataType.equals(Double.class))
+		if (dataType.equals(Double.class) || dataType.equals(Float.class))
 		{
 			return "double";
 		}
@@ -117,7 +123,7 @@ public class ExportToMySQLDB
 	 */
 	protected static String getFieldDef(ERTICaptionInfo column)
 	{
-		return "`" + getFieldName(column) +  "` " + getFieldTypeDef(column.getFieldInfo());
+		return "`" + getFieldName(column) +  "` " + getFieldTypeDef(column);
 	}
 	
 	/**
@@ -178,6 +184,7 @@ public class ExportToMySQLDB
 				sql.append(getFieldDef(col));
 			}
 			sql.append(")");
+			sql.append(" CHARSET=utf8");
 			stmt.execute(sql.toString());
 		} finally
 		{
@@ -380,7 +387,13 @@ public class ExportToMySQLDB
 			}
 			else 
 			{
-				val = BasicSQLUtils.getStrValue(row.getFieldValue(r));
+				Object fldVal = row.getFieldValue(r);
+				if (fldVal instanceof String)
+				{
+					String fldStr = (String )fldVal;
+					fldVal = fldStr.substring(0, Math.min(fldStr.length(), 256));
+				}
+				val = BasicSQLUtils.getStrValue(fldVal);
 				if (StringUtils.isBlank(val))
 				{
 					val = "null";
@@ -540,7 +553,7 @@ public class ExportToMySQLDB
 			{
 				int type = rows.getMetaData().getColumnType(c);
 				// remove tabs and line returns
-				// If link to origianl specify db model field was available
+				// If link to original specify db model field was available
 				// would only
 				// need to do this for 'remarks' fields.
 				if (type == java.sql.Types.LONGNVARCHAR
@@ -550,8 +563,9 @@ public class ExportToMySQLDB
 						|| type == java.sql.Types.NCHAR)// hopefully don't need
 														// to worry about blobs.
 				{
-					val.replace("\t", " ");
-					val.replace("\n", " ");
+					val = val.replace("\t", " ");
+					val = val.replace("\n", " ");
+					val = val.replace("\r", " ");
 				}
 				result.append(val);
 			}

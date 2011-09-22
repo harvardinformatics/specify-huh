@@ -36,17 +36,20 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.Enumeration;
+import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Vector;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.swing.JOptionPane;
 
-import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.dom4j.Element;
@@ -56,6 +59,7 @@ import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
 
 import edu.ku.brc.af.auth.SecurityMgr;
+import edu.ku.brc.af.auth.specify.principal.UserPrincipal;
 import edu.ku.brc.af.core.AppContextMgr;
 import edu.ku.brc.af.core.AppResourceIFace;
 import edu.ku.brc.af.core.SchemaI18NService;
@@ -71,10 +75,11 @@ import edu.ku.brc.af.ui.forms.FormDataObjIFace;
 import edu.ku.brc.af.ui.forms.ViewSetMgr;
 import edu.ku.brc.af.ui.forms.formatters.UIFieldFormatterIFace;
 import edu.ku.brc.af.ui.forms.formatters.UIFieldFormatterMgr;
+import edu.ku.brc.af.ui.forms.persist.FormDevHelper;
 import edu.ku.brc.af.ui.forms.persist.ViewIFace;
-import edu.ku.brc.af.ui.forms.persist.ViewLoader;
 import edu.ku.brc.af.ui.forms.persist.ViewSet;
 import edu.ku.brc.af.ui.forms.persist.ViewSetIFace;
+import edu.ku.brc.dbsupport.DBConnection;
 import edu.ku.brc.dbsupport.DataProviderFactory;
 import edu.ku.brc.dbsupport.DataProviderSessionIFace;
 import edu.ku.brc.exceptions.ConfigurationException;
@@ -104,7 +109,6 @@ import edu.ku.brc.specify.datamodel.Permit;
 import edu.ku.brc.specify.datamodel.PickList;
 import edu.ku.brc.specify.datamodel.PickListItem;
 import edu.ku.brc.specify.datamodel.SpAppResource;
-import edu.ku.brc.specify.datamodel.SpAppResourceData;
 import edu.ku.brc.specify.datamodel.SpAppResourceDir;
 import edu.ku.brc.specify.datamodel.SpLocaleContainer;
 import edu.ku.brc.specify.datamodel.SpViewSetObj;
@@ -113,7 +117,6 @@ import edu.ku.brc.specify.datamodel.StorageTreeDef;
 import edu.ku.brc.specify.datamodel.TaxonTreeDef;
 import edu.ku.brc.specify.datamodel.TreeDefIface;
 import edu.ku.brc.specify.datamodel.Treeable;
-import edu.ku.brc.specify.dbsupport.TaskSemaphoreMgr;
 import edu.ku.brc.specify.prefs.FormattingPrefsPanel;
 import edu.ku.brc.specify.tasks.BaseTreeTask;
 import edu.ku.brc.specify.tasks.subpane.wb.wbuploader.Uploader;
@@ -121,11 +124,13 @@ import edu.ku.brc.ui.ChooseFromListDlg;
 import edu.ku.brc.ui.CommandAction;
 import edu.ku.brc.ui.CommandDispatcher;
 import edu.ku.brc.ui.CustomDialog;
+import edu.ku.brc.ui.IconEntry;
 import edu.ku.brc.ui.IconManager;
 import edu.ku.brc.ui.UIHelper;
 import edu.ku.brc.ui.UIRegistry;
 import edu.ku.brc.ui.UnhandledExceptionDialog;
 import edu.ku.brc.util.Pair;
+import edu.ku.brc.util.Triple;
 
 /**
  * This class provides the current context of the Specify application. The context consists of the following:<br>
@@ -161,8 +166,10 @@ public class SpecifyAppContextMgr extends AppContextMgr
     public static final String DISCPLINEDIR  = "Discipline"; //$NON-NLS-1$
     public static final String COMMONDIR     = "Common"; //$NON-NLS-1$
     public static final String BACKSTOPDIR   = "BackStop"; //$NON-NLS-1$
+    
+    private static Boolean isNewJavaVersion = null;
 
-    protected List<SpAppResourceDir>                spAppResourceList = new ArrayList<SpAppResourceDir>();
+    protected Vector<SpAppResourceDir>              spAppResourceList = new Vector<SpAppResourceDir>();
     protected Hashtable<String, SpAppResourceDir>   spAppResourceHash = new Hashtable<String, SpAppResourceDir>();
     protected Hashtable<String, List<ViewSetIFace>> viewSetHash       = new Hashtable<String, List<ViewSetIFace>>();
     
@@ -187,7 +194,7 @@ public class SpecifyAppContextMgr extends AppContextMgr
     protected DataProviderSessionIFace globalSession    = null;
     protected int                      openSessionCount = 0;
     
-    protected Boolean         isSecurityOn         = null;
+    protected Boolean                  isSecurityOn     = null;
     
     /**
      * Singleton Constructor.
@@ -297,6 +304,32 @@ public class SpecifyAppContextMgr extends AppContextMgr
     }
     
     /**
+     * Replaces the the old Dir object with a new one.
+     * @param index the index of the old
+     * @param newDir the new Dir object
+     */
+    public void replaceSpDirItem(final int index, final SpAppResourceDir newDir)
+    {
+        SpAppResourceDir oldDir = spAppResourceList.get(index);
+        spAppResourceList.remove(index);
+        spAppResourceList.insertElementAt(newDir, index);
+        
+        String key = null;
+        for (String hashKey : spAppResourceHash.keySet())
+        {
+            if (spAppResourceHash.get(hashKey) == oldDir)
+            {
+                key = hashKey;
+                break;
+            }
+        }
+        if (key != null)
+        {
+            spAppResourceHash.put(key, newDir);
+        }
+    }
+    
+    /**
      * Opens a session global to this object for loading
      * @return the session
      */
@@ -349,7 +382,7 @@ public class SpecifyAppContextMgr extends AppContextMgr
      */
     public int getNumOfCollectionsForUser()
     {
-        String sqlStr = "SELECT count(cs) From Collection as cs Inner Join cs.userGroups as princ Inner Join princ.specifyUsers as user where user.specifyUserId = "+user.getSpecifyUserId(); //$NON-NLS-1$
+        String sqlStr = "SELECT count(cs) From Collection as cs INNER JOIN cs.userGroups as princ INNER JOIN princ.specifyUsers as user where user.specifyUserId = "+user.getSpecifyUserId(); //$NON-NLS-1$
         
         DataProviderSessionIFace session = null;
         try
@@ -378,13 +411,13 @@ public class SpecifyAppContextMgr extends AppContextMgr
     public List<Integer> getCollectionIdList(final DataProviderSessionIFace sessionArg)
     {
         Vector<Integer> list   = new Vector<Integer>();
-        SpecifyUser     spUser = AppContextMgr.getInstance().getClassObject(SpecifyUser.class);
+        SpecifyUser     spUser = getClassObject(SpecifyUser.class);
         if (spUser != null)
         {
             sessionArg.attach(spUser);
             for (Agent agent : spUser.getAgents())
             {
-                for (Discipline discipline : agent.getDisciplines())
+                for (Discipline discipline : agent.getDivision().getDisciplines())
                 {
                     for (Collection collection : discipline.getCollections())
                     {
@@ -400,242 +433,198 @@ public class SpecifyAppContextMgr extends AppContextMgr
     }
     
     /**
-     * @param sessionArg
-     * @param userArg
-     * @return
-     */
-    protected Collection getLastUSedCollection(final DataProviderSessionIFace sessionArg, 
-                                               final SpecifyUser userArg)
-    {
-        try
-        {
-            final String prefName = mkUserDBPrefName("recent_collection_id"); //$NON-NLS-1$
-            
-            // First get the Collections the User has access to.
-            Hashtable<String, Collection> collectionHash = new Hashtable<String, Collection>();
-            String sqlStr = "SELECT cs From Discipline as ct Inner Join ct.agents cta Inner Join cta.specifyUser as user Inner Join ct.collections as cs where user.specifyUserId = "+userArg.getSpecifyUserId(); //$NON-NLS-1$
-            for (Object obj : sessionArg.getDataList(sqlStr))
-            {
-                Collection cs = (Collection)obj; 
-                cs.getDiscipline();// force load of Discipline
-                collectionHash.put(cs.getCollectionName(), cs);
-            }
-    
-            Collection collection = null;
-            
-            AppPreferences appPrefs  = AppPreferences.getRemote();
-            String         recentIds = appPrefs.get(prefName, null);
-            if (StringUtils.isNotEmpty(recentIds))
-            {
-                List<?> list = sessionArg.getDataList("FROM Collection WHERE collectionId = " + recentIds); //$NON-NLS-1$
-                if (list.size() == 1)
-                {
-
-                    collection = (Collection)list.get(0);
-
-                }
-                else
-                {
-                    log.debug("could NOT find recent ids"); //$NON-NLS-1$
-                }
-            }
-            
-            if (collection != null && collectionHash.get(collection.getCollectionName()) == null)
-            {
-                return null;
-            }
-            
-            return collection;
-            
-        } catch (Exception ex)
-        {
-            edu.ku.brc.af.core.UsageTracker.incrHandledUsageCount();
-            edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(SpecifyAppContextMgr.class, ex);
-            ex.printStackTrace();
-            showLocalizedError(ex.toString()); // Yes, I know it isn't localized.
-        }
-        return null;
-    }
-    
-    /**
      * Sets up the "current" Collection by first checking prefs for the most recent primary key,
-     * if it can't get it then it asks the user to select one. (Note: if there is only one it automatically chooses it)
-     * @param sessionArg a session
      * @param userArg the user object of the current object
-     * @param alwaysAsk indicates the User should always be asked which Collection to use
+     * @param promptForCollection indicates the User should always be asked which Collection to use
+     * @param collectionName name of collection to choose (can be null)
      * @return the current Collection or null
      */
-    @SuppressWarnings("unchecked") //$NON-NLS-1$
     protected Collection setupCurrentCollection(final SpecifyUser userArg,
-                                                final boolean startingOver)
+                                                final boolean     promptForCollection,
+                                                final String      collectionName)
     {
         DataProviderSessionIFace session = null;
         try
         {
+            AppPreferences remotePrefs = AppPreferences.getRemote();
+            
             session = DataProviderFactory.getInstance().createSession();
             
             SpecifyUser spUser = session.getData(SpecifyUser.class, "id", userArg.getId(), DataProviderSessionIFace.CompareType.Equals); //$NON-NLS-1$
             
-            final String prefName = mkUserDBPrefName("recent_collection_id"); //$NON-NLS-1$
+            String  alwaysAskPref = "ALWAYS.ASK.COLL"; //$NON-NLS-1$
+            boolean askForColl    = remotePrefs.getBoolean(alwaysAskPref, false);
+            String   prefName     = mkUserDBPrefName("recent_collection_id"); //$NON-NLS-1$
             
             // First get the Collections the User has access to.
-            Hashtable<String, Collection> collectionHash = new Hashtable<String, Collection>();
-            String sqlStr = "SELECT cs From Collection as cs Inner Join cs.userGroups as princ Inner Join princ.specifyUsers as user where user.specifyUserId = "+spUser.getSpecifyUserId(); //$NON-NLS-1$
-            for (Object obj : session.getDataList(sqlStr))
+            Hashtable<String, Pair<String, Integer>> collectionHash = new Hashtable<String, Pair<String, Integer>>();
+            
+            String sqlStr = String.format("SELECT DISTINCT cln.CollectionID, cln.CollectionName, cln.DisciplineID FROM collection AS cln " +
+                            "Inner Join spprincipal AS p ON cln.UserGroupScopeId = p.userGroupScopeID " +
+                            "Inner Join specifyuser_spprincipal AS su_pr ON p.SpPrincipalID = su_pr.SpPrincipalID " +
+                            "WHERE su_pr.SpecifyUserID = %d AND GroupSubClass = '%s'", spUser.getSpecifyUserId(), UserPrincipal.class.getName()); //$NON-NLS-1$
+            
+            //log.debug(sqlStr);
+            
+            for (Object[] row : BasicSQLUtils.query(sqlStr))
             {
-                Collection collection = (Collection)obj; 
-                collection.forceLoad();
+                String  collName = row[1].toString();
+                Integer collId   = (Integer)row[0];
                 
-                collection.getDiscipline();// force load of Discipline
-                collection.getDiscipline().getAgents(); // force load of agents
-                collectionHash.put(collection.getCollectionName(), collection);
+                if (collectionHash.get(collName) != null)
+                {
+                    String dispName = BasicSQLUtils.querySingleObj("SELECT Name FROM discipline WHERE DisciplineID = " + row[2]);
+                    collName += " - " + dispName;
+                    if (collectionHash.get(collName) != null)
+                    {
+                        String sql = "SELECT d.DivisionID FROM collection c INNER JOIN discipline d ON c.DisciplineID = d.UserGroupScopeId WHERE d.DisciplineID = " + row[2];
+                        String divName = BasicSQLUtils.querySingleObj(sql);
+                        collName += " - " + divName;
+                    }
+                }
+                collectionHash.put(collName, new Pair<String, Integer>(collName, collId));
             }
     
-            Collection collection = null;
+            Pair<String, Integer> currColl = null;
             
-            AppPreferences appPrefs  = AppPreferences.getRemote();
-            String         recentIds = appPrefs.get(prefName, null);
-            if (StringUtils.isNotEmpty(recentIds))
+            if (collectionName == null)
             {
-                List<?> list = session.getDataList("FROM Collection WHERE collectionId = " + recentIds); //$NON-NLS-1$
-                if (list.size() == 1)
+                String recentIds = askForColl || promptForCollection ? null : remotePrefs.get(prefName, null);
+                if (StringUtils.isNotEmpty(recentIds))
                 {
-
-                    collection = (Collection)list.get(0);
-                    collection.forceLoad();
+                    Vector<Object[]> rows = BasicSQLUtils.query("SELECT CollectionName, UserGroupScopeId FROM collection WHERE UserGroupScopeId = " + recentIds); //$NON-NLS-1$
+                    if (rows.size() == 1)
+                    {
+                        String  collName = rows.get(0)[0].toString();
+                        Integer collId   = (Integer)rows.get(0)[1];
+                        currColl = new Pair<String, Integer>(collName, collId);
+                        
+                    } else
+                    {
+                        log.debug("could NOT find recent ids"); //$NON-NLS-1$
+                    }
                 }
-                else
+                
+                if (currColl != null && collectionHash.get(currColl.first) == null)
                 {
-                    log.debug("could NOT find recent ids"); //$NON-NLS-1$
+                    currColl = null;
                 }
             }
             
-            if (collection != null && collectionHash.get(collection.getCollectionName()) == null)
-            {
-                collection = null;
-            }
             
-            if (collection == null || startingOver)
+            if (currColl == null || (askForColl && promptForCollection))
             {
                 if (collectionHash.size() == 1)
                 {
-                    collection = collectionHash.elements().nextElement();
-                    collection.forceLoad();
+                    currColl = collectionHash.elements().nextElement();
     
                 } else if (collectionHash.size() > 0)
                 {
-                    List<Collection> list = new Vector<Collection>();
-                    list.addAll(collectionHash.values());
-                    Collections.sort(list);
-                    
-                    int selectColInx = -1;
-                    if (collection != null)
+                    if (collectionName == null)
                     {
-                        int i = 0;
-                        for (Collection c : list)
-                        {
-                            if (c.getId().intValue() == collection.getId().intValue())
+                        List<Pair<String, Integer>> list = new Vector<Pair<String, Integer>>();
+                        list.addAll(collectionHash.values());
+                        Collections.sort(list, new Comparator<Pair<String, Integer>>() {
+                            @Override
+                            public int compare(Pair<String, Integer> o1, Pair<String, Integer> o2)
                             {
-                                selectColInx = i;
-                                break;
+                                return o1.first.compareTo(o2.first);
                             }
-                            i++;
-                        }
+                        });
+                        
+                        int selectColInx = -1;
+                        
+                        ChooseCollectionDlg colDlg = null;
+                        do {
+                            colDlg = new ChooseCollectionDlg(list);
+                            colDlg.setSelectedIndex(selectColInx);
+                            colDlg.createUI();
+                            colDlg.pack();
+                            Dimension size = colDlg.getSize();
+                            size.width  = Math.max(size.width, 300);
+                            if (size.height < 150)
+                            {
+                                size.height += 100;
+                            }
+                            colDlg.setSize(size);
+                            
+                            UIHelper.centerWindow(colDlg);
+                            colDlg.setVisible(true);
+                            
+                        } while (colDlg.getSelectedObject() == null || colDlg.isCancelled());
+                        
+                        currColl = colDlg.getSelectedObject();
                     } else
                     {
-                        log.error("Collection was null!"); //$NON-NLS-1$
-                    }
-    
-                    
-                    session.close();
-                    session = null;
-
-                    ChooseCollectionDlg colDlg = null;
-                    do {
-                        colDlg = new ChooseCollectionDlg(list);
-                        colDlg.setSelectedIndex(selectColInx);
-                        colDlg.createUI();
-                        colDlg.pack();
-                        Dimension size = colDlg.getSize();
-                        size.width  = Math.max(size.width, 300);
-                        if (size.height < 150)
+                        Integer colId = BasicSQLUtils.getCount(String.format("SELECT CollectionID FROM collection WHERE CollectionName = '%s'", collectionName));
+                        if (colId != null)
                         {
-                            size.height += 100;
+                            currColl = new Pair<String, Integer>(collectionName, colId);
+                        } else
+                        {
+                            return null;
                         }
-                        colDlg.setSize(size);
-                        
-                        UIHelper.centerWindow(colDlg);
-                        colDlg.setVisible(true);
-                        
-                    } while (colDlg.getSelectedObject() == null || colDlg.isCancelled());
-
-                    
-                    collection = colDlg.getSelectedObject();
-                    
-                    session = DataProviderFactory.getInstance().createSession();
-                    session.attach(collection);
-                    session.attach(spUser);
-                    
-                    collection.forceLoad();
-                    
-                } else
-                {
-                    // Accession / Registrar / Director may not be assigned to any Collection
-                    // Or for a stand alone Accessions Database there may not be any 
-                    
-                    UIRegistry.showLocalizedError("SpecifyAppContextMgr.ERR_NO_COLL");
-                    //CommandDispatcher.dispatch(new CommandAction("App", "AppReqExit"));
-                    return null;
+                    }
                 }
-    
+            }
+            
+            Collection collection = null;
+            
+            if (currColl != null)
+            {
+                collection = (Collection)session.getData("FROM Collection WHERE id = " + currColl.second);
                 if (collection != null)
                 {
-                    appPrefs.put(prefName, (Long.toString(collection.getCollectionId())));
+                    collection.forceLoad();
+                    remotePrefs.put(prefName, (Long.toString(collection.getCollectionId())));
                 }
             }
             
-            AppContextMgr.getInstance().setClassObject(Collection.class, collection);
-            // XXX Collection.setCurrentCollectionIds(getCollectionIdList(sessionArg));
-            
-            String colObjStr = "CollectionObject"; //$NON-NLS-1$
-            String iconName = AppPreferences.getRemote().get(FormattingPrefsPanel.getDisciplineImageName(), colObjStr);
-            if (StringUtils.isEmpty(iconName) || iconName.equals(colObjStr))
+            if (collection == null)
             {
-                iconName = "colobj_backstop"; //$NON-NLS-1$
+                UIRegistry.showLocalizedError("SpecifyAppContextMgr.ERR_NO_COLL");
+                return null;
             }
             
-            IconManager.aliasImages(iconName,                  // Source
-                                    colObjStr);                // Dest //$NON-NLS-1$
-
-            IconManager.aliasImages(iconName,                  // Source
-                                    colObjStr.toLowerCase());  // Dest //$NON-NLS-1$
+            setClassObject(Collection.class, collection);
             
-            if (collection != null)
+            if (collectionName == null)
             {
-                
-                Discipline discipline = collection.getDiscipline();
-                session.attach(discipline);
-                
-                Institution institution = discipline.getDivision().getInstitution();
-                session.attach(institution);
-                
-                AppContextMgr.getInstance().setClassObject(Institution.class, institution);
-                
-                if (discipline != null)
+                String colObjStr = "CollectionObject"; //$NON-NLS-1$
+                String iconName = remotePrefs.get(FormattingPrefsPanel.getDisciplineImageName(), colObjStr);
+                if (StringUtils.isEmpty(iconName) || iconName.equals(colObjStr))
                 {
-                    Agent.setUserAgent(spUser, discipline.getAgents());
-                    
-                    AppContextMgr am = AppContextMgr.getInstance();
-                	am.setClassObject(TaxonTreeDef.class,              discipline.getTaxonTreeDef());
-                    am.setClassObject(GeologicTimePeriodTreeDef.class, discipline.getGeologicTimePeriodTreeDef());
-                    am.setClassObject(StorageTreeDef.class,            institution.getStorageTreeDef());
-                    am.setClassObject(LithoStratTreeDef.class,         discipline.getLithoStratTreeDef());
-                    am.setClassObject(GeographyTreeDef.class,          discipline.getGeographyTreeDef());
+                    iconName = "colobj_backstop"; //$NON-NLS-1$
                 }
-            } else
-            {
-                showLocalizedError("SpecifyAppContextMgr.COL_WAS_NULL"); //$NON-NLS-1$
+            
+                IconManager.aliasImages(iconName,                  // Source
+                                        colObjStr);                // Dest //$NON-NLS-1$
+    
+                IconManager.aliasImages(iconName,                  // Source
+                                        colObjStr.toLowerCase());  // Dest //$NON-NLS-1$
             }
+            
+            Discipline discipline = collection.getDiscipline();
+            session.attach(discipline);
+            
+            Institution institution = discipline.getDivision().getInstitution();
+            session.attach(institution);
+            
+            setClassObject(Institution.class, institution);
+            
+            Agent.setUserAgent(spUser, discipline.getDivision());
+            
+            AppContextMgr am = AppContextMgr.getInstance();
+            discipline.getTaxonTreeDef().forceLoad();
+            am.setClassObject(TaxonTreeDef.class,              discipline.getTaxonTreeDef());
+            discipline.getGeologicTimePeriodTreeDef().forceLoad();
+            am.setClassObject(GeologicTimePeriodTreeDef.class, discipline.getGeologicTimePeriodTreeDef());
+            institution.getStorageTreeDef().forceLoad();
+            am.setClassObject(StorageTreeDef.class,            institution.getStorageTreeDef());
+            discipline.getLithoStratTreeDef().forceLoad();
+            am.setClassObject(LithoStratTreeDef.class,         discipline.getLithoStratTreeDef());
+            discipline.getGeographyTreeDef().forceLoad();
+            am.setClassObject(GeographyTreeDef.class,          discipline.getGeographyTreeDef());
             
             return collection;
             
@@ -701,6 +690,7 @@ public class SpecifyAppContextMgr extends AppContextMgr
         return null;
     }
     
+    
     /**
      * Get SpAppResourceDir from database.
      * @param sessionArg
@@ -713,24 +703,53 @@ public class SpecifyAppContextMgr extends AppContextMgr
      * @return
      */
     public SpAppResourceDir getAppResDir(final DataProviderSessionIFace sessionArg,
-                                            final SpecifyUser    specifyUser,
-                                            final Discipline     discipline,
-                                            final Collection     collection,
-                                            final String         userType,
-                                            final boolean        isPersonal,
-                                            final String         localizedTitle,
-                                            final boolean        createWhenNotFound)
+                                         final SpecifyUser    specifyUser,
+                                         final Discipline     discipline,
+                                         final Collection     collection,
+                                         final String         userType,
+                                         final boolean        isPersonal,
+                                         final String         localizedTitle,
+                                         final boolean        createWhenNotFound)
     {
-        //StringBuilder sb = new StringBuilder("FROM SpAppResourceDir WHERE specifyUserId = "); //$NON-NLS-1$
-        //sb.append(specifyUser.getSpecifyUserId());
+        return getAppResDir(sessionArg, specifyUser, discipline, collection, userType, isPersonal, localizedTitle, createWhenNotFound, false);
+    }
+    
+    /**
+     * Get SpAppResourceDir from database.
+     * @param sessionArg
+     * @param specifyUser
+     * @param discipline
+     * @param collection
+     * @param userType
+     * @param isPersonal
+     * @param createWhenNotFound
+     * @param checkForNullSpUser
+     * @return
+     */
+    public SpAppResourceDir getAppResDir(final DataProviderSessionIFace sessionArg,
+                                         final SpecifyUser    specifyUser,
+                                         final Discipline     discipline,
+                                         final Collection     collection,
+                                         final String         userType,
+                                         final boolean        isPersonal,
+                                         final String         localizedTitle,
+                                         final boolean        createWhenNotFound,
+                                         final boolean        checkForNullSpUser)
+    {
         StringBuilder sb = new StringBuilder("FROM SpAppResourceDir WHERE");
         sb.append(" isPersonal = "); //$NON-NLS-1$
         sb.append(isPersonal);
-        if (isPersonal)
+        
+        if (checkForNullSpUser)
         {
-        	sb.append(" AND specifyUserId = ");
-        	sb.append(specifyUser.getSpecifyUserId());
+            sb.append(" AND specifyUserId is null"); //$NON-NLS-1$
+            
+        } else if (isPersonal)
+        {
+            sb.append(" AND specifyUserId = ");
+            sb.append(specifyUser.getSpecifyUserId());
         }
+        
         if (discipline != null)
         {
             sb.append(" AND disciplineId = "); //$NON-NLS-1$
@@ -759,7 +778,7 @@ public class SpecifyAppContextMgr extends AppContextMgr
             sb.append(" AND userType is null"); //$NON-NLS-1$
         }
         
-        log.debug(sb.toString());
+        //log.debug(sb.toString());
         
         List<?> list = sessionArg.getDataList(sb.toString());
         if (list.size() == 1)
@@ -767,15 +786,19 @@ public class SpecifyAppContextMgr extends AppContextMgr
             SpAppResourceDir appResDir = (SpAppResourceDir)list.get(0);
             
             // This loads the lazy sets
-            appResDir.getSpPersistedAppResources();
-            appResDir.getSpPersistedViewSets();
+            appResDir.getSpPersistedAppResources().size();
+            appResDir.getSpPersistedViewSets().size();
             
-            if (true)
+            // forces load of resource
+            for (SpAppResource appRes : appResDir.getSpPersistedAppResources())
             {
-                for (SpAppResource appRes : appResDir.getSpPersistedAppResources())
-                {
-                    log.debug(appRes.getName());
-                }
+                appRes.forceLoad();
+                //log.debug(appRes.getName());
+            }
+            for (SpViewSetObj vso : appResDir.getSpPersistedViewSets())
+            {
+                vso.forceLoad();
+                //log.debug(vso.getName());
             }
             appResDir.setTitle(localizedTitle);
             return appResDir;
@@ -798,6 +821,67 @@ public class SpecifyAppContextMgr extends AppContextMgr
         return null;
     }
     
+    /**
+     * @param resDirName
+     * @param resourceName
+     */
+    public void addDiskResourceToAppDir(final String resDirName, 
+                                        final String resourceName)
+    {
+        SpAppResourceDir appResDir = spAppResourceHash.get(resDirName);
+        if (appResDir != null)
+        {
+            if (appResDir.getId() != null)
+            {
+                Discipline     discipline     = getClassObject(Discipline.class);
+                DisciplineType disciplineType = DisciplineType.getDiscipline(discipline.getType());
+                String         folderName     = disciplineType.getFolder();
+                File           dir            = XMLHelper.getConfigDir(folderName);
+                if (dir.exists())
+                {
+                    AppResourceMgr appResMgr = new AppResourceMgr(dir);
+                    
+                    for (SpAppResource appRes : appResMgr.getSpAppResources())
+                    {
+                        String fileAppResName = appRes.getName();
+                        if (fileAppResName.equals(resourceName))
+                        {
+                            appRes.setSpAppResourceDir(appResDir);
+                            appResDir.getSpAppResources().add(appRes);
+                            DataProviderSessionIFace session = null;
+                            try
+                            {
+                                session = DataProviderFactory.getInstance().createSession();
+                                session.attach(appResDir);
+                                session.save(appResDir);
+                                session.commit();
+                                session.flush();
+                                
+                            } catch (Exception ex)
+                            {
+                                ex.printStackTrace();
+                                if (session != null) session.rollback();
+                                edu.ku.brc.af.core.UsageTracker.incrHandledUsageCount();
+                                edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(SpecifyAppContextMgr.class, ex);
+                                
+                            } finally
+                            {
+                                if (session != null)
+                                {
+                                    session.close();
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            
+        } else
+        {
+            // error
+        }
+    }
+    
     
     /**
      * @param virtualDirName
@@ -805,66 +889,31 @@ public class SpecifyAppContextMgr extends AppContextMgr
     public AppResourceIFace revertResource(final String virtualDirName,
                                            final AppResourceIFace appResource)
     {
-        int                 virtualNameIndex = getVirtualDirIndex(virtualDirName);
-        String[] levels = getVirtualDirNames();
+        int      virtualNameIndex = getVirtualDirIndex(virtualDirName);
+        String[] levels           = getVirtualDirNames();
         
         SpAppResource    fndAppRes = null;
-        for (int i=virtualNameIndex;i<levels.length;i++)
+        for (int i=virtualNameIndex;i<levels.length && fndAppRes == null;i++)
         {
-        	SpAppResourceDir fndAppDir = spAppResourceList.get(i);
+            SpAppResourceDir fndAppDir = spAppResourceList.get(i);
             for (SpAppResource appRes : (new ArrayList<SpAppResource>(fndAppDir.getSpAppResources())))
             {
-                //System.out.println(appRes.getFileName());
-                
                 if (appRes.getName() != null && appRes.getName().equals(appResource.getName()))
                 {
                     fndAppRes = appRes;
-                    
-                    if (fndAppRes.getSpAppResourceId() == null)
-                    {
-                    	break;
-                    }
-                    fndAppRes = null;
+                    break;
                 }
             }
         }
         
         if (fndAppRes == null)
         {
-            throw new RuntimeException("Couldn't find resource with name["+appResource.getName()+"]"); //$NON-NLS-1$ //$NON-NLS-2$
-        }
-        
-        if (fndAppRes.getSpAppResourceId() == null)
-        {
-            //String         path      = fndAppRes.getFileName();
-            //String         dirPath   = path.substring(0, path.length() - (new File(path).getName().length())-1);
-            
-            //AppResourceMgr appResMgr = new AppResourceMgr();
-            //SpAppResource  newAppRes = (SpAppResource)appResMgr.loadResourceByName(new File(dirPath), appResource.getName());
-            removeAppResource(virtualDirName, appResource);
-            
             return null;
         }
         
-        try
-        {
-            SpAppResource newAppRes = (SpAppResource)fndAppRes.clone();
-            for (SpAppResourceData data : fndAppRes.getSpAppResourceDatas())
-            {
-                SpAppResourceData newData = (SpAppResourceData)data.clone();
-                newAppRes.addReference(newData, "spAppResourceDatas"); //$NON-NLS-1$
-            }
-            removeAppResource(virtualDirName, appResource);
-            saveResource(newAppRes);
+        removeAppResource(virtualDirName, appResource);
             
-            return newAppRes;
-            
-        } catch (CloneNotSupportedException ex)
-        {
-            edu.ku.brc.af.core.UsageTracker.incrHandledUsageCount();
-            edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(SpecifyAppContextMgr.class, ex);
-            throw new RuntimeException(ex);
-        }
+        return null;
     }
     
     /**
@@ -898,9 +947,25 @@ public class SpecifyAppContextMgr extends AppContextMgr
                         session.attach(spAppResourceDir);
                         spAppResourceDir.getSpPersistedViewSets().remove(fndVSO);
                         spAppResourceDir.getSpViewSets().remove(fndVSO);
+                        
+                        boolean shouldDelDir = spAppResourceDir.getSpPersistedViewSets().size() == 0 && 
+                                               spAppResourceDir.getSpViewSets().size() == 0 &&
+                                               spAppResourceDir.getSpAppResources().size() == 0 &&
+                                               spAppResourceDir.getSpPersistedViewSets().size() == 0;
+                        
                         session.beginTransaction();
-                        session.save(spAppResourceDir);
+                        
+                        if (!shouldDelDir)
+                        {
+                            session.save(spAppResourceDir);
+                        }
+                        
                         session.delete(fndVSO);
+                        
+                        if (shouldDelDir)
+                        {
+                            session.delete(spAppResourceDir);
+                        }
                         
                         session.commit();
                         session.flush();
@@ -915,10 +980,11 @@ public class SpecifyAppContextMgr extends AppContextMgr
                         
                     } catch (Exception ex)
                     {
+                        if (session != null) session.rollback();
+                        ex.printStackTrace();
+                        
                         edu.ku.brc.af.core.UsageTracker.incrHandledUsageCount();
                         edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(SpecifyAppContextMgr.class, ex);
-                        ex.printStackTrace();
-                        session.rollback();
                         
                     } finally
                     {
@@ -1006,22 +1072,39 @@ public class SpecifyAppContextMgr extends AppContextMgr
         Hashtable<String, SpAppResource> hash = new Hashtable<String, SpAppResource>();
         for (SpAppResource appRes : spAppResourceDir.getSpPersistedAppResources())
         {
-            String fName = FilenameUtils.getName(appRes.getFileName());
+            String fName = appRes.getName();//FilenameUtils.getName(appRes.getFileName());
             hash.put(fName, appRes);
+            if (debug) log.debug("Persisted AppRes ["+fName+"]"); //$NON-NLS-1$ //$NON-NLS-2$
         }
         
         // Now check and merge the two
         for (SpAppResource appRes : appResMgr.getSpAppResources())
         {
-            String fName = FilenameUtils.getName(appRes.getFileName());
+            String        fName      = appRes.getName();//FilenameUtils.getName(appRes.getFileName());
             SpAppResource permAppRes = hash.get(fName);
             if (permAppRes == null)
             {
                 appRes.setSpAppResourceDir(spAppResourceDir);
                 spAppResourceDir.getSpAppResources().add(appRes);
+                if (debug) log.debug("Add File AppRes ["+fName+"]"); //$NON-NLS-1$ //$NON-NLS-2$
             } else
             {
                 spAppResourceDir.getSpAppResources().add(permAppRes);
+                if (debug) log.debug("Add DB AppRes ["+fName+"]"); //$NON-NLS-1$ //$NON-NLS-2$
+            }
+        }
+        
+        for (SpAppResource appRes : spAppResourceDir.getSpAppResources())
+        {
+            if (debug) log.debug("In AppResDir ["+appRes.getName()+"]"); //$NON-NLS-1$ //$NON-NLS-2$
+        }
+        
+        if (debug)
+        {
+            log.debug("-------------["+spAppResourceDir.getTitle()+"]"); //$NON-NLS-1$ //$NON-NLS-2$
+            for (SpViewSetObj vso : spAppResourceDir.getSpViewSets())
+            {
+                log.debug("    VSO["+vso.getName()+"]"); //$NON-NLS-1$ //$NON-NLS-2$
             }
         }
         
@@ -1073,29 +1156,33 @@ public class SpecifyAppContextMgr extends AppContextMgr
         return strBuf.toString();
     }
 
-    
     /* (non-Javadoc)
-     * @see edu.ku.brc.af.core.AppContextMgr#setContext(java.lang.String, java.lang.String, boolean)
+     * @see edu.ku.brc.af.core.AppContextMgr#setContext(java.lang.String, java.lang.String, boolean, boolean)
      */
     @Override
     public CONTEXT_STATUS setContext(final String  databaseName,
                                      final String  userName,
-                                     final boolean startingOver)
+                                     final boolean startingOver,
+                                     final boolean isFirstTime,
+                                     final boolean doPrompt)
     {
-        return setContext(databaseName, userName, startingOver, startingOver);
+        return setContext(databaseName, userName, startingOver, doPrompt, isFirstTime, null);
     }
 
     /**
      * @param databaseName
      * @param userName
      * @param startingOver
-     * @param promptForCollection
+     * @param doPrompt
+     * @param collectionName
      * @return
      */
     public CONTEXT_STATUS setContext(final String  databaseName,
                                      final String  userName,
                                      final boolean startingOver,
-                                     final boolean promptForCollection)
+                                     final boolean doPrompt,
+                                     final boolean isFirstTime,
+                                     final String collectionName)
     {
         if (debug)  log.debug("setting context - databaseName: [" + databaseName + "] userName: [" + userName + "]"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
         
@@ -1103,7 +1190,10 @@ public class SpecifyAppContextMgr extends AppContextMgr
         this.userName     = userName;
         this.hasContext   = true;
         
-        DBTableIdMgr.getInstance().clearPermissions();
+        if (isFirstTime)
+        {
+            DBTableIdMgr.getInstance().clearPermissions();
+        }
         
         // This is where we will read it in from the Database
         // but for now we don't need to do that.
@@ -1123,16 +1213,21 @@ public class SpecifyAppContextMgr extends AppContextMgr
             showLocalizedError("SpecifyAppContextMgr.SCHEMA_OUTOF_SYNC"); //$NON-NLS-1$
             System.exit(0);
         }
-
+        
+        if (session == null)
+        {
+            return CONTEXT_STATUS.Error;
+        }
+        
         try
         {
             List<?> list = session.getDataList(SpecifyUser.class, "name", userName); //$NON-NLS-1$
             if (list.size() == 1)
             {       
                 user = (SpecifyUser)list.get(0);
-                user.getAgents(); // makes sure the Agent is not lazy loaded
+                user.getAgents().size(); // makes sure the Agent is not lazy loaded
                 session.evict( user.getAgents());
-                AppContextMgr.getInstance().setClassObject(SpecifyUser.class, user);
+                setClassObject(SpecifyUser.class, user);
                 
                 if (!startingOver)
                 {                    
@@ -1153,7 +1248,6 @@ public class SpecifyAppContextMgr extends AppContextMgr
                         }
                     }
                     
-                    
                     user.setIsLoggedIn(true);
                     user.setLoginOutTime(new Timestamp(System.currentTimeMillis()));
                     
@@ -1165,6 +1259,7 @@ public class SpecifyAppContextMgr extends AppContextMgr
                         
                     } catch (Exception ex)
                     {
+                        session.rollback();
                         edu.ku.brc.af.core.UsageTracker.incrHandledUsageCount();
                         edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(SpecifyAppContextMgr.class, ex);
                         log.error(ex);
@@ -1185,18 +1280,23 @@ public class SpecifyAppContextMgr extends AppContextMgr
             // work with for this "Context" then we need to go get all the Default View and
             // additional XML Resources.
             
-            Collection curColl = AppContextMgr.getInstance().getClassObject(Collection.class);
+            if (isFirstTime)
+            {
+                FixDBAfterLogin.fixUserPermissions(false);
+            }
+            
+            Collection curColl = getClassObject(Collection.class);
             int prevCollectionId =  curColl != null ? curColl.getCollectionId() : -1;
             
-            Discipline curDis = AppContextMgr.getInstance().getClassObject(Discipline.class);
+            Discipline curDis = getClassObject(Discipline.class);
             int prevDisciplineId = curDis != null ? curDis.getDisciplineId() : -1;
             
             classObjHash.clear();
-            
-            AppContextMgr.getInstance().setClassObject(SpecifyUser.class, user);
+
+            setClassObject(SpecifyUser.class, user);
 
             // Ask the User to choose which Collection they will be working with
-            Collection collection = setupCurrentCollection(user, promptForCollection);
+            Collection collection = setupCurrentCollection(user, doPrompt, collectionName);
             if (collection == null)
             {
                 // Return false but don't mess with anything that has been set up so far
@@ -1219,146 +1319,172 @@ public class SpecifyAppContextMgr extends AppContextMgr
             Discipline discipline = session.getData(Discipline.class, "disciplineId", collection.getDiscipline().getId(), DataProviderSessionIFace.CompareType.Equals) ; //$NON-NLS-1$
             discipline.forceLoad();
             
-            AppContextMgr.getInstance().setClassObject(Discipline.class, discipline);
+            setClassObject(Discipline.class, discipline);
             
             String disciplineStr = discipline.getType().toLowerCase();
             
             Division division = discipline.getDivision();
             division.forceLoad();
-            AppContextMgr.getInstance().setClassObject(Division.class, division);
+            setClassObject(Division.class, division);
             
             DataType dataType = discipline.getDataType();
             dataType.forceLoad();
-            AppContextMgr.getInstance().setClassObject(DataType.class, dataType);
+            setClassObject(DataType.class, dataType);
             
-            AppPreferences.startup();
-            
-            RegisterSpecify.register(false);
-            
-            //--------------------------------------------------------------------------------
-            // Check for locks set on uploader, tree update, ...
-            //--------------------------------------------------------------------------------
-            
-            int uploadLockCheckResult = Uploader.checkUploadLock(null);
-            boolean noLocks = uploadLockCheckResult != Uploader.LOCKED;
-            boolean goodTrees = true;
-            if (uploadLockCheckResult != Uploader.LOCK_IGNORED)
-			{
-				if (noLocks)
-				{
-					if (!discipline.getTaxonTreeDef()
-							.checkNodeRenumberingLock())
-					{
-						noLocks = false;
-						UIRegistry.showLocalizedError("Specify.TreeUpdateLock",
-								discipline.getTaxonTreeDef().getName());
-					}
-				}
-				if (noLocks)
-				{
-					if (!discipline.getGeographyTreeDef()
-							.checkNodeRenumberingLock())
-					{
-						noLocks = false;
-						UIRegistry.showLocalizedError("Specify.TreeUpdateLock",
-								discipline.getGeographyTreeDef().getName());
-					}
-				}
-				if (noLocks)
-				{
-					if (!division.getInstitution().getStorageTreeDef()
-							.checkNodeRenumberingLock())
-					{
-						noLocks = false;
-						UIRegistry.showLocalizedError("Specify.TreeUpdateLock",
-								division.getInstitution().getStorageTreeDef().getName());
-					}
-				}
-				if (noLocks
-						&& discipline.getGeologicTimePeriodTreeDef() != null)
-				{
-					if (!discipline.getGeologicTimePeriodTreeDef()
-							.checkNodeRenumberingLock())
-					{
-						noLocks = false;
-						UIRegistry.showLocalizedError("Specify.TreeUpdateLock",
-								discipline.getGeologicTimePeriodTreeDef().getName());
-					}
-				}
-				if (noLocks && discipline.getLithoStratTreeDef() != null)
-				{
-					if (!discipline.getLithoStratTreeDef()
-							.checkNodeRenumberingLock())
-					{
-						noLocks = false;
-						UIRegistry.showLocalizedError("Specify.TreeUpdateLock",
-								discipline.getLithoStratTreeDef().getName());
-					}
-				}
-
-				if (noLocks)
-				{
-					// Now force node number updates for trees that are
-					// out-of-date
-					goodTrees = discipline.getTaxonTreeDef()
-							.checkNodeNumbersUpToDate(true);
-					if (goodTrees)
-					{
-						goodTrees = discipline.getGeographyTreeDef()
-								.checkNodeNumbersUpToDate(true);
-					}
-					if (goodTrees)
-					{
-						goodTrees = division.getInstitution()
-								.getStorageTreeDef().checkNodeNumbersUpToDate(true);
-					}
-					if (goodTrees
-							&& discipline.getGeologicTimePeriodTreeDef() != null)
-					{
-						goodTrees = discipline.getGeologicTimePeriodTreeDef()
-								.checkNodeNumbersUpToDate(true);
-					}
-					if (goodTrees && discipline.getLithoStratTreeDef() != null)
-					{
-						goodTrees = discipline.getLithoStratTreeDef()
-								.checkNodeNumbersUpToDate(true);
-					}
-				}
-			}
-            
-            if (!noLocks || !goodTrees)
+            Agent userAgent = null;
+            for (Agent agt : user.getAgents())
             {
-                user.setIsLoggedIn(false);
-                user.setLoginOutTime(new Timestamp(System.currentTimeMillis()));
-                try
+                if (agt.getDivision().getId().equals(division.getId()))
                 {
-                    session.beginTransaction();
-                    session.saveOrUpdate(user);
-                    session.commit();
-                    
-                } catch (Exception ex)
-                {
-                    edu.ku.brc.af.core.UsageTracker.incrHandledUsageCount();
-                    edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(SpecifyAppContextMgr.class, ex);
-                    log.error(ex);
+                    userAgent = agt;
+                    userAgent.getAddresses().size();
+                    userAgent.getVariants().size();
+                    break;
                 }
-                System.exit(0);
             }
-            else
+            setClassObject(Agent.class, userAgent);
+            
+            IconEntry ceEntry = IconManager.getIconEntryByName("CollectingEvent");
+            if (ceEntry != null)
             {
-                user.setLoginCollectionName(collection.getCollectionName());
-                user.setLoginDisciplineName(discipline.getName());
-                try
+                boolean isEmbedded = collection.getIsEmbeddedCollectingEvent();
+                IconEntry ciEntry = IconManager.getIconEntryByName(isEmbedded ? "collectinginformation" : "ce_restore");
+                if (ciEntry != null)
                 {
-                    session.beginTransaction();
-                    session.saveOrUpdate(user);
-                    session.commit();
-                    
-                } catch (Exception ex)
+                    ceEntry.setIcon(ciEntry.getIcon());
+                    ceEntry.getIcons().clear();
+                }
+            }
+            
+            if (isFirstTime)
+            {
+                AppPreferences.startup();
+            
+                //--------------------------------------------------------------------------------
+                // Check for locks set on uploader, tree update, ...
+                //--------------------------------------------------------------------------------
+                
+                int uploadLockCheckResult = Uploader.checkUploadLock(null);
+                boolean noLocks = uploadLockCheckResult != Uploader.LOCKED;
+                boolean goodTrees = true;
+                if (uploadLockCheckResult != Uploader.LOCK_IGNORED)
                 {
-                    edu.ku.brc.af.core.UsageTracker.incrHandledUsageCount();
-                    edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(SpecifyAppContextMgr.class, ex);
-                    log.error(ex);
+                    if (noLocks)
+                    {
+                        if (!discipline.getTaxonTreeDef()
+                                .checkNodeRenumberingLock())
+                        {
+                            noLocks = false;
+                            UIRegistry.showLocalizedError("Specify.TreeUpdateLock",
+                                    discipline.getTaxonTreeDef().getName());
+                        }
+                    }
+                    if (noLocks)
+                    {
+                        if (!discipline.getGeographyTreeDef()
+                                .checkNodeRenumberingLock())
+                        {
+                            noLocks = false;
+                            UIRegistry.showLocalizedError("Specify.TreeUpdateLock",
+                                    discipline.getGeographyTreeDef().getName());
+                        }
+                    }
+                    if (noLocks)
+                    {
+                        if (!division.getInstitution().getStorageTreeDef()
+                                .checkNodeRenumberingLock())
+                        {
+                            noLocks = false;
+                            UIRegistry.showLocalizedError("Specify.TreeUpdateLock",
+                                    division.getInstitution().getStorageTreeDef().getName());
+                        }
+                    }
+                    if (noLocks
+                            && discipline.getGeologicTimePeriodTreeDef() != null)
+                    {
+                        if (!discipline.getGeologicTimePeriodTreeDef()
+                                .checkNodeRenumberingLock())
+                        {
+                            noLocks = false;
+                            UIRegistry.showLocalizedError("Specify.TreeUpdateLock",
+                                    discipline.getGeologicTimePeriodTreeDef().getName());
+                        }
+                    }
+                    if (noLocks && discipline.getLithoStratTreeDef() != null)
+                    {
+                        if (!discipline.getLithoStratTreeDef()
+                                .checkNodeRenumberingLock())
+                        {
+                            noLocks = false;
+                            UIRegistry.showLocalizedError("Specify.TreeUpdateLock",
+                                    discipline.getLithoStratTreeDef().getName());
+                        }
+                    }
+    
+                    if (noLocks)
+                    {
+                        // Now force node number updates for trees that are
+                        // out-of-date
+                        goodTrees = discipline.getTaxonTreeDef()
+                                .checkNodeNumbersUpToDate(true);
+                        if (goodTrees)
+                        {
+                            goodTrees = discipline.getGeographyTreeDef()
+                                    .checkNodeNumbersUpToDate(true);
+                        }
+                        if (goodTrees)
+                        {
+                            goodTrees = division.getInstitution()
+                                    .getStorageTreeDef().checkNodeNumbersUpToDate(true);
+                        }
+                        if (goodTrees
+                                && discipline.getGeologicTimePeriodTreeDef() != null)
+                        {
+                            goodTrees = discipline.getGeologicTimePeriodTreeDef()
+                                    .checkNodeNumbersUpToDate(true);
+                        }
+                        if (goodTrees && discipline.getLithoStratTreeDef() != null)
+                        {
+                            goodTrees = discipline.getLithoStratTreeDef()
+                                    .checkNodeNumbersUpToDate(true);
+                        }
+                    }
+                }
+                
+                if (!noLocks || !goodTrees)
+                {
+                    user.setIsLoggedIn(false);
+                    user.setLoginOutTime(new Timestamp(System.currentTimeMillis()));
+                    try
+                    {
+                        session.beginTransaction();
+                        session.saveOrUpdate(user);
+                        session.commit();
+                        
+                    } catch (Exception ex)
+                    {
+                        edu.ku.brc.af.core.UsageTracker.incrHandledUsageCount();
+                        edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(SpecifyAppContextMgr.class, ex);
+                        log.error(ex);
+                    }
+                    System.exit(0);
+                }
+                else
+                {
+                    user.setLoginCollectionName(collection.getCollectionName());
+                    user.setLoginDisciplineName(discipline.getName());
+                    try
+                    {
+                        session.beginTransaction();
+                        session.saveOrUpdate(user);
+                        session.commit();
+                        
+                    } catch (Exception ex)
+                    {
+                        edu.ku.brc.af.core.UsageTracker.incrHandledUsageCount();
+                        edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(SpecifyAppContextMgr.class, ex);
+                        log.error(ex);
+                    }
                 }
             }
             
@@ -1417,7 +1543,7 @@ public class SpecifyAppContextMgr extends AppContextMgr
             // Common Views 
             //---------------------------------------------------------
             title     = getResourceString("SpecifyAppContextMgr."+COMMONDIR);
-            appResDir = getAppResDir(session, user, null, null, null, false, title, true);
+            appResDir = getAppResDir(session, user, null, null, COMMONDIR, false, title, true);
             dir = XMLHelper.getConfigDir("common"); //$NON-NLS-1$
             if (dir.exists())
             {
@@ -1442,19 +1568,34 @@ public class SpecifyAppContextMgr extends AppContextMgr
                 spAppResourceHash.put(BACKSTOPDIR, appResDir);
             }
             
-            SpecifyAppPrefs.initialPrefs();
+            if (isFirstTime)
+            {
+                SpecifyAppPrefs.initialPrefs();
+            }
             
             closeSession();
             session = null;
             
-            if (prevDisciplineId != -1)
+            if (isFirstTime)
             {
-                CommandDispatcher.dispatch(new CommandAction("Discipline", "Changed")); //$NON-NLS-1$ //$NON-NLS-2$
-            }
-            
-            if (prevCollectionId != -1)
-            {
-                CommandDispatcher.dispatch(new CommandAction("Collection", "Changed")); //$NON-NLS-1$ //$NON-NLS-2$
+                FixDBAfterLogin.fixDefaultDates();
+                
+                // Reset the form system because 
+                // 'fixDefaultDates' loads all the forms.
+                FormDevHelper.clearErrors();
+                viewSetHash.clear();
+                lastLoadTime = 0;
+                
+                // Now notify everyone
+                if (prevDisciplineId != -1)
+                {
+                    CommandDispatcher.dispatch(new CommandAction("Discipline", "Changed")); //$NON-NLS-1$ //$NON-NLS-2$
+                }
+                
+                if (prevCollectionId != -1)
+                {
+                    CommandDispatcher.dispatch(new CommandAction("Collection", "Changed")); //$NON-NLS-1$ //$NON-NLS-2$
+                }
             }
             
             // We must check here before we load the schema
@@ -1462,36 +1603,83 @@ public class SpecifyAppContextMgr extends AppContextMgr
             
             session = openSession();
             
-            int disciplineId = AppContextMgr.getInstance().getClassObject(Discipline.class).getDisciplineId();
-            if (disciplineId != prevDisciplineId)
+            if (isFirstTime)
             {
-                SchemaI18NService.getInstance().loadWithLocale(SpLocaleContainer.CORE_SCHEMA, disciplineId, DBTableIdMgr.getInstance(), Locale.getDefault());
-            }
-            
-            UIFieldFormatterIFace catNumFmtr = UIFieldFormatterMgr.getInstance().getFormatter(collection.getCatalogNumFormatName());
-            if (catNumFmtr != null)
-            {
-                DBFieldInfo field = DBTableIdMgr.getInstance().getInfoById(CollectionObject.getClassTableId()).getFieldByName("catalogNumber");
-                field.setFormatter(catNumFmtr);
-            }
-            
-            Institution institution = AppContextMgr.getInstance().getClassObject(Institution.class);
-            if (!institution.getIsAccessionsGlobal())
-            {
-                for (AutoNumberingScheme ans : collection.getNumberingSchemes())
+                // Now load the Schema, but make sure the Discipline has a localization.
+                // for the current locale.
+                int disciplineId = getClassObject(Discipline.class).getDisciplineId();
+                if (disciplineId != prevDisciplineId)
                 {
-                    if (ans.getTableNumber() != null && ans.getTableNumber().equals(Accession.getClassTableId()))
+                    Locale       engLocale  = null;
+                    Locale       fndLocale  = null;
+                    Locale       currLocale = SchemaI18NService.getCurrentLocale();
+                    List<Locale> locales    = SchemaI18NService.getInstance().getLocalesFromData(SpLocaleContainer.CORE_SCHEMA, disciplineId);
+                    for (Locale locale : locales)
                     {
-                        DBFieldInfo field = DBTableIdMgr.getInstance().getInfoById(Accession.getClassTableId()).getFieldByName("accessionNumber");
-                        if (field != null)
+                        if (locale.equals(currLocale))
                         {
-                            UIFieldFormatterIFace accNumFmtr = UIFieldFormatterMgr.getInstance().getFormatter(ans.getFormatName());
-                            if (accNumFmtr != null)
-                            {
-                                field.setFormatter(accNumFmtr);
-                            }
+                            fndLocale = currLocale;
                         }
-                        break;
+                        if (locale.getLanguage().equals("en"))
+                        {
+                            engLocale = currLocale;
+                        }
+                    }
+                    if (fndLocale == null)
+                    {
+                        if (engLocale != null)
+                        {
+                            fndLocale = engLocale;
+                            
+                        } else if (locales.size() > 0)
+                        {
+                            fndLocale = locales.get(0);
+                            
+                        } else
+                        {
+                            currentStatus = CONTEXT_STATUS.Error;
+                            String msg = "Specify was unable to a Locale in the Schema Config for this discipline.\nPlease contact S[ecify support immediately.";
+                            UIRegistry.showError(msg);
+                            AppPreferences.shutdownAllPrefs();
+                            DataProviderFactory.getInstance().shutdown();
+                            DBConnection.shutdown();
+                            System.exit(0);
+                            return currentStatus;
+                        }
+                        
+                        fndLocale = engLocale != null ? engLocale : locales.get(0);
+                        SchemaI18NService.setCurrentLocale(fndLocale);
+                        Locale.setDefault(fndLocale);
+                        UIRegistry.displayErrorDlgLocalized("SpecifyAppContextMgr.NO_LOCALE", discipline.getName(), currLocale.getDisplayName(), fndLocale.getDisplayName());
+                    }
+                    SchemaI18NService.getInstance().loadWithLocale(SpLocaleContainer.CORE_SCHEMA, disciplineId, DBTableIdMgr.getInstance(), Locale.getDefault());
+                }
+                
+                UIFieldFormatterIFace catNumFmtr = UIFieldFormatterMgr.getInstance().getFormatter(collection.getCatalogNumFormatName());
+                if (catNumFmtr != null)
+                {
+                    DBFieldInfo field = DBTableIdMgr.getInstance().getInfoById(CollectionObject.getClassTableId()).getFieldByName("catalogNumber");
+                    field.setFormatter(catNumFmtr);
+                }
+                
+                Institution institution = getClassObject(Institution.class);
+                if (!institution.getIsAccessionsGlobal())
+                {
+                    for (AutoNumberingScheme ans : collection.getNumberingSchemes())
+                    {
+                        if (ans.getTableNumber() != null && ans.getTableNumber().equals(Accession.getClassTableId()))
+                        {
+                            DBFieldInfo field = DBTableIdMgr.getInstance().getInfoById(Accession.getClassTableId()).getFieldByName("accessionNumber");
+                            if (field != null)
+                            {
+                                UIFieldFormatterIFace accNumFmtr = UIFieldFormatterMgr.getInstance().getFormatter(ans.getFormatName());
+                                if (accNumFmtr != null)
+                                {
+                                    field.setFormatter(accNumFmtr);
+                                }
+                            }
+                            break;
+                        }
                     }
                 }
             }
@@ -1502,25 +1690,28 @@ public class SpecifyAppContextMgr extends AppContextMgr
             closeSession();
             session = null;
             
-            for (DBTableInfo ti : DBTableIdMgr.getInstance().getTables())
+            if (isFirstTime)
             {
-                ti.setPermissions(SecurityMgr.getInstance().getPermission("DO."+ti.getName().toLowerCase()));
+                for (DBTableInfo ti : DBTableIdMgr.getInstance().getTables())
+                {
+                    ti.setPermissions(SecurityMgr.getInstance().getPermission("DO."+ti.getName().toLowerCase()));
+                }
+                
+                // Here is where you turn on View/Viewdef re-use.
+                /*if (true)
+                {
+                    boolean cacheDoVerify = ViewLoader.isDoFieldVerification();
+                    ViewLoader.setDoFieldVerification(false);
+                    
+                    UIFieldFormatterMgr.getInstance();
+                    
+                    ViewLoader.setDoFieldVerification(cacheDoVerify);
+                }*/
+                
+                RegisterSpecify.register(false, 0);
             }
             
-            // Here is where you turn on View/Viewdef re-use.
-            if (true)
-            {
-                boolean cacheDoVerify = ViewLoader.isDoFieldVerification();
-                ViewLoader.setDoFieldVerification(false);
-                
-                UIFieldFormatterMgr.getInstance();
-                
-                ViewLoader.setDoFieldVerification(cacheDoVerify);
-            }
-            
-            currentStatus = CONTEXT_STATUS.OK;
-        
-            return currentStatus;
+            return currentStatus= CONTEXT_STATUS.OK;
             
         } catch (Exception ex)
         {
@@ -1549,8 +1740,8 @@ public class SpecifyAppContextMgr extends AppContextMgr
      */
     protected boolean addFormatFromFile(final String fmtFileName, final boolean isCatNum)
     {
-        Collection  coll        = AppContextMgr.getInstance().getClassObject(Collection.class);
-        Institution inst        = AppContextMgr.getInstance().getClassObject(Institution.class);
+        Collection  coll        = getClassObject(Collection.class);
+        Institution inst        = getClassObject(Institution.class);
         boolean     isAccGlobal = inst != null && inst.getIsAccessionsGlobal();
         
         String prefix  = isCatNum || !isAccGlobal ? coll.getCollectionName() : null;
@@ -1592,12 +1783,13 @@ public class SpecifyAppContextMgr extends AppContextMgr
 
     /**
      * Returns a list of ViewSets from a AppResourceDefault, The ViewSets are created from the ViewSetObj.
-     * @param dir the AppResourceDefault
+     * @param dirArg the AppResourceDefault
      * @return list of ViewSet objects
      */
-    public List<ViewSetIFace> getViewSetList(final SpAppResourceDir dir)
+    public List<ViewSetIFace> getViewSetList(final SpAppResourceDir dirArg)
     {
-        if (debug) log.debug("Looking up["+dir.getUniqueIdentifer()+"]["+dir.getVerboseUniqueIdentifer()+"]"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+        SpAppResourceDir dir = dirArg;
+        if (debug) log.debug("Looking up ["+dir.toString()+"] ["+dir.getUniqueIdentifer()+"]["+dir.getVerboseUniqueIdentifer()+"]"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
         
         Boolean reloadViews = AppPreferences.getLocalPrefs().getBoolean("reload_views", false); //$NON-NLS-1$
         if (reloadViews || forceReloadViews)
@@ -1605,6 +1797,7 @@ public class SpecifyAppContextMgr extends AppContextMgr
             long rightNow = (Calendar.getInstance().getTimeInMillis()/1000);
             if ((rightNow - lastLoadTime) > 10)
             {
+                FormDevHelper.clearErrors();
                 viewSetHash.clear();
                 lastLoadTime = rightNow;
             }
@@ -1620,8 +1813,16 @@ public class SpecifyAppContextMgr extends AppContextMgr
                 session = openSession();
                 if (dir.getSpAppResourceDirId() != null)
                 {
-                    session.attach(dir);
+                    try
+                    {
+                        session.attach(dir);
+                        
+                    } catch (org.hibernate.HibernateException ex)
+                    {
+                        dir = session.merge(dir);
+                    }
                 }
+                
                 viewSetList = new Vector<ViewSetIFace>();
                 for (SpViewSetObj vso : dir.getSpViewSets())
                 {
@@ -1629,25 +1830,27 @@ public class SpecifyAppContextMgr extends AppContextMgr
                     Element root = null;
                     try
                     {
+                        //if (debug) log.debug(vso.getDataAsString());
                         root = XMLHelper.readStrToDOM4J(vso.getDataAsString());
                         
                     } catch (Exception ex)
                     {
                         String msg = "Error error parsing XML: `"+vso.getName() + "`\n" + StringUtils.replace(ex.getMessage(), "Nested", "\nNested");
-                        UIRegistry.showError(msg);
+                        FormDevHelper.appendFormDevError(msg);
                         return viewSetList;
                     }
                     
                     ViewSet vs = new ViewSet(root, true);
+                    vs.setDiskBased(vso.getId() == null);
                     vs.setFileName(vso.getFileName());
                     viewSetList.add(vs);
                     
                 }
             } catch (Exception ex)
             {
+                ex.printStackTrace();
                 edu.ku.brc.af.core.UsageTracker.incrHandledUsageCount();
                 edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(SpecifyAppContextMgr.class, ex);
-                ex.printStackTrace();
                 
             } finally
             {
@@ -1704,7 +1907,8 @@ public class SpecifyAppContextMgr extends AppContextMgr
      */
     public List<ViewIFace> getEntirelyAllViews()
     {
-        Hashtable<String, ViewIFace> viewHash = new Hashtable<String, ViewIFace>();
+    	Vector<ViewIFace> list        = new Vector<ViewIFace>();
+        HashSet<String>   viewHashSet = new HashSet<String>();
         
         for (SpAppResourceDir appResDir : spAppResourceList)
         {
@@ -1713,15 +1917,16 @@ public class SpecifyAppContextMgr extends AppContextMgr
                 Hashtable<String, ViewIFace> vsHash = vs.getViews();
                 for (ViewIFace view : vsHash.values())
                 {
-                    if (viewHash.get(view.getName()) == null)
+                    if (!viewHashSet.contains(view.getName()))
                     {
-                        viewHash.put(view.getName(), view);
+                    	viewHashSet.add(view.getName());
+                    	list.add(view);
                     }
                 }
             }
         }
         
-        return new Vector<ViewIFace>(viewHash.values());
+        return list;
     }
 
     /* (non-Javadoc)
@@ -1759,6 +1964,44 @@ public class SpecifyAppContextMgr extends AppContextMgr
     @Override
     public ViewIFace getView(final String viewSetName, final String viewName)
     {
+        //log.debug("Looking for: "+viewName);
+        ViewIFace view = null;
+        Triple<ViewIFace, Boolean, Integer> viewInfoDB = getViewInternal(viewSetName, viewName, true);
+        if (viewInfoDB != null)
+        {
+            view = viewInfoDB.first;
+            //log.debug("viewInfoDB: "+viewInfoDB+" "+viewInfoDB.first+"  Lvl: "+viewInfoDB.third+"  Disk: "+viewInfoDB.second);
+        }
+        
+        if (viewInfoDB == null || viewInfoDB.second) // viewInfoDB.second -> true means it was from the disk
+        {
+            Triple<ViewIFace, Boolean, Integer> viewInfo = getViewInternal(viewSetName, viewName, false);
+            if (viewInfo != null && viewInfo.first != null)
+            {
+                //log.debug("viewInfo: "+viewInfo+"  "+viewInfo.first+" Lvl:"+viewInfo.third);
+                if (viewInfoDB != null)
+                {
+                    view = viewInfoDB.third < viewInfo.third ? viewInfoDB.first : viewInfo.first;
+                } else
+                {
+                    view = viewInfo.first;
+                }
+            }
+        }
+        
+        return view;
+    }
+
+    /**
+     * @param viewSetName
+     * @param viewName
+     * @param doCheckDB
+     * @return
+     */
+    private Triple<ViewIFace, Boolean, Integer> getViewInternal(final String viewSetName, final String viewName, final boolean doCheckDB)
+    {
+        if (debug) log.debug("getView - viewSetName[" + viewSetName + "][" + viewName + "]");
+        
         if (StringUtils.isEmpty(viewName))
         {
             throw new RuntimeException("Sorry the View Name cannot be empty."); //$NON-NLS-1$
@@ -1766,27 +2009,31 @@ public class SpecifyAppContextMgr extends AppContextMgr
 
         // We now allow "null" viewset names so it can find the first one it runs into.
         
+        int level = 0;
         for (SpAppResourceDir dir : spAppResourceList)
         {
-            //if (debug) log.debug("getView "+getSpAppResDefAsString(appResDef)+"  ["+appResDef.getUniqueIdentifer()+"]\n  ["+appResDef.getIdentityTitle()+"]");
-            if (debug)
-            {
-                log.debug(dir.getIdentityTitle());
-            }
+            if (debug) log.debug("getView - " + dir.getIdentityTitle());
             
-            for (ViewSetIFace vs : getViewSetList(dir))
+            if ((dir.getId() == null && !doCheckDB) || (dir.getId() != null && doCheckDB))
             {
-                if (debug) log.debug("VS  ["+vs.getName()+"]["+viewSetName+"]"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+                //if (debug) log.debug("getView "+getSpAppResDefAsString(appResDef)+"  ["+appResDef.getUniqueIdentifer()+"]\n  ["+appResDef.getIdentityTitle()+"]");
+                if (debug) log.debug("  getView - " + dir.getIdentityTitle());
                 
-                if (StringUtils.isEmpty(viewSetName) || vs.getName().equals(viewSetName))
+                for (ViewSetIFace vs : getViewSetList(dir))
                 {
-                    ViewIFace view = vs.getView(viewName);
-                    if (view != null)
+                    if (debug) log.debug("VS  ["+vs.getName()+"]["+viewSetName+"]"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+                    
+                    if (StringUtils.isEmpty(viewSetName) || vs.getName().equals(viewSetName))
                     {
-                        return view;
+                        ViewIFace view = vs.getView(viewName);
+                        if (view != null)
+                        {
+                            return new Triple<ViewIFace, Boolean, Integer>(view, vs.isDiskBased(), level);
+                        }
                     }
                 }
             }
+            level++;
         }
 
         return null;
@@ -1811,14 +2058,14 @@ public class SpecifyAppContextMgr extends AppContextMgr
             boolean dirContainsResource = false;
             if (spAppResource.getId() != null)
             {
-            	for (SpAppResource persisted : appResDir.getSpPersistedAppResources())
-            	{
-            		if (spAppResource.getId().equals(persisted.getId()))
-            		{
-            			dirContainsResource = true;
-            			break;
-            		}
-            	}
+                for (SpAppResource persisted : appResDir.getSpPersistedAppResources())
+                {
+                    if (spAppResource.getId().equals(persisted.getId()))
+                    {
+                        dirContainsResource = true;
+                        break;
+                    }
+                }
             }
             
             if (!dirContainsResource)
@@ -1831,16 +2078,19 @@ public class SpecifyAppContextMgr extends AppContextMgr
             try
             {
                 session = DataProviderFactory.getInstance().createSession();
+                appRes.setTimestampModified(new Timestamp(System.currentTimeMillis()));
+                appRes.setModifiedByAgent(Agent.getUserAgent());
+                appRes.setLevel((short)0);
                 session.beginTransaction();
                 if (!dirContainsResource)
                 {
-                	session.saveOrUpdate(appResDir);
+                    session.saveOrUpdate(appResDir);
                 }
                 else
                 {
                     //saveOrUpdate(spAppResource) shouldn't be necessary if resource is new, 
-                	//it also shouldn't cause problems, but it is only called if resource 
-                	//already existed in the directory, because it often generates 
+                    //it also shouldn't cause problems, but it is only called if resource 
+                    //already existed in the directory, because it often generates 
                     //hibernate exceptions for newly created resources.
                     session.saveOrUpdate(spAppResource);
                 }
@@ -1850,10 +2100,12 @@ public class SpecifyAppContextMgr extends AppContextMgr
                 
             } catch (Exception ex)
             {
+                if (session != null) session.rollback();
+                
+                ex.printStackTrace();
+                
                 edu.ku.brc.af.core.UsageTracker.incrHandledUsageCount();
                 edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(SpecifyAppContextMgr.class, ex);
-                session.rollback();
-                log.error(ex);
                 
             } finally 
             {
@@ -1925,13 +2177,15 @@ public class SpecifyAppContextMgr extends AppContextMgr
     @Override
     public AppResourceIFace getResource(final String name)
     {
+        if (debug) log.debug("getting resource["+name+"]");
+        
         DataProviderSessionIFace session = null;
         try
         {
             session = openSession();
             for (SpAppResourceDir appResDir : new ArrayList<SpAppResourceDir>(spAppResourceList))
             {
-                //log.debug(appResDir.getIdentityTitle());
+                //log.debug(appResDir.getIdentityTitle()+"  "+appResDir.getId());
                 
                 if (appResDir.getSpAppResourceDirId() != null)
                 {
@@ -1951,6 +2205,7 @@ public class SpecifyAppContextMgr extends AppContextMgr
                 
                 for (AppResourceIFace appRes : appResDir.getSpAppResources())
                 {
+                    //log.debug("    "+appRes.getName());
                     if (appRes.getName().equals(name))
                     {
                         return appRes;
@@ -1994,7 +2249,7 @@ public class SpecifyAppContextMgr extends AppContextMgr
      */
     public SpAppResourceDir getSpAppResourceDirByName(final String appResDirName)
     {
-    	return spAppResourceHash.get(appResDirName);
+        return spAppResourceHash.get(appResDirName);
     }
     
     /**
@@ -2003,14 +2258,14 @@ public class SpecifyAppContextMgr extends AppContextMgr
      */
     public String getDirName(final SpAppResourceDir appResDir)
     {
-    	for (Map.Entry<String, SpAppResourceDir> dir : spAppResourceHash.entrySet())
-    	{
-    		if (appResDir.getSpAppResourceDirId().equals(dir.getValue().getSpAppResourceDirId()))
-    		{
-    			return dir.getKey();
-    		}
-    	}
-    	return null;
+        for (Map.Entry<String, SpAppResourceDir> dir : spAppResourceHash.entrySet())
+        {
+            if (appResDir.getSpAppResourceDirId().equals(dir.getValue().getSpAppResourceDirId()))
+            {
+                return dir.getKey();
+            }
+        }
+        return null;
     }
     
     /* (non-Javadoc)
@@ -2082,7 +2337,11 @@ public class SpecifyAppContextMgr extends AppContextMgr
                 
                 if (appRes.getSpAppResourceId() != null)
                 {
-                    session.attach(appRes);
+                    // This needs to be looked into, hack for 6.2.04
+                    try
+                    {
+                        session.attach(appRes);
+                    } catch (org.hibernate.NonUniqueObjectException ex) {}
                 }
                 
                 if (appRes.getMimeType() != null && appRes.getMimeType().equals("text/xml")) //$NON-NLS-1$
@@ -2243,7 +2502,7 @@ public class SpecifyAppContextMgr extends AppContextMgr
         SpAppResourceDir appResDir = spAppResourceHash.get(appResDirName);
         if (appResDir != null)
         {
-        	return createAppResourceForDir(appResDir);
+            return createAppResourceForDir(appResDir);
         }
         log.error("Couldn't find AppResDir with name["+appResDirName+"]"); //$NON-NLS-1$ //$NON-NLS-2$
         return null;
@@ -2253,11 +2512,11 @@ public class SpecifyAppContextMgr extends AppContextMgr
      * @param appResDir
      * @return
      */
-    public AppResourceIFace createAppResourceForDir(SpAppResourceDir appResDir)
+    public AppResourceIFace createAppResourceForDir(final SpAppResourceDir appResDir)
     {
         SpAppResource appRes = new SpAppResource();
         appRes.initialize();
-        appRes.setSpecifyUser(AppContextMgr.getInstance().getClassObject(SpecifyUser.class));
+        appRes.setSpecifyUser(getClassObject(SpecifyUser.class));
         
         appResDir.getSpAppResources().add(appRes);
         appRes.setSpAppResourceDir(appResDir);
@@ -2274,7 +2533,8 @@ public class SpecifyAppContextMgr extends AppContextMgr
         {
             return false;
         }
-        SpAppResource appRes = (SpAppResource)appResource;
+        
+        SpAppResource    appRes    = (SpAppResource)appResource;
         SpAppResourceDir appResDir = spAppResourceHash.get(appResDirName);
         if (appResDir != null)
         {
@@ -2301,13 +2561,16 @@ public class SpecifyAppContextMgr extends AppContextMgr
                 session.commit();
                 session.flush();
                 return true;
+                
             } catch (Exception ex)
             {
+                if (session != null) session.rollback();
+                
                 edu.ku.brc.af.core.UsageTracker.incrHandledUsageCount();
                 edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(SpecifyAppContextMgr.class, ex);
-                session.rollback();
                 log.error(ex);
                 return false;
+                
             } finally 
             {
                 if (session != null)
@@ -2502,7 +2765,7 @@ public class SpecifyAppContextMgr extends AppContextMgr
     public PickListItemIFace getDefaultPickListItem(final String pickListName, final String title)
     {
         PickListItemIFace dObj        = null;
-        Collection        collection  = AppContextMgr.getInstance().getClassObject(Collection.class);
+        Collection        collection  = getClassObject(Collection.class);
         String            prefName    = (collection != null ? collection.getIdentityTitle() : "") + pickListName + "_DefaultId"; //$NON-NLS-1$ //$NON-NLS-2$
         AppPreferences    appPrefs    = AppPreferences.getRemote();
         String            idStr       = appPrefs.get(prefName, null);
@@ -2546,7 +2809,7 @@ public class SpecifyAppContextMgr extends AppContextMgr
                     itm.getTitle();
                 }
                 list.addAll(pickList.getItems());
-                ChooseFromListDlg<PickListItemIFace> plDlg = new ChooseFromListDlg<PickListItemIFace>(null, 
+                ChooseFromListDlg<PickListItemIFace> plDlg = new ChooseFromListDlg<PickListItemIFace>((Frame)null, 
                         getLocalizedMessage("SpecifyAppContextMgr.CHS_DEF_OBJ", title), list); //$NON-NLS-1$
                 plDlg.setModal(true);
                 plDlg.setVisible(true);
@@ -2587,7 +2850,7 @@ public class SpecifyAppContextMgr extends AppContextMgr
                                              final boolean ask, 
                                              boolean useAllItems)
     {
-        Collection       collection  = AppContextMgr.getInstance().getClassObject(Collection.class);
+        Collection       collection  = getClassObject(Collection.class);
         FormDataObjIFace dObj        = null;
         String           prefName    = (collection != null ? collection.getIdentityTitle() : "") + prefPrefix + "_DefaultId"; //$NON-NLS-1$ //$NON-NLS-2$
         AppPreferences   appPrefs    = AppPreferences.getRemote();
@@ -2630,7 +2893,7 @@ public class SpecifyAppContextMgr extends AppContextMgr
                 if (items != null)
                 {
                     
-                    ChooseFromListDlg<Item> colDlg = new ChooseFromListDlg<Item>(null, title, items);
+                    ChooseFromListDlg<Item> colDlg = new ChooseFromListDlg<Item>((Frame)null, title, items);
                     colDlg.setModal(true);
                     colDlg.setVisible(true);
                     if (!colDlg.isCancelled())
@@ -2698,7 +2961,7 @@ public class SpecifyAppContextMgr extends AppContextMgr
     
     
     //--------------------------------------------------------
-    // There is no greate place for this because the Pref system
+    // There is not great place for this because the Pref system
     // has to have been initialized and the Prefs are defined
     // in package edu.ku.brc.af.prefs
     //--------------------------------------------------------
@@ -2716,7 +2979,7 @@ public class SpecifyAppContextMgr extends AppContextMgr
         sb.append(sdf.format(Calendar.getInstance().getTime())+"\n"); //$NON-NLS-1$
         sb.append(Specify.getSpecify().getAppBuildVersion()+"\n"); //$NON-NLS-1$
         
-        SpecifyUser spUser = AppContextMgr.getInstance().getClassObject(SpecifyUser.class);
+        SpecifyUser spUser = getClassObject(SpecifyUser.class);
         if (spUser != null)
         {
             sb.append(spUser.toString() + "\n"); //$NON-NLS-1$
@@ -2745,7 +3008,7 @@ public class SpecifyAppContextMgr extends AppContextMgr
             }
         }
 
-        Collection collection = AppContextMgr.getInstance().getClassObject(Collection.class);
+        Collection collection = getClassObject(Collection.class);
         if (collection != null)
         {
             sb.append(collection.toString() + "\n"); //$NON-NLS-1$
@@ -2754,10 +3017,6 @@ public class SpecifyAppContextMgr extends AppContextMgr
         return sb.toString();
     }
 
-
-
-    protected static Boolean isNewJavaVersion = null;
-    
     /**
      * Returns true is the Pref's java.version match the current System properties java.version and
      * sets the Prefs appropriately (so if it has changed it will only return true the first time 
@@ -2854,37 +3113,41 @@ public class SpecifyAppContextMgr extends AppContextMgr
         return null;
     }
     
-    /**
-     * @param view
-     * @param isNewForm
-     * @return
+    /*
+     * 
+     * Commenting  isLockOK() because it is never used
      */
-    protected boolean isLockOK(final String    lockTitle, 
-                               final ViewIFace view, 
-                               final boolean   isNewForm)
-    {
-        Class<?> treeDefClass = ((SpecifyAppContextMgr)AppContextMgr.getInstance()).getTreeDefClass(view);
-        if (treeDefClass != null)
-        {
-            if (TaskSemaphoreMgr.isLocked(lockTitle, treeDefClass.getSimpleName(), TaskSemaphoreMgr.SCOPE.Discipline))
-            {
-                if (isNewForm)
-                {
-                    UIRegistry.showError("The tree is locked!");
-                    return false;
-                    
-                }
-                return false;
-            } 
-            TaskSemaphoreMgr.USER_ACTION action = TaskSemaphoreMgr.lock(lockTitle, treeDefClass.getSimpleName(), "def", TaskSemaphoreMgr.SCOPE.Discipline, false);
-            if (action != TaskSemaphoreMgr.USER_ACTION.OK)
-            {
-                UIRegistry.showError("Unable to Lock the tree!");
-                return false;
-            }
-        }
-        return true;
-    }
+//    /**
+//     * @param view
+//     * @param isNewForm
+//     * @return
+//     */
+//    protected boolean isLockOK(final String    lockTitle, 
+//                               final ViewIFace view, 
+//                               final boolean   isNewForm)
+//    {
+//        Class<?> treeDefClass = ((SpecifyAppContextMgr)AppContextMgr.getInstance()).getTreeDefClass(view);
+//        if (treeDefClass != null)
+//        {
+//            if (TaskSemaphoreMgr.isLocked(lockTitle, treeDefClass.getSimpleName(), TaskSemaphoreMgr.SCOPE.Discipline))
+//            {
+//                if (isNewForm)
+//                {
+//                    UIRegistry.showError("The tree is locked!");
+//                    return false;
+//                    
+//                }
+//                return false;
+//            } 
+//            TaskSemaphoreMgr.USER_ACTION action = TaskSemaphoreMgr.lock(lockTitle, treeDefClass.getSimpleName(), "def", TaskSemaphoreMgr.SCOPE.Discipline, false);
+//            if (action != TaskSemaphoreMgr.USER_ACTION.OK)
+//            {
+//                UIRegistry.showError("Unable to Lock the tree!");
+//                return false;
+//            }
+//        }
+//        return true;
+//    }
 
     /**
      * Checks to see if the view can be opened.
@@ -2916,7 +3179,7 @@ public class SpecifyAppContextMgr extends AppContextMgr
         sb.append("SELECT specifyuser.SpecifyUserID from specifyuser ");
         sb.append(" WHERE specifyuser.IsLoggedIn <> 0 and loginDisciplineName = '" + discipline.getName() + "'");
         
-        SpecifyUser spUser = AppContextMgr.getInstance().getClassObject(SpecifyUser.class);
+        SpecifyUser spUser = getClassObject(SpecifyUser.class);
         sb.append(" AND specifyuser.SpecifyUserID <> " + spUser.getId());
         
         Vector<Integer>  ids    = new Vector<Integer>();
@@ -3072,7 +3335,7 @@ public class SpecifyAppContextMgr extends AppContextMgr
             
         } catch (Exception ex)
         {
-            session.rollback();
+            if (session != null) session.rollback();
             
             ex.printStackTrace();
             edu.ku.brc.af.core.UsageTracker.incrHandledUsageCount();
@@ -3084,6 +3347,75 @@ public class SpecifyAppContextMgr extends AppContextMgr
             closeSession();
         }
         return status;
+    }
+    
+    /**
+     * Gets the current email address from (first) the SpecifyUser and then the User Agent
+     * @param doAskForIt indicates whether to ask for the email address
+     * @param doRequireValue indicates whether the email must be filled in.
+     * @return the email address
+     */
+    public String getMailAddr(final boolean doAskForIt, final boolean doRequireValue)
+    {
+        String      email       = null;
+        SpecifyUser spUser      = getClassObject(SpecifyUser.class);
+        Agent       userAgent   = getClassObject(Agent.class);
+        
+        if (spUser != null && StringUtils.isNotEmpty(spUser.getEmail()))
+        {
+            email = spUser.getEmail();
+        }
+        
+        if (StringUtils.isEmpty(email) && 
+            userAgent != null && StringUtils.isNotEmpty(userAgent.getEmail()))
+        {
+            email = userAgent.getEmail();
+        }
+        
+        email = null;
+        if (doAskForIt && StringUtils.isEmpty(email))
+        {
+            boolean isValidEmailAddr = true;
+            do
+            {
+                email = UIRegistry.askForString("SpecifyAppContextMgr.ENT_EMAIL_LABEL", 
+                                               "SpecifyAppContextMgr.ENT_EMAIL_TITLE", 
+                                               isValidEmailAddr ? null : "SpecifyAppContextMgr.ENT_EMAIL_ERR",
+                                               true);
+                isValidEmailAddr = UIHelper.isValidEmailAddress(email);
+            } while (!isValidEmailAddr);
+        }
+        
+        DataProviderSessionIFace session = openSession();
+        if (session != null)
+        {
+            try
+            {
+                spUser = session.get(SpecifyUser.class, spUser.getId());
+                spUser.setEmail(email);
+                session.beginTransaction();
+                for (Agent agt : spUser.getAgents())
+                {
+                    agt.setEmail(email);
+                    session.saveOrUpdate(agt);
+                }
+                session.saveOrUpdate(spUser);
+                session.commit();
+                
+                setClassObject(Agent.class, session.get(Agent.class, userAgent.getId()));
+                setClassObject(SpecifyUser.class, spUser);
+                
+            } catch (Exception ex)
+            {
+                session.rollback();
+                
+            } finally
+            {
+                closeSession();
+            }
+        }
+
+        return email;
     }
 
     /* (non-Javadoc)

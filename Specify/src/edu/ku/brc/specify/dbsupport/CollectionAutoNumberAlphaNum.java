@@ -27,6 +27,8 @@ import org.hibernate.Session;
 
 import edu.ku.brc.af.core.AppContextMgr;
 import edu.ku.brc.af.core.db.AutoNumberGeneric;
+import edu.ku.brc.af.core.expresssearch.QueryAdjusterForDomain;
+import edu.ku.brc.af.ui.forms.formatters.UIFieldFormatterIFace;
 import edu.ku.brc.specify.datamodel.Collection;
 import edu.ku.brc.specify.datamodel.CollectionObject;
 import edu.ku.brc.util.Pair;
@@ -62,10 +64,11 @@ public class CollectionAutoNumberAlphaNum extends AutoNumberGeneric
     }
 
     /* (non-Javadoc)
-     * @see edu.ku.brc.af.core.db.AutoNumberGeneric#getHighestObject(org.hibernate.Session, java.lang.String, edu.ku.brc.util.Pair, edu.ku.brc.util.Pair)
+     * @see edu.ku.brc.af.core.db.AutoNumberGeneric#getHighestObject(edu.ku.brc.af.ui.forms.formatters.UIFieldFormatterIFace, org.hibernate.Session, java.lang.String, edu.ku.brc.util.Pair, edu.ku.brc.util.Pair)
      */
     @Override
-    protected Object getHighestObject(final Session session, 
+    protected String getHighestObject(final UIFieldFormatterIFace formatter, 
+                                      final Session session, 
                                       final String  value,
                                       final Pair<Integer, Integer> yearPos, 
                                       final Pair<Integer, Integer> pos) throws Exception
@@ -78,7 +81,7 @@ public class CollectionAutoNumberAlphaNum extends AutoNumberGeneric
             yearVal = extractIntegerValue(yearPos, value);
         }
 
-        StringBuilder sb = new StringBuilder(" From CollectionObject c Join c.collection col Join col.numberingScheme cns WHERE cns.numberingSchemeId = ");
+        StringBuilder sb = new StringBuilder("SELECT c.catalogNumber From CollectionObject c Join c.collection col Join col.numberingSchemes cns WHERE cns.autoNumberingSchemeId = ");
         sb.append(currCollection.getNumberingSchemesByType(CollectionObject.getClassTableId()).getAutoNumberingSchemeId());
         
         if (yearVal != null)
@@ -87,7 +90,8 @@ public class CollectionAutoNumberAlphaNum extends AutoNumberGeneric
             sb.append(yearVal);
             sb.append(" = substring("+fieldName+","+(yearPos.first+1)+","+yearPos.second+")");
         }
-        sb.append(" ORDER BY");
+        
+        sb.append(" AND c.collectionMemberId = COLMEMID ORDER BY");
         
         try
         {
@@ -105,18 +109,18 @@ public class CollectionAutoNumberAlphaNum extends AutoNumberGeneric
                 sb.append(" substring("+fieldName+","+(pos.first+1)+","+pos.second+") desc");
             }
             
-            //System.out.println(sb.toString());
-            List<?> list = session.createQuery(sb.toString()).setMaxResults(1).list();
+            String sql = QueryAdjusterForDomain.getInstance().adjustSQL(sb.toString());
+            //System.out.println(sql);
+            List<?> list = session.createQuery(sql).setMaxResults(1).list();
             if (list.size() == 1)
             {
-                Object[] objArray = (Object[]) list.get(0);
-                return objArray[0];
+                return list.get(0).toString();
             }
         } catch (Exception ex)
         {
+            ex.printStackTrace();
             edu.ku.brc.af.core.UsageTracker.incrHandledUsageCount();
             edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(CollectionAutoNumberAlphaNum.class, ex);
-            ex.printStackTrace();
         }
         return null;
     }

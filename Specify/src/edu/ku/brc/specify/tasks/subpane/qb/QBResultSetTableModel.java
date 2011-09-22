@@ -36,6 +36,7 @@ import edu.ku.brc.dbsupport.CustomQueryIFace;
 import edu.ku.brc.dbsupport.JPAQuery;
 import edu.ku.brc.dbsupport.QueryExecutor;
 import edu.ku.brc.dbsupport.RecordSetIFace;
+import edu.ku.brc.specify.conversion.TimeLogger;
 import edu.ku.brc.specify.datamodel.RecordSet;
 import edu.ku.brc.specify.tasks.ExpressSearchTask;
 import edu.ku.brc.specify.tasks.subpane.ESResultsTablePanelIFace;
@@ -50,6 +51,7 @@ import edu.ku.brc.ui.UIRegistry;
  * @code_status Alpha
  *
  */
+@SuppressWarnings("serial")
 public class QBResultSetTableModel extends ResultSetTableModel
 {
     private static final Logger log = Logger.getLogger(QBResultSetTableModel.class);
@@ -63,6 +65,8 @@ public class QBResultSetTableModel extends ResultSetTableModel
     
     protected boolean loadingCells = false;
     protected int bgTaskCount = 0;
+    
+    TimeLogger timeLogger = new TimeLogger();
     
     /**
      * @param parentERTP
@@ -121,6 +125,10 @@ public class QBResultSetTableModel extends ResultSetTableModel
                     cols.set(col, DataObjFieldFormatMgr.getInstance().aggregate(
                             jpa.getDataObjects(), cls));
                     bgTaskCount--;
+                    if (bgTaskCount < 10)
+                    {
+                        timeLogger.end();
+                    }
                 }
                 if (!isPostProcessed.get())
                 {
@@ -140,6 +148,8 @@ public class QBResultSetTableModel extends ResultSetTableModel
     	
         try 
         {
+            timeLogger.start();
+            
 			results.queryTaskDone(customQuery);
 			List<?> list = customQuery.getDataObjects();
 			boolean hasIds = ((QBQueryForIdResultsHQL) results).isHasIds();
@@ -153,7 +163,8 @@ public class QBResultSetTableModel extends ResultSetTableModel
 				isPostProcessed.set(((QBQueryForIdResultsHQL) results)
 						.isPostSorted() || ((QBQueryForIdResultsHQL) results)
 						.isFilterDups());
-
+				boolean filterDups = ((QBQueryForIdResultsHQL) results).isFilterDups();
+				
 				int maxTableRows = results.getMaxTableRows();
 				int rowNum = 0;
 				for (Object rowObj : list) 
@@ -202,7 +213,8 @@ public class QBResultSetTableModel extends ResultSetTableModel
 								continue;
 							}
 							
-							if (col == 0 && hasIds) {
+							if (col == 0 && hasIds) 
+							{
 								if (hasIds) // Does this mean
 								{
 									id = (Integer) colObj;
@@ -215,6 +227,7 @@ public class QBResultSetTableModel extends ResultSetTableModel
 							{
 								ERTICaptionInfo erti = cols.next();
 								if (colObj != null
+										&& !filterDups
 										&& erti instanceof ERTICaptionInfoRel
 										&& ((ERTICaptionInfoRel) erti)
 												.getRelationship().getType() == RelationshipType.OneToMany) 
@@ -313,9 +326,13 @@ public class QBResultSetTableModel extends ResultSetTableModel
 			}
 		} catch (Exception e) 
 		{
-            UsageTracker.incrHandledUsageCount();
-			edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(
+            if (!((QBQueryForIdResultsHQL) results).getCancelled())
+            {
+            	UsageTracker.incrHandledUsageCount();
+            	edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(
 					QBResultSetTableModel.class, e);
+            }
+            //else ignore
 		}
    }
 

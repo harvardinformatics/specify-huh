@@ -31,9 +31,11 @@ import java.lang.ref.SoftReference;
 import java.sql.Timestamp;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.Vector;
@@ -84,17 +86,20 @@ import edu.ku.brc.dbsupport.RecordSetItemIFace;
 import edu.ku.brc.helpers.SwingWorker;
 import edu.ku.brc.helpers.XMLHelper;
 import edu.ku.brc.specify.config.SpecifyAppContextMgr;
+import edu.ku.brc.specify.conversion.BasicSQLUtils;
 import edu.ku.brc.specify.datamodel.DataModelObjBase;
 import edu.ku.brc.specify.datamodel.RecordSet;
+import edu.ku.brc.specify.datamodel.SpExportSchemaMapping;
 import edu.ku.brc.specify.datamodel.SpQuery;
 import edu.ku.brc.specify.datamodel.SpReport;
 import edu.ku.brc.specify.datamodel.SpecifyUser;
+import edu.ku.brc.specify.datamodel.TaxonTreeDefItem;
 import edu.ku.brc.specify.datamodel.TreeDefIface;
 import edu.ku.brc.specify.datamodel.TreeDefItemIface;
 import edu.ku.brc.specify.datamodel.Treeable;
 import edu.ku.brc.specify.tasks.subpane.SQLQueryPane;
 import edu.ku.brc.specify.tasks.subpane.qb.ERTICaptionInfoQB;
-import edu.ku.brc.specify.tasks.subpane.qb.QBLiveJRDataSource;
+import edu.ku.brc.specify.tasks.subpane.qb.QBLiveDataSource;
 import edu.ku.brc.specify.tasks.subpane.qb.QBQueryForIdResultsHQL;
 import edu.ku.brc.specify.tasks.subpane.qb.QBReportInfoPanel;
 import edu.ku.brc.specify.tasks.subpane.qb.QueryBldrPane;
@@ -116,7 +121,7 @@ import edu.ku.brc.ui.ToggleButtonChooserPanel;
 import edu.ku.brc.ui.ToolBarDropDownBtn;
 import edu.ku.brc.ui.UIHelper;
 import edu.ku.brc.ui.UIRegistry;
-import edu.ku.brc.ui.dnd.FpPublish;
+import edu.ku.brc.ui.dnd.FpPublish; // added by HUH for FP
 import edu.ku.brc.ui.dnd.Trash;
 import edu.ku.brc.util.Pair;
 
@@ -139,7 +144,7 @@ public class QueryTask extends BaseTask
     public static final String QUERY_RESULTS_REPORT = "QueryResultsReport";
     protected static final String XML_PATH_PREF     = "Query.XML.Dir";
     
-    public static final String FP_PUB_RECORDSET = "FpPublish"; // FP MMK
+    public static final String FP_PUB_RECORDSET = "FpPublish"; // added by HUH for FP
     
     public static final DataFlavor QUERY_FLAVOR = new DataFlavor(QueryTask.class, QUERY);
     
@@ -168,13 +173,20 @@ public class QueryTask extends BaseTask
      */
     public QueryTask()
     {
-        super(QUERY, getResourceString(QUERY));
+        this(QUERY, getResourceString(QUERY));
+    }
+    
+    /**
+     * Constructor.
+     */
+    public QueryTask(final String name, final String title)
+    {
+        super(name, title);
         
-        CommandDispatcher.register(QUERY, this);   
+        CommandDispatcher.register(name, this);   
         CommandDispatcher.register(TreeDefinitionEditor.TREE_DEF_EDITOR, this);
         CommandDispatcher.register(SchemaLocalizerDlg.SCHEMA_LOCALIZER, this);
     }
-    
     
     /**
      * Ask the user for information needed to fill in the data object. (Could be refactored with WorkBench Task)
@@ -266,8 +278,16 @@ public class QueryTask extends BaseTask
     public void preInitialize()
     {
         // Create and add the Actions NavBox first so it is at the top at the top
-        actionNavBox = new NavBox(getResourceString("QB_CREATE_QUERY"));
+        actionNavBox = new NavBox(getActionNavBoxTitle());
         addNewQCreators();
+    }
+    
+    /**
+     * @return title for the action nav box
+     */
+    protected String getActionNavBoxTitle()
+    {
+    	return getResourceString("QB_CREATE_QUERY");
     }
     
     /**
@@ -328,7 +348,23 @@ public class QueryTask extends BaseTask
                 xmlStr = newAppRes.getDataAsString();
             } else
             {
-                xmlStr = "";
+                if (resourceName.equals("QueryFreqList") || resourceName.equals("QueryExtraList"))
+                {
+                    ((SpecifyAppContextMgr)AppContextMgr.getInstance()).addDiskResourceToAppDir(SpecifyAppContextMgr.DISCPLINEDIR, resourceName);
+                    newAppRes = AppContextMgr.getInstance().copyToDirAppRes("Personal", resourceName);
+                    if (newAppRes != null)
+                    {
+                        // Save it in the User Area
+                        AppContextMgr.getInstance().saveResource(newAppRes);
+                        xmlStr = newAppRes.getDataAsString();
+                    } else
+                    {
+                        xmlStr = ""; 
+                    }
+                } else
+                {
+                    xmlStr = "";    
+                }
             }
         }
         
@@ -843,6 +879,11 @@ public class QueryTask extends BaseTask
                 }));
     }
 
+    protected boolean showQueryCreator(final String tblName)
+    {
+        DBTableInfo tbl = DBTableIdMgr.getInstance().getByShortClassName(tblName);
+        return !tbl.isHidden() && (!AppContextMgr.isSecurityOn() || tbl.getPermissions().canView());
+    }
     /**
      * Adds the NavBtns for creating new queries.
      */
@@ -858,8 +899,8 @@ public class QueryTask extends BaseTask
             for (Object obj : tableNodes)
             {
                 String sName = XMLHelper.getAttr((Element)obj, "name", null);
-                if (!AppContextMgr.isSecurityOn() || DBTableIdMgr.getInstance().getByShortClassName(sName).getPermissions().canView())
-                {
+            	if (showQueryCreator(sName))
+            	{
                     stdQueries.add(sName);
                 }
             }
@@ -872,6 +913,14 @@ public class QueryTask extends BaseTask
         }
     }
 
+    /**
+     * @return query type
+     */
+    protected String getQueryType()
+    {
+    	return QUERY;
+    }
+    
     /* (non-Javadoc)
      * @see edu.ku.brc.specify.core.Taskable#initialize()
      */
@@ -882,18 +931,34 @@ public class QueryTask extends BaseTask
         {
             super.initialize(); // sets isInitialized to false
 
-            navBox = new DroppableNavBox(getResourceString("QUERIES"), QUERY_FLAVOR, QUERY, SAVE_QUERY);
+            navBox = new DroppableNavBox(getQueryNavBoxTitle(), QUERY_FLAVOR, getQueryType(), SAVE_QUERY);
             loadQueries();
             
             navBoxes.add(actionNavBox);
             navBoxes.add(navBox);
  
-            ContextMgr.registerService(new ReportServiceInfo());
+            registerServices();
 
         }
         isShowDefault = true;
     }
 
+    /**
+     * register services at initialization.
+     */
+    protected void registerServices()
+    {
+    	ContextMgr.registerService(new ReportServiceInfo());    
+    }
+    
+    /**
+     * @return title for the query nav box.
+     */
+    protected String getQueryNavBoxTitle()
+    {
+    	return getResourceString("QUERIES");
+    }
+    
     /*
      *  (non-Javadoc)
      * @see edu.ku.brc.af.core.Taskable#getToolBarItems()
@@ -928,7 +993,7 @@ public class QueryTask extends BaseTask
         boolean canDelete = ((QueryTask )ContextMgr.getTaskByClass(QueryTask.class)).isPermitted();
         final RolloverCommand roc = (RolloverCommand) makeDnDNavBtn(navBox, recordSet.getName(),
                 "Query", null,
-                canDelete ? new CommandAction(QUERY, DELETE_CMD_ACT, recordSet) : null, 
+                canDelete ? new CommandAction(getQueryType(), DELETE_CMD_ACT, recordSet) : null, 
                 true, true);
         roc.setToolTip(getResourceString("QY_CLICK2EDIT"));
         roc.setData(recordSet);
@@ -952,20 +1017,60 @@ public class QueryTask extends BaseTask
             }
         }
         
-        roc.addDragDataFlavor(new DataFlavorTableExt(QueryTask.class, QUERY, recordSet.getTableId()));
+        roc.addDragDataFlavor(new DataFlavorTableExt(getClass(), getQueryType(), recordSet.getTableId()));
         if (canDelete)
         {
             roc.addDragDataFlavor(Trash.TRASH_FLAVOR);
         }
         
-        // FP MMK
+        // added by HUH for FP
         roc.addDragDataFlavor(FpPublish.FP_PUB_FLAVOR);
 
         boolean fpPubOK = true; // TODO: FP MMK implement
         CommandAction fpPubCmdAction = fpPubOK ? new CommandAction(QUERY, FP_PUB_RECORDSET, recordSet) : null;
         roc.setFpPublishCommandAction(fpPubCmdAction);
+        // end HUH addition
         
         return nbi;
+    }
+    
+    /**
+     * @param query
+     * @return true if query is associated with a SpExportSchemaMapping
+     */
+    public static boolean isSchemaExportQuery(SpQuery query)
+    {
+    	return BasicSQLUtils.getCount("select count(*) from spexportschemaitemmapping mapping inner join spqueryfield qf "
+    			+ " on qf.spqueryfieldid = mapping.spqueryfieldid where qf.spqueryid = " + query.getId()) > 0;
+    }
+ 
+    /**
+     * @param query
+     * @return true if query should be loaded.
+     */
+    protected boolean isLoadableQuery(SpQuery query)
+    {
+    	return !isSchemaExportQuery(query);
+    }
+    
+    /**
+     * @return hql to retrieve queries for loading.
+     */
+    protected String getQueryLoaderHQL()
+	{
+		// XXX Users will probably want to share queries??
+		return "From SpQuery as sq Inner Join sq.specifyUser as user where sq.isFavorite = true AND user.specifyUserId = "
+				+ AppContextMgr.getInstance().getClassObject(SpecifyUser.class)
+						.getSpecifyUserId() + " ORDER BY ordinal";
+	}
+    
+    /**
+     * @param session
+     * @return list of possibly loadable queries.
+     */
+    protected List<?> getQueriesForLoading(DataProviderSessionIFace session)
+    {
+    	return session.getDataList(getQueryLoaderHQL());
     }
     
     /**
@@ -973,30 +1078,28 @@ public class QueryTask extends BaseTask
      */
     protected void loadQueries()
     {
-        // XXX Users will probably want to share queries??
-        String sqlStr = "From SpQuery as sq Inner Join sq.specifyUser as user where sq.isFavorite = true AND user.specifyUserId = "
-                + AppContextMgr.getInstance().getClassObject(SpecifyUser.class).getSpecifyUserId()
-                + " ORDER BY ordinal";
-
         DataProviderSessionIFace session = null;
         try
         {
             session = DataProviderFactory.getInstance().createSession();
-            List<?> queries = session.getDataList(sqlStr);
+            List<?> queries = getQueriesForLoading(session);
 
             for (Iterator<?> iter = queries.iterator(); iter.hasNext();)
             {
-                Object[] obj = (Object[]) iter.next();
-                SpQuery query = (SpQuery) obj[0];
+                Object obj = iter.next();
+                SpQuery query = (SpQuery )(obj instanceof Object[] ? ((Object[])obj)[0] : obj);
                 if (!AppContextMgr.isSecurityOn()
                         || DBTableIdMgr.getInstance().getInfoById(query.getContextTableId())
                                 .getPermissions().canView())
                 {
-                    RecordSet rs = new RecordSet();
-                    rs.initialize();
-                    rs.set(query.getName(), SpQuery.getClassTableId(), RecordSet.GLOBAL);
-                    rs.addItem(query.getSpQueryId());
-                    addToNavBox(rs);
+                    if (isLoadableQuery(query))
+                    {
+                    	RecordSet rs = new RecordSet();
+                    	rs.initialize();
+                    	rs.set(query.getName(), SpQuery.getClassTableId(), RecordSet.GLOBAL);
+                    	rs.addItem(query.getSpQueryId());
+                    	addToNavBox(rs);
+                    }
                 }
             }
 
@@ -1029,7 +1132,7 @@ public class QueryTask extends BaseTask
     /**
      * @param queryId
      */
-    protected void editQuery(Integer queryId)
+    protected boolean editQuery(Integer queryId)
     {
         UsageTracker.incrUsageCount("QB.EDT");
         DataProviderSessionIFace session = DataProviderFactory.getInstance().createSession();
@@ -1038,15 +1141,16 @@ public class QueryTask extends BaseTask
             Object dataObj = session.getData(SpQuery.class, "spQueryId", queryId, DataProviderSessionIFace.CompareType.Equals);
             if (dataObj != null)
             {
-                editQuery((SpQuery)dataObj);
+                ((SpQuery )dataObj).forceLoad(true);
+            	return editQuery((SpQuery)dataObj);
             }
+            return false;
         } catch (Exception ex)
         {
-            ex.printStackTrace();
             edu.ku.brc.af.core.UsageTracker.incrHandledUsageCount();
             edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(QueryTask.class, ex);
             ex.printStackTrace();
-            
+            return false;
         }
         finally
         {
@@ -1096,21 +1200,46 @@ public class QueryTask extends BaseTask
     
     /**
      * @param query
+     * @return QueryBldrPane for new query
      */
-    protected void editQuery(final SpQuery query)
+    protected QueryBldrPane getNewQbPane(SpQuery query)
     {
-        QueryBldrPane newPane = new QueryBldrPane(query.getName(), this, query);
-        
-        if (starterPane != null)
-        {
-            SubPaneMgr.getInstance().replacePane(starterPane, newPane);
-            starterPane = null;
-        }
-        else if (queryBldrPane != null)
-        {
-            SubPaneMgr.getInstance().replacePane(queryBldrPane, newPane);
-        }
-        queryBldrPane = newPane;
+    	return new QueryBldrPane(query.getName(), this, query);
+    }
+    
+    /**
+     * @param query
+     * @return true if query is not locked.
+     * 
+     * Locks query if necessary. 
+     * 
+     */
+    protected boolean checkLock(final SpQuery query)
+    {
+    	return true;
+    }
+    
+    /**
+     * @param query
+     */
+    protected boolean editQuery(final SpQuery query)
+    {
+    	if (checkLock(query)) 
+    	{
+			QueryBldrPane newPane = getNewQbPane(query);
+
+			if (starterPane != null) 
+			{
+				SubPaneMgr.getInstance().replacePane(starterPane, newPane);
+				starterPane = null;
+			} else if (queryBldrPane != null) 
+			{
+				SubPaneMgr.getInstance().replacePane(queryBldrPane, newPane);
+			}
+			queryBldrPane = newPane;
+			return true;
+		}
+    	return false;
     }
 
     /*
@@ -1155,10 +1284,12 @@ public class QueryTask extends BaseTask
      * Save it out to persistent storage.
      * @param query the SpQuery
      */
-    protected void persistQuery(final SpQuery query)
+    protected void persistQuery(final SpQuery query, final SpExportSchemaMapping schemaMapping)
     {
         // TODO Add StaleObject Code from FormView
-        if (DataModelObjBase.save(true, query))
+    	boolean saved = schemaMapping == null ? DataModelObjBase.save(true, query) 
+    			: DataModelObjBase.save(true, query, schemaMapping);
+        if (saved)
         {
             FormHelper.updateLastEdittedInfo(query);
         }
@@ -1168,7 +1299,7 @@ public class QueryTask extends BaseTask
      * Save a record set.
      * @param recordSets the rs to be saved
      */
-    public RolloverCommand saveNewQuery(final SpQuery query, final boolean enabled)
+    public RolloverCommand saveNewQuery(final SpQuery query, final SpExportSchemaMapping schemaMapping, final boolean enabled)
     {        
         query.setTimestampCreated(new Timestamp(System.currentTimeMillis()));
         query.setSpecifyUser(AppContextMgr.getInstance().getClassObject(SpecifyUser.class));
@@ -1177,7 +1308,7 @@ public class QueryTask extends BaseTask
             query.setIsFavorite(true);
         }
 
-        persistQuery(query);
+        persistQuery(query, schemaMapping);
 
         RecordSet rs = new RecordSet();
         rs.initialize();
@@ -1204,6 +1335,17 @@ public class QueryTask extends BaseTask
         UIRegistry.getStatusBar().setText(msg);
 
         return roc;
+    }
+    
+    /**
+     * @param query
+     * @param session
+     * @throws Exception
+     */
+    protected void deleteThisQuery(SpQuery query, DataProviderSessionIFace session) throws Exception
+    {
+        //assumes caller handles transaction 
+    	session.delete(query);   	
     }
     
     /**
@@ -1239,7 +1381,7 @@ public class QueryTask extends BaseTask
             {
                 session.beginTransaction();
                 transOpen = true;
-                session.delete(query);
+                deleteThisQuery(query, session);
                 session.commit();
                 transOpen = false;
                 return true;
@@ -1361,12 +1503,23 @@ public class QueryTask extends BaseTask
         				// (type safety warning)
         				List<? extends ERTICaptionInfo> captions = rsm.getResults()
         						.getVisibleCaptionInfo();
-        				src = new QBLiveJRDataSource(rsm,
+        				src = new QBLiveDataSource(rsm,
         						(List<ERTICaptionInfoQB>) captions, selectedRep
         								.getRepeats());
         			} else
         			{
-        				src = rsm.getRecordSet(null, true);
+        				int[] selectedRows = rsm.getParentERTP().getSelectedRows();
+        				if (selectedRows != null && selectedRows.length == 0)
+        				{
+        					selectedRows = null;
+        				}
+        				if (selectedRows == null)
+        				{
+        					src = (RecordSet )cmdAction.getData();
+        				} else
+        				{
+        					src = rsm.getRecordSet(selectedRows, false);
+        				}
         			}
         			final CommandAction cmd = new CommandAction(
         					ReportsBaseTask.REPORTS, ReportsBaseTask.PRINT_REPORT, src);
@@ -1385,7 +1538,7 @@ public class QueryTask extends BaseTask
     			}
 			}
 		}
-        
+        // added by HUH for FP
         else if (cmdAction.isAction(FP_PUB_RECORDSET)) // TODO: FP MMK: should this be an if or else if?  Should I put a return in the previous block?
         {
             RecordSetIFace recordSet = null;
@@ -1407,6 +1560,7 @@ public class QueryTask extends BaseTask
                 fpPublishRecordSet(recordSet);
             }
         }
+        // end HUH addition
     }
 
     /* (non-Javadoc)
@@ -1434,7 +1588,7 @@ public class QueryTask extends BaseTask
     {
         super.doCommand(cmdAction);
         
-        if (cmdAction.isType(QUERY))
+        if (cmdAction.isType(getQueryType()))
         {
             processQueryCommands(cmdAction);
             
@@ -1626,22 +1780,7 @@ public class QueryTask extends BaseTask
                 try
                 {
                    SpecifyAppContextMgr mgr = (SpecifyAppContextMgr )AppContextMgr.getInstance();
-                   TreeDefIface<?, ?, ?> deadTreeDef = mgr.getTreeDefForClass((Class<? extends Treeable<?,?,?>>) tableInfo.getClassObj());
-                   TreeDefIface<?,?,?> treeDef = null;
-                   DataProviderSessionIFace session = null;
-                   try
-                   {
-                       session = DataProviderFactory.getInstance().createSession();
-                       Object tdObj = session.get(deadTreeDef.getClass(), deadTreeDef.getTreeDefId());
-                       treeDef = (TreeDefIface )tdObj;
-                   }
-                   finally
-                   {
-                	   if (session != null)
-                	   {
-                		   session.close();
-                	   }
-                   }
+                   TreeDefIface<?, ?, ?> treeDef = mgr.getTreeDefForClass((Class<? extends Treeable<?,?,?>>) tableInfo.getClassObj());
                    
                    SortedSet<TreeDefItemIface<?, ?, ?>> defItems = new TreeSet<TreeDefItemIface<?, ?, ?>>(
                             new Comparator<TreeDefItemIface<?, ?, ?>>()
@@ -1662,9 +1801,18 @@ public class QueryTask extends BaseTask
                         {
                             try
                             {
+                                //newTreeNode.getTableQRI().addField(
+                                //        new TreeLevelQRI(newTreeNode.getTableQRI(), null, defItem
+                                //                .getRankId()));
                                 newTreeNode.getTableQRI().addField(
                                         new TreeLevelQRI(newTreeNode.getTableQRI(), null, defItem
-                                                .getRankId()));
+                                                .getRankId(), "name", treeDef));
+                                if (defItem instanceof TaxonTreeDefItem)
+                                {
+                                	newTreeNode.getTableQRI().addField(
+                                        new TreeLevelQRI(newTreeNode.getTableQRI(), null, defItem
+                                                .getRankId(), "author", treeDef));
+                                }
                             }
                             catch (Exception ex)
                             {
@@ -1718,6 +1866,98 @@ public class QueryTask extends BaseTask
         }
     }
     
+    /**
+     * @return string to select objects for import from xml.
+     */
+    protected String getTopLevelNodeSelector()
+    {
+    	return "/queries/query"; 
+    }
+    
+    /**
+     * @param filePath
+     * @param topNode
+     * @return list queries defined in file.
+     */
+    protected static Vector<SpQuery> getQueriesFromFile(final String filePath, final String topNode)
+    {
+        Vector<SpQuery> queries = new Vector<SpQuery>();
+        try
+        {
+            Element root = XMLHelper.readFileToDOM4J(new File(filePath));
+            for (Object obj : root.selectNodes(topNode))
+            {
+                Element el = (Element)obj;
+                SpQuery query = new SpQuery();
+                query.initialize();
+                query.fromXML(el);
+                query.setSpecifyUser(AppContextMgr.getInstance().getClassObject(SpecifyUser.class));
+                queries.add(query);
+            }
+            return queries;
+        } catch (Exception ex)
+        {
+            edu.ku.brc.af.core.UsageTracker.incrHandledUsageCount();
+            edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(QueryTask.class, ex);
+            ex.printStackTrace();
+            return null;
+        }
+    }
+    
+    /**
+     * @param importedQueries
+     * @param existingQueries
+     * 
+     * Modifies imported query names if necessary to ensure uniqueness.
+     */
+    protected static void adjustImportedQueryNames(List<SpQuery> importedQueries, List<String> existingQueries)
+    {
+    	Set<String> names = new HashSet<String>();
+    	names.addAll(existingQueries);
+    	for (SpQuery query : importedQueries)
+        {
+            String origName = query.getName();
+            int    cnt      = 0;
+            String qName    = origName;
+            while (names.contains(qName))
+            {
+                cnt++;
+                qName = origName + cnt;
+            }
+            query.setName(qName);
+            names.add(qName);
+        }
+    }
+    
+    /**
+     * @param filePath
+     * @return true if successful
+     * 
+     * imports all queries from file
+     */
+    protected static boolean importQueries(final String filePath)
+    {
+    	Vector<SpQuery> queries = getQueriesFromFile(filePath, "/queries/query");
+        Vector<String> names = new Vector<String>(); 
+        DataProviderSessionIFace session = null;
+        try
+        {
+            session = DataProviderFactory.getInstance().createSession();
+        	List<SpQuery> qs = session.getDataList(SpQuery.class);
+        	for (SpQuery q : qs)
+        	{
+        		names.add(q.getName());
+        	}
+        } finally 
+        {
+        	if (session != null)
+        	{
+        		session.close();
+        	}
+        }
+        adjustImportedQueryNames(queries, names);
+        return DataModelObjBase.save(true, queries);
+    }
     
     /**
      * 
@@ -1743,27 +1983,7 @@ public class QueryTask extends BaseTask
         path = dirStr + fileName;
         AppPreferences.getLocalPrefs().put(XML_PATH_PREF, path);
         
-        Vector<SpQuery> queries = new Vector<SpQuery>();
-        try
-        {
-        
-            Element root = XMLHelper.readFileToDOM4J(new File(path));
-            for (Object obj : root.selectNodes("/queries/query"))
-            {
-                Element el = (Element)obj;
-                SpQuery query = new SpQuery();
-                query.initialize();
-                query.fromXML(el);
-                query.setSpecifyUser(AppContextMgr.getInstance().getClassObject(SpecifyUser.class));
-                queries.add(query);
-            }
-        } catch (Exception ex)
-        {
-            edu.ku.brc.af.core.UsageTracker.incrHandledUsageCount();
-            edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(QueryTask.class, ex);
-            ex.printStackTrace();
-            return;
-        }
+        Vector<SpQuery> queries = getQueriesFromFile(path, getTopLevelNodeSelector());
         
         ToggleButtonChooserDlg<SpQuery> dlg = new ToggleButtonChooserDlg<SpQuery>((Frame)UIRegistry.getMostRecentWindow(),
                 "QY_IMPORT_QUERIES",
@@ -1782,26 +2002,14 @@ public class QueryTask extends BaseTask
             return;
         }
         
-        Hashtable<String, Boolean> namesHash = new Hashtable<String, Boolean>();
+        Vector<String> names = new Vector<String>();
         for (NavBoxItemIFace nbi : navBox.getItems())
         {
-            namesHash.put(nbi.getTitle(), true);
+            names.add(nbi.getTitle());
         }
+        adjustImportedQueryNames(queries, names);
         
-        for (SpQuery query : queriesList)
-        {
-            String origName = query.getName();
-            int    cnt      = 0;
-            String qName    = origName;
-            while (namesHash.get(qName) != null)
-            {
-                cnt++;
-                qName = origName + cnt;
-            }
-            query.setName(qName);
-        }
-        
-        if (DataModelObjBase.save(true, queriesList))
+        if (saveImportedQueries(queriesList))
         {
             for (SpQuery query : queriesList)
             {
@@ -1818,11 +2026,87 @@ public class QueryTask extends BaseTask
     }
     
     /**
+     * @param queriesList a list of imported queries.
+     * 
+     * @return true if the queries are successfully saved to the db.
+     */
+    protected boolean saveImportedQueries(List<SpQuery> queriesList)
+    {
+    	return DataModelObjBase.save(true, queriesList);
+    }
+    /**
+     * @return id for usage tracker
+     */
+    protected String getExportUsageKey()
+    {
+    	return "QB.EXPORT";
+    }
+    
+    /**
+     * @return i18n resource id
+     */
+    protected String getNothingToExporti18nKey()
+    {
+    	return "QY_NO_QUERIES_TO_EXPORT";
+    }
+    
+    /**
+     * @return resource id for export dialog title
+     */
+    protected String getExportDlgTitlei18nKey()
+    {
+    	return "QY_EXPORT_QUERIES";
+    }
+    
+    /**
+     * @return resource id for export dialog message
+     */
+    protected String getExportDlgMsgi18nKey()
+    {
+    	return "QY_SEL_QUERIES_EXP";
+    }
+    
+    /**
+     * @return export help context id
+     */
+    protected String getExportHelpContext()
+    {
+    	return "QBExport";
+    }
+    
+    /**
+     * @return first line for export section
+     */
+    protected String getXMLExportFirstLine()
+    {
+    	return "<queries>\n";
+    }
+
+    /**
+     * @return last line for export section
+     */
+    protected String getXMLExportLastLine()
+    {
+    	return "</queries>";
+    }
+
+    /**
+     * @param query 
+     * @param sb
+     * 
+     * writes xml for query to sb.
+     */
+    protected void toXML(final SpQuery query, final StringBuilder sb)
+    {
+    	query.toXML(sb);
+    }
+    
+    /**
      * 
      */
     protected void exportQueries()
     {
-        UsageTracker.incrUsageCount("QB.EXPORT");
+        UsageTracker.incrUsageCount(getExportUsageKey());
         Vector<String> list = new Vector<String>();
         for (NavBoxItemIFace nbi : navBox.getItems())
         {
@@ -1830,27 +2114,37 @@ public class QueryTask extends BaseTask
         }
         
         List<String> selectedList = null;
+        if (list.size() == 0)
+        {
+        	UIRegistry.showLocalizedMsg(getNothingToExporti18nKey());
+        	return;
+        }
         if (list.size() == 1)
         {
             selectedList = list;
         } else
         {
             ToggleButtonChooserDlg<String> dlg = new ToggleButtonChooserDlg<String>((Frame)UIRegistry.getMostRecentWindow(),
-                    "QY_EXPORT_QUERIES",
-                    "QY_SEL_QUERIES_EXP",
+            		getExportDlgTitlei18nKey(),
+            		getExportDlgMsgi18nKey(),
                     list,
                     CustomDialog.OKCANCELHELP,
                     ToggleButtonChooserPanel.Type.Checkbox);
             dlg.setAddSelectAll(true);
             dlg.setUseScrollPane(true);
-            dlg.setHelpContext("QBExport");
+            dlg.setHelpContext(getExportHelpContext());
             UIHelper.centerAndShow(dlg);
             selectedList = dlg.getSelectedObjects();
+            if (dlg.isCancelled() || selectedList.size() == 0)
+            {
+            	return;
+            }
         }
+        
         
         String path = AppPreferences.getLocalPrefs().get(XML_PATH_PREF, null);
         
-        FileDialog fDlg = new FileDialog(((Frame)UIRegistry.getTopWindow()), "Save", FileDialog.SAVE);
+        FileDialog fDlg = new FileDialog(((Frame)UIRegistry.getTopWindow()), UIRegistry.getResourceString("SAVE"), FileDialog.SAVE);
         if (path != null)
         {
             fDlg.setDirectory(path);
@@ -1898,12 +2192,12 @@ public class QueryTask extends BaseTask
             }
             
             StringBuilder sb = new StringBuilder();
-            sb.append("<queries>\n");
+            sb.append(getXMLExportFirstLine());
             for (SpQuery q : queries)
             {
                 q.toXML(sb);
             }
-            sb.append("</queries>");
+            sb.append(getXMLExportLastLine());
             FileUtils.writeStringToFile(new File(path), sb.toString());
             
         } catch (Exception ex)
@@ -1973,7 +2267,8 @@ public class QueryTask extends BaseTask
 	@Override
 	public PermissionEditorIFace getPermEditorPanel()
 	{
-		return new BasicPermisionPanel("QueryTask.PermTitle", "QueryTask.PermEnable", null, null, null);
+		return new BasicPermisionPanel("QueryTask.PermTitle", "QueryTask.PermEnable", null, 
+				null, null);
 	}
 
 
@@ -2063,9 +2358,11 @@ public class QueryTask extends BaseTask
             super.finished();
             if (queryBldrPane == null || queryBldrPane.aboutToShutdown())
             {
-                editQuery(queryId);
-                queryNavBtn.setEnabled(false);
-                queryBldrPane.setQueryNavBtn(queryNavBtn);
+                if (editQuery(queryId))
+                {
+                	queryNavBtn.setEnabled(false);
+                	queryBldrPane.setQueryNavBtn(queryNavBtn);
+                }
             }
         }
         
@@ -2089,6 +2386,7 @@ public class QueryTask extends BaseTask
         }
     }
     
+    // added by HUH for FP
     /**
      * Share a record set with the Filtered Push network
      */
@@ -2097,4 +2395,5 @@ public class QueryTask extends BaseTask
         // TODO: FP MMK implement fpPublishRecordSet(); note that there are importQueries and exportQueries methods in this class already
         log.debug("RecordSetTask: fpPublishRecordSet");
     }
+    // end HUH addition
 }

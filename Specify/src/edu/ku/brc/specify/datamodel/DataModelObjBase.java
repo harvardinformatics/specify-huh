@@ -31,6 +31,7 @@ import java.sql.Timestamp;
 import java.util.Collection;
 
 import javax.persistence.Column;
+import javax.persistence.FetchType;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.MappedSuperclass;
@@ -76,8 +77,11 @@ public abstract class DataModelObjBase implements FormDataObjIFace,
     protected int       version;
     
     // Transient
+    protected Integer   parentTblId = null;
+   
+    // Transient Static
     protected static String errMsg = null;
-    
+     
     /* (non-Javadoc)
      * @see edu.ku.brc.ui.forms.FormDataObjIFace#initialize()
      */
@@ -91,7 +95,7 @@ public abstract class DataModelObjBase implements FormDataObjIFace,
     {
         Timestamp now     = new Timestamp(System.currentTimeMillis());
         timestampCreated  = now;
-        timestampModified = null;
+        timestampModified = now;
         createdByAgent    = AppContextMgr.getInstance() == null? null : (AppContextMgr.getInstance().hasContext() ? Agent.getUserAgent() : null);
         modifiedByAgent   = null;
     }
@@ -167,7 +171,7 @@ public abstract class DataModelObjBase implements FormDataObjIFace,
 
     @Version
     @Column(name="Version")
-    public int getVersion()
+    public Integer getVersion()
     {
         return version;
     }
@@ -180,7 +184,7 @@ public abstract class DataModelObjBase implements FormDataObjIFace,
     /* (non-Javadoc)
      * @see edu.ku.brc.ui.forms.FormDataObjIFace#getModifiedByAgent()
      */
-    @ManyToOne
+    @ManyToOne(cascade = {}, fetch = FetchType.LAZY)
     @JoinColumn(name = "ModifiedByAgentID")
     public Agent getModifiedByAgent()
     {
@@ -198,7 +202,7 @@ public abstract class DataModelObjBase implements FormDataObjIFace,
     /**
      * @return the createdByAgent
      */
-    @ManyToOne
+    @ManyToOne(cascade = {}, fetch = FetchType.LAZY)
     @JoinColumn(name = "CreatedByAgentID", updatable = false)
     public Agent getCreatedByAgent()
     {
@@ -608,12 +612,37 @@ public abstract class DataModelObjBase implements FormDataObjIFace,
     }
 
     //---------------------------------------------------------------------------
+    // Audit Support Support
+    //---------------------------------------------------------------------------
+
+    /* (non-Javadoc)
+     * @see edu.ku.brc.af.ui.forms.FormDataObjIFace#getParentId()
+     */
+    @Override
+    @Transient
+    public Integer getParentId()
+    {
+        return parentTblId;
+    }
+
+    /* (non-Javadoc)
+     * @see edu.ku.brc.af.ui.forms.FormDataObjIFace#getParentTableId()
+     */
+    @Override
+    @Transient
+    public Integer getParentTableId()
+    {
+        return null;
+    }
+    
+    //---------------------------------------------------------------------------
     // Property Change Support
     //---------------------------------------------------------------------------
 
     /* (non-Javadoc)
      * @see edu.ku.brc.ui.forms.FormDataObjIFace#addPropertyChangeListener(java.beans.PropertyChangeListener)
      */
+    @Override
     public void addPropertyChangeListener(PropertyChangeListener listener)
     {
         if (changes == null)
@@ -623,9 +652,11 @@ public abstract class DataModelObjBase implements FormDataObjIFace,
         changes.addPropertyChangeListener(listener);
     }
 
+
     /* (non-Javadoc)
      * @see edu.ku.brc.ui.forms.FormDataObjIFace#addPropertyChangeListener(java.lang.String, java.beans.PropertyChangeListener)
      */
+    @Override
     public void addPropertyChangeListener(String propertyName, PropertyChangeListener listener)
     {
         if (changes == null)
@@ -704,6 +735,7 @@ public abstract class DataModelObjBase implements FormDataObjIFace,
     /* (non-Javadoc)
      * @see edu.ku.brc.ui.forms.FormDataObjIFace#removePropertyChangeListener(java.beans.PropertyChangeListener)
      */
+    @Override
     public void removePropertyChangeListener(PropertyChangeListener listener)
     {
         if (changes == null)
@@ -716,6 +748,7 @@ public abstract class DataModelObjBase implements FormDataObjIFace,
     /* (non-Javadoc)
      * @see edu.ku.brc.ui.forms.FormDataObjIFace#removePropertyChangeListener(java.lang.String, java.beans.PropertyChangeListener)
      */
+    @Override
     public void removePropertyChangeListener(String propertyName, PropertyChangeListener listener)
     {
         if (changes == null)
@@ -758,9 +791,7 @@ public abstract class DataModelObjBase implements FormDataObjIFace,
     public Object clone() throws CloneNotSupportedException
     {
         DataModelObjBase obj  = (DataModelObjBase)super.clone();
-        obj.timestampCreated  = timestampCreated;
-        obj.timestampModified = timestampModified;
-        obj.modifiedByAgent   = modifiedByAgent;
+        obj.init();
         return obj;
     }
     
@@ -830,11 +861,12 @@ public abstract class DataModelObjBase implements FormDataObjIFace,
         
         // save to database
         DataProviderSessionIFace session = null;
+        boolean transOpen = false;
         try
         {
             session = DataProviderFactory.getInstance().createSession();
             session.beginTransaction();
-            
+            transOpen = true;
             boolean doSave = true;
             if (dataObjs.length == 1)
             {
@@ -859,18 +891,22 @@ public abstract class DataModelObjBase implements FormDataObjIFace,
                 }
             }
             session.commit();
-            
+            transOpen = false;
         } catch (Exception ex)
         {
-            edu.ku.brc.af.core.UsageTracker.incrHandledUsageCount();
-            edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(DataModelObjBase.class, ex);
             ex.printStackTrace();
             log.error(ex);
+            edu.ku.brc.af.core.UsageTracker.incrHandledUsageCount();
+            edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(DataModelObjBase.class, ex);
             errMsg = ex.toString();
             
             if (doShowError)
             {
                 UIRegistry.showError(errMsg);
+            }
+            if (transOpen)
+            {
+            	session.rollback();
             }
             return false;
             

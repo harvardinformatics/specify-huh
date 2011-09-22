@@ -23,6 +23,7 @@ import static edu.ku.brc.ui.UIRegistry.getLocalizedMessage;
 import static edu.ku.brc.ui.UIRegistry.getResourceString;
 
 import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.Statement;
@@ -82,7 +83,7 @@ public class TaskSemaphoreMgr
         Discipline discipline = scope == SCOPE.Discipline ? AppContextMgr.getInstance().getClassObject(Discipline.class) : null;
         Collection collection = scope == SCOPE.Collection ? AppContextMgr.getInstance().getClassObject(Collection.class) : null;
        
-        Connection connection = DBConnection.getInstance().createConnection();
+        Connection connection = DBConnection.getInstance().getConnection();
         if (connection != null)
         {
             Statement  stmt = null;
@@ -158,13 +159,88 @@ public class TaskSemaphoreMgr
     }
 
     /**
+     * Checks IsLocked and UsageCount for the specified semaphore and returns 
+     * true if it is locked or the UsageCount is non-null and non-zero.
+     * 
+     * @param title
+     * @param name
+     * @param scope
+     * @return true if UsageCount is > 0.
+     */
+    public static boolean isLockedOrInUse(final String title, 
+            final String name, 
+            final SCOPE  scope)
+    {
+        Discipline discipline = scope == SCOPE.Discipline ? AppContextMgr.getInstance().getClassObject(Discipline.class) : null;
+        Collection collection = scope == SCOPE.Collection ? AppContextMgr.getInstance().getClassObject(Collection.class) : null;
+       
+        Connection connection = DBConnection.getInstance().getConnection();
+        if (connection != null)
+        {
+            Statement  stmt = null;
+            ResultSet  rs   = null;
+            try
+            {
+                String sql = buildSQL(name, scope, discipline, collection, "IsLocked, UsageCount");
+                //log.debug(sql);
+                
+                stmt = connection.createStatement();
+                rs = stmt.executeQuery(sql);
+                if (rs != null && rs.next())
+                {
+                	Integer count = rs.getInt(2);
+                	return rs.getBoolean(1) || (count == null ? false : count > 0);
+                }
+                return false;
+                
+            } catch (com.mysql.jdbc.exceptions.jdbc4.CommunicationsException ex)
+            {
+                UIRegistry.showLocalizedMsg("TIMEOUT_ERR");
+                
+            } catch (com.mysql.jdbc.exceptions.jdbc4.MySQLNonTransientConnectionException ex)
+            {
+                UIRegistry.showLocalizedMsg("TIMEOUT_ERR");
+                
+            } catch (Exception ex)
+            {
+                edu.ku.brc.af.core.UsageTracker.incrHandledUsageCount();
+                edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(TaskSemaphoreMgr.class, ex);
+                log.error(ex);
+                
+            } finally 
+            {
+                try
+                {
+                    if (rs != null)
+                    {
+                        rs.close();
+                    }
+                    if (stmt != null)
+                    {
+                        stmt.close();
+                    }
+//                    if (connection != null)
+//                    {
+//                        connection.close();
+//                    }
+                } catch (Exception ex) 
+                {
+                    edu.ku.brc.af.core.UsageTracker.incrHandledUsageCount();
+                    edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(TaskSemaphoreMgr.class, ex);
+                    log.error(ex);
+                }
+            }
+        }
+        return false;
+    }
+    /**
      * Find the semaphore for a task and return it..
      * @param title The human (localized) title of the task 
      * @param name the unique name
      * @param scope the scope of the lock
      * @return the semaphore or null if no matching semaphore exists.
      */
-    protected static SpTaskSemaphore getLockInfo(final String title, 
+    public static SpTaskSemaphore getLockInfo(final String title, 
                                                  final String name, 
                                                  final SCOPE  scope)
     {
@@ -176,6 +252,11 @@ public class TaskSemaphoreMgr
             Collection collection = scope == SCOPE.Collection ? AppContextMgr.getInstance().getClassObject(Collection.class) : null;
 
             SpTaskSemaphore semaphore = getSemaphore(session, name, scope, discipline, collection);
+            
+            if (semaphore != null && semaphore.getOwner() != null && semaphore.getOwner().getAgents() != null)
+            {
+                semaphore.getOwner().getAgents().size(); // force Load
+            }
             
             return semaphore;
             
@@ -234,7 +315,7 @@ public class TaskSemaphoreMgr
                 
             } else
             {
-                if (!semaphore.getIsLocked())
+                if (!semaphore.getIsLocked() && !(semaphore.getUsageCount() != null && semaphore.getUsageCount() > 0))
                 {
                     return false;
                 }
@@ -266,7 +347,8 @@ public class TaskSemaphoreMgr
                 }
                 
                 String userStr = prevLockedBy != null ? prevLockedBy : semaphore.getOwner().getIdentityTitle();
-                String msg = UIRegistry.getLocalizedMessage("SpTaskSemaphore.IN_USE_OV_UNLK", title, userStr, semaphore.getLockedTime().toString());
+                String msg = UIRegistry.getLocalizedMessage("SpTaskSemaphore.IN_USE_OV_UNLK", title, userStr, 
+                		semaphore.getLockedTime() == null ? "?" : semaphore.getLockedTime().toString());
                 
                 int      options;
                 Object[] optionLabels;
@@ -323,7 +405,7 @@ public class TaskSemaphoreMgr
             do {
                 try
                 {
-                    lockWasRemoved = setLock(session, name, null, scope, false, false) != null;
+                    lockWasRemoved = setLock(session, name, null, scope, false, false, false) != null;
                     if (lockWasRemoved)
                     {
                         break;
@@ -377,7 +459,7 @@ public class TaskSemaphoreMgr
                                    final SCOPE  scope,
                                    final boolean allViewMode)
     {
-        return lock(title, name, context, scope, allViewMode, null);
+        return lock(title, name, context, scope, allViewMode, null, false);
     }
     
     /**
@@ -394,7 +476,8 @@ public class TaskSemaphoreMgr
                                    final String context,
                                    final SCOPE  scope,
                                    final boolean allViewMode,
-                                   final TaskSemaphoreMgrCallerIFace caller)
+                                   final TaskSemaphoreMgrCallerIFace caller,
+                                   final boolean checkUsage)
     {
         DataProviderSessionIFace session = null;
         try
@@ -407,7 +490,7 @@ public class TaskSemaphoreMgr
                 SpTaskSemaphore semaphore = null;
                 try
                 {
-                    semaphore = setLock(session, name, context, scope, true, false);
+                    semaphore = setLock(session, name, context, scope, true, false, checkUsage);
                 
                 } catch (StaleObjectException ex)
                 {
@@ -478,7 +561,9 @@ public class TaskSemaphoreMgr
                         }
                         
                         String userStr = prevLockedBy != null ? prevLockedBy : semaphore.getOwner().getIdentityTitle();
-                        String msg = UIRegistry.getLocalizedMessage("SpTaskSemaphore.IN_USE_OV", title, userStr, semaphore.getLockedTime().toString());
+                        String msgKey = allViewMode ? "SpTaskSemaphore.IN_USE_OV" : "SpTaskSemaphore.IN_USE";
+                        String msg = UIRegistry.getLocalizedMessage(msgKey, title, userStr, 
+                        		semaphore.getLockedTime() != null ? semaphore.getLockedTime().toString() : "");
                         
                         int      options;
                         int      defBtn;
@@ -572,13 +657,21 @@ public class TaskSemaphoreMgr
      * @param scope
      * @return true if successful
      * 
-     * Subtracts 1 to the usage count for the specified semaphore.
+     * Subtracts 1 from the usage count for the specified semaphore.
      */
     public static boolean decrementUsageCount(final String title, final String name, final SCOPE  scope)
     {
     	return updateUsageCount(title, name, scope, -1);
     }
 
+    /**
+     * @param title
+     * @param name
+     * @param scope
+     * @return true if successful.
+     * 
+     * sets usage count for the specified semaphore to null.
+     */
     public static boolean clearUsageCount(final String title, final String name, final SCOPE  scope)
     {
     	return updateUsageCount(title, name, scope, null);
@@ -631,21 +724,20 @@ public class TaskSemaphoreMgr
                 semaphore.setDiscipline(discipline);
                 semaphore.setCollection(collection);
             }
-    		String context = semaphore.getContext();
+    		Integer count = semaphore.getUsageCount() == null ? 0 : semaphore.getUsageCount();
     		if (increment == null)
     		{
-    			semaphore.setContext(null);
+    			semaphore.setUsageCount(null);
     		}
     		else
     		{
-    			Integer count = StringUtils.isBlank(context) ? 0 : new Integer(context);
-    			Integer newCount = new Integer(count + increment);
+     			Integer newCount = new Integer(count + increment);
     			if (newCount.intValue() < 0)
     			{
     				log.error("attempt to set usage count for " + name + "to " + newCount);
     				newCount = 0;
     			}
-    			semaphore.setContext(newCount.toString());
+    			semaphore.setUsageCount(newCount);
     		}
     		session.saveOrUpdate(semaphore);
     		session.commit();
@@ -726,6 +818,24 @@ public class TaskSemaphoreMgr
                                    final Discipline discipline,
                                    final Collection collection)
     {
+        return buildSQL(name, scope, discipline, collection, "IsLocked");
+    }
+
+    /**
+    * Builds the SQL string needed for checking the semaphore.
+     * @param name
+     * @param scope
+     * @param discipline
+     * @param collection
+     * @param fldsToSelect 
+     * @return
+     */
+    private static String buildSQL(final String name, 
+            final SCOPE  scope,
+            final Discipline discipline,
+            final Collection collection,
+            final String fldsToSelect)
+    {
         StringBuilder joins = new StringBuilder();
         StringBuilder where = new StringBuilder();
         
@@ -746,7 +856,7 @@ public class TaskSemaphoreMgr
         //where.append(specifyUser.getId());
         //joins.append("INNER JOIN ts.owner spu ");
         
-        StringBuilder sb = new StringBuilder("SELECT IsLocked FROM sptasksemaphore ts ");
+        StringBuilder sb = new StringBuilder("SELECT " + fldsToSelect + " FROM sptasksemaphore ts ");
         sb.append(joins);
         String wStr = String.format("WHERE TaskName = '%s' AND Scope = %d ", 
                                      name, scope.ordinal());
@@ -755,6 +865,7 @@ public class TaskSemaphoreMgr
         
         return sb.toString();
     }
+
     
     /**
      * Gets the semaphore object from the database.
@@ -816,7 +927,8 @@ public class TaskSemaphoreMgr
                                            final String context,
                                            final SCOPE  scope,
                                            final boolean doLock,
-                                           final boolean doOverride) throws Exception
+                                           final boolean doOverride,
+                                           final boolean checkUsage) throws Exception
     {
         Timestamp now = new Timestamp(System.currentTimeMillis());
         
@@ -830,12 +942,13 @@ public class TaskSemaphoreMgr
         collection = collection != null ? session.getData(Collection.class, "id", collection.getId(), DataProviderSessionIFace.CompareType.Equals) : null;
 
         SpTaskSemaphore semaphore = getSemaphore(session, name, scope, discipline, collection);
-        
         if (semaphore != null)
         {
+            boolean locked = semaphore.getIsLocked() || 
+        		(checkUsage && semaphore.getUsageCount() != null && semaphore.getUsageCount() > 0); 
             if (doLock)
             {
-                if (semaphore.getIsLocked() && !doOverride)
+            	if (locked && !doOverride)
                 {
                     previouslyLocked = true;
                     if (semaphore.getOwner() != null && 
@@ -852,10 +965,10 @@ public class TaskSemaphoreMgr
             } else if (!semaphore.getIsLocked())
             {
                 //throw new RuntimeException("Trying to unlock when already unlocked!");
-                System.err.println("Trying to unlock when already unlocked!");
+                log.error("Trying to unlock when already unlocked!");
             }
             
-            previouslyLocked = semaphore.getIsLocked();
+            previouslyLocked = locked;
             
         } else if (doLock)
         {
@@ -882,11 +995,20 @@ public class TaskSemaphoreMgr
         {
             semaphore.setIsLocked(doLock);
             semaphore.setContext(context);
-            String machineName = InetAddress.getLocalHost().toString();
+            String machineName = "";
+            try
+            {
+            	machineName = InetAddress.getLocalHost().toString();
+            } catch (UnknownHostException ex)
+            {
+            	//no internet connection. ignore.
+            }
+            
             machineName =  StringUtils.isNotEmpty(machineName) ? machineName.substring(0, Math.min(64, machineName.length())) : null;
             semaphore.setMachineName(doLock ? machineName : null);
             semaphore.setScope(new Byte((byte)scope.ordinal()));
             semaphore.setLockedTime(now);
+            semaphore.setUsageCount(null);
             semaphore.setTimestampModified(now);
             semaphore.setDiscipline(discipline);
             semaphore.setCollection(collection);

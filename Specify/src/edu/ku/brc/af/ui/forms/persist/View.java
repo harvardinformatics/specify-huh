@@ -30,6 +30,7 @@ import org.apache.commons.lang.StringUtils;
 
 import edu.ku.brc.af.core.db.DBTableIdMgr;
 import edu.ku.brc.af.ui.forms.BusinessRulesIFace;
+import edu.ku.brc.ui.UIRegistry;
 
 /**
  * A view is a virtual object that may contain one or more "alternate" views. Typically, there is a 
@@ -115,20 +116,34 @@ public class View implements ViewIFace
             List<AltViewIFace> list = new ArrayList<AltViewIFace>();
             for (AltViewIFace altView : altViews)
             {
-                ViewDef.ViewType type = altView.getViewDef().getType();
-                //System.err.println("View.getDefaultAltView ["+type+"]["+altView.getName()+"] mode["+altView.getMode()+"]["+creationMode+"] isDef "+altView.isDefault());
-                if (isForm && type == ViewDefIFace.ViewType.form ||
-                    !isForm && type != ViewDefIFace.ViewType.form)
+                if (altView.getViewDef() != null)
                 {
-                    if (altView.getMode() == creationMode)
+                    ViewDef.ViewType type = altView.getViewDef().getType();
+                    if (type != null)
                     {
-                        list.add(altView);
+                        //System.err.println("View.getDefaultAltView ["+type+"]["+altView.getName()+"] mode["+altView.getMode()+"]["+creationMode+"] isDef "+altView.isDefault());
+                        if (isForm && type == ViewDefIFace.ViewType.form ||
+                            !isForm && type != ViewDefIFace.ViewType.form)
+                        {
+                            if (altView.getMode() == creationMode)
+                            {
+                                list.add(altView);
+                            }
+                        }
+                        
+                        if (altView.isDefault()) // keep track of the one and only default
+                        {
+                            defAltView = altView;
+                        }
+                    } else
+                    {
+                        // new RuntimeException
+                        FormDevHelper.appendFormDevError(String.format("ViewDef's (%s) Type is null for AltView %s", altView.getViewDef().getName(), altView.getName()));
                     }
-                }
-                
-                if (altView.isDefault()) // keep track of the one and only default
+                } else
                 {
-                    defAltView = altView;
+                    // new RuntimeException
+                    FormDevHelper.appendFormDevError(String.format("ViewDef is null for AltView %s", altView.getName()));
                 }
             }
             
@@ -161,7 +176,9 @@ public class View implements ViewIFace
             }
         }
 
-        throw new RuntimeException("No default Alt View in View["+name+"]");
+        FormDevHelper.appendFormDevError("No default Alt View in View["+name+"]");
+        return null;
+        //throw new RuntimeException("No default Alt View in View["+name+"]");
     }
     
     /* (non-Javadoc)
@@ -185,17 +202,36 @@ public class View implements ViewIFace
             return defAltView;
         }
         
+        StringBuilder sb = new StringBuilder();
+        
         // OK, so we need to use the AltViewIFace that is the opposite of the 
         // of the default AltViewIFace's edit mode.
         for (AltViewIFace av : altViews)
         {
-            if (!av.isDefault() && av.getViewDefName().equals(defAltView.getViewDefName()))
+            if (av.getViewDefName() != null)
             {
-                return av;
+                if (defAltView.getViewDefName() != null)
+                {
+                    if (!av.isDefault() && av.getViewDefName().equals(defAltView.getViewDefName()))
+                    {
+                        return av;
+                    }
+                } else
+                {
+                    sb.append(String.format("The defAltView's ViewDefName is NULL for Alt View '%s' for creationMode: '%s'\n", defAltView.getName(), creationMode.toString()));
+                }
+            } else
+            {
+                sb.append(String.format("The ViewDefName is NULL for Alt View '%s' for creationMode: '%s'\n", av.getName(), creationMode.toString()));
             }
         }
+        
+        if (sb.length() > 0)
+        {
+            UIRegistry.showError(sb.toString());
+        }
+        
         return defAltView;
-        //throw new RuntimeException("No default AltViewIFace in View["+name+"] with the right mode.");
     }
 
     /* (non-Javadoc)

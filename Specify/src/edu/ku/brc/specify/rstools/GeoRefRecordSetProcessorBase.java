@@ -21,6 +21,7 @@ package edu.ku.brc.specify.rstools;
 
 import static edu.ku.brc.util.LatLonConverter.convertToDDDDDD;
 
+import java.awt.Frame;
 import java.math.BigDecimal;
 import java.util.Calendar;
 import java.util.List;
@@ -28,9 +29,15 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.Vector;
 
+import javax.swing.JList;
+
 import org.apache.log4j.Logger;
 import org.hibernate.Query;
 import org.hibernate.Session;
+
+import com.jgoodies.forms.builder.PanelBuilder;
+import com.jgoodies.forms.layout.CellConstraints;
+import com.jgoodies.forms.layout.FormLayout;
 
 import edu.ku.brc.af.core.db.DBTableIdMgr;
 import edu.ku.brc.dbsupport.DataProviderFactory;
@@ -48,6 +55,8 @@ import edu.ku.brc.specify.datamodel.CollectionObject;
 import edu.ku.brc.specify.datamodel.GeoCoordDetail;
 import edu.ku.brc.specify.datamodel.Geography;
 import edu.ku.brc.specify.datamodel.Locality;
+import edu.ku.brc.ui.CustomDialog;
+import edu.ku.brc.ui.UIHelper;
 import edu.ku.brc.ui.UIRegistry;
 import edu.ku.brc.util.LatLonConverter.DEGREES_FORMAT;
 import edu.ku.brc.util.LatLonConverter.DIRECTION;
@@ -185,21 +194,43 @@ public abstract class GeoRefRecordSetProcessorBase implements RecordSetToolsIFac
             DataProviderSessionIFace session = DataProviderFactory.getInstance().createSession();
             try
             {
+                Vector<String> badLocalityList = new Vector<String>();
                 for (Integer id : ids)
                 {
-                    Locality  locality = (Locality)session.getData(Locality.class, "localityId", id, DataProviderSessionIFace.CompareType.Equals);
-                    Geography geo      = locality.getGeography();
-                    
-                    String          country  = getNameForRank(geo, 200);
-                    String          state    = getNameForRank(geo, 300);
-                    String          county   = getNameForRank(geo, 400);
-                    
-                    GeoCoordData geoRefData = new GeoCoordData(locality.getLocalityId(),
-                                                           country,
-                                                           state,
-                                                           county,
-                                                           locality.getLocalityName());
-                    geoRefDataList.add(geoRefData);
+                    Locality locality = (Locality)session.getData(Locality.class, "localityId", id, DataProviderSessionIFace.CompareType.Equals);
+                    if (locality != null)
+                    {
+                        Geography geo      = locality.getGeography();
+                        geo = null;
+                        if (geo != null && locality.getLatitude1() != null && locality.getLongitude1() != null)
+                        {
+                            String          country  = getNameForRank(geo, 200);
+                            String          state    = getNameForRank(geo, 300);
+                            String          county   = getNameForRank(geo, 400);
+                            
+                            GeoCoordData geoRefData = new GeoCoordData(locality.getLocalityId(),
+                                                                   country,
+                                                                   state,
+                                                                   county,
+                                                                   locality.getLocalityName());
+                            geoRefDataList.add(geoRefData);
+                        } else
+                        {
+                            badLocalityList.add(locality.getIdentityTitle());
+                        }
+                    }
+                }
+                
+                if (badLocalityList.size() > 0)
+                {
+                    JList           list = new JList(badLocalityList);
+                    CellConstraints cc   = new CellConstraints();
+                    PanelBuilder    pb   = new PanelBuilder(new FormLayout("f:p:g", "p,2px,f:p:g"));
+                    pb.add(UIHelper.createI18NLabel("GeoRefRSProc.BAD_LOCS"));
+                    pb.add(UIHelper.createScrollPane(list, true), cc.xy(1, 3));
+                    pb.setDefaultDialogBorder();
+                    CustomDialog dlg = new CustomDialog((Frame)null, UIRegistry.getResourceString("WARNING"), true, CustomDialog.OK_BTN, pb.getPanel());
+                    UIHelper.centerAndShow(dlg);
                 }
             } catch (Exception ex)
             {
@@ -226,12 +257,18 @@ public abstract class GeoRefRecordSetProcessorBase implements RecordSetToolsIFac
      */
     public static String getNameForRank(final Geography geo, final int rankId)
     {
-        if (geo.getRankId() == rankId)
+        if (geo.getRankId() != null)
         {
-            return geo.getName();
-        }
-        
-        if (geo.getRankId() < rankId)
+            if (geo.getRankId() == rankId)
+            {
+                return geo.getName();
+            }
+            
+            if (geo.getRankId() < rankId)
+            {
+                return null;
+            }
+        } else
         {
             return null;
         }
@@ -317,8 +354,8 @@ public abstract class GeoRefRecordSetProcessorBase implements RecordSetToolsIFac
                                                                            DataProviderSessionIFace.CompareType.Equals);
                             if (locality != null)
                             {
-                                BigDecimal lat = new BigDecimal(item.getLatitude());
-                                BigDecimal lon = new BigDecimal(item.getLongitude());
+                                BigDecimal lat = UIHelper.parseDoubleToBigDecimal(item.getLatitude());
+                                BigDecimal lon = UIHelper.parseDoubleToBigDecimal(item.getLongitude());
                                 
                                 locality.setLatitude1(lat);
                                 locality.setLongitude1(lon);

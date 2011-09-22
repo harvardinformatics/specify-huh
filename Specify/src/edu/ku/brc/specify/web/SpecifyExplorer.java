@@ -396,7 +396,7 @@ public class SpecifyExplorer extends HttpServlet
         System.setProperty(QueryAdjusterForDomain.factoryName,          "edu.ku.brc.specify.dbsupport.SpecifyQueryAdjusterForDomain"); // Needed for ExpressSearch //$NON-NLS-1$
         System.setProperty(SchemaI18NService.factoryName,               "edu.ku.brc.specify.config.SpecifySchemaI18NService");         // Needed for Localization and Schema //$NON-NLS-1$
         System.setProperty(WebLinkMgr.factoryName,                      "edu.ku.brc.specify.config.SpecifyWebLinkMgr");                // Needed for WebLnkButton //$NON-NLS-1$
-        System.setProperty(DataObjFieldFormatMgr.factoryName,           "edu.ku.brc.specify.config.SpecifyDataObjFieldFormatMgr");         // Needed for WebLnkButton //$NON-NLS-1$
+        System.setProperty(DataObjFieldFormatMgr.factoryName,           "edu.ku.brc.specify.config.SpecifyDataObjFieldFormatMgr");     // Needed for WebLnkButton //$NON-NLS-1$
         System.setProperty(RecordSetFactory.factoryName,                "edu.ku.brc.specify.config.SpecifyRecordSetFactory");          // Needed for Searching //$NON-NLS-1$
         System.setProperty(DBTableIdMgr.factoryName,                    "edu.ku.brc.specify.config.SpecifyDBTableIdMgr");              // Needed for Tree Field Names //$NON-NLS-1$
         System.setProperty(SecurityMgr.factoryName,                     "edu.ku.brc.af.auth.specify.SpecifySecurityMgr");              // Needed for Tree Field Names //$NON-NLS-1$
@@ -455,7 +455,7 @@ public class SpecifyExplorer extends HttpServlet
                     AppContextMgr.getInstance().setClassObject(Division.class, discipline.getDivision());
                     AppContextMgr.getInstance().setClassObject(Institution.class, institution);
                     
-                	Agent.setUserAgent(user, discipline.getAgents());
+                	Agent.setUserAgent(user, discipline.getDivision());
                 	
                 	AppContextMgr am = AppContextMgr.getInstance();
                     am.setClassObject(TaxonTreeDef.class, discipline.getTaxonTreeDef());
@@ -584,7 +584,7 @@ public class SpecifyExplorer extends HttpServlet
             AppPreferences localPrefs = AppPreferences.getLocalPrefs();
             localPrefs.setDirPath(UIRegistry.getAppDataDir());
             
-            AppContextMgr.CONTEXT_STATUS status = AppContextMgr.getInstance().setContext(DATABASE_NAME, "testuser", false);
+            AppContextMgr.CONTEXT_STATUS status = AppContextMgr.getInstance().setContext(DATABASE_NAME, "testuser", false, true, false);
             if (status == AppContextMgr.CONTEXT_STATUS.OK)
             {
                 if (AppContextMgr.getInstance().getClassObject(Discipline.class) != null)
@@ -4194,6 +4194,11 @@ public class SpecifyExplorer extends HttpServlet
     
     class MyFmtMgr extends SpecifyUIFieldFormatterMgr
     {
+        public MyFmtMgr()
+        {
+            super();
+            load();
+        }
         /**
          * Returns the DOM it is suppose to load the formatters from.
          * @return Returns the DOM it is suppose to load the formatters from.

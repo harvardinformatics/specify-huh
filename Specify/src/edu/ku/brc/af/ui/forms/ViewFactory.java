@@ -30,27 +30,34 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Insets;
+import java.awt.event.ActionEvent;
+import java.awt.event.InputEvent;
+import java.awt.event.KeyEvent;
 import java.lang.reflect.Field;
 import java.math.BigDecimal;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Collection;
-import java.util.Enumeration;
-import java.util.Hashtable;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
+import javax.swing.AbstractAction;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
+import javax.swing.KeyStroke;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.SwingConstants;
 import javax.swing.border.BevelBorder;
@@ -87,6 +94,7 @@ import edu.ku.brc.af.ui.forms.persist.FormCellPanel;
 import edu.ku.brc.af.ui.forms.persist.FormCellSeparatorIFace;
 import edu.ku.brc.af.ui.forms.persist.FormCellSubView;
 import edu.ku.brc.af.ui.forms.persist.FormCellSubViewIFace;
+import edu.ku.brc.af.ui.forms.persist.FormDevHelper;
 import edu.ku.brc.af.ui.forms.persist.FormRowIFace;
 import edu.ku.brc.af.ui.forms.persist.FormViewDef;
 import edu.ku.brc.af.ui.forms.persist.FormViewDefIFace;
@@ -102,6 +110,7 @@ import edu.ku.brc.af.ui.forms.validation.ValCheckBox;
 import edu.ku.brc.af.ui.forms.validation.ValComboBox;
 import edu.ku.brc.af.ui.forms.validation.ValComboBoxFromQuery;
 import edu.ku.brc.af.ui.forms.validation.ValFormattedTextField;
+import edu.ku.brc.af.ui.forms.validation.ValFormattedTextFieldIFace;
 import edu.ku.brc.af.ui.forms.validation.ValFormattedTextFieldSingle;
 import edu.ku.brc.af.ui.forms.validation.ValListBox;
 import edu.ku.brc.af.ui.forms.validation.ValPasswordField;
@@ -114,12 +123,14 @@ import edu.ku.brc.af.ui.forms.validation.ValTristateCheckBox;
 import edu.ku.brc.af.ui.forms.validation.ValidatedJPanel;
 import edu.ku.brc.af.ui.weblink.WebLinkButton;
 import edu.ku.brc.exceptions.ConfigurationException;
-import edu.ku.brc.services.filteredpush.FpFormViewObj;
+import edu.ku.brc.specify.plugins.SeriesProcCatNumPlugin;
 import edu.ku.brc.ui.ColorChooser;
 import edu.ku.brc.ui.ColorWrapper;
 import edu.ku.brc.ui.CommandAction;
 import edu.ku.brc.ui.CommandActionWrapper;
+import edu.ku.brc.ui.DateWrapper;
 import edu.ku.brc.ui.GetSetValueIFace;
+import edu.ku.brc.ui.IconButton;
 import edu.ku.brc.ui.IconManager;
 import edu.ku.brc.ui.ImageDisplay;
 import edu.ku.brc.ui.JStatusBar;
@@ -145,13 +156,10 @@ public class ViewFactory
     private static  ViewFactory  instance = null;
     
     // Data Members
-    protected static ColorWrapper     viewFieldColor    = null;
-    protected static boolean          doFixLabels       = true;
-    protected static boolean          isFormTransparent = false;
+    private static ColorWrapper     viewFieldColor         = null;
+    private static boolean          doFixLabels            = true;
+    private static boolean          isFormTransparent      = false;
 
-    // transient - is valid only during a build process
-    protected MultiView               rootMultiView    = null;
-    
     /**
      * Constructor.
      */
@@ -187,58 +195,86 @@ public class ViewFactory
      * @param altView which AltViewIFace to build
      * @param parentView the MultiViw that this view/form will be parented to
      * @param options the options needed for creating the form
+     * @param cellName the name of the cell when it is a subview
+     * @param dataClass the class of the data that is put into the form
      * @return a Viewable Obj with the form UI built
      */
     public Viewable buildViewable(final ViewIFace    view, 
                                   final AltViewIFace altView, 
                                   final MultiView    parentView,
                                   final int          options,
+                                  final String       cellName,
                                   final Color        bgColor)
     {
         if (viewFieldColor == null)
         {
             viewFieldColor = AppPrefsCache.getColorWrapper("ui", "formatting", "viewfieldcolor");
         }
-
+        
         ViewDefIFace viewDef = altView.getViewDef();
+        if (viewDef == null)
+        {
+            // This error is bad enough to have it's own dialog
+            String msg = String.format("The ViewDef is null for View '%s' AltView '%s'", view.getName(), altView.getName());
+            FormDevHelper.appendFormDevError(msg);
+            UIRegistry.showError(msg);
+            return null;
+        }
 
-        if (viewDef == null) return null;
-
-        this.rootMultiView =  parentView;
+        Class<?> dataClass = null;
+        DBTableInfo tableInfo = DBTableIdMgr.getInstance().getByClassName(view.getClassName());
+        MultiView   parentsMV = parentView != null ? parentView.getMultiViewParent() : null;
+        if (tableInfo == null && parentsMV != null && cellName != null)
+        {
+            tableInfo = DBTableIdMgr.getInstance().getByClassName(parentsMV.getView().getClassName());
+            if (tableInfo != null)
+            {
+                DBTableChildIFace childInfo = tableInfo.getItemByName(cellName);
+                if (childInfo != null)
+                {
+                    dataClass = childInfo.getDataClass();
+                }
+            }
+        } else
+        {
+            try
+            {
+                dataClass = Class.forName(view.getClassName());
+            } catch (ClassNotFoundException e)
+            {
+                e.printStackTrace();
+            }
+        }
 
         if (viewDef.getType() == ViewDefIFace.ViewType.form)
         {
-            Viewable viewable = buildFormViewable(view, altView, parentView, options, bgColor);
-            this.rootMultiView =  null;
+            Viewable viewable = buildFormViewable(view, altView, parentView, options, cellName, dataClass, bgColor);
             return viewable;
 
         } else if (viewDef.getType() == ViewDefIFace.ViewType.table ||
                    viewDef.getType() == ViewDefIFace.ViewType.formtable)
         {
-            Viewable viewable = buildTableViewable(view, altView, parentView, options, bgColor);
-            this.rootMultiView =  null;
+            Viewable viewable = buildTableViewable(view, altView, parentView, options, cellName, dataClass, bgColor);
             return viewable;
 
         } else if (viewDef.getType() == ViewDefIFace.ViewType.field)
         {
-            this.rootMultiView =  null;
             return null;
 
         }
         else if (viewDef.getType() == ViewDefIFace.ViewType.iconview)
         {
-            return new IconViewObj(view, altView, parentView, options);
+            return new IconViewObj(view, altView, parentView, options, cellName, dataClass);
         }
         else if (viewDef.getType() == ViewDefIFace.ViewType.rstable)
         {
-            return buildRecordSetTableViewable(view, altView, parentView, options, bgColor);
+            return buildRecordSetTableViewable(view, altView, parentView, options, cellName, dataClass, bgColor);
                 
         } else
         {
-            this.rootMultiView =  null;
-            throw new RuntimeException("Form Type not covered by builder ["+viewDef.getType()+"]");
+            FormDevHelper.appendFormDevError("Form Type not covered by builder ["+viewDef.getType()+"]");
         }
-
+        return null;
     }
 
     /**
@@ -249,57 +285,60 @@ public class ViewFactory
      */
     public static JTextField createTextField(final FormValidator validator,
                                              final FormCellField cellField,
-                                             @SuppressWarnings("unused")
-                                             final DBFieldInfo   fieldInfo,
+                                             @SuppressWarnings("unused") final DBFieldInfo   fieldInfo,
                                              final boolean       isRequired,
                                              final PickListDBAdapterIFace adapter)
     {
         String validationRule = cellField.getValidationRule();
        
-        JTextField txtField;
+        JTextField   txtField;
+        ValTextField valTextField = null; 
         if (validator != null && (isRequired || isNotEmpty(validationRule) || cellField.isChangeListenerOnly()))
         {
-            ValTextField textField = new ValTextField(cellField.getTxtCols(), adapter);
-            textField.setRequired(isRequired);
-            textField.setViewOnly(cellField.isReadOnly());
+            valTextField = new ValTextField(cellField.getTxtCols(), adapter);
+            valTextField.setRequired(isRequired);
+            valTextField.setViewOnly(cellField.isReadOnly());
             
-            validator.hookupTextField(textField,
+            validator.hookupTextField(valTextField,
                                       cellField.getIdent(),//+"_text",
                                       isRequired,
                                       parseValidationType(cellField.getValidationType()),
                                       cellField.getValidationRule(),
                                       cellField.isChangeListenerOnly() && !isRequired);
 
-            txtField = textField;
-            textField.setEditable(!cellField.isReadOnly());
+            txtField = valTextField;
+            valTextField.setEditable(!cellField.isReadOnly());
             
             if (fieldInfo != null && fieldInfo.getLength() > -1)
             {
-                textField.setLimit(fieldInfo.getLength());
+                valTextField.setLimit(fieldInfo.getLength());
             }
 
         } else if (adapter != null)
         {
-            ValTextField textField = new ValTextField(cellField.getTxtCols(), adapter);
-            textField.setViewOnly(cellField.isReadOnly());
+            valTextField = new ValTextField(cellField.getTxtCols(), adapter);
+            valTextField.setViewOnly(cellField.isReadOnly());
             if (fieldInfo.getLength() > -1)
             {
-                textField.setLimit(fieldInfo.getLength());
+                valTextField.setLimit(fieldInfo.getLength());
             }
             
-            txtField = textField;
-            textField.setEditable(false);
+            txtField = valTextField;
+            valTextField.setEditable(false);
 
         } else
         {
-            ValTextField textField = new ValTextField(cellField.getTxtCols());
-            textField.setViewOnly(cellField.isReadOnly());
+            valTextField = new ValTextField(cellField.getTxtCols());
+            valTextField.setViewOnly(cellField.isReadOnly());
             if (fieldInfo != null && fieldInfo.getLength() > -1)
             {
-                textField.setLimit(fieldInfo.getLength());
+                valTextField.setLimit(fieldInfo.getLength());
             }
-            txtField = textField;
+            txtField = valTextField;
         }
+        
+        addTextFieldPopup(valTextField, valTextField, false);
+        
         return txtField;
     }
 
@@ -316,10 +355,19 @@ public class ViewFactory
     {
         String validationRule = cellField.getValidationRule();
         JTextField txt;
-
+        ValPasswordField textField = null;
+            
         if (validator != null && (isRequired || isNotEmpty(validationRule) || cellField.isChangeListenerOnly()))
         {
-            ValPasswordField textField = new ValPasswordField(cellField.getTxtCols());
+            String maxLenStr = cellField.getProperties().getProperty("maxlen");
+            if (StringUtils.isNotEmpty(maxLenStr) && StringUtils.isNumeric(maxLenStr))
+            {
+                int maxlen = Integer.parseInt(maxLenStr);
+                textField = new ValPasswordField(new ValPlainTextDocument(maxlen), "", cellField.getTxtCols());
+            } else
+            {
+                textField = new ValPasswordField(cellField.getTxtCols());
+            }
             textField.setRequired(isRequired);
             textField.setEncrypted(cellField.isEncrypted());
 
@@ -376,16 +424,16 @@ public class ViewFactory
             {
                 String msg = "Field["+cellField.getName()+ "] is missing formatter by name ["+uiFormatterName+"]";
                 log.debug(msg);
-                //throw new RuntimeException(msg);
-                 formatter = new GenericStringUIFieldFormatter("Temp", tableClass, cellField.getName(), "", len);
+                FormDevHelper.appendFormDevError(msg);
+                formatter = new GenericStringUIFieldFormatter("Temp", tableClass, cellField.getName(), "", len);
             }
             
             if (formatter.isDate() || formatter.isNumeric())
             {
-                ValFormattedTextFieldSingle textField = new ValFormattedTextFieldSingle(uiFormatterName, 
-                                                                                       isViewOnly, 
-                                                                                       isPartialOK, 
-                                                                                       suggestedNumCols);
+                final ValFormattedTextFieldSingle textField = new ValFormattedTextFieldSingle(uiFormatterName, 
+                                                                                              isViewOnly, 
+                                                                                              isPartialOK, 
+                                                                                              suggestedNumCols);
                 textField.setRequired(isRequired);
                 
                 validator.hookupTextField(textField,
@@ -395,6 +443,8 @@ public class ViewFactory
                                           cellField.getValidationRule(), 
                                           false);
                 
+                addTextFieldPopup(textField, textField, formatter.isDate());
+
                 if (isViewOnly)
                 {
                     changeTextFieldUIForDisplay(textField, cellField.getPropertyAsBoolean("transparent", false));
@@ -410,7 +460,7 @@ public class ViewFactory
             ValFormattedTextField textField = new ValFormattedTextField(formatter, isViewOnly, allEditOK, isPartialOK);
             textField.setRequired(isRequired);
             textField.setFromUIFmtOverride(isFromUIFmtOverride);
-
+            
             DataChangeNotifier dcn = validator.hookupComponent(textField,
                                                                cellField.getIdent(),
                                                                UIValidator.Type.Changed,  
@@ -450,6 +500,64 @@ public class ViewFactory
         vtf.setFromUIFmtOverride(isFromUIFmtOverride);
         return vtf;
     }
+    
+    
+    
+    /**
+     * @param destObj
+     * @param textField
+     */
+    public static void addTextFieldPopup(final GetSetValueIFace destObj, final JTextField textField, final boolean doAddDate)
+    {
+        if (textField != null)
+        {
+            JPopupMenu popupMenu = new JPopupMenu();
+            
+            if (doAddDate)
+            {
+                AbstractAction aa = new AbstractAction("Clear It") {
+                    
+                    @Override
+                    public void actionPerformed(ActionEvent e)
+                    {
+                        DateWrapper scrDateFormat = AppPrefsCache.getDateWrapper("ui", "formatting", "scrdateformat");
+                        if (scrDateFormat != null)
+                        {
+                            destObj.setValue(scrDateFormat.format(Calendar.getInstance()), "");
+                        } else
+                        {
+                            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+                            destObj.setValue(sdf.format(Calendar.getInstance()), "");
+                        }
+                    }
+                };
+    
+                UIHelper.createLocalizedMenuItem(popupMenu, "ViewFactory.CURR_DATE", "", "", true, aa);
+                
+                KeyStroke ctrlShiftT = KeyStroke.getKeyStroke(KeyEvent.VK_T, InputEvent.CTRL_DOWN_MASK | InputEvent.SHIFT_DOWN_MASK);
+                textField.getInputMap().put(ctrlShiftT, "SetCurrentDate");
+                textField.getActionMap().put("SetCurrentDate", aa);
+    
+            }
+            
+            String clearField = "ClearField";
+            AbstractAction clearAction = new AbstractAction(clearField) {
+                @Override
+                public void actionPerformed(ActionEvent e)
+                {
+                    destObj.setValue("", "");
+                }
+            };
+            
+            UIHelper.createLocalizedMenuItem(popupMenu, "ViewFactory.CLEAR", "", "", true, clearAction);
+            
+            textField.getInputMap().put(KeyStroke.getKeyStroke("F3"), clearField);
+            textField.getActionMap().put(clearField, clearAction);
+            
+            textField.add(popupMenu);
+            textField.setComponentPopupMenu(popupMenu);
+        }
+    }
 
     /**
      * Creates a ValTextArea.
@@ -459,30 +567,27 @@ public class ViewFactory
      */
     public static JTextArea createTextArea(final FormValidator validator,
                                            final FormCellField cellField,
+                                           final boolean       isRequired,
                                            final DBFieldInfo   fieldInfo)
     {
-        ValTextArea textArea = new ValTextArea("", cellField.getTxtRows(), cellField.getTxtCols());
-        if (validator != null)
+        boolean doValidation = validator != null && (isRequired || isNotEmpty(cellField.getValidationRule()) || cellField.isChangeListenerOnly());
+        
+        ValTextArea textArea = new ValTextArea(cellField.getTxtRows(), cellField.getTxtCols());
+        if (doValidation && fieldInfo != null && fieldInfo.getLength() > 0)
         {
-            if (fieldInfo != null && fieldInfo.getLength() > 0)
-            {
-                textArea.setDocument(new ValPlainTextDocument(fieldInfo.getLength()));
-            }
-            
-            UIValidator.Type type = parseValidationType(cellField.getValidationType());
-            DataChangeNotifier dcn = validator.hookupComponent(textArea, cellField.getIdent(), type, null, true);
-            if (type == UIValidator.Type.Changed)
-            {
-                textArea.getDocument().addDocumentListener(dcn);
-
-            } else if (type == UIValidator.Type.Focus)
-            {
-                textArea.addFocusListener(dcn);
-
-            } else
-            {
-               // Do nothing for UIValidator.Type.OK
-            }
+            textArea.setDocument(new ValPlainTextDocument(fieldInfo.getLength()));
+        }
+        textArea.setRequired(isRequired);
+        textArea.setRows(cellField.getTxtRows());
+        
+        if (doValidation && validator != null)
+        {
+            validator.hookupTextField(textArea,
+                                      cellField.getIdent(),
+                                      isRequired,
+                                      parseValidationType(cellField.getValidationType()),
+                                      cellField.getValidationRule(),
+                                      cellField.isChangeListenerOnly() && !isRequired);
         }
         textArea.setLineWrap(true);
         textArea.setWrapStyleWord(true);
@@ -500,33 +605,28 @@ public class ViewFactory
      */
     public static ValTextAreaBrief createTextAreaBrief(final FormValidator validator,
                                                        final FormCellField cellField,
+                                                       final boolean       isRequired,
                                                        final DBFieldInfo   fieldInfo)
     {
+        boolean doValidation = validator != null && (isRequired || isNotEmpty(cellField.getValidationRule()) || cellField.isChangeListenerOnly());
+        
         ValTextAreaBrief textArea = new ValTextAreaBrief(cellField.getTxtRows(), cellField.getTxtCols());
+        if (doValidation && fieldInfo != null && fieldInfo.getLength() > 0)
+        {
+            textArea.setDocument(new ValPlainTextDocument(fieldInfo.getLength()));
+        }
+        textArea.setRequired(isRequired);
         textArea.initialize(validator != null);
         textArea.setRows(cellField.getTxtRows());
         
-        if (validator != null)
+        if (doValidation && validator != null)
         {
-            if (fieldInfo != null && fieldInfo.getLength() > 0)
-            {
-                textArea.setDocument(new ValPlainTextDocument(fieldInfo.getLength()));
-            }
-            
-            UIValidator.Type type = parseValidationType(cellField.getValidationType());
-            DataChangeNotifier dcn = validator.hookupComponent(textArea, cellField.getIdent(), type, null, true);
-            if (type == UIValidator.Type.Changed)
-            {
-                textArea.getDocument().addDocumentListener(dcn);
-
-            } else if (type == UIValidator.Type.Focus)
-            {
-                textArea.addFocusListener(dcn);
-
-            } else
-            {
-               // Do nothing for UIValidator.Type.OK
-            }
+            validator.hookupTextField(textArea,
+                                      cellField.getIdent(),
+                                      isRequired,
+                                      parseValidationType(cellField.getValidationType()),
+                                      cellField.getValidationRule(),
+                                      cellField.isChangeListenerOnly() && !isRequired);
         }
         textArea.setLineWrap(true);
         textArea.setWrapStyleWord(true);
@@ -594,10 +694,11 @@ public class ViewFactory
             btnOpts |= cellField.getPropertyAsBoolean("editbtn", true) ? ValComboBoxFromQuery.CREATE_EDIT_BTN : 0;
             btnOpts |= cellField.getPropertyAsBoolean("newbtn", true) ? ValComboBoxFromQuery.CREATE_NEW_BTN : 0;
             btnOpts |= cellField.getPropertyAsBoolean("searchbtn", true) ? ValComboBoxFromQuery.CREATE_SEARCH_BTN : 0;
+            btnOpts |= cellField.getPropertyAsBoolean("clonebtn", false) ? ValComboBoxFromQuery.CREATE_CLONE_BTN : 0;
             
             String helpContext = cellField.getProperty("hc");
             
-            ValComboBoxFromQuery cbx = TypeSearchForQueryFactory.createValComboBoxFromQuery(cbxName, btnOpts, cellField.getFormatName(), helpContext);
+            ValComboBoxFromQuery cbx = TypeSearchForQueryFactory.getInstance().createValComboBoxFromQuery(cbxName, btnOpts, cellField.getFormatName(), helpContext);
             if (cbx != null)
             {
                 cbx.setRequired(isRequired);
@@ -625,7 +726,8 @@ public class ViewFactory
 
         }
         // else
-        throw new RuntimeException("CBX Name for ValComboBoxFromQuery ["+cbxName+"] is empty!");
+        FormDevHelper.appendFormDevError("CBX Name for ValComboBoxFromQuery ["+cbxName+"] is empty!");
+        return null;
     }
 
     /**
@@ -672,6 +774,7 @@ public class ViewFactory
                                                                cellField.isChangeListenerOnly());
             //cbx.getModel().addListDataListener(dcn);
             cbx.getComboBox().addActionListener(dcn);
+            cbx.addChangeListener(dcn);
 
             if (dcn.getValidationType() == UIValidator.Type.Focus) // returns None when no Validator
             {
@@ -712,9 +815,9 @@ public class ViewFactory
         textField.setEditable(false);
         //textField.setFocusable(false); // rods - commented out because it makes it so you can't select and copy
         
+        textField.setOpaque(!isTransparent);
         if (isTransparent)
         {
-            textField.setOpaque(false);
             textField.setBackground(null);
             
         } else if (viewFieldColor != null)
@@ -792,7 +895,7 @@ public class ViewFactory
         String            txtName = cellField.getProperty("name");
         if (isNotEmpty(txtName))
         {
-            textFieldInfo = TypeSearchForQueryFactory.getTextFieldWithInfo(txtName, cellField.getFormatName());
+            textFieldInfo = TypeSearchForQueryFactory.getInstance().getTextFieldWithInfo(txtName, cellField.getFormatName());
             if (textFieldInfo != null)
             {
                 textFieldInfo.setMultiView(parent);
@@ -811,11 +914,15 @@ public class ViewFactory
                 
             } else
             {
-                log.error("Could TypeSearchForQueryFactory.getTextFieldWithInfo("+txtName+")");
+                String msg = "Could TypeSearchForQueryFactory.getTextFieldWithInfo("+txtName+")";
+                log.error(msg);
+                FormDevHelper.appendFormDevError(msg);
             }
         } else
         {
-            throw new RuntimeException("textfieldinfo Name for textFieldWithInfo ["+txtName+"] is empty!");
+            String msg = "textfieldinfo Name for textFieldWithInfo ["+txtName+"] is empty!";
+            log.error(msg);
+            FormDevHelper.appendFormDevError(msg);
         }
         return textFieldInfo;
     }
@@ -908,6 +1015,32 @@ public class ViewFactory
     }
     
     /**
+     * @param fcf
+     * @return
+     */
+    private JButton createFormButton(final FormCellIFace fcf, final String text)
+    {
+        String tooltip  = fcf.getProperty("tooltip");
+        String iconName = fcf.getProperty("icon");
+        String sizeStr  = fcf.getProperty("size");
+        
+        if (StringUtils.isNotEmpty(text))
+        {
+            return createButton(text);
+            
+        } else if (StringUtils.isNotEmpty(iconName))
+        {
+            int iconSize = StringUtils.isNotEmpty(sizeStr) && StringUtils.isNumeric(sizeStr) ? Integer.parseInt(sizeStr) : 16;
+            IconManager.IconSize iSize = IconManager.getIconSize(iconSize, false, false);
+            IconButton iconBtn = new IconButton(IconManager.getIcon(iconName, iSize), true);
+            iconBtn.setEnabled(true);
+            iconBtn.setToolTipText(UIRegistry.getResourceString(tooltip));
+            return iconBtn;
+        }
+        return createButton("?");
+    }
+    
+    /**
      * Creates an ImageDisplay control,
      * @param cellField FormCellField info
      * @param isViewMode indicates whether in Edit or View mode
@@ -923,7 +1056,10 @@ public class ViewFactory
         String pluginName = cellField.getProperty("name");
         if (StringUtils.isEmpty(pluginName))
         {
-            throw new RuntimeException("Creating plugin and the name property was missing. ["+cellField.getName()+"]");
+            String msg = "Creating plugin and the name property was missing. ["+cellField.getName()+"]";
+            log.error(msg);
+            FormDevHelper.appendFormDevError(msg);
+            return null;
         }
         
         // We should refactor the plugin manager.
@@ -977,7 +1113,8 @@ public class ViewFactory
                 // check for another required interface (GetSetValueIFace)
                 if (!(uiPlugin instanceof GetSetValueIFace))
                 {
-                    throw new RuntimeException("Plugin of class ["+pluginClass.getName()+"] doesn't implement the GetSetValueIFace!");
+                    FormDevHelper.appendFormDevError("Plugin of class ["+pluginClass.getName()+"] doesn't implement the GetSetValueIFace!");
+                    return null;
                 }
                 
                 if (validator != null)
@@ -994,11 +1131,9 @@ public class ViewFactory
                 
             } catch (Exception ex)
             {
-                edu.ku.brc.af.core.UsageTracker.incrHandledUsageCount();
-                edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(ViewFactory.class, ex);
                log.error(ex);
                ex.printStackTrace();
-               throw new RuntimeException(ex);
+               FormDevHelper.appendFormDevError(ex);
             }
         }
         log.error("Couldn't find plugin by name["+pluginName+"]");
@@ -1033,7 +1168,7 @@ public class ViewFactory
     //----------------------------------------------------------------------------------------------------------------
     class BuildInfoStruct
     {
-        public Hashtable<CollapsableSeparator, String> collapseSepHash = null;
+        public HashMap<CollapsableSeparator, String> collapseSepHash = null;
         
         public int        curMaxRow        = 0;
         public JComponent compToAdd        = null;
@@ -1069,7 +1204,7 @@ public class ViewFactory
                                  final FormValidator               validator,
                                  final ViewBuilderIFace            viewBldObj,
                                  final AltViewIFace.CreationMode   mode,
-                                 final Hashtable<String, JLabel>   labelsForHash,
+                                 final HashMap<String, JLabel>     labelsForHash,
                                  final Object                      currDataObj,
                                  final FormCellIFace               cell,
                                  final boolean                     isEditOnCreateOnly,
@@ -1179,37 +1314,20 @@ public class ViewFactory
         {
             FormCellField cellField = (FormCellField)cell;
             
-            /*if (StringUtils.isEmpty(cellField.getIdent()))
-            {
-                UIRegistry.showLocalizedError("ViewFactory.NO_ID", cellField.getName(), formViewDef.getName());
-                
-            }*
-            
-            /* DEBUG
-            String fieldName = cellField.getName();
-            if (childInfo == null && 
-                fieldName != null && 
-                fieldName.indexOf('.') == -1 &&
-                !fieldName.equals("this")
-                )
-            {
-               log.debug("No DBChild ["+cellField.getName()+"]"); 
-            }*/
-            
             bi.isRequired = bi.isRequired || cellField.isRequired() || (childInfo != null && childInfo.isRequired());
             
             DBRelationshipInfo relInfo   = null;
             DBFieldInfo        fieldInfo = childInfo instanceof DBFieldInfo ? (DBFieldInfo)childInfo : null;
             if (fieldInfo != null && fieldInfo.isHidden())
             {
-                UIRegistry.showLocalizedError("ViewFactory.FORM_FIELD_HIDDEN", cellField.getIdent(), cellField.getName(), formViewDef.getName());
+                FormDevHelper.appendLocalizedFormDevError("ViewFactory.FORM_FIELD_HIDDEN", cellField.getIdent(), cellField.getName(), formViewDef.getName());
             } else
             {
                 
                 relInfo = childInfo instanceof DBRelationshipInfo ? (DBRelationshipInfo)childInfo : null;
                 if (fieldInfo != null && fieldInfo.isHidden())
                 {
-                    UIRegistry.showLocalizedError("ViewFactory.FORM_REL_HIDDEN", cellField.getIdent(), cellField.getName(), formViewDef.getName());
+                    FormDevHelper.appendLocalizedFormDevError("ViewFactory.FORM_REL_HIDDEN", cellField.getIdent(), cellField.getName(), formViewDef.getName());
                 }
             }
             
@@ -1230,7 +1348,8 @@ public class ViewFactory
                 
                 if (adapter == null || adapter.getPickList() == null)
                 {
-                    throw new RuntimeException("PickList Adapter ["+pickListName+"] cannot be null!");
+                    FormDevHelper.appendFormDevError("PickList Adapter ["+pickListName+"] cannot be null!");
+                    return false;
                 }
             }
             
@@ -1279,7 +1398,7 @@ public class ViewFactory
                         PermissionSettings perm = tblInfo.getPermissions();
                         if (perm != null)
                         {
-                            PermissionSettings.dumpPermissions("QCBX: "+tblInfo.getShortClassName(), perm.getOptions());
+                            //PermissionSettings.dumpPermissions("QCBX: "+tblInfo.getShortClassName(), perm.getOptions());
                             if (perm.isViewOnly() || !perm.canView())
                             {
                                 uiType = FormCellField.FieldType.textfieldinfo;
@@ -1296,7 +1415,7 @@ public class ViewFactory
                 uiType == FormCellField.FieldType.text && 
                 fieldClass != null)
             {
-                if (fieldClass == String.class)
+                if (fieldClass == String.class && fieldInfo != null)
                 {
                 	// check whether there's a formatter defined for this field in the schema
                     if (fieldInfo.getFormatter() != null)
@@ -1321,7 +1440,7 @@ public class ViewFactory
 
             // Create the UI Component
             
-            boolean isReq = (cellField != null && cellField.isRequired()) || (fieldInfo != null && fieldInfo.isRequired()) || (relInfo != null && relInfo.isRequired());
+            boolean isReq = cellField.isRequired() || (fieldInfo != null && fieldInfo.isRequired()) || (relInfo != null && relInfo.isRequired());
             switch (uiType)
             {
                 case text:
@@ -1338,8 +1457,21 @@ public class ViewFactory
                         tableClass = Class.forName(formViewDef.getClassName());
                     } catch (Exception ex){}
                     
-                    bi.compToAdd = createFormattedTextField(validator, cellField, tableClass, fieldInfo != null ? fieldInfo.getLength() : 0, uiFormatName, 
-                                                            mode == AltViewIFace.CreationMode.VIEW, isReq, cellField.getPropertyAsBoolean("alledit", false));
+                    JComponent tfStart = createFormattedTextField(validator, cellField, tableClass, fieldInfo != null ? fieldInfo.getLength() : 0, uiFormatName, 
+                                             mode == AltViewIFace.CreationMode.VIEW, isReq, cellField.getPropertyAsBoolean("alledit", false));
+                    bi.compToAdd = tfStart;
+                    if (cellField.getPropertyAsBoolean("series", false))
+                    {
+                        JComponent tfEnd = createFormattedTextField(validator, cellField, tableClass, fieldInfo != null ? fieldInfo.getLength() : 0, uiFormatName, 
+                                               mode == AltViewIFace.CreationMode.VIEW, isReq, cellField.getPropertyAsBoolean("alledit", false));
+                        
+                        // Make sure we register it like a plugin not a regular control
+                        SeriesProcCatNumPlugin plugin = new SeriesProcCatNumPlugin((ValFormattedTextFieldIFace)tfStart, 
+                                                                                   (ValFormattedTextFieldIFace)tfEnd);
+                        bi.compToAdd = plugin.getUIComponent();
+                        viewBldObj.registerPlugin(cell, plugin);
+                        bi.doRegControl = false;
+                    }
                     bi.doAddToValidator = validator == null; // might already added to validator
                     break;
                 }   
@@ -1397,8 +1529,10 @@ public class ViewFactory
                                                            cellField.isReadOnly() || mode == AltViewIFace.CreationMode.VIEW);
                     if (validator != null)
                     {
-                        DataChangeNotifier dcn = validator.createDataChangeNotifer(cellField.getIdent(), checkbox, null);
+                        DataChangeNotifier dcn = validator.createDataChangeNotifer(cellField.getIdent(), checkbox, 
+                                                    validator.createValidator(checkbox, UIValidator.Type.Changed));
                         checkbox.addActionListener(dcn);
+                        checkbox.addItemListener(dcn);
                     }
                     bi.compToAdd = checkbox;
                     break;
@@ -1455,7 +1589,7 @@ public class ViewFactory
                 
                 case textarea:
                 {
-                    JTextArea ta = createTextArea(validator, cellField, fieldInfo);
+                    JTextArea ta = createTextArea(validator, cellField, isReq, fieldInfo);
                     JScrollPane scrollPane = new JScrollPane(ta);
                     scrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
                     scrollPane.setVerticalScrollBarPolicy(UIHelper.isMacOS() ? ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS : ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED);
@@ -1481,7 +1615,7 @@ public class ViewFactory
                         }
                     }
 
-                    ValTextAreaBrief txBrief = createTextAreaBrief(validator, cellField, fieldInfo);
+                    ValTextAreaBrief txBrief = createTextAreaBrief(validator, cellField, isReq, fieldInfo);
                     txBrief.setTitle(title);
                     
                     bi.doAddToValidator = validator == null; // might already added to validator
@@ -1550,7 +1684,7 @@ public class ViewFactory
                 }
                 
                 case button:
-                    JButton btn = createButton(cellField.getProperty("title"));
+                    JButton btn = createFormButton(cellField, cellField.getProperty("title"));
                     bi.compToAdd = btn;
                     break;
                     
@@ -1573,8 +1707,7 @@ public class ViewFactory
                         bi.compToAdd = new JPanel();
                         log.error("Couldn't create UIPlugin ["+cellField.getName()+"] ID:"+cellField.getIdent());
                     }
-                    bi.doRegControl = false;                        
-
+                    bi.doRegControl = false;
                     break;
 
                 case textpl:
@@ -1584,7 +1717,7 @@ public class ViewFactory
                     break;
                 
                 default:
-                    throw new RuntimeException("Don't recognize uitype=["+uiType+"]");
+                    FormDevHelper.appendFormDevError("Don't recognize uitype=["+uiType+"]");
                 
             } // switch
 
@@ -1610,10 +1743,10 @@ public class ViewFactory
             Component sep = viewBldObj.createSeparator(label);
             if (isNotEmpty(collapsableName))
             {
-                CollapsableSeparator collapseSep = new CollapsableSeparator(sep, false);
+                CollapsableSeparator collapseSep = new CollapsableSeparator(sep, false, null);
                 if (bi.collapseSepHash == null)
                 {
-                    bi.collapseSepHash = new Hashtable<CollapsableSeparator, String>();
+                    bi.collapseSepHash = new HashMap<CollapsableSeparator, String>();
                 }
                 bi.collapseSepHash.put(collapseSep, collapsableName);
                 sep = collapseSep;
@@ -1627,7 +1760,7 @@ public class ViewFactory
         } else if (cell.getType() == FormCellIFace.CellType.command)
         {
             FormCellCommand cellCmd = (FormCellCommand)cell;
-            JButton btn  = createButton(cellCmd.getLabel());
+            JButton btn  = createFormButton(cell, cellCmd.getLabel());
             if (cellCmd.getCommandType().length() > 0)
             {
                 btn.addActionListener(new CommandActionWrapper(new CommandAction(cellCmd.getCommandType(), cellCmd.getAction(), "")));
@@ -1735,6 +1868,7 @@ public class ViewFactory
                         
                         options |= cellSubView.getPropertyAsBoolean("nosep", false) ? MultiView.DONT_USE_EMBEDDED_SEP : 0;
                         options |= cellSubView.getPropertyAsBoolean("nosepmorebtn", false) ? MultiView.NO_MORE_BTN_FOR_SEP : 0;
+                        options |= cellSubView.getPropertyAsBoolean("collapse", false) ? MultiView.COLLAPSE_SEPARATOR : 0;
                         
                         if (!(isACollection && !isSingle))
                         {
@@ -1765,6 +1899,12 @@ public class ViewFactory
                             bi.doAddToValidator   = false;
                             bi.compToAdd          = subViewBtn;
                             
+                            String visProp = cell.getProperty("visible");
+                            if (StringUtils.isNotEmpty(visProp) && visProp.equalsIgnoreCase("false") && bi.compToAdd != null)
+                            {
+                                bi.compToAdd.setVisible(false);
+                            }
+                            
                             try
                             {
                                 addControl(validator, viewBldObj, rowInx, cell, bi);
@@ -1789,6 +1929,11 @@ public class ViewFactory
                             if (UIHelper.getProperty(props, "addsearch", false))
                             {
                                 options |= MultiView.ADD_SEARCH_BTN;
+                            }
+                            
+                            if (UIHelper.getProperty(props, "addadd", false))
+                            {
+                                options |= MultiView.INCLUDE_ADD_BTN;
                             }
                             
                             //MultiView.printCreateOptions("SUBVIEW", options);
@@ -1816,7 +1961,7 @@ public class ViewFactory
                                 {
                                     ((TableViewObj)viewable).setVisibleRowCount(cellSubView.getTableRows());
                                 }
-                                if (viewable.getValidator() != null)
+                                if (viewable.getValidator() != null && childInfo != null)
                                 {
                                     viewable.getValidator().setRequired(childInfo.isRequired());
                                 }
@@ -1842,9 +1987,19 @@ public class ViewFactory
                     
                     AltViewIFace     altView        = subView.getDefaultAltView();
                     FormViewDefIFace subFormViewDef = (FormViewDefIFace)altView.getViewDef();
-                    DBTableInfo      sbTableInfo    = DBTableIdMgr.getInstance().getByClassName(subView.getClassName());  
-
-                    processRows(sbTableInfo, parent, formViewDef, validator, viewBldObj, altView.getMode(), labelsForHash, currDataObj, subFormViewDef.getRows());
+                    DBTableInfo      sbTableInfo    = DBTableIdMgr.getInstance().getByClassName(subView.getClassName());
+                    
+                    if (subFormViewDef != null)
+                    {
+                        processRows(sbTableInfo, parent, formViewDef, validator, viewBldObj, altView.getMode(), labelsForHash, currDataObj, subFormViewDef.getRows());
+                    } else
+                    {
+                        // This error is bad enough to have it's own dialog
+                        String msg = String.format("The Altview '%s' has a null ViewDef!", altView.getName());
+                        FormDevHelper.appendFormDevError(msg);
+                        UIRegistry.showError(msg);
+                    }
+                   
                     viewBldObj.closeSubView(cellSubView);
                     bi.colInx += cell.getColspan() + 1;
                 }
@@ -1878,6 +2033,17 @@ public class ViewFactory
 
                 panelViewable.setVisible(cellPanel.getPropertyAsBoolean("visible", true));
                 
+                setBorder(panelViewable, cellPanel.getProperties());
+                if (parent != null)
+                {
+                    Color bgColor = getBackgroundColor(cellPanel.getProperties(), parent.getBackground());
+                    if (bgColor != null && bgColor != parent.getBackground())
+                    {
+                        panelViewable.setOpaque(true);
+                        panelViewable.setBackground(bgColor);
+                    }
+                }
+                
                 bi.compToAdd        = panelViewable;
                 bi.doRegControl     = true;
                 bi.compToReg        = panelViewable;
@@ -1888,12 +2054,12 @@ public class ViewFactory
                 
             } else
             {
-                throw new RuntimeException("Panel Type is not implemented.");
+                FormDevHelper.appendFormDevError("Panel Type is not implemented.");
+                return false;
             }
-
        }
         
-        String visProp = cell.getProperty("vis");
+        String visProp = cell.getProperty("visible");
         if (StringUtils.isNotEmpty(visProp) && visProp.equalsIgnoreCase("false") && bi.compToAdd != null)
         {
             bi.compToAdd.setVisible(false);
@@ -1922,7 +2088,7 @@ public class ViewFactory
                                final FormValidator             validator,
                                final ViewBuilderIFace          viewBldObj,
                                final AltViewIFace.CreationMode mode,
-                               final Hashtable<String, JLabel> labelsForHash,
+                               final HashMap<String, JLabel>   labelsForHash,
                                final Object                    currDataObj,
                                final List<FormRowIFace>        formRows)
     {
@@ -2014,10 +2180,9 @@ public class ViewFactory
 
         if (bi.collapseSepHash != null && bi.collapseSepHash.size() > 0)
         {
-            for (Enumeration<CollapsableSeparator> e=bi.collapseSepHash.keys();e.hasMoreElements();)
+            for (CollapsableSeparator collapseSep : bi.collapseSepHash.keySet())
             {
-                CollapsableSeparator collapseSep = e.nextElement();
-                Component            comp        = viewBldObj.getControlByName(bi.collapseSepHash.get(collapseSep));
+                Component comp = viewBldObj.getControlByName(bi.collapseSepHash.get(collapseSep));
                 if (comp != null)
                 {
                     collapseSep.setInnerComp(comp);
@@ -2094,8 +2259,11 @@ public class ViewFactory
                     
                 } catch (java.lang.NoSuchFieldException ex)
                 {
-                    edu.ku.brc.af.core.UsageTracker.incrHandledUsageCount();
-                    edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(ViewFactory.class, ex);
+                    //edu.ku.brc.af.core.UsageTracker.incrHandledUsageCount();
+                    //edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(ViewFactory.class, ex);
+                    
+                    UIRegistry.showError(String.format("There is no field named '%s' for class %s", fieldNames[i], parentCls));
+                    
                     String parentTitle = parentCls.getSimpleName();
                     DBTableInfo ti = DBTableIdMgr.getInstance().getByClassName(parentCls.getName());
                     if (ti != null)
@@ -2256,7 +2424,7 @@ public class ViewFactory
             viewable.getUIComponent().setBackground(bgColor);
         }
     }
-
+    
     /**
      * Processes the rows for a button bar.
      * @param viewBldObj formViewObj
@@ -2274,8 +2442,9 @@ public class ViewFactory
             {
                 if (cell.getType() == FormCellIFace.CellType.command)
                 {
+                    
                     FormCellCommand cellCmd = (FormCellCommand)cell;
-                    JButton btn  = createButton(cellCmd.getLabel());
+                    JButton btn  = createFormButton(cell, cellCmd.getLabel());
                     if (cellCmd.getCommandType().length() > 0)
                     {
                         btn.addActionListener(new CommandActionWrapper(new CommandAction(cellCmd.getCommandType(), cellCmd.getAction(), "")));
@@ -2305,19 +2474,23 @@ public class ViewFactory
      * @param altView the altView to use (if null, then it uses the default ViewDef)
      * @param parentView the MultiView parent (this may be null)
      * @param options the options needed for creating the form
+     * @param cellName the name of the cell when it is a subview
+     * @param dataClass the class of the data that is put into the form
      * @return the form
      */
     public FormViewObj buildFormViewable(final ViewIFace    view,
                                          final AltViewIFace altView,
                                          final MultiView    parentView,
                                          final int          options,
+                                         final String       cellName,
+                                         final Class<?>     dataClass,
                                          final Color        bgColor)
     {
         try
         {
             FormViewDef formViewDef = (FormViewDef)altView.getViewDef();
 
-            Hashtable<String, JLabel> labelsForHash = new Hashtable<String, JLabel>();
+            HashMap<String, JLabel> labelsForHash = new HashMap<String, JLabel>();
             
             ValidatedJPanel validatedPanel = null;
             FormValidator   validator      = null;
@@ -2327,8 +2500,15 @@ public class ViewFactory
                 validator      = validatedPanel.getFormValidator();
                 validator.setDataChangeNotification(true);
             }
+            
+            DBTableInfo tableInfo = DBTableIdMgr.getInstance().getByClassName(view.getClassName());
+            MultiView   parentsMV = parentView != null ? parentView.getMultiViewParent() : null;
+            if (tableInfo == null && parentsMV != null)
+            {
+                tableInfo = DBTableIdMgr.getInstance().getByClassName(parentsMV.getView().getClassName());
+            }
 
-            FormViewObj formViewObj = new FormViewObj(view, altView, parentView, validator, options, bgColor);
+            FormViewObj formViewObj = new FormViewObj(view, altView, parentView, validator, options, cellName, dataClass, bgColor);
             if (!formViewObj.isBuildValid())
             {
                 return null;
@@ -2336,8 +2516,6 @@ public class ViewFactory
 
             Object currDataObj = formViewObj.getCurrentDataObj();
             
-            DBTableInfo tableInfo  = DBTableIdMgr.getInstance().getByClassName(view.getClassName());  
-
             processRows(tableInfo, parentView, formViewDef, validator, formViewObj, altView.getMode(), labelsForHash, currDataObj, formViewDef.getRows());
 
             formViewObj.addUsageNotes();
@@ -2391,10 +2569,10 @@ public class ViewFactory
 
         } catch (Exception e)
         {
+            e.printStackTrace();
             edu.ku.brc.af.core.UsageTracker.incrHandledUsageCount();
             edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(ViewFactory.class, e);
             log.error("buildPanel - Outer Name["+altView.getName()+"]");
-            e.printStackTrace();
         }
         return null;
     }
@@ -2405,12 +2583,16 @@ public class ViewFactory
      * @param altView the altView to use (if null, then it uses the default ViewDef)
      * @param parentView the MultiView parent (this may be null)
      * @param options the options needed for creating the form
+     * @param cellName the name of the cell when it is a subview
+     * @param dataClass the class of the data that is put into the form
      * @return the form
      */
     public TableViewObj buildTableViewable(final ViewIFace    view,
                                            final AltViewIFace altView,
                                            final MultiView    parentView,
                                            final int          options,
+                                           final String       cellName,
+                                           final Class<?>     dataClass,
                                            final Color        bgColor)
     {
         try
@@ -2425,14 +2607,19 @@ public class ViewFactory
                 validator.setDataChangeNotification(true);
             }
             
-            DBTableInfo tableInfo  = DBTableIdMgr.getInstance().getByClassName(view.getClassName());
+            DBTableInfo tableInfo = DBTableIdMgr.getInstance().getByClassName(view.getClassName());
+            MultiView   parentsMV = parentView.getMultiViewParent();
+            if (tableInfo == null && parentsMV != null)
+            {
+                tableInfo = DBTableIdMgr.getInstance().getByClassName(parentsMV.getView().getClassName());
+            }
             
             // Special situation where we create a table from a Form Definition
             if (viewDef instanceof FormViewDef)
             {
-                FormViewDefIFace          formViewDef   = (FormViewDefIFace)viewDef;  
-                Hashtable<String, JLabel> labelsForHash = new Hashtable<String, JLabel>();
-                TableViewObj              tableViewObj  = new TableViewObj(view, altView, parentView, validator, options, bgColor);
+                FormViewDefIFace        formViewDef   = (FormViewDefIFace)viewDef;  
+                HashMap<String, JLabel> labelsForHash = new HashMap<String, JLabel>();
+                TableViewObj            tableViewObj  = new TableViewObj(view, altView, parentView, validator, options, cellName, dataClass, bgColor);
 
 
                 processRows(tableInfo, parentView, formViewDef, null, tableViewObj, altView.getMode(), labelsForHash, validator, formViewDef.getRows());
@@ -2442,7 +2629,7 @@ public class ViewFactory
             // else
             FormViewDefIFace formViewDef = (FormViewDefIFace)altView.getViewDef();
             
-            Hashtable<String, JLabel> labelsForHash = new Hashtable<String, JLabel>();
+            HashMap<String, JLabel> labelsForHash = new HashMap<String, JLabel>();
             
             /*
             ValidatedJPanel validatedPanel = null;
@@ -2455,7 +2642,7 @@ public class ViewFactory
             }
             */
             
-            TableViewObj tableViewObj = new TableViewObj(view, altView, parentView, null, options, bgColor);
+            TableViewObj tableViewObj = new TableViewObj(view, altView, parentView, null, options, cellName, dataClass, bgColor);
             
             //Object currDataObj = tableViewObj.getCurrentDataObj();
 
@@ -2517,13 +2704,16 @@ public class ViewFactory
      * @param altView the altView to use (if null, then it uses the default ViewDef)
      * @param parentView the MultiView parent (this may be null)
      * @param options the options needed for creating the form
+     * @param cellName the name of the cell when it is a subview
+     * @param dataClass the class of the data that is put into the form
      * @return the form
      */
     public TableViewObj buildRecordSetTableViewable(final ViewIFace    view,
                                                     final AltViewIFace altView,
                                                     final MultiView    parentView,
-                                                    @SuppressWarnings("unused")
-                                                    final int          options,
+                                                    @SuppressWarnings("unused") final int options,
+                                                    final String       cellName,
+                                                    final Class<?>     dataClass,
                                                     final Color        bgColor)
     {
         RecordSetTableViewObj rsTableViewObj = null;
@@ -2534,10 +2724,10 @@ public class ViewFactory
             // Special situation where we create a table from a Form Definition
             if (viewDef instanceof FormViewDef)
             {
-                FormViewDefIFace               formViewDef   = (FormViewDefIFace)viewDef;  
-                Hashtable<String, JLabel> labelsForHash = new Hashtable<String, JLabel>();
+                FormViewDefIFace        formViewDef   = (FormViewDefIFace)viewDef;  
+                HashMap<String, JLabel> labelsForHash = new HashMap<String, JLabel>();
                 
-                rsTableViewObj  = new RecordSetTableViewObj(view, altView, parentView, null, 0, bgColor);
+                rsTableViewObj  = new RecordSetTableViewObj(view, altView, parentView, null, 0, cellName, dataClass, bgColor);
                 
                 DBTableInfo tableInfo  = DBTableIdMgr.getInstance().getByClassName(view.getClassName());  
                 
@@ -2567,12 +2757,13 @@ public class ViewFactory
      * @return a new FormViewObj
      */
     public static Viewable createFormView(final MultiView multiView, 
-                                          final ViewIFace      view, 
+                                          final ViewIFace view, 
                                           final String    altName, 
                                           final Object    data,
-                                          final int       options)
+                                          final int       options,
+                                          final String    cellName)
     {
-        return createFormView(multiView, view, altName, data, options, null);
+        return createFormView(multiView, view, altName, data, options, cellName, null);
     }
 
 
@@ -2592,6 +2783,7 @@ public class ViewFactory
                                           final String    altName, 
                                           final Object    data,
                                           final int       options,
+                                          final String    cellName,
                                           final Color     bgColor)
     {
         if (viewFieldColor == null)
@@ -2603,7 +2795,7 @@ public class ViewFactory
 
         if (altView != null)
         {
-            Viewable viewable = getInstance().buildViewable(view, altView, multiView, options, bgColor);
+            Viewable viewable = getInstance().buildViewable(view, altView, multiView, options, cellName, bgColor);
             if (viewable != null)
             {
                 if (data != null)
@@ -2613,7 +2805,7 @@ public class ViewFactory
                 } else
                 {
                     // This is bad to have when you don't have any items yet. - rods
-                    //throw new RuntimeException("Form could be created because the data was null! ["+view.getName()+"]["+altView.getName()+"]");
+                    //FormDevHelper.appendFormDevError("Form could be created because the data was null! ["+view.getName()+"]["+altView.getName()+"]");
                 }
                 return viewable;
             }

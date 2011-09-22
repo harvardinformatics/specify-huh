@@ -116,7 +116,7 @@ public class InteractionsProcessor<T extends PreparationsProviderIFace>
                                                      JOptionPane.QUESTION_MESSAGE, null, options, options[0]);
         if (userChoice == JOptionPane.NO_OPTION)
         {
-            return ASK_TYPE.EnterCats;
+            return ASK_TYPE.EnterDataObjs;
             
         } else if (userChoice == JOptionPane.YES_OPTION)
         {
@@ -176,6 +176,8 @@ public class InteractionsProcessor<T extends PreparationsProviderIFace>
         RecordSetIFace recordSet = recordSetArg;
         if (infoRequest == null && recordSet == null)
         {
+            String catNumField = "catalogNumber";
+            
             // Get a List of InfoRequest RecordSets
             Vector<RecordSetIFace> rsList       = task.getInfoReqRecordSetsFromSideBar();
             RecordSetTask          rsTask       = (RecordSetTask)TaskMgr.getTask(RecordSetTask.RECORD_SET);
@@ -184,7 +186,7 @@ public class InteractionsProcessor<T extends PreparationsProviderIFace>
             // If the List is empty then
             if (rsList.size() == 0 && colObjRSList.size() == 0)
             {
-                recordSet = task.askForCatNumbersRecordSet();
+                recordSet = task.askForDataObjRecordSet(CollectionObject.class, catNumField);
                 
             } else 
             {
@@ -193,13 +195,16 @@ public class InteractionsProcessor<T extends PreparationsProviderIFace>
                 {
                     recordSet = RecordSetTask.askForRecordSet(CollectionObject.getClassTableId(), rsList);
                     
-                } else if (rv == ASK_TYPE.EnterCats)
+                } else if (rv == ASK_TYPE.EnterDataObjs)
                 {
-                    recordSet = task.askForCatNumbersRecordSet();
+                    recordSet = task.askForDataObjRecordSet(CollectionObject.class, catNumField);
                     
                 } else if (rv == ASK_TYPE.Cancel)
                 {
-                    viewable.setNewObject(null);
+                    if (viewable != null)
+                    {
+                        viewable.setNewObject(null);
+                    }
                     return;
                 }
             }
@@ -262,7 +267,7 @@ public class InteractionsProcessor<T extends PreparationsProviderIFace>
                 final JStatusBar statusBar = UIRegistry.getStatusBar();
                 statusBar.setIndeterminate(LOAN_LOADR, true);
                 
-                if (recordSet != null && recordSet.getNumItems() > 2)
+                if (recordSet.getNumItems() > 2)
                 {
                     UIRegistry.writeSimpleGlassPaneMsg(getResourceString("NEW_INTER_LOADING_PREP"), 24);
                 }
@@ -558,13 +563,16 @@ public class InteractionsProcessor<T extends PreparationsProviderIFace>
                                // error
                            }
                            
-                           PrepInfo prepInfo = colObjInfo.get(prepId);
-                           if (prepInfo != null)
+                           if (colObjInfo != null)
                            {
-                               prepInfo.add(qty, qtyRes);
-                           } else
-                           {
-                               colObjInfo.add(new PrepInfo(prepId, (Integer)row[5], pQty, qty, qtyRes));    
+                               PrepInfo prepInfo = colObjInfo.get(prepId);
+                               if (prepInfo != null)
+                               {
+                                   prepInfo.add(qty, qtyRes);
+                               } else
+                               {
+                                   colObjInfo.add(new PrepInfo(prepId, (Integer)row[5], pQty, qty, qtyRes));    
+                               }
                            }
                        }
                    }                   
@@ -679,13 +687,16 @@ public class InteractionsProcessor<T extends PreparationsProviderIFace>
                                // error
                            }
                            
-                           PrepInfo prepInfo = colObjInfo.get(prepId);
-                           if (prepInfo != null)
+                           if (colObjInfo != null)
                            {
-                               prepInfo.add(qty, qty);
-                           } else
-                           {
-                               colObjInfo.add(new PrepInfo(prepId, (Integer)row[4], pQty, qty, 0));    
+                               PrepInfo prepInfo = colObjInfo.get(prepId);
+                               if (prepInfo != null)
+                               {
+                                   prepInfo.add(qty, qty);
+                               } else
+                               {
+                                   colObjInfo.add(new PrepInfo(prepId, (Integer)row[4], pQty, qty, 0));    
+                               }
                            }
                        }
                    }                   

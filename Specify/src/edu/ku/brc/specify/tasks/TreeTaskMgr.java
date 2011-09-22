@@ -130,7 +130,8 @@ public class TreeTaskMgr implements CommandListener
      */
     public void fillNavBoxes(final NavBox treeNB,
                              final NavBox treeDefNB,
-                             final NavBox unlockNB)
+                             final NavBox unlockNB,
+                             final NavBox browseNB)
     {
         Collections.sort(treeTasks);
         
@@ -141,13 +142,12 @@ public class TreeTaskMgr implements CommandListener
             if (treeTask.isTreeOnByDefault())
             {
                 DBTableInfo        treeTI    = DBTableIdMgr.getInstance().getByClassName(treeTask.getTreeClass().getName());
-                
-                PermissionSettings treePerms    = treeTI.getPermissions();
+                PermissionSettings treePerms = treeTI.getPermissions();
                 
                 Action edtTreeAction    = treePerms != null && treePerms.canView() ? treeTask.getTreeEditAction() : null;
-                Action edtTreeDefAction = SpecifyUser.isCurrentUserType(SpecifyUserTypes.UserType.Manager) 
-                	? treeTask.getTreeDefEditAction() : null;
+                Action edtTreeDefAction = SpecifyUser.isCurrentUserType(SpecifyUserTypes.UserType.Manager) ? treeTask.getTreeDefEditAction() : null;
                 Action unlockTreeAction = treeTask.getTreeUnlockAction();
+                Action browseTreeAction = treeTask.getTreeBrowseAction();
                 
                 Vector<RolloverCommand> rocs = null;
                 if (edtTreeAction != null || edtTreeDefAction != null || unlockTreeAction != null)
@@ -188,8 +188,17 @@ public class TreeTaskMgr implements CommandListener
                     roc.addActionListener(unlockTreeAction);
                     roc.setToolTip(getResourceString("TASK.UNLOCK." + treeTask.getTreeClass().getSimpleName()));
                     unlockNB.add(nb);
-                    
                     rocs.add(roc);
+                }
+                
+                if (browseTreeAction != null)
+                {
+                    NavBoxItemIFace nb  = BaseTask.makeDnDNavBtn(treeDefNB, treeTI.getTitle(), treeTask.getTreeClass().getSimpleName(), null, null, null, false, false);
+                    RolloverCommand roc = (RolloverCommand)nb;
+                    roc.addActionListener(browseTreeAction);
+                    roc.setToolTip(getResourceString("TASK.UNLOCK." + treeTask.getTreeClass().getSimpleName()));
+                    browseNB.add(nb);
+                    //rocs.add(roc);
                 }
             }
         }
@@ -223,7 +232,7 @@ public class TreeTaskMgr implements CommandListener
                 {
                     DBTableInfo treeDefTI = DBTableIdMgr.getInstance().getByClassName(tdi.getClass().getName());
                     
-                    boolean isLocked = TaskSemaphoreMgr.isLocked("def", treeDefTI.getClassObj().getSimpleName(), TaskSemaphoreMgr.SCOPE.Discipline);
+                    boolean isLocked = TaskSemaphoreMgr.isLockedOrInUse("def", treeDefTI.getClassObj().getSimpleName(), TaskSemaphoreMgr.SCOPE.Discipline);
                     
                     
                     Vector<RolloverCommand> rocs = unlockBtnHash.get(treeTask);

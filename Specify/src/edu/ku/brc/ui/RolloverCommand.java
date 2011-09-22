@@ -61,7 +61,7 @@ import com.jgoodies.looks.plastic.PlasticLookAndFeel;
 
 import edu.ku.brc.ui.dnd.DataActionEvent;
 import edu.ku.brc.ui.dnd.DndDeletable;
-import edu.ku.brc.ui.dnd.DndFpPublishable;
+import edu.ku.brc.ui.dnd.DndFpPublishable; // added by HUH for FP
 import edu.ku.brc.ui.dnd.DragAndDropLock;
 import edu.ku.brc.ui.dnd.GhostActionable;
 import edu.ku.brc.ui.dnd.GhostMouseInputAdapter;
@@ -79,7 +79,7 @@ import edu.ku.brc.ui.dnd.ShadowFactory;
  *
  */
 @SuppressWarnings("serial")
-public class RolloverCommand extends JPanel implements GhostActionable, DndDeletable, DndFpPublishable
+public class RolloverCommand extends JPanel implements GhostActionable, DndDeletable, DndFpPublishable // modified by HUH for FP
 {
     protected static Color           transparentWhite = new Color(255, 255, 255, 180);
     protected static Color           focusColor  = Color.BLUE;
@@ -127,11 +127,13 @@ public class RolloverCommand extends JPanel implements GhostActionable, DndDelet
     protected List<DataFlavor>       dragFlavors  = new ArrayList<DataFlavor>();
     protected boolean                isActive     = false;
 
+    // added by HUH for FP
     // DndDeletable
     protected CommandAction          deleteCmdAction = null;
     
     // DndFpPublishable
     protected CommandAction          fpPublishCmdAction = null;
+    // end HUH addition
 
     /**
      * Constructs a UI component with a label and an icon which can be clicked to execute an action.
@@ -1016,6 +1018,7 @@ public class RolloverCommand extends JPanel implements GhostActionable, DndDelet
         return imgIcon;
     }
 
+    // added by HUH for FP
     //-----------------------------------------------
     // DndFpPublishable Interface
     //-----------------------------------------------
@@ -1044,5 +1047,5 @@ public class RolloverCommand extends JPanel implements GhostActionable, DndDelet
         this.fpPublishCmdAction = cmdAction;
         
     }
-
+    // end HUH addition
 }

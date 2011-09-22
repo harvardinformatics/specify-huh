@@ -95,6 +95,12 @@ public class QBJRIReportConnection extends SpJRIReportConnection
                 fields.add(new JRConnectionFieldDef(((ERTICaptionInfoQB )col).getColStringId(), 
                 		col.getColLabel(), getColClass(col)));
             }
+            //if query.getSelectDistinct() is true then the id will always be null.
+            fields.add(new JRConnectionFieldDef("id", 
+                		UIRegistry.getResourceString("QBJRIReportConnection.ID"), Integer.class));
+            fields.add(new JRConnectionFieldDef("resultsetsize", 
+            		UIRegistry.getResourceString("QBJRIReportConnection.ResultSetSize"), String.class));
+        
         }
     }
 

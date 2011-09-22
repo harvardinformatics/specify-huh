@@ -21,7 +21,6 @@ package edu.ku.brc.specify.tools;
 
 import static edu.ku.brc.ui.UIHelper.createLabel;
 import static edu.ku.brc.ui.UIRegistry.getAppDataDir;
-import static edu.ku.brc.ui.UIRegistry.getDefaultWorkingPath;
 import static edu.ku.brc.ui.UIRegistry.getResourceString;
 import static edu.ku.brc.ui.UIRegistry.getStatusBar;
 import static edu.ku.brc.ui.UIRegistry.getTopWindow;
@@ -30,20 +29,28 @@ import static edu.ku.brc.ui.UIRegistry.setBaseFont;
 
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.Frame;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
 import java.io.BufferedWriter;
+import java.io.DataOutputStream;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.PrintWriter;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Vector;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.imageio.ImageIO;
+import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
@@ -51,6 +58,10 @@ import javax.swing.SwingUtilities;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.StringUtils;
+
+import com.jgoodies.forms.builder.PanelBuilder;
+import com.jgoodies.forms.layout.CellConstraints;
+import com.jgoodies.forms.layout.FormLayout;
 
 import edu.ku.brc.af.core.AppContextMgr;
 import edu.ku.brc.af.prefs.AppPreferences;
@@ -65,14 +76,18 @@ import edu.ku.brc.af.ui.forms.persist.ViewDefIFace;
 import edu.ku.brc.af.ui.forms.persist.ViewIFace;
 import edu.ku.brc.af.ui.forms.persist.ViewSetIFace;
 import edu.ku.brc.af.ui.forms.validation.TypeSearchForQueryFactory;
+import edu.ku.brc.helpers.HTTPGetter;
 import edu.ku.brc.helpers.XMLHelper;
+import edu.ku.brc.helpers.ZipFileHelper;
 import edu.ku.brc.specify.Specify;
 import edu.ku.brc.specify.config.DisciplineType;
 import edu.ku.brc.specify.config.SpecifyAppContextMgr;
 import edu.ku.brc.specify.datamodel.Discipline;
 import edu.ku.brc.specify.utilapps.ERDVisualizer;
+import edu.ku.brc.ui.CustomDialog;
 import edu.ku.brc.ui.UIHelper;
 import edu.ku.brc.ui.UIRegistry;
+import edu.ku.brc.util.AttachmentUtils;
 import edu.ku.brc.util.Pair;
 
 /**
@@ -85,7 +100,8 @@ import edu.ku.brc.util.Pair;
  */
 public class FormDisplayer
 {
-    protected PrintWriter pw = null;
+    protected PrintWriter pw   = null;
+    protected File        file = null;
     
     protected String contentTag = "<!-- Content -->"; //$NON-NLS-1$
 
@@ -101,9 +117,11 @@ public class FormDisplayer
     
     protected List<Pair<String, File>> entries = new Vector<Pair<String, File>>();
     protected List<ViewIFace> viewList;
-    protected int             viewInx = 0;
-    protected JFrame          frame   = null;
+    protected AtomicBoolean   okToProc   = new AtomicBoolean(true);
+    protected int             viewInx    = 0;
+    protected JFrame          frame      = null;
 
+    protected CustomDialog    cancelDlg;
     
     /**
      * 
@@ -132,7 +150,8 @@ public class FormDisplayer
     {
         try
         {
-            pw = new PrintWriter(new File(fileName));
+            file = new File(fileName);
+            pw   = new PrintWriter(file);
             pw.print("<html><head><title>"+title+"</title></head><body>"); //$NON-NLS-1$ //$NON-NLS-2$
             
         } catch (IOException ex)
@@ -149,13 +168,9 @@ public class FormDisplayer
      */
     public void generateFormImages()
     {
-        if (true)
+        if (setup())
         {
-            if (setup())
-            {
-                createFormImagesIndexFile();
-            }
-            //return;
+            createFormImagesIndexFile();
         }
         
         int userChoice = JOptionPane.showConfirmDialog(getTopWindow(), 
@@ -182,6 +197,41 @@ public class FormDisplayer
                 }
             });
         }
+        
+        JButton stopBtn = UIHelper.createButton("Stop Generating Images");
+        PanelBuilder pb = new PanelBuilder(new FormLayout("p", "p"));
+        pb.add(stopBtn, (new CellConstraints()).xy(1, 1));
+        pb.setDefaultDialogBorder();
+        cancelDlg = new CustomDialog((Frame)null, "Stop Image Generation", false, CustomDialog.OK_BTN, pb.getPanel());
+        cancelDlg.setOkLabel(getResourceString("CLOSE"));
+        
+        cancelDlg.setAlwaysOnTop(true);
+        cancelDlg.setVisible(true);
+        
+        //Insets    screenInsets = Toolkit.getDefaultToolkit().getScreenInsets(cancelDlg.getGraphicsConfiguration());;
+        Rectangle screenRect = cancelDlg.getGraphicsConfiguration().getBounds();
+        int y = screenRect.height - (cancelDlg.getSize().height*2);
+        cancelDlg.setLocation(screenRect.x, y);
+        
+        stopBtn.addActionListener(new ActionListener()
+        {
+            @Override
+            public void actionPerformed(ActionEvent e)
+            {
+                SwingUtilities.invokeLater(new Runnable()
+                {
+                    @Override
+                    public void run()
+                    {
+                        synchronized (okToProc)
+                        {
+                            okToProc.set(false);
+                            viewInx  = viewList.size();
+                        }
+                    }
+                });
+            }
+        });
     }
     
     /**
@@ -189,87 +239,103 @@ public class FormDisplayer
      */
     protected void showView()
     {
-        if (frame != null)
-        {
-            generateViewImage(viewList.get(viewInx));
-            frame.dispose();
-        }
+        boolean done = false;
         
-        viewInx++;
-        ViewIFace view = viewList.get(viewInx);
-        System.out.println(view.getName());
-        
-        if (!view.getViewSetName().equals("Editor")) //$NON-NLS-1$
+        synchronized (okToProc)
         {
-            Object data = null;
-            try
+            if (okToProc.get())
             {
-                ViewDefIFace viewDef = view.getAltViews().get(0).getViewDef();
-                if (!(viewDef.getDataGettable() instanceof edu.ku.brc.af.ui.forms.DataGetterForHashMap))
+                if (frame != null)
                 {
-                    Class<?> dataCls = Class.forName(viewDef.getClassName());
-                    if (dataCls != null)
-                    {
-                        System.err.println(dataCls);
-                        data = dataCls.newInstance();
-                        if (data instanceof FormDataObjIFace)
-                        {
-                            ((FormDataObjIFace)data).initialize();
-                        }
-                    }
+                    generateViewImage(viewList.get(viewInx));
+                    frame.dispose();
                 }
-            } catch (Exception ex) {}
             
-            if (data instanceof Discipline)
-            {
-                ((Discipline)data).setType("fish");
-            }
-            FormPane formPane = new FormPane(view.getName(), null, null, view.getName(), "edit", data, MultiView.IS_NEW_OBJECT | MultiView.HIDE_SAVE_BTN, true); //$NON-NLS-1$
-            frame = new JFrame();
-            frame.setContentPane(formPane);
-            frame.setSize(1024, 768);
-            frame.setVisible(true);
-            
-            frame.setLocation(0, 0);
-            
-            Dimension size = frame.getContentPane().getPreferredSize();
-            size.height += 40;
-            size.width  += 30;
-            frame.setSize(size);
-            
-            System.out.println(viewInx + " of " + viewList.size()); //$NON-NLS-1$
-            getStatusBar().setText(viewInx + " of " + viewList.size()); //$NON-NLS-1$
-   
-        } else if (frame != null)
-        {
-            frame.setVisible(false);
-            frame.dispose();
-            frame = null;
-        }
-        
-        if (viewInx < viewList.size()-1)
-        {
-            SwingUtilities.invokeLater(new Runnable() {
-
-                /* (non-Javadoc)
-                 * @see java.lang.Runnable#run()
-                 */
-                public void run()
+                viewInx++;
+                
+                ViewIFace view = viewList.get(viewInx);
+                System.out.println(view.getName());
+                
+                if (!view.getViewSetName().equals("Editor")) //$NON-NLS-1$
                 {
+                    Object data = null;
                     try
                     {
-                        Thread.sleep(500);
-                    } catch (Exception ex)
+                        ViewDefIFace viewDef = view.getAltViews().get(0).getViewDef();
+                        if (!(viewDef.getDataGettable() instanceof edu.ku.brc.af.ui.forms.DataGetterForHashMap))
+                        {
+                            Class<?> dataCls = Class.forName(viewDef.getClassName());
+                            if (dataCls != null)
+                            {
+                                System.err.println(dataCls);
+                                data = dataCls.newInstance();
+                                if (data instanceof FormDataObjIFace)
+                                {
+                                    ((FormDataObjIFace)data).initialize();
+                                }
+                            }
+                        }
+                    } catch (Exception ex) {}
+                    
+                    if (data instanceof Discipline)
                     {
-                        edu.ku.brc.af.core.UsageTracker.incrHandledUsageCount();
-                        edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(FormDisplayer.class, ex);
-                        
+                        ((Discipline)data).setType("fish");
                     }
-                    showView();
+                    FormPane formPane = new FormPane(view.getName(), null, null, view.getName(), "edit", data, MultiView.IS_NEW_OBJECT | MultiView.HIDE_SAVE_BTN, true); //$NON-NLS-1$
+                    frame = new JFrame();
+                    frame.setFocusable(false);
+                    frame.setContentPane(formPane);
+                    frame.setSize(1024, 768);
+                    frame.setVisible(true);
+                    
+                    frame.setLocation(0, 0);
+                    
+                    Dimension size = frame.getContentPane().getPreferredSize();
+                    size.height += 40;
+                    size.width  += 30;
+                    frame.setSize(size);
+                    
+                    String str = String.format("%d of %d", viewInx+1, viewList.size());
+                    System.out.println(str); //$NON-NLS-1$
+                    getStatusBar().setText(str); //$NON-NLS-1$
+           
+                } else if (frame != null)
+                {
+                    frame.setVisible(false);
+                    frame.dispose();
+                    frame = null;
                 }
-            });
-        } else
+                
+                if (viewInx < viewList.size()-1)
+                {
+                    SwingUtilities.invokeLater(new Runnable() {
+                        @Override
+                        public void run()
+                        {
+                            try
+                            {
+                                Thread.sleep(500);
+                            } catch (Exception ex)
+                            {
+                                edu.ku.brc.af.core.UsageTracker.incrHandledUsageCount();
+                                edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(FormDisplayer.class, ex);
+                            }
+                            showView();
+                        }
+                    });
+                } else
+                {
+                    done = true;
+                }
+            } else
+            {
+                done = true;
+            }
+        }
+        
+        if (done) 
         {
+            if (cancelDlg != null) cancelDlg.setVisible(false);
             if (frame != null)
             {
                 frame.setVisible(false);
@@ -451,6 +517,91 @@ public class FormDisplayer
     /**
      * 
      */
+    private File checkForTemplateFiles(final String dstDirPath)
+    {
+        String templatePath = dstDirPath + File.separator + "schema_template.html";
+        
+        File templateFile = new File(templatePath); //$NON-NLS-1$
+        if (templateFile.exists())
+        {
+            return templateFile;
+        }
+        
+        System.out.println(templatePath);
+        try
+        {
+            File dstDirFile = new File(dstDirPath);
+            if (!dstDirFile.exists())
+            {
+                if (!dstDirFile.mkdirs())
+                {
+                    JOptionPane.showMessageDialog(null, "Error creating the site directory.");
+                }
+            }
+            
+            String zipFilePath = dstDirPath + File.separator + "site.zip";
+            System.out.println("["+zipFilePath+"]");
+            
+            String           url    = "http://files.specifysoftware.org/site.zip";
+            HTTPGetter       getter = new HTTPGetter();
+            InputStream      ins    = getter.beginHTTPRequest(url);
+            //DataInputStream  dins   = new DataInputStream(ins);
+            DataOutputStream dos    = new DataOutputStream(new FileOutputStream(zipFilePath));
+            byte[]           bytes  = new byte[4096];
+            
+            int totalBytes = 0;
+            /*while (dins.available() > 0)
+            {
+                int len = dins.read(bytes);
+                dos.write(bytes, 0, len);
+                totalBytes += len;
+                System.out.println(len+" / "+totalBytes);
+            }*/
+            int numBytes = 0;
+            do 
+            {
+                numBytes = ins.read(bytes);
+                if (numBytes > 0)
+                {
+                    dos.write(bytes, 0, numBytes);
+                    totalBytes += numBytes;
+                    System.out.println(numBytes);
+                }
+                
+            } while (numBytes > 0);
+            
+            dos.flush();
+            dos.close();
+            //dins.close();
+            
+            System.out.println(totalBytes);
+            
+            
+            File       zipFile       = new File(zipFilePath);
+            System.out.println("zipFile: "+zipFile+" exists: "+zipFile.exists());
+            
+            List<File> unzippedFiles = ZipFileHelper.getInstance().unzipToFiles(zipFile);
+            for (File unzippedFile : unzippedFiles)
+            {
+                FileUtils.copyFileToDirectory(unzippedFile, dstDirFile);
+            }
+            
+            if (templateFile.exists())
+            {
+                return templateFile;
+            }
+            
+        } catch (Exception ex)
+        {
+            ex.printStackTrace();
+            JOptionPane.showMessageDialog(null, "You are missing the template that is needed to run this tool.");
+        }
+        return null;
+    }
+    
+    /**
+     * 
+     */
     protected boolean setup()
     {
         String pathStr = AppContextMgr.getInstance().getClassObject(Discipline.class) != null ? AppContextMgr.getInstance().getClassObject(Discipline.class).getType() : ""; //$NON-NLS-1$
@@ -486,13 +637,14 @@ public class FormDisplayer
                 ex.printStackTrace();
             }
         }
-
+        
+        String dstDirPath   = UIRegistry.getDefaultUserHomeDir() + File.separator + "Specify/site";
         try
         {
-            File templateFile = new File(getDefaultWorkingPath() + File.separator + "site/schema_template.html"); //$NON-NLS-1$
-            mapTemplate = FileUtils.readFileToString(templateFile);
+            File tmplateFile = checkForTemplateFiles(dstDirPath);
+            mapTemplate = FileUtils.readFileToString(tmplateFile);
             mapTemplate = StringUtils.replace(mapTemplate, "Database Schema", getResourceString("FormDisplayer.FORMS")); //$NON-NLS-1$ //$NON-NLS-2$
-            
+
         } catch (IOException ex)
         {
             ex.printStackTrace();
@@ -507,7 +659,7 @@ public class FormDisplayer
         
         try
         {
-            File srcDir = new File(getDefaultWorkingPath() + File.separator + "site"); //$NON-NLS-1$
+            File srcDir = new File(dstDirPath); //$NON-NLS-1$
             for (File f : srcDir.listFiles())
             {
                 if (!f.getName().startsWith(".")) //$NON-NLS-1$
@@ -527,6 +679,7 @@ public class FormDisplayer
             }
         } catch (Exception ex)
         {
+            ex.printStackTrace();
             edu.ku.brc.af.core.UsageTracker.incrHandledUsageCount();
             edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(FormDisplayer.class, ex);
             ex.printStackTrace();
@@ -646,7 +799,7 @@ public class FormDisplayer
     /**
      * Creates an HTML file listing all the forms/Views.
      */
-    public void createViewListing(final String path)
+    public void createViewListing(final String path, final boolean doShowInBrowser)
     {
         String fullPath = (path != null ? path + File.separator : "") + "views.html"; //$NON-NLS-1$ //$NON-NLS-2$
         
@@ -669,7 +822,19 @@ public class FormDisplayer
         pw.flush();
         pw.close();
         
-        JOptionPane.showMessageDialog(getTopWindow(), String.format(getResourceString("FormDisplayer.OUTPUT"), fullPath));
+        try
+        {
+            if (doShowInBrowser)
+            {
+                AttachmentUtils.openURI(file.toURI());
+            } else
+            {
+                JOptionPane.showMessageDialog(getTopWindow(), String.format( getResourceString("FormDisplayer.OUTPUT"), file.getCanonicalFile()));
+            }
+        } catch (Exception ex)
+        {
+            ex.printStackTrace();
+        }
     }
     
     /**
@@ -678,7 +843,7 @@ public class FormDisplayer
     public static void main(String[] args)
     {
         FormDisplayer fd = new FormDisplayer();
-        fd.createViewListing(null);
+        fd.createViewListing(null, true);
     }
 
 }

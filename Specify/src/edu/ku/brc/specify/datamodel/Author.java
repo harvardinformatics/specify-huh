@@ -189,6 +189,26 @@ public class Author extends DataModelObjBase implements java.io.Serializable,
         
         return super.getIdentityTitle();
     }
+    
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.datamodel.DataModelObjBase#getParentTableId()
+     */
+    @Override
+    @Transient
+    public Integer getParentTableId()
+    {
+        return ReferenceWork.getClassTableId();
+    }
+
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.datamodel.DataModelObjBase#getParentId()
+     */
+    @Override
+    @Transient
+    public Integer getParentId()
+    {
+        return referenceWork != null ? referenceWork.getId() : null;
+    }
 
     /* (non-Javadoc)
      * @see edu.ku.brc.ui.forms.FormDataObjIFace#getTableId()
@@ -230,7 +250,7 @@ public class Author extends DataModelObjBase implements java.io.Serializable,
      */
     public int compareTo(Author obj)
     {
-        return orderNumber.compareTo(obj.orderNumber);
+        return orderNumber != null && obj != null && obj.orderNumber != null ? orderNumber.compareTo(obj.orderNumber) : 0;
     }
 
 

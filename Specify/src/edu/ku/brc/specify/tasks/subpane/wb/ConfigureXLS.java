@@ -34,6 +34,7 @@ import java.util.Vector;
 
 import javax.swing.JOptionPane;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.apache.poi.hpsf.CustomProperties;
 import org.apache.poi.hpsf.DocumentSummaryInformation;
@@ -161,13 +162,13 @@ public class ConfigureXLS extends ConfigureExternalDataBase
     {
         //firstRowHasHeaders = determineFirstRowHasHeaders();
 		DataImportDialog dlg = new DataImportDialog(this, firstRowHasHeaders);
-		if (dlg.hasTooManyRows)
+		if (!dlg.init() || dlg.hasTooManyRows)
 		{
 			status = Status.Cancel;
 			return;
 		}
 		
-		UIHelper.centerAndShow(dlg);
+		UIHelper.centerAndShow(dlg, 800, null);
 
 		if (!dlg.isCancelled())
 		{
@@ -292,6 +293,17 @@ public class ConfigureXLS extends ConfigureExternalDataBase
                         String[] mapping = ((String) props.get(col.getColTitle())).split("\t");
                         col.setMapToTbl(mapping[0]);
                         col.setMapToFld(mapping[1]);
+                        if (mapping.length == 7)
+                        {
+                        	col.setFormXCoord(Integer.valueOf(mapping[2]));
+                        	col.setFormYCoord(Integer.valueOf(mapping[3]));
+                    		if (StringUtils.isNotBlank(mapping[4]))
+                    		{
+                    			col.setCaption(mapping[4]);
+                    		}
+                    		col.setFrmFieldType(Integer.valueOf(mapping[5]));
+                    		col.setFrmMetaData(mapping[6]);
+                       }
                     }
                 }
             }
@@ -332,7 +344,8 @@ public class ConfigureXLS extends ConfigureExternalDataBase
             }
             
             // Iterate over each row in the sheet
-            @SuppressWarnings("unchecked") Iterator<HSSFRow> rows =  sheet.rowIterator();
+            @SuppressWarnings("unchecked")
+            Iterator<HSSFRow> rows =  sheet.rowIterator();
             while (rows.hasNext())
             {
                 HSSFRow row = rows.next();

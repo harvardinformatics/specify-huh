@@ -21,6 +21,7 @@ package edu.ku.brc.specify.config.init;
 
 import static edu.ku.brc.ui.UIHelper.createDuplicateJGoodiesDef;
 
+import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.beans.PropertyChangeEvent;
@@ -32,6 +33,7 @@ import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JTextField;
 import javax.swing.SwingConstants;
+import javax.swing.SwingUtilities;
 import javax.swing.SwingWorker;
 
 import org.apache.commons.lang.StringUtils;
@@ -83,20 +85,25 @@ public class MasterUserPanel extends GenericFormPanel
                            String helpContext, 
                            String[] labels,
                            String[] fields, 
+                           Integer[] numColumns, 
                            JButton nextBtn, 
                            JButton prevBtn, 
                            boolean makeStretchy)
     {
-        super(name, title, helpContext, labels, fields, nextBtn, prevBtn, makeStretchy);
+        super(name, title, helpContext, labels, fields, numColumns, nextBtn, prevBtn, makeStretchy);
     }
 
     /* (non-Javadoc)
-     * @see edu.ku.brc.specify.config.init.GenericFormPanel#init(java.lang.String, java.lang.String[], boolean[], java.lang.String[])
+     * @see edu.ku.brc.specify.config.init.GenericFormPanel#init(java.lang.String, java.lang.String[], boolean[], java.lang.String[], java.lang.Integer[])
      */
     @Override
-    protected void init(String title, String[] fields, boolean[] required, String[] types)
+    protected void init(final String    title, 
+                        final String[]  fields,
+                        final boolean[] required, 
+                        final String[]  types, 
+                        final Integer[] numColumns)
     {
-        super.init(title, fields, required, types);
+        super.init(title, fields, required, types, numColumns);
         
         label   = UIHelper.createLabel(" ", SwingConstants.CENTER);
         createMUBtn = UIHelper.createI18NButton("CREATE_MASTER_BTN");
@@ -115,7 +122,7 @@ public class MasterUserPanel extends GenericFormPanel
         // Advance part of pane
         advLabel    = UIHelper.createI18NLabel("ADV_MU_DESC", SwingConstants.CENTER);
         skipStepBtn = UIHelper.createI18NButton("ADV_MU_TEST");
-        builder.addSeparator(UIRegistry.getResourceString("ADV_TITLE"), cc.xyw(3, row, 2)); row += 2;
+        JComponent sep = builder.addSeparator(UIRegistry.getResourceString("ADV_TITLE"), cc.xyw(3, row, 2)); row += 2;
         builder.add(advLabel, cc.xyw(3, row, 2)); row += 2;
         
         tstPB = new PanelBuilder(new FormLayout("f:p:g,p,f:p:g", "p"));
@@ -131,7 +138,7 @@ public class MasterUserPanel extends GenericFormPanel
                 boolean ok = skipDBCreate();
                 createMUBtn.setEnabled(true);
                 skipStepBtn.setEnabled(true);
-                 advLabel.setText(UIRegistry.getResourceString(ok ? "ADV_DB_OK" : "ADV_DB_ERR"));
+                advLabel.setText(UIRegistry.getResourceString(ok ? "ADV_DB_OK" : "ADV_DB_ERR"));
             }
         });
 
@@ -140,10 +147,17 @@ public class MasterUserPanel extends GenericFormPanel
             @Override
             public void actionPerformed(ActionEvent e)
             {
-                createMU();
+                createMasterUser();
             }
         });
         progressBar.setVisible(false);
+        
+        if (UIRegistry.isMobile())
+        {
+            skipStepBtn.setVisible(false);
+            advLabel.setVisible(false);
+            sep.setVisible(false);
+        }
     }
     
     /* (non-Javadoc)
@@ -155,8 +169,8 @@ public class MasterUserPanel extends GenericFormPanel
         isEmbedded = DBConnection.getInstance().isEmbedded();
         if (isEmbedded)
         {
-            ((JTextField)comps.get("saUserName")).setText("Specify");
-            ((JTextField)comps.get("saPassword")).setText("Specify");
+            ((JTextField)comps.get("saUserName")).setText(properties.getProperty("dbUserName"));
+            ((JTextField)comps.get("saPassword")).setText(properties.getProperty("dbPassword"));
             ((JTextField)comps.get("saUserName")).setEnabled(false);
             ((JTextField)comps.get("saPassword")).setEnabled(false);
         }
@@ -191,11 +205,27 @@ public class MasterUserPanel extends GenericFormPanel
             {
                 nextBtn.setEnabled(true);
                 mgr.close();
+                SwingUtilities.invokeLater(new Runnable()
+                {
+                    @Override
+                    public void run()
+                    {
+                        nextBtn.doClick();
+                    }
+                });
                 return true;
             }
         } else
         {
             nextBtn.setEnabled(true);
+            SwingUtilities.invokeLater(new Runnable()
+            {
+                @Override
+                public void run()
+                {
+                    nextBtn.doClick();
+                }
+            });
             return true;
         }
         return false;
@@ -231,9 +261,19 @@ public class MasterUserPanel extends GenericFormPanel
         {
             String dbUsername = properties.getProperty("dbUserName");
             String saUserName = ((JTextField)comps.get("saUserName")).getText();
+            String saPassword = ((JTextField)comps.get("saPassword")).getText();
+            
+            if (!DatabasePanel.checkForValidText(label, saUserName, "ERR_BAD_USRNAME", "NO_SPC_USRNAME", false) ||
+                !DatabasePanel.checkForValidText(label, saPassword,  null,             "NO_SPC_PWDNAME", false))
+            {
+                isOK = false;
+                createMUBtn.setEnabled(false);
+                return false;
+            }
             
             if (dbUsername.equals(saUserName) && !isEmbedded)
             {
+                label.setForeground(Color.RED);
                 label.setText(UIRegistry.getResourceString("DB_SA_USRNAME_MATCH"));
                 createMUBtn.setEnabled(false);
                 return false;
@@ -277,10 +317,11 @@ public class MasterUserPanel extends GenericFormPanel
     /**
      * 
      */
-    protected void createMU()
+    protected void createMasterUser()
     {
         String saUsrNm = ((JTextField)comps.get("saUserName")).getText();
-        if (StringUtils.isNotEmpty(saUsrNm) && saUsrNm.equalsIgnoreCase("root"))
+        if (!DBConnection.getInstance().isEmbedded() && 
+            StringUtils.isNotEmpty(saUsrNm) && saUsrNm.equalsIgnoreCase("root"))
         {
             UIRegistry.showLocalizedError("MASTER_NO_ROOT");
             ((JTextField)comps.get("saUserName")).setText("");
@@ -303,6 +344,8 @@ public class MasterUserPanel extends GenericFormPanel
                 @Override
                 protected Object doInBackground() throws Exception
                 {
+                    MasterUserPanel.this.label.setForeground(Color.BLACK);
+                    
                     isOK = false;
                     if (!isEmbedded)
                     {
@@ -320,9 +363,9 @@ public class MasterUserPanel extends GenericFormPanel
                         {
                             if (mgr.doesUserExists(saUserName))
                             {
-                                if (!mgr.dropUser("\'"+saUserName+"\'@\'"+hostName+"\'"))
+                                if (!mgr.setPermissions(saUserName, dbName, DBMSUserMgr.PERM_ALL_BASIC))
                                 {
-                                    errorKey = "ERR_DROP_USR";
+                                    errorKey = "ERR_SET_PERM";
                                 }
                             }
                             
@@ -330,7 +373,7 @@ public class MasterUserPanel extends GenericFormPanel
                             {
                                 firePropertyChange(propName, 0, 1);
                                 
-                                isOK = mgr.createUser(saUserName, saPassword, dbName, DBMSUserMgr.PERM_BASIC);
+                                isOK = mgr.createUser(saUserName, saPassword, dbName, DBMSUserMgr.PERM_ALL_BASIC);
                                 if (!isOK)
                                 {
                                     errorKey = "ERR_CRE_MASTER";
@@ -378,6 +421,15 @@ public class MasterUserPanel extends GenericFormPanel
                     {
                         setUIEnabled(false);
                         label.setText(UIRegistry.getResourceString("MASTER_CREATED"));
+                        
+                        SwingUtilities.invokeLater(new Runnable()
+                        {
+                            @Override
+                            public void run()
+                            {
+                                nextBtn.doClick();
+                            }
+                        });
                         
                     } else
                     {

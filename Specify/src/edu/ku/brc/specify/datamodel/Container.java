@@ -21,6 +21,7 @@ package edu.ku.brc.specify.datamodel;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.Vector;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -33,9 +34,13 @@ import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.persistence.Transient;
 
+import org.apache.commons.lang.StringUtils;
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.CascadeType;
 import org.hibernate.annotations.Index;
+
+import edu.ku.brc.dbsupport.DataProviderFactory;
+import edu.ku.brc.dbsupport.DataProviderSessionIFace;
 
 /**
 
@@ -48,7 +53,8 @@ import org.hibernate.annotations.Index;
     {   @Index (name="ContainerNameIDX", columnNames={"Name"}),
         @Index (name="ContainerMemIDX", columnNames={"CollectionMemberID"})
     })
-public class Container extends CollectionMember implements java.io.Serializable 
+public class Container extends CollectionMember implements java.io.Serializable,
+                                                           Comparable<Container>
 {
 
      // Fields
@@ -58,17 +64,20 @@ public class Container extends CollectionMember implements java.io.Serializable
      protected String                name;
      protected String                description;
      protected Integer               number;
-     protected Set<CollectionObject> collectionObjects;
-     protected Set<CollectionObject> collectionObjectOwners;
+     protected Set<CollectionObject> collectionObjects;    // This should only ever hold a single ColObj
+     protected Set<CollectionObject> collectionObjectKids;
      protected Storage               storage;
 
      // Tree
      protected Container             parent;
      protected Set<Container>        children;
+     
+     // Transient
+     protected Vector<Container>     childrenList = null;
 
     // Constructors
 
-    /** default constructor */
+    /** default " */
     public Container() 
     {
         //
@@ -78,6 +87,7 @@ public class Container extends CollectionMember implements java.io.Serializable
     public Container(Integer containerId) 
     {
         this.containerId = containerId;
+        System.err.println("2constructor "+hashCode());
     }
 
     // Initializer
@@ -92,7 +102,7 @@ public class Container extends CollectionMember implements java.io.Serializable
         number                 = null;
         parent                 = null;
         collectionObjects      = new HashSet<CollectionObject>();
-        collectionObjectOwners = new HashSet<CollectionObject>();
+        collectionObjectKids = new HashSet<CollectionObject>();
         storage                = null;
         children               = new HashSet<Container>();
     }
@@ -192,6 +202,16 @@ public class Container extends CollectionMember implements java.io.Serializable
     {
         this.number = number;
     }
+    
+    /**
+     * @return
+     */
+    @Transient
+    public CollectionObject getCollectionObject()
+    {
+        Set<CollectionObject> colObjsSet = getCollectionObjects();
+        return colObjsSet != null && colObjsSet.size() > 0 ? colObjsSet.iterator().next() : null;
+    }
 
     /**
      *
@@ -210,14 +230,28 @@ public class Container extends CollectionMember implements java.io.Serializable
 
     @OneToMany(cascade = {}, fetch = FetchType.LAZY, mappedBy = "containerOwner")
     @Cascade( { CascadeType.SAVE_UPDATE, CascadeType.MERGE, CascadeType.LOCK })
-    public Set<CollectionObject> getCollectionObjectOwners() 
+    public Set<CollectionObject> getCollectionObjectKids() 
     {
-        return this.collectionObjectOwners;
+        return this.collectionObjectKids;
     }
 
-    public void setCollectionObjectOwners(Set<CollectionObject> collectionObjectOwners) 
+    public void setCollectionObjectKids(Set<CollectionObject> collectionObjectKids) 
     {
-        this.collectionObjectOwners = collectionObjectOwners;
+        this.collectionObjectKids = collectionObjectKids;
+    }
+    
+    /**
+     * @return the childrenList
+     */
+    @Transient
+    public Vector<Container> getChildrenList()
+    {
+        if (childrenList == null)
+        {
+            childrenList = new Vector<Container>();
+            childrenList.addAll(children);
+        }
+        return childrenList;
     }
 
     /**
@@ -238,7 +272,7 @@ public class Container extends CollectionMember implements java.io.Serializable
     /**
      * 
      */
-    @ManyToOne
+    @ManyToOne(cascade = {}, fetch = FetchType.LAZY)
     @JoinColumn(name = "ParentID")
     public Container getParent()
     {
@@ -249,9 +283,30 @@ public class Container extends CollectionMember implements java.io.Serializable
     {
         this.parent = parent;
     }
+    
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.datamodel.DataModelObjBase#getParentTableId()
+     */
+    @Override
+    @Transient
+    public Integer getParentTableId()
+    {
+        return Container.getClassTableId();
+    }
 
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.datamodel.DataModelObjBase#getParentId()
+     */
+    @Override
+    @Transient
+    public Integer getParentId()
+    {
+        return parent != null ? parent.getId() : null;
+    }
+
+    
     @OneToMany(mappedBy = "parent")
-    @Cascade( { CascadeType.ALL })
+    @Cascade( { CascadeType.SAVE_UPDATE, CascadeType.MERGE, CascadeType.LOCK })
     public Set<Container> getChildren()
     {
         return this.children;
@@ -262,7 +317,46 @@ public class Container extends CollectionMember implements java.io.Serializable
         this.children = children;
     }
     
+    
     // Add Methods
+
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.datamodel.DataModelObjBase#forceLoad()
+     */
+    @Override
+    public void forceLoad()
+    {
+        try
+        {
+            getCollectionObjects().size();
+            getCollectionObjectKids().size();
+            getChildren().size();
+            
+        } catch (org.hibernate.LazyInitializationException ex)
+        {
+            // This is temporary for Release 6.3.00 - rods 05/22/11
+            DataProviderSessionIFace tmpSession = null;
+            try
+            {
+                tmpSession = DataProviderFactory.getInstance().createSession();
+                tmpSession.attach(this);
+                getCollectionObjects().size();
+                getCollectionObjectKids().size();
+                getChildren().size();
+                    
+            } catch (Exception exx)
+            {
+                ex.printStackTrace();
+                
+            } finally
+            {
+                if (tmpSession != null)
+                {
+                    tmpSession.close();
+                }
+            }
+        }
+    }
 
     /* (non-Javadoc)
      * @see edu.ku.brc.ui.forms.FormDataObjIFace#getTableId()
@@ -274,6 +368,36 @@ public class Container extends CollectionMember implements java.io.Serializable
         return getClassTableId();
     }
     
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.datamodel.DataModelObjBase#toString()
+     */
+    @Override
+    public String toString()
+    {
+        return StringUtils.isNotEmpty(name) ? name : "N/A";
+    }
+
+    /* (non-Javadoc)
+     * @see java.lang.Comparable#compareTo(java.lang.Object)
+     */
+    @Override
+    public int compareTo(Container o)
+    {
+        if (name == null || o.name == null) return 0;
+        
+        return name.compareTo(o.name);
+    }
+
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.datamodel.DataModelObjBase#getIdentityTitle()
+     */
+    @Transient
+    @Override
+    public String getIdentityTitle()
+    {
+        return StringUtils.isNotEmpty(name) ? name : super.getIdentityTitle();
+    }
+
     /**
      * @return the Table ID for the class.
      */

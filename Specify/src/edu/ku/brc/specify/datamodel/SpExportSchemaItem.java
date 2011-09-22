@@ -19,6 +19,8 @@
 */
 package edu.ku.brc.specify.datamodel;
 
+import java.util.List;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
@@ -28,6 +30,10 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 import javax.persistence.Transient;
+
+import org.dom4j.Element;
+
+import edu.ku.brc.helpers.XMLHelper;
 
 /**
  * @author rod
@@ -60,6 +66,44 @@ public class SpExportSchemaItem extends DataModelObjBase
         super();
     }
     
+    /**
+     * @param sb StringBuilder to hold XML
+     * 
+     * constructs an XML representation for the schema item.
+     */
+    public void toXML(final StringBuilder sb)
+    {
+    	sb.append("<spexportschemaitem ");
+    	XMLHelper.addAttr(sb, "fieldName", fieldName);
+    	XMLHelper.addAttr(sb, "dataType", dataType);
+     	XMLHelper.addAttr(sb, "formatter", formatter); //not currently used
+     	sb.append("> ");
+       	XMLHelper.xmlNode(sb, "description", description, true);
+    	sb.append(" </spexportschemaitem>\n");
+    }
+    
+    /**
+     * @param element Element containing attributes for the item
+     * 
+     * Loads attributes from a dom Element
+     */
+    @SuppressWarnings("unchecked")
+    public void fromXML(Element element)
+    {
+    	fieldName = XMLHelper.getAttr(element, "fieldName", null);
+    	dataType = XMLHelper.getAttr(element, "dataType", null);
+    	formatter = XMLHelper.getAttr(element, "formatter", null); //not currently used
+    	List<Object> dNodes = element.selectNodes("description");
+    	if (dNodes.size() > 0)
+    	{
+    		description = ((Element )dNodes.get(0)).getStringValue();
+    	}
+    	else
+    	{
+    		description = null;
+    	}
+    }
+
     /* (non-Javadoc)
      * @see edu.ku.brc.specify.datamodel.DataModelObjBase#initialize()
      */
@@ -90,7 +134,7 @@ public class SpExportSchemaItem extends DataModelObjBase
     /**
      * @return the fieldName
      */
-    @Column(name = "FieldName", unique = false, nullable = true, insertable = true, updatable = true, length = 32)
+    @Column(name = "FieldName", unique = false, nullable = true, insertable = true, updatable = true, length = 64)
     public String getFieldName()
     {
         return fieldName;
@@ -229,6 +273,16 @@ public class SpExportSchemaItem extends DataModelObjBase
         return getClassTableId();
     }
     
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.datamodel.DataModelObjBase#isChangeNotifier()
+     */
+    @Transient
+    @Override
+    public boolean isChangeNotifier()
+    {
+        return false;
+    }
+
     /**
      * @return the Table ID for the class.
      */
@@ -236,4 +290,16 @@ public class SpExportSchemaItem extends DataModelObjBase
     {
         return 525;
     }
+
+	/* (non-Javadoc)
+	 * @see edu.ku.brc.specify.datamodel.DataModelObjBase#toString()
+	 */
+	@Override
+	public String toString()
+	{
+		// TODO Auto-generated method stub
+		return getFieldName();
+	}
+    
+    
 }

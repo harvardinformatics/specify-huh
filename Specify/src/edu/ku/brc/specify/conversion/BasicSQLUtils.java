@@ -21,11 +21,14 @@ package edu.ku.brc.specify.conversion;
 
 import java.io.PrintWriter;
 import java.sql.Connection;
+import java.sql.DatabaseMetaData;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -45,6 +48,9 @@ import org.apache.log4j.Logger;
 import com.mysql.jdbc.CommunicationsException;
 import com.mysql.jdbc.exceptions.MySQLIntegrityConstraintViolationException;
 
+import edu.ku.brc.af.core.db.DBFieldInfo;
+import edu.ku.brc.af.core.db.DBTableIdMgr;
+import edu.ku.brc.af.core.db.DBTableInfo;
 import edu.ku.brc.dbsupport.DBConnection;
 import edu.ku.brc.ui.ProgressFrame;
 import edu.ku.brc.ui.UIHelper;
@@ -62,7 +68,7 @@ public class BasicSQLUtils
 {
     protected static final Logger           log               = Logger.getLogger(BasicSQLUtils.class);
     
-    protected static ConversionLogger.TableWriter tblWriter = null;
+    protected static TableWriter tblWriter = null;
     
     public static enum SERVERTYPE {MySQL, MS_SQLServer}
     public static SERVERTYPE myDestinationServerType = SERVERTYPE.MySQL;
@@ -76,16 +82,18 @@ public class BasicSQLUtils
     public static final int SHOW_FK_LOOKUP          =  8;  // Show Error when Foreign Key is not null but couldn't be mapped to a new value
     public static final int SHOW_NULL_PM            = 16;  // Show Error When a Primary Key is Null and shouldn't be
     public static final int SHOW_PM_LOOKUP          = 32;  // Show Error when Primary Key is not null but couldn't be mapped to a new value
+    public static final int SHOW_COPY_TABLE         = 64;  // Show Errors during copy table
     public static final int SHOW_ALL                = SHOW_NAME_MAPPING_ERROR | SHOW_VAL_MAPPING_ERROR | SHOW_FK_LOOKUP | SHOW_NULL_FK | SHOW_NULL_PM | SHOW_PM_LOOKUP;
     
     protected static    int showErrors           = SHOW_ALL;
     
+    
     protected static SimpleDateFormat dateTimeFormatter = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
     protected static SimpleDateFormat dateFormatter     = new SimpleDateFormat("yyyy-MM-dd");
     protected static Calendar         calendar          = new GregorianCalendar();
-
-    protected static BasicSQLUtils    basicSQLUtils = new  BasicSQLUtils();
-
+    protected static Timestamp        now               = new Timestamp(System .currentTimeMillis());
+    protected static String           nowStr            = dateTimeFormatter.format(now);
+    
     protected static Map<String, String> ignoreMappingFieldNames = null;
     protected static Map<String, String> ignoreMappingFieldIDs   = null;
     protected static Map<String, String> oneToOneIDHash          = null;
@@ -101,9 +109,9 @@ public class BasicSQLUtils
     protected static Pair<String, String> datePair = new Pair<String, String>();
     
     // Missing Mapping File
-    protected static PrintWriter missingPW;
+    protected static PrintWriter missingPW = null;
     
-    static
+    /*static
     {
         try
         {
@@ -113,7 +121,7 @@ public class BasicSQLUtils
         {
             ex.printStackTrace();
         }
-    }
+    }*
 
     /**
      * Singleton
@@ -140,7 +148,15 @@ public class BasicSQLUtils
     {
         BasicSQLUtils.skipTrackExceptions = skipTrackExceptions;
     }
-
+    
+    /**
+     * @return the skipTrackExceptions
+     */
+    public static boolean isSkipTrackExceptions()
+    {
+        return skipTrackExceptions;
+    }
+    
     /**
      * Sets the SQL connection
      * @param connection the SQL Connection
@@ -185,12 +201,12 @@ public class BasicSQLUtils
     }
     
     
-    public static ConversionLogger.TableWriter getTblWriter() 
+    public static TableWriter getTblWriter() 
     {
         return tblWriter;
     }
 
-    public static void setTblWriter(ConversionLogger.TableWriter tblWriter) 
+    public static void setTblWriter(TableWriter tblWriter) 
     {
         BasicSQLUtils.tblWriter = tblWriter;
     }
@@ -342,15 +358,15 @@ public class BasicSQLUtils
             }
             else if (cmdStr.contains("INSERT INTO accessionagent"))
             {
-                log.error("ignoring a record because it makes a uncatchable SQL Exception: " + ex.getStackTrace().toString() );
-                log.error(cmdStr+"\n");
-                ex.printStackTrace();
+                log.error("ignoring a record because it makes a uncatchable SQL Exception: " + ex.getMessage() );
+                log.error("    "+cmdStr+"\n");
+                //ex.printStackTrace();
                 return 0;  
             }
             else 
             {
                 //e.printStackTrace();
-                log.error(ex.getStackTrace().toString());
+                log.error(ex.getMessage());
                 log.error(cmdStr+"\n");
                 ex.printStackTrace();
                 //ex.getStackTrace().
@@ -367,18 +383,26 @@ public class BasicSQLUtils
      */
     public static Integer getInsertedId(final Statement stmt)
     {
+        ResultSet resultSet = null;
         try
         {
-            ResultSet resultSet = stmt.getGeneratedKeys(); 
-    
+            resultSet = stmt.getGeneratedKeys(); 
             if ( resultSet != null && resultSet.next() ) 
             { 
                 return resultSet.getInt(1); 
             }
+            
         } catch (SQLException ex)
         {
             ex.printStackTrace();
+        } finally
+        {
+            try
+            {
+                if (resultSet != null) resultSet.close();
+            } catch (SQLException ex) {}
         }
+        
         return null;
     }
     
@@ -463,7 +487,17 @@ public class BasicSQLUtils
      */
     public static int getCountAsInt(final String sql)
     {
-        Integer cnt = getCount(dbConn != null ? dbConn : DBConnection.getInstance().getConnection(), sql);
+        return getCountAsInt(dbConn != null ? dbConn : DBConnection.getInstance().getConnection(), sql);
+    }
+    
+    /**
+     * @param conn
+     * @param sql
+     * @return
+     */
+    public static int getCountAsInt(final Connection conn, final String sql)
+    {
+        Integer cnt = getCount(conn, sql);
         return cnt == null ? 0 : cnt;
     }
     
@@ -475,19 +509,60 @@ public class BasicSQLUtils
     {
         Integer   count = null;
         Statement stmt  = null;
+        ResultSet rs    = null;
         try
         {
-            log.debug(sql);
+            stmt = connection.createStatement();
+            rs   = stmt.executeQuery(sql);
+            if (rs.next())
+            {
+                count = rs.getInt(1);
+                return rs.wasNull() ? null : count;
+            }
+
+        } catch (Exception ex)
+        {
+            ex.printStackTrace();
+            
+        } finally
+        {
+            try
+            {
+                if (rs != null) rs.close();
+                if (stmt != null) stmt.close();
+                
+            } catch (Exception ex) {}
+        }
+
+        return count;
+    }
+    
+    /**
+     * @param sql
+     * @return
+     */
+    public static String getString(final String sql)
+    {
+        return getString(dbConn != null ? dbConn : DBConnection.getInstance().getConnection(), sql);
+    }
+    
+    /**
+     * @param sql
+     * @return
+     */
+    public static String getString(final Connection connection, final String sql)
+    {
+        String    str = null;
+        Statement stmt  = null;
+        try
+        {
             stmt = connection.createStatement();
             ResultSet rs = stmt.executeQuery(sql);
             if (rs.next())
             {
-                count = rs.getInt(1);
+                str = rs.getString(1);
             }
             rs.close();
-            
-            log.debug(count+" - "+sql);
-
         } catch (Exception ex)
         {
             ex.printStackTrace();
@@ -504,7 +579,58 @@ public class BasicSQLUtils
             }
         }
 
-        return count;
+        return str;
+    }
+
+    /**
+     * @param sql
+     * @return
+     */
+    public static Object[] getRow(final String sql)
+    {
+        return getRow(dbConn != null ? dbConn : DBConnection.getInstance().getConnection(), sql);
+    }
+    
+    /**
+     * @param sql
+     * @return
+     */
+    public static Object[] getRow(final Connection connection, final String sql)
+    {
+        Object[]  row  = null;
+        Statement stmt = null;
+        try
+        {
+            stmt = connection.createStatement();
+            ResultSet rs = stmt.executeQuery(sql);
+            if (rs.next())
+            {
+                row = new Object[rs.getMetaData().getColumnCount()];
+                
+                for (int i=1;i<=rs.getMetaData().getColumnCount();i++)
+                {
+                    row[i-1] = rs.getObject(i);
+                }
+            }
+            rs.close();
+            
+        } catch (Exception ex)
+        {
+            ex.printStackTrace();
+            
+        } finally
+        {
+            if (stmt != null)
+            {
+                try
+                {
+                    stmt.close();
+                    
+                } catch (Exception ex) {}
+            }
+        }
+
+        return row;
     }
 
     /**
@@ -528,6 +654,7 @@ public class BasicSQLUtils
     /**
      * @param conn
      * @param sql
+     * @param includeHeaderRow
      * @return
      */
     public static Vector<Object[]> query(final Connection conn, final String sql, final boolean includeHeaderRow)
@@ -559,6 +686,11 @@ public class BasicSQLUtils
                         connection = DBConnection.getInstance().createConnection();
                         doCloseConn = true;
                     }
+                }
+                
+                if (connection == null)
+                {
+                    return list;
                 }
     
                 tries++;
@@ -627,6 +759,242 @@ public class BasicSQLUtils
         return list;
     }
 
+    /**
+     * @param sql
+     * @return
+     */
+    public static Vector<Object> querySingleCol(final String sql)
+    {
+        return querySingleCol(null, sql);
+    }
+
+    /**
+     * @param conn 
+     * @param sql
+     * @return
+     */
+    public static Vector<Object> querySingleCol(final Connection conn, final String sql)
+    {
+        Vector<Object> list = new Vector<Object>();
+        Statement stmt = null;
+        
+        Connection connection    = null;
+        boolean    doCloseConn   = false;
+        boolean    doSkipConnSet = false;
+        boolean    isStale       = true;
+        int        tries         = 0;
+        
+        while (isStale && tries < 3)
+        {
+            try
+            {
+                if (!doSkipConnSet)
+                {
+                    if (conn != null)
+                    {
+                        connection = conn;
+                        
+                    } else if (dbConn != null)
+                    {
+                        connection = dbConn;
+                    } else
+                    {
+                        connection = DBConnection.getInstance().createConnection();
+                        doCloseConn = true;
+                    }
+                }
+    
+                tries++;
+                if (connection != null)
+                {
+                    stmt = connection.createStatement();
+                    ResultSet         rs       = stmt.executeQuery(sql);
+                    ResultSetMetaData metaData = rs.getMetaData();
+                    int               numCols  = metaData.getColumnCount();
+                    
+                    if (numCols > 1)
+                    {
+                        log.warn("Query has "+numCols+" columns and should only have one.");
+                    }
+    
+                    while (rs.next())
+                    {
+                        list.add(rs.getObject(1));
+                    }
+                    rs.close();
+                    
+                    isStale = false;
+                } else
+                {
+                    isStale = true;
+                }
+    
+            } catch (CommunicationsException ex)
+            {
+                connection = DBConnection.getInstance().createConnection();
+                doCloseConn   = true;
+                doSkipConnSet = true;
+                
+            } catch (SQLException ex)
+            {
+                ex.printStackTrace();
+                
+                if (!skipTrackExceptions)
+                {
+                    edu.ku.brc.af.core.UsageTracker.incrSQLUsageCount();
+                    edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(BasicSQLUtils.class, ex);
+                }
+                
+            } finally
+            {
+                if (stmt != null)
+                {
+                    try
+                    {
+                        stmt.close();
+                    } catch (Exception ex) {}
+                }
+            }
+            
+            if (!isStale && connection != null && doCloseConn)
+            {
+                try
+                {
+                    connection.close();
+                } catch (Exception ex) {}
+            }
+        }
+
+        return list;
+    }
+
+    /**
+     * @param sql
+     * @return
+     */
+    public static <T> T querySingleObj(final String sql)
+    {
+        return querySingleObj(null, sql);
+    }
+
+    /**
+     * @param conn 
+     * @param sql
+     * @return
+     */
+    @SuppressWarnings("unchecked")
+    public static <T> T querySingleObj(final Connection conn, final String sql)
+    {
+        Vector<Object> list = querySingleCol(conn, sql);
+        if (list.size() > 1)
+        {
+            log.warn("The query ["+sql+"] returned more than one object.");
+        }
+        return list.size() > 0 ? (T)list.get(0) : null;
+    }
+
+    /**
+     * @param sql
+     * @return
+     */
+    public static Vector<Integer> queryForInts(final String sql)
+    {
+        return queryForInts(null, sql);
+    }
+
+    /**
+     * @param conn 
+     * @param sql
+     * @return
+     */
+    public static Vector<Integer> queryForInts(final Connection conn, final String sql)
+    {
+        Vector<Integer> list = new Vector<Integer>();
+        Statement stmt = null;
+        
+        Connection connection    = null;
+        boolean    doCloseConn   = false;
+        boolean    doSkipConnSet = false;
+        boolean    isStale       = true;
+        int        tries         = 0;
+        
+        while (isStale && tries < 3)
+        {
+            try
+            {
+                if (!doSkipConnSet)
+                {
+                    if (conn != null)
+                    {
+                        connection = conn;
+                        
+                    } else if (dbConn != null)
+                    {
+                        connection = dbConn;
+                    } else
+                    {
+                        connection = DBConnection.getInstance().createConnection();
+                        doCloseConn = true;
+                    }
+                }
+    
+                tries++;
+                stmt = connection.createStatement();
+                ResultSet         rs       = stmt.executeQuery(sql);
+                ResultSetMetaData metaData = rs.getMetaData();
+                int               numCols  = metaData.getColumnCount();
+                
+                if (numCols > 1)
+                {
+                    log.warn("Query has "+numCols+" columns and should only have one.");
+                }
+
+                while (rs.next())
+                {
+                    list.add(rs.getInt(1));
+                }
+                rs.close();
+                
+                isStale = false;
+    
+            } catch (CommunicationsException ex)
+            {
+                connection = DBConnection.getInstance().createConnection();
+                doCloseConn   = true;
+                doSkipConnSet = true;
+                
+            } catch (SQLException ex)
+            {
+                ex.printStackTrace();
+                
+                if (!skipTrackExceptions)
+                {
+                    edu.ku.brc.af.core.UsageTracker.incrSQLUsageCount();
+                    edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(BasicSQLUtils.class, ex);
+                }
+                
+            } finally
+            {
+                if (stmt != null)
+                {
+                    try
+                    {
+                        stmt.close();
+                    } catch (Exception ex) {}
+                }
+            }
+            
+            if (!isStale && connection != null && doCloseConn)
+            {
+                try
+                {
+                    connection.close();
+                } catch (Exception ex) {}
+            }
+        }
+
+        return list;
+    }
     
     /**
      * @param sql
@@ -680,34 +1048,36 @@ public class BasicSQLUtils
      * Deletes all the records from a table
      * @param connection connection to the DB
      * @param tableName the name of the table
-     * @return the return value from the SQL update statment (or -1 on an exception)
+     * @return the return value from the SQL update statement (or -1 on an exception)
      */
     public static int deleteAllRecordsFromTable(final Connection connection, 
-                                                final String    tableName,
+                                                final String     tableName,
                                                 final SERVERTYPE currentServerType)
     {
         try
         {
-            Integer count = getCount("select count(*) from "+tableName);
-            if (count == null || count == 0)
+            if (doesTableExist(connection, tableName))
             {
-                return 0;
+                Integer count = getCount(connection, "SELECT COUNT(*) FROM " + tableName);
+                if (count == null || count == 0)
+                {
+                    return 0;
+                }
+                
+                Statement stmt = connection.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE,ResultSet.CONCUR_READ_ONLY);
+                if (currentServerType != SERVERTYPE.MS_SQLServer)
+                {
+                    removeForeignKeyConstraints(stmt.getConnection(), currentServerType);
+                }
+                int retVal = exeUpdateCmd(stmt, "delete from "+tableName);
+                stmt.clearBatch();
+                stmt.close();
+    
+                log.info("Deleted "+count+" records from "+tableName);
+    
+                return retVal;
+    
             }
-            
-            Statement stmt = connection.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE,ResultSet.CONCUR_READ_ONLY);
-            //exeUpdateCmd(stmt, "SET FOREIGN_KEY_CHECKS = 0");
-            if (currentServerType != SERVERTYPE.MS_SQLServer)
-            {
-                removeForeignKeyConstraints(stmt.getConnection(), currentServerType);
-            }
-            int retVal = exeUpdateCmd(stmt, "delete from "+tableName);
-            stmt.clearBatch();
-            stmt.close();
-
-            log.info("Deleted "+count+" records from "+tableName);
-
-            return retVal;
-
         } catch (SQLException ex)
         {
             edu.ku.brc.af.core.UsageTracker.incrSQLUsageCount();
@@ -716,7 +1086,33 @@ public class BasicSQLUtils
             ex.printStackTrace();
 
         }
-        return -1;
+        return 0;
+    }
+    
+    /**
+     * @param connection
+     * @param tableName
+     * @return
+     */
+    public static boolean doesTableExist(final Connection connection, 
+                                         final String tableName)
+    {
+        try
+        {
+            DatabaseMetaData mdm = connection.getMetaData();
+            ResultSet        rs  = mdm.getColumns(connection.getCatalog(), connection.getCatalog(), tableName, null);
+            if (rs.next())
+            {
+                rs.close();
+                return true;
+            }
+            rs.close();
+            
+        } catch (SQLException ex)
+        {
+            ex.printStackTrace();
+        }
+        return false;
     }
 
     /**
@@ -769,47 +1165,6 @@ public class BasicSQLUtils
             ex.printStackTrace();
         }
         return  databaseName;
-    }
-
-    /**
-     * Removes all the records from all the tables
-     */
-    public static List<String> getTableNames(final Connection connection,
-            SERVERTYPE currentServerType)
-    {
-        //log.debug("getTableNames");// on database: " + connection.getCatalog());
-        List<String> names = new Vector<String>();
-        try
-        {
-            //log.debug("getTableNames on database: " + connection.getCatalog());
-            Statement  stmt = connection.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE,ResultSet.CONCUR_READ_ONLY);
-            
-            
-            String str = generateShowTablesCommand(getDatabaseName(connection), currentServerType) ;
-            //log.debug("Executing show tables command: " + str);
-            ResultSet rs = stmt.executeQuery(str);
-            //log.debug("Number of table found: " + rs.getS);
-            if (rs.first())
-            {
-                do
-                {
-                    //log.debug("---------------------------------------------------TABLE: "+ rs.getString(1));
-                    names.add(rs.getString(1));
-                } while (rs.next());
-            }
-            rs.close();
-
-            stmt.clearBatch();
-            stmt.close();
-
-        } catch (SQLException ex)
-        {
-            edu.ku.brc.af.core.UsageTracker.incrSQLUsageCount();
-            edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(BasicSQLUtils.class, ex);
-            log.error(ex);
-            ex.printStackTrace();
-        }
-        return names;
     }
 
     /**
@@ -868,8 +1223,50 @@ public class BasicSQLUtils
         //return getStrValue(obj, null);
     }
     
-    // MEG NEEDS TO FIX THIS!!!!!!! IT IS NOT CORRECT, BUT I WANTED TO MOVE ON
+    /**
+     * Escaped and delimited string for use in SQL, 
+     * using appropriate delimiter for DestinationServerType
+     * @param str
+     * @return escaped and delimited string for use in SQL, 
+     * using appropriate delimiter for DestinationServerType
+     */
+    public static String getEscapedSQLStrExpr(final String str)
+    {
+        if (str != null)
+        {
+        	String delimiter = "'";
+        	/*if (myDestinationServerType == SERVERTYPE.MS_SQLServer
+        			|| myDestinationServerType == SERVERTYPE.MySQL)
+        	{
+        		//possibly for other dbms some other encloser would be required
+        		log.info("setting string delimiter to \"'\" for ServerType " + myDestinationServerType);
+        	}*/
+        	return delimiter + escapeStringLiterals(str, delimiter) + delimiter;
+        }
+        return null;
+	}
+    
+    /**
+     * Escapes the single quote so it can be part of the data without causing an exception.
+     * @param str the string to be escaped
+     * @return escaped version of str 
+     * 
+     * Delimiter is assumed to be "'"
+     */
     public static String escapeStringLiterals(String str)
+    {
+    	//" can't be used to enclose strings in where clauses for SQLServer and postgres
+    	//' works for MySQL, SQLServer, and postgres
+    	return escapeStringLiterals(str, "'");
+    }
+    
+    // MEG NEEDS TO FIX THIS!!!!!!! IT IS NOT CORRECT, BUT I WANTED TO MOVE ON
+    /**
+     * @param str string to escape
+     * @param enclosingChar character used to delimit the string
+     * @return string with bad characters escaped 
+     */
+    public static String escapeStringLiterals(String str, String enclosingChar)
     {
 //        if (s.indexOf("\r\n")>= 0)
 //                {
@@ -894,37 +1291,77 @@ public class BasicSQLUtils
 //        }
 //                
        // log.debug("escaping string literal:" + s);
-        String s = str;
-        if (s.indexOf("\\") >= 0)
+        if (str != null)
         {
-
-            // s = s.replaceAll("\\","\\\\\\");
-            // s = s.replaceAll("\\", "\\\\");
-            if (myDestinationServerType != SERVERTYPE.MS_SQLServer)
+            String s = str;
+            if (s.indexOf("\\") >= 0)
             {
-                s = s.replaceAll("\\\\", "\\\\\\\\");
-                //log.debug("escaping !M$ backslash:" + s);
+                // s = s.replaceAll("\\","\\\\\\");
+                // s = s.replaceAll("\\", "\\\\");
+                if (myDestinationServerType != SERVERTYPE.MS_SQLServer)
+                {
+                    s = s.replaceAll("\\\\", "\\\\\\\\");
+                    //log.debug("escaping !M$ backslash:" + s);
+                }
+                // s = StringEscapeUtils.escapeJava(s);
+               // log.debug("backslash:" + s);
             }
-            // s = StringEscapeUtils.escapeJava(s);
-           // log.debug("backslash:" + s);
-        }
-        if (s.indexOf("\"") >= 0)
-        {
-            s = s.replaceAll("\"", "\\\"\"");
-            // s = s.replaceAll("\"","\\\"");
-            //log.debug("escaped double quotes:" + s);
-        }
-        if ((s.indexOf("\'") >= 0))
-        {
-            if (myDestinationServerType == SERVERTYPE.MS_SQLServer)
+            if (enclosingChar.equals("\"") && s.indexOf("\"") >= 0)
             {
-                s = s.replaceAll("\'", "\'\'");
+                s = s.replaceAll("\"", "\\\"\"");
+                // s = s.replaceAll("\"","\\\"");
+                //log.debug("escaped double quotes:" + s);
             }
-            // s = s.replaceAll("\'","\\\'\'");
-            // s = s.replaceAll("\'","\\\'");
-            // log.debug("single quotes:" + s);
+            if (enclosingChar.equals("\'") && s.indexOf("\'") >= 0)
+            {
+                //if (myDestinationServerType == SERVERTYPE.MS_SQLServer)
+                {
+                    s = s.replaceAll("'", "''");
+                }
+                // s = s.replaceAll("\'","\\\'\'");
+                // s = s.replaceAll("\'","\\\'");
+                // log.debug("single quotes:" + s);
+            }
+            return s;
         }
-        return s;
+        return null;
+    }
+    
+    /**
+     * @param obj
+     * @return
+     */
+    public static java.sql.Date getDateObj(final Object obj)
+    {
+        if (obj == null)
+        {
+            return null;
+        }
+        
+        if (obj instanceof Integer)
+        {
+            getPartialDate(obj, datePair);
+            
+            try
+            {
+                Date d = dateFormatter.parse(datePair.first);
+                if (d != null)
+                {
+                    return new java.sql.Date(d.getTime());
+                }
+                return null;
+                
+            } catch (ParseException e)
+            {
+                e.printStackTrace();
+            }
+            return null;
+                
+        } else if (obj instanceof Date)
+        {
+            return new java.sql.Date(((Date)obj).getTime());
+        }
+        return null;
     }
 
     /**
@@ -949,9 +1386,9 @@ public class BasicSQLUtils
             try
             {
                 str =  clob.getSubString(1, (int) clob.length());
-                str = escapeStringLiterals(str);
-                return '"'+str+'"';
-                
+//                str = escapeStringLiterals(str);
+//                return '"'+str+'"';
+                return getEscapedSQLStrExpr(str);
             } catch (SQLException ex)
             {
                 edu.ku.brc.af.core.UsageTracker.incrSQLUsageCount();
@@ -967,11 +1404,12 @@ public class BasicSQLUtils
         else if (obj instanceof String)
         {
             String str = (String)obj;
-            if (str.indexOf('"') > -1 || str.indexOf('\\') > -1 || str.indexOf('\'') > -1)
-            {
-                str = escapeStringLiterals(str);
-            }
-            return '"'+str+'"';
+//            if (str.indexOf('"') > -1 || str.indexOf('\\') > -1 || str.indexOf('\'') > -1)
+//            {
+//                str = escapeStringLiterals(str);
+//            }
+//            return '"'+str+'"';
+            	return getEscapedSQLStrExpr(str);
 //            String str = (String)obj;
 //            if (str.indexOf('"') > -1 || str.indexOf('\\') > -1)
 //            {
@@ -987,25 +1425,25 @@ public class BasicSQLUtils
         {
             if (newFieldType != null)
             {
-                if (newFieldType.indexOf("date") ==  0)
+                if (newFieldType.toLowerCase().indexOf("date") ==  0)
                 {
                 	getPartialDate(obj, datePair);
                     return datePair.first;
 
                 }
                 //Meg dropped the (1) from the newFieldType check, field metadata didn't include the (1) values
-                else if (newFieldType.equalsIgnoreCase("bit") || newFieldType.equalsIgnoreCase("tinyint"))
+                else if (newFieldType.equalsIgnoreCase("bit") || newFieldType.equalsIgnoreCase("tinyint") || newFieldType.equalsIgnoreCase("boolean"))
                 //else if (newFieldType.equalsIgnoreCase("bit(1)") || newFieldType.equalsIgnoreCase("tinyint(1)"))
                 {
                     int val = ((Integer)obj).intValue();
-                    return Integer.toString(val == 0? 0 : 1);
+                    return Integer.toString(val == 0 ? 0 : 1);
                 }
                 ////Meg dropped the (1) from the newFieldType check, field metadata didn't include the (1) values
                 //else if (newFieldType.equalsIgnoreCase("bit") || newFieldType.equalsIgnoreCase("tinyint"))
                 else if (newFieldType.equalsIgnoreCase("bit(1)") || newFieldType.equalsIgnoreCase("tinyint(1)"))
                 {
                     int val = ((Integer)obj).intValue();
-                    return Integer.toString(val == 0? 0 : 1);
+                    return Integer.toString(val == 0 ? 0 : 1);
                 }
                 return ((Integer)obj).toString();
             }
@@ -1092,141 +1530,254 @@ public class BasicSQLUtils
 //        }
 //    }
 
-   /**
-     * Fills the list with all the names of the table
-     * @param connection the connection
-     * @param tableName the table name
-     * @param list the list to be filled
-     */
-    public static void getFieldNamesFromSchema(final Connection connection,
-                                               final String tableName,
-                                               final List<String> list,
-                                               SERVERTYPE currentServerType)
+    public static List<String> getFieldNamesFromSchema(final Connection connection,
+                                                       final String     tableName)
     {
         try
         {
-            Statement stmt = connection.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE,ResultSet.CONCUR_READ_ONLY);
-            String dbName = getDatabaseName(connection) ;
-            String str = generateDescribeTableCommand( tableName, dbName, currentServerType) ;
-            ResultSet rs = stmt.executeQuery(str);
+            ArrayList<String> fields = new ArrayList<String>();
+            
+            DatabaseMetaData mdm = connection.getMetaData();
+            ResultSet        rs  = mdm.getColumns(connection.getCatalog(), connection.getCatalog(), tableName, null);
             while (rs.next())
             {
-                String s = rs.getString(1);
-                //log.debug(s);
-                list.add(s);
+                fields.add(rs.getString("COLUMN_NAME"));
             }
             rs.close();
-            stmt.close();
-
+            return fields;
+            
         } catch (SQLException ex)
         {
-            edu.ku.brc.af.core.UsageTracker.incrSQLUsageCount();
-            edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(BasicSQLUtils.class, ex);
-            log.error(ex);
-        }
-    }
-
-    /**
-     * Fills the list with FieldMetaData objects for each field in the table
-     * @param connection the connection
-     * @param tableName the table name
-     * @param fieldList the list to be filled with field/type objects (FieldMetaData)
-     */
-    public static void getFieldMetaDataFromSchema(final Connection          connection,
-                                                  final String              tableName,
-                                                  final List<FieldMetaData> fieldList,
-                                                  SERVERTYPE currentServerType)
-    {
-        try
-        {
-            Statement stmt   = connection.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE,ResultSet.CONCUR_READ_ONLY);
-            String    dbName = getDatabaseName(connection) ;
-            String    str    = generateDescribeTableCommand( tableName, dbName, currentServerType) ;
-            //log.debug("Databasename:" + connection.getMetaData().getDriverName());
-            
-            Hashtable<String, Boolean> hash = new Hashtable<String, Boolean>();
-            ResultSet rs = stmt.executeQuery(str);
-            while (rs.next())
-            {
-                FieldMetaData fmd = basicSQLUtils.new FieldMetaData(rs.getString(1), rs.getString(2), false, false);
-                fieldList.add(fmd);
-                hash.put(fmd.getName(), true);
-            }
-            
-            for (FieldMetaData fmd : fieldList)
-            {
-                if (fmd.getName().endsWith("Date"))
-                {
-                    fmd.setDate(true);
-                    if (hash.get(fmd.getName() + "DatePrecision") != null)
-                    {
-                        fmd.setPrecision(true);
-                    }
-                }
-            }
-            
-            rs.close();
-            stmt.close();
-
-        } catch (SQLException ex)
-        {
-            edu.ku.brc.af.core.UsageTracker.incrSQLUsageCount();
-            edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(BasicSQLUtils.class, ex);
-            log.error(ex);
             ex.printStackTrace();
         }
+        return null;
     }
-
-    /**
-     * Fills the list with FieldMetaData objects for each field in the table
-     * @param rsmd the resultset's meta data
-     * @param fieldList the list to be filled with field/type objects (FieldMetaData)
-     */
-    public static void getFieldMetaDataFromSchema(final ResultSetMetaData rsmd,
-                                                  final List<FieldMetaData> fieldList)
+    
+    public static List<String> getFieldNamesFromSchema(final Connection connection,
+                                                       final String tableName,
+                                                       final List<String> fields)
     {
         try
         {
-            Hashtable<String, Boolean> hash = new Hashtable<String, Boolean>();
-            
-            StringBuilder strBuf = new StringBuilder(128);
-            for (int i=1;i<=rsmd.getColumnCount();i++)
+            DatabaseMetaData mdm = connection.getMetaData();
+            ResultSet        rs  = mdm.getColumns(connection.getCatalog(), connection.getCatalog(),
+                    tableName, null);
+            while (rs.next())
             {
-                strBuf.setLength(0);
-                String tableName = rsmd.getTableName(i);
-                if (StringUtils.isNotEmpty(tableName))
+                fields.add(rs.getString("COLUMN_NAME"));
+            }
+            rs.close();
+            return fields;
+
+        } catch (SQLException ex)
+        {
+            ex.printStackTrace();
+        }
+        return null;
+    }
+
+
+    /**
+     * @param connection
+     * @return
+     */
+    public static List<String> getTableNames(final Connection connection)
+    {
+        try
+        {
+            ArrayList<String> fields = new ArrayList<String>();
+
+            DatabaseMetaData mdm = connection.getMetaData();
+            ResultSet        rs  = mdm.getTables(connection.getCatalog(), connection.getCatalog(), null, new String[] {"TABLE"});
+            while (rs.next())
+            {
+                /*System.out.println("-------- " + rs.getString("TABLE_NAME")+" ----------");
+                for (int i=1;i<=rs.getMetaData().getColumnCount();i++)
                 {
-                    strBuf.append(tableName);
-                    strBuf.append(".");
-                }
-                strBuf.append(rsmd.getColumnName(i));
+                    System.out.println(rs.getMetaData().getColumnName(i)+"="+rs.getObject(i));
+
+                }*/
+                fields.add(rs.getString("TABLE_NAME"));
+            }
+            rs.close();
+            return fields;
+
+        } catch (SQLException ex)
+        {
+            ex.printStackTrace();
+        }
+        return null;
+    }
+
+
+    /**
+     * @param connection
+     * @param tableName
+     * @return
+     */
+    public static List<FieldMetaData> getFieldMetaDataFromSchema(final Connection connection,
+                                                                 final String     tableName)
+    {
+        try
+        {
+            ArrayList<FieldMetaData> fields = new ArrayList<FieldMetaData>();
+            
+            DatabaseMetaData mdm = connection.getMetaData();
+            ResultSet        rs  = mdm.getColumns(connection.getCatalog(), connection.getCatalog(), tableName, null);
+            while (rs.next())
+            {
+                /*System.out.println("-------- " + rs.getString("COLUMN_NAME")+" ----------");
+                for (int i=1;i<=rs.getMetaData().getColumnCount();i++)
+                {
+                    System.out.println(rs.getMetaData().getColumnName(i)+"="+rs.getObject(i));
+
+                }*/
                 
-                FieldMetaData fmd = basicSQLUtils.new FieldMetaData(strBuf.toString(), rsmd.getColumnClassName(i), false, false);
-                fieldList.add(fmd);
-                hash.put(fmd.getName(), true);
+                String typeStr = rs.getString("TYPE_NAME");
+                FieldMetaData fmd = new FieldMetaData(rs.getString("COLUMN_NAME"), 
+                                                      typeStr, 
+                                                      typeStr.startsWith("DATE"), 
+                                                      false,
+                                                      StringUtils.contains(typeStr.toLowerCase(), "varchar"));
+                fmd.setSqlType(rs.getInt("DATA_TYPE"));
+                fields.add(fmd);
             }
+            rs.close();
+            return fields;
             
-            for (FieldMetaData fmd : fieldList)
-            {
-                if (fmd.getName().endsWith("Date"))
-                {
-                    fmd.setDate(true);
-                    if (hash.get(fmd.getName() + "DatePrecision") != null)
-                    {
-                        fmd.setPrecision(true);
-                    }
-                }
-            }
-
-
         } catch (SQLException ex)
         {
-            edu.ku.brc.af.core.UsageTracker.incrSQLUsageCount();
-            edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(BasicSQLUtils.class, ex);
-            log.error(ex);
             ex.printStackTrace();
         }
+        return null;
     }
+    
+    /**
+     * @param pStmt
+     * @param type
+     * @param data
+     * @throws SQLException 
+     */
+    public static void setData(final PreparedStatement pStmt, final int type, final int colInx, final Object data) throws SQLException
+    {
+        if (data == null)
+        {
+            pStmt.setObject(colInx, null);
+            return;
+        }
+        
+        boolean isStr = data instanceof String;
+        switch (type)
+        {
+            case java.sql.Types.TINYINT:
+            case java.sql.Types.SMALLINT:
+            case java.sql.Types.INTEGER:
+                if (isStr)
+                {
+                    pStmt.setString(colInx, (String)data);
+                } else
+                {
+                    pStmt.setInt(colInx, (Integer)data);
+                }
+                break;
+                
+            case java.sql.Types.FLOAT:
+                if (isStr)
+                {
+                    pStmt.setString(colInx, (String)data);
+                } else
+                {               
+                    pStmt.setFloat(colInx, (Float)data);
+                }
+                break;
+                
+            case java.sql.Types.VARCHAR:
+            case java.sql.Types.CHAR:
+            case java.sql.Types.LONGVARCHAR:
+            case java.sql.Types.LONGNVARCHAR:
+            case java.sql.Types.NCHAR:
+                if (isStr)
+                {
+                    pStmt.setString(colInx, (String)data);
+                } else
+                {                
+                    pStmt.setString(colInx, (String)data);
+                }
+                break;
+                
+            case java.sql.Types.REAL:
+            case java.sql.Types.DOUBLE:
+                if (isStr)
+                {
+                    pStmt.setString(colInx, (String)data);
+                } else
+                {
+                    pStmt.setDouble(colInx, (Double)data);
+                }
+                break;
+                
+            case java.sql.Types.DATE:
+                if (isStr)
+                {
+                    pStmt.setString(colInx, (String)data);
+                } else
+                {
+                    pStmt.setDate(colInx, (java.sql.Date)data);
+                }
+                break;
+                
+            case java.sql.Types.TIMESTAMP:
+                if (isStr)
+                {
+                    pStmt.setString(colInx, (String)data);
+                } else
+                {
+                    pStmt.setTimestamp(colInx, (Timestamp)data);
+                }
+                break;
+                
+            case java.sql.Types.BOOLEAN:
+                if (isStr)
+                {
+                    String val = (String)data;
+                    pStmt.setBoolean(colInx, !val.equalsIgnoreCase("true"));
+                } else
+                {
+                    pStmt.setBoolean(colInx, (Boolean)data);
+                }
+                break;
+                
+            case java.sql.Types.BIT:
+                if (data instanceof Boolean)
+                {
+                    pStmt.setBoolean(colInx, (Boolean)data);
+                } else
+                {
+                    pStmt.setBoolean(colInx, !(((Integer)data) == 0));
+                }
+                break;
+
+            default:
+                throw new RuntimeException(String.format("Missing case for SQL Type %d for Column: %d Data[%s]", type, colInx, data.getClass().getSimpleName()));
+        }
+    }
+    
+    /**
+     * @param connection
+     * @param tableName
+     * @return
+     */
+    public static Map<String, FieldMetaData> getFieldMetaDataFromSchemaHash(final Connection connection,
+                                                                            final String     tableName)
+    {
+        Map<String, FieldMetaData> fieldMetaDataMap = new Hashtable<String, FieldMetaData>();
+        for (FieldMetaData fmd : getFieldMetaDataFromSchema(connection, tableName))
+        {
+            fieldMetaDataMap.put(fmd.getName(), fmd);
+        }
+        return fieldMetaDataMap;
+    }
+
 
     /**
      * Converts an integer time in the form of YYYYMMDD to the proper Date
@@ -1278,7 +1829,7 @@ public class BasicSQLUtils
         	tblWriter.logError(msg);
         	tblWriter.flush();
         	
-        } else
+        } else if (missingPW != null)
         {
         	missingPW.println(msg);
         	missingPW.flush();
@@ -1371,7 +1922,7 @@ public class BasicSQLUtils
                                     final SERVERTYPE sourceServerType,
                                     final SERVERTYPE destServerType)
     {
-        String sqlStr = sql == null ? "select * from " + fromTableName : sql;
+        String sqlStr = sql == null ? "SELECT * FROM " + fromTableName : sql;
         
         return copyTable(fromConn,toConn,sqlStr,fromTableName,toTableName,colNewToOldMap,verbatimDateMapper,null,sourceServerType,destServerType);
     }
@@ -1400,7 +1951,35 @@ public class BasicSQLUtils
                                     final SERVERTYPE sourceServerType,
                                     final SERVERTYPE destServerType)
     {
-        Timestamp now = new Timestamp(System.currentTimeMillis());
+        return copyTable(fromConn, toConn, sql, null, fromTableName, toTableName, colNewToOldMap, verbatimDateMapper, newColDefValues, sourceServerType, destServerType);
+    }
+
+    /**
+     * @param fromConn
+     * @param toConn
+     * @param sql
+     * @param fromTableName
+     * @param toTableName
+     * @param colNewToOldMap
+     * @param verbatimDateMapper
+     * @param newColDefValues
+     * @param sourceServerType
+     * @param destServerType
+     * @return
+     */
+    public static boolean copyTable(final Connection fromConn,
+                                    final Connection toConn,
+                                    final String     sql,
+                                    final String     countSQL,
+                                    final String     fromTableName,
+                                    final String     toTableName,
+                                    final Map<String, String> colNewToOldMap,
+                                    final Map<String, String> verbatimDateMapper,
+                                    final Map<String, String> newColDefValues,
+                                    final SERVERTYPE sourceServerType,
+                                    final SERVERTYPE destServerType)
+    {
+        //Timestamp now = new Timestamp(System.currentTimeMillis());
 
         IdMapperMgr idMapperMgr = IdMapperMgr.getInstance();
 
@@ -1410,27 +1989,50 @@ public class BasicSQLUtils
         }
         log.info("Copying Table "+fromTableName);
 
-        List<String> fromFieldNameList = new ArrayList<String>();
-        getFieldNamesFromSchema(fromConn, fromTableName, fromFieldNameList, sourceServerType);
+        List<String> fromFieldNameList = getFieldNamesFromSchema(fromConn, fromTableName);
 
         String sqlStr = sql + " ORDER BY " +  fromTableName + "." + fromFieldNameList.get(0);
         log.debug(sqlStr);
-        setProcess(0, getNumRecords(fromConn, fromTableName));
-
-        String id = "";
+        
+        int numRecs;
+        if (countSQL == null)
+        {
+            numRecs = getNumRecords(fromConn, fromTableName);
+        } else
+        {
+            numRecs = getCountAsInt(fromConn, countSQL);
+        }
+        setProcess(0, numRecs);
+        
+        DBTableInfo tblInfo         = DBTableIdMgr.getInstance().getInfoByTableName(toTableName);
+        Statement   updateStatement = null;
+        String      id              = "";
         try
         {
-            List<FieldMetaData> newFieldMetaData = new ArrayList<FieldMetaData>();
-            getFieldMetaDataFromSchema(toConn, toTableName, newFieldMetaData, destServerType);
+            
+            updateStatement = toConn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE,ResultSet.CONCUR_READ_ONLY);
+            if (BasicSQLUtils.myDestinationServerType != BasicSQLUtils.SERVERTYPE.MS_SQLServer) 
+            {
+                BasicSQLUtils.removeForeignKeyConstraints(toConn, BasicSQLUtils.myDestinationServerType);
+            
+            }
+            
+            //HashMap<String, Integer> newDBFieldHash   = new HashMap<String, Integer>();
+            List<FieldMetaData>      newFieldMetaData = getFieldMetaDataFromSchema(toConn, toTableName);
+            //int inx = 1;
+            //for (FieldMetaData fmd : newFieldMetaData)
+            //{
+            //    newDBFieldHash.put(fmd.getName(), inx++);
+            //}
 
             Statement         stmt = fromConn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE,ResultSet.CONCUR_READ_ONLY);
-            System.out.println(sqlStr);
+            //System.out.println(sqlStr);
             ResultSet         rs   = stmt.executeQuery(sqlStr);
             ResultSetMetaData rsmd = rs.getMetaData();
             
             Vector<Integer> dateColumns = new Vector<Integer>();
             
-            System.out.println(toTableName);
+            //System.out.println(toTableName);
             Hashtable<String, Integer> fromHash = new Hashtable<String, Integer>();
             for (int i = 1; i <= rsmd.getColumnCount(); i++)
             {
@@ -1439,7 +2041,9 @@ public class BasicSQLUtils
                 fromHash.put(colName, i);
                 //System.out.println(rsmd.getColumnName(i)+" -> "+i);
                 
-                if (colName.toLowerCase().endsWith("date"))
+                if (rsmd.getColumnType(i) == java.sql.Types.DATE || 
+                    colName.toLowerCase().endsWith("date") || 
+                    colName.toLowerCase().startsWith("date"))
                 {
                 	//System.out.println("Date: "+rsmd.getColumnName(i)+" -> "+i);
                 	dateColumns.add(i);
@@ -1452,6 +2056,8 @@ public class BasicSQLUtils
 	            for (String newName : colNewToOldMap.keySet())
 	            {
 	            	String oldName = colNewToOldMap.get(newName);
+	            	System.out.println("Mapping oldName["+(oldName == null ? newName : oldName) + " -> "+ newName);
+	            	
 	            	oldNameToNewNameHash.put(oldName == null ? newName : oldName, newName);
 	            }
             }
@@ -1460,6 +2066,8 @@ public class BasicSQLUtils
 
             Map<String, String>               vertbatimDateMap = UIHelper.createMap();
             Map<String, Pair<String, String>> dateMap          = new Hashtable<String, Pair<String, String>>();
+            
+            String insertSQL = null;
 
             // Get the columns that have dates in case we get a TimestampCreated date that is null
             // and then we can go looking for an older date to try to figure it out
@@ -1492,7 +2100,7 @@ public class BasicSQLUtils
                     	continue;
                     }
                     
-                    String newColName = colNewToOldMap != null ? oldNameToNewNameHash.get(oldColName) : newFieldMetaData.get(oldColIndex).getName();
+                    String newColName = colNewToOldMap != null ? oldNameToNewNameHash.get(oldColName) : null;
                     if (newColName == null)
                     {
                     	newColName = oldColName;
@@ -1513,7 +2121,7 @@ public class BasicSQLUtils
 	                            vertbatimDateMap.put(newColName, dataObj.toString());
 	                        } else
 	                        {
-	                            log.error("No Verbatim Date Mapper for Table[" + fromTableName + "] Col Name[" + newFieldMetaData.get(i).getName() + "]");
+	                            log.error("No Verbatim Date Mapper  for Table[" + fromTableName + "] Col Name[" + newFieldMetaData.get(i).getName() + "]");
 	                        }
                         }
                     }
@@ -1562,29 +2170,40 @@ public class BasicSQLUtils
                     }
                 }
                     
-                StringBuffer fieldList = new StringBuffer();
-                fieldList.append("( ");
-                for (int i = 0; i< newFieldMetaData.size();i++)
-                {
-                    if ((i > 0) &&  (i < newFieldMetaData.size()))
-                    {
-                        fieldList.append(", ");
-                    }
-                    String newFieldName = newFieldMetaData.get(i).getName();
-                    fieldList.append(newFieldName + " ");
-                }
-                fieldList.append(")");
-                
                 str.setLength(0);
-                str.append("INSERT INTO " + toTableName + " "+ fieldList+ " VALUES (");
+                if (insertSQL == null)
+                {
+                    StringBuffer fieldList = new StringBuffer();
+                    fieldList.append("( ");
+                    for (int i = 0; i< newFieldMetaData.size();i++)
+                    {
+                        if ((i > 0) &&  (i < newFieldMetaData.size()))
+                        {
+                            fieldList.append(", ");
+                        }
+                        String newFieldName = newFieldMetaData.get(i).getName();
+                        fieldList.append(newFieldName + " ");
+                    }
+                    fieldList.append(")");
+                    
+                    
+                    str.append("INSERT INTO " + toTableName + " "+ fieldList+ " VALUES (");
+                    
+                    insertSQL = str.toString();
+                    
+                    log.debug(str);
+                } else
+                {
+                    str.append(insertSQL);
+                }
                 
                 id = rs.getString(1);
-
+                
                 // For each column in the new DB table...
                 for (int i = 0; i < newFieldMetaData.size(); i++)
                 {
-                    FieldMetaData newFieldName     = newFieldMetaData.get(i);
-                    String        newColName       = newFieldName.getName();
+                    FieldMetaData newFldMetaData   = newFieldMetaData.get(i);
+                    String        newColName       = newFldMetaData.getName();
                     String        oldMappedColName = null;
                     
                     //System.out.println("["+newFieldName.getName()+"]");
@@ -1614,6 +2233,8 @@ public class BasicSQLUtils
                     {
                         oldMappedColName = newColName;
                     }
+                    
+                    //System.out.println("new["+newColName+"]  old["+oldMappedColName+"]");
 
                     if (columnIndex != null)
                     {
@@ -1643,7 +2264,8 @@ public class BasicSQLUtils
                                     
                                     if (isOptionOn(showNullOption))
                                     {
-                                    	String msg = "Unable to Map Primary Id[NULL] old Name["+oldMappedColName+"]   colInx["+columnIndex+"]   newColName["+newColName+"]";
+                                        
+                                    	String msg = "Unable to Map "+(showNullOption == SHOW_NULL_FK ? "Foreign" : "Primary")+" Key Id[NULL] old Name["+oldMappedColName+"]   colInx["+columnIndex+"]   newColName["+newColName+"]";
                                         log.error(msg);
                                         writeErrLog(msg);
                                         skipRecord = true;
@@ -1655,7 +2277,7 @@ public class BasicSQLUtils
                                     
                                     if (dataObj == null && isOptionOn(showFkLookUpOption))
                                     {
-                                        String msg = "Unable to Map Primary Id["+oldPrimaryKeyId+"] old Name["+oldMappedColName+"]";
+                                        String msg = "Unable to Map Primary Id["+oldPrimaryKeyId+"] old Name["+oldMappedColName+"] table["+fromTableName+"]";
                                         log.error(msg);
                                         writeErrLog(msg);
                                         skipRecord = true;
@@ -1672,7 +2294,7 @@ public class BasicSQLUtils
                                     // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!
                                     if (!oldMappedColName.equals("RankID"))
                                     {
-                                        idMapperMgr.dumpKeys();
+                                        //idMapperMgr.dumpKeys();
                                         String msg = "No ID Map for ["+fromTableName+"] Old Column Name["+oldMappedColName+"]";
                                         log.error(msg);
                                         writeErrLog(msg);
@@ -1685,40 +2307,41 @@ public class BasicSQLUtils
                         // First check to see if it is null
                         if (dataObj == null)
                         {
-                            if (newFieldName.getName().equals("TimestampCreated"))
+                            if (newFldMetaData.getName().equals("TimestampCreated"))
                             {
                                 if (timestampCreatedInx != null)
                                 {
                                     if (isAccessionTable)
                                     {
-                                        str.append(getStrValue(UIHelper.convertIntToDate(rs.getInt(fromHash.get("DateAccessioned")))));
+                                        Date date = UIHelper.convertIntToDate(rs.getInt(fromHash.get("DateAccessioned")));
+                                        str.append(date != null ? getStrValue(date) : getStrValue(timestampCreatedCached, newFldMetaData.getType()));
     
                                     } else
                                     {
-                                        str.append(getStrValue(timestampCreatedCached, newFieldName.getType()));
+                                        str.append(getStrValue(timestampCreatedCached, newFldMetaData.getType()));
                                     }
     
                                 } else
                                 {
-                                    str.append(getStrValue(timestampCreatedCached, newFieldName.getType()));
+                                    str.append(getStrValue(timestampCreatedCached, newFldMetaData.getType()));
                                 }
     
-                            } else if (newFieldName.getName().equals("TimestampModified"))
+                            } else if (newFldMetaData.getName().equals("TimestampModified"))
                             {
                                 if (timestampModifiedInx != null)
                                 {
                                     if (isAccessionTable)
                                     {
-                                        str.append(getStrValue(UIHelper.convertIntToDate(rs.getInt(fromHash.get("DateAccessioned")))));
+                                        Date date = UIHelper.convertIntToDate(rs.getInt(fromHash.get("DateAccessioned")));
+                                        str.append(date != null ? getStrValue(date) : getStrValue(timestampCreatedCached, newFldMetaData.getType()));
     
                                     } else
                                     {
-                                        str.append(getStrValue(timestampModifiedCached, newFieldName.getType()));
+                                        str.append(getStrValue(timestampModifiedCached, newFldMetaData.getType()));
                                     }
-    
                                 } else
                                 {
-                                    str.append(getStrValue(timestampModifiedCached, newFieldName.getType()));
+                                    str.append(getStrValue(timestampModifiedCached, newFldMetaData.getType()));
                                 }
                             } else
                             {
@@ -1726,7 +2349,10 @@ public class BasicSQLUtils
                             }
                                 
 
-                        } else if (dataObj instanceof Integer && newColName.toLowerCase().endsWith("date"))
+                        } else if (dataObj instanceof Integer && 
+                                  (newFldMetaData.getSqlType() == java.sql.Types.DATE ||
+                                   newColName.toLowerCase().endsWith("date") || 
+                                   newColName.toLowerCase().startsWith("date")))
                         {
                         	Pair<String, String> datePr = dateMap.get(newColName);
                         	if (datePr != null)
@@ -1751,11 +2377,43 @@ public class BasicSQLUtils
                         		str.append("NULL");
                         	}
 
+                        } else if (dataObj instanceof Number)
+                        {
+                            DBFieldInfo fi   = tblInfo.getFieldByColumnName(newColName);
+                            String      type = newFldMetaData.getType().toLowerCase().startsWith("tiny") ? fi.getType() : newFldMetaData.getType();
+                            str.append(getStrValue(dataObj, type));
+                            
                         } else 
                         {
-                            str.append(getStrValue(dataObj, newFieldName.getType()));
+                            if (columnValueMapper != null)
+                            {
+                                BasicSQLUtilsMapValueIFace valueMapper = columnValueMapper.get(newColName);
+                                if (valueMapper != null)
+                                {
+                                    dataObj = valueMapper.mapValue(dataObj);
+                                }
+                            }
+                            
+                            if (dataObj instanceof String && newFldMetaData.isString())
+                            {
+                                DBFieldInfo fi   = tblInfo.getFieldByColumnName(newColName);
+                                String s = (String)dataObj;
+                                if (s.length() > fi.getLength())
+                                {
+                                    String msg = String.format("Truncating Table '%s' Field '%s' with Length %d, db len %d Value[%s]", toTableName, newColName, s.length(), fi.getLength(), s);
+                                    tblWriter.logError(msg);
+                                    log.error(msg);
+                                    dataObj = s.substring(0, fi.getLength());
+                                }
+                            }
+                            str.append(getStrValue(dataObj, newFldMetaData.getType()));
                         }
 
+                    } else if (newColName.endsWith("Version"))
+                    {
+                        if (i > 0) str.append(", ");
+                        str.append("0");
+                        
                     } else if (newColName.endsWith("DatePrecision"))
                     {
                     	if (i > 0) str.append(", ");
@@ -1796,8 +2454,8 @@ public class BasicSQLUtils
                                 }
                             }
                         }
-                    }
-                    else // there was no old column that maps to this new column
+                        
+                    } else // there was no old column that maps to this new column
                     {
                         String newColValue = null;
                         if (newColDefValues != null)
@@ -1821,7 +2479,7 @@ public class BasicSQLUtils
                         }
                         if (i > 0) str.append(", ");
                         
-                        BasicSQLUtilsMapValueIFace valueMapper = columnValueMapper.get(newFieldName.getName());
+                        BasicSQLUtilsMapValueIFace valueMapper = columnValueMapper.get(newFldMetaData.getName());
                         if (valueMapper != null)
                         {
                             newColValue = valueMapper.mapValue(newColValue);
@@ -1847,12 +2505,7 @@ public class BasicSQLUtils
                         log.info(toTableName + " processed: " + count);
                     }                        
                 }
-                Statement updateStatement = toConn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE,ResultSet.CONCUR_READ_ONLY);
-                if (BasicSQLUtils.myDestinationServerType != BasicSQLUtils.SERVERTYPE.MS_SQLServer) 
-                {
-                    BasicSQLUtils.removeForeignKeyConstraints(toConn, BasicSQLUtils.myDestinationServerType);
                 
-                }
                 //setQuotedIdentifierOFFForSQLServer(toConn, BasicSQLUtils.myDestinationServerType);
                 //exeUpdateCmd(updateStatement, "SET FOREIGN_KEY_CHECKS = 0");
                 //if (str.toString().toLowerCase().contains("insert into locality"))
@@ -1866,11 +2519,11 @@ public class BasicSQLUtils
                // updateStatement.close();
                 if (!skipRecord)
                 {
-                
+                    if (isOptionOn(SHOW_COPY_TABLE))
+                    {
+                        log.debug("executing: " + str);
+                    }
 	                int retVal = exeUpdateCmd(updateStatement, str.toString());
-	                updateStatement.clearBatch();
-	                updateStatement.close();
-	
 	                if (retVal == -1)
 	                {
 	                    rs.close();
@@ -1906,9 +2559,46 @@ public class BasicSQLUtils
             log.error(sqlStr);
             log.error(ex);
             log.error("ID: " + id);
+        } finally
+        {
+            try
+            {
+                updateStatement.clearBatch();
+                updateStatement.close();
+                
+            } catch (SQLException ex)
+            {
+                
+            }
         }
         BasicSQLUtils.setFieldsToIgnoreWhenMappingNames(null);//meg added
         return true;
+    }
+    
+    /**
+     * @param newFieldName
+     * @param type
+     * @param data
+     * @param sb
+     */
+    public static  void fixTimestamps(final String newFieldName, 
+                                      final String type, 
+                                      final Object data, 
+                                      final StringBuilder sb)
+    {
+        if (newFieldName.equals("TimestampModified") || newFieldName.equals("TimestampModified"))
+        {
+            if (getStrValue(data, type).toString().toLowerCase().equals("null"))
+            {
+                sb.append("'" + nowStr + "'");
+            } else
+            {
+                sb.append(getStrValue(data, type));
+            }
+        } else
+        {
+            sb.append(getStrValue(data, type));
+        }
     }
     
     /**
@@ -1934,45 +2624,52 @@ public class BasicSQLUtils
         datePairArg.first  = "NULL";
         datePairArg.second = "NULL";
         
-        if (data != null && ((Integer)data) > 0)
+        if (data != null)
         {
-            // 012345678     012345678
-            // 20051314      19800307
-            Date   dateObj = null;
-            String dateStr = ((Integer)data).toString();
-            if (dateStr.length() == 8)
+            if (((Integer)data) > 0)
             {
-                //System.out.println("["+dateStr+"]["+data+"]");//["+(dateStr.length() >)+"]");
-                int fndInx  = dateStr.substring(4, 8).indexOf("00");
-                if (fndInx > -1)
+                // 012345678     012345678
+                // 20051314      19800307
+                Date   dateObj = null;
+                String dateStr = ((Integer)data).toString();
+                if (dateStr.length() == 8)
                 {
-                    if (fndInx == 0)
+                    //System.out.println("["+dateStr+"]["+data+"]");//["+(dateStr.length() >)+"]");
+                    int fndInx  = dateStr.substring(4, 8).indexOf("00");
+                    if (fndInx > -1)
                     {
-                        dateStr = dateStr.substring(0, 4) + "0101";
-                        dateObj = UIHelper.convertIntToDate(Integer.parseInt(dateStr)); 
-                        datePairArg.second = "3";
-                        
-                    } else if (fndInx == 2)
-                    {
-                        dateStr = dateStr.substring(0, 6) + "01";
-                        dateObj = UIHelper.convertIntToDate(Integer.parseInt(dateStr)); 
-                        datePairArg.second = "2";
-                        
+                        if (fndInx == 0)
+                        {
+                            dateStr = dateStr.substring(0, 4) + "0101";
+                            dateObj = UIHelper.convertIntToDate(Integer.parseInt(dateStr)); 
+                            datePairArg.second = "3";
+                            
+                        } else if (fndInx == 2)
+                        {
+                            dateStr = dateStr.substring(0, 6) + "01";
+                            dateObj = UIHelper.convertIntToDate(Integer.parseInt(dateStr)); 
+                            datePairArg.second = "2";
+                            
+                        } else
+                        {
+                            dateObj = UIHelper.convertIntToDate((Integer)data);
+                            datePairArg.second = "1";
+                        }
                     } else
                     {
-                        dateObj = UIHelper.convertIntToDate((Integer)data);
+                        dateObj = UIHelper.convertIntToDate((Integer)data); 
                         datePairArg.second = "1";
                     }
-                } else
+                    datePairArg.first = dateObj == null ? "NULL" : (includeQuotes ? "\"" : "") + dateFormatter.format(dateObj) + (includeQuotes ? "\"" : "");
+                    
+                } else 
                 {
-                    dateObj = UIHelper.convertIntToDate((Integer)data); 
-                    datePairArg.second = "1";
+                    log.error("Partial Date was't 8 digits! ["+dateStr+"]");
                 }
-                datePairArg.first = dateObj == null ? "NULL" : (includeQuotes ? "\"" : "") + dateFormatter.format(dateObj) + (includeQuotes ? "\"" : "");
-                
-            } else 
+            } else
             {
-                log.error("Partial Date was't 8 digits! ["+dateStr+"]");
+                datePairArg.first  = "NULL";
+                datePairArg.second = "1";
             }
         }
     }
@@ -1981,6 +2678,18 @@ public class BasicSQLUtils
     /**
      * Takes a list of names and creates a string with the names comma separated
      * @param list the list of names (or field names)
+     * @return the string of comma separated names
+     */
+    public static String buildSelectFieldList(final List<String> list)
+    {
+        return buildSelectFieldList(list, null);
+    }
+
+    
+    /**
+     * Takes a list of names and creates a string with the names comma separated
+     * @param list the list of names (or field names)
+     * @param tableName table prefix
      * @return the string of comma separated names
      */
     public static String buildSelectFieldList(final List<String> list, final String tableName)
@@ -2190,11 +2899,20 @@ public class BasicSQLUtils
         return -1;
     }
 
+    /**
+     * @param opt
+     * @return
+     */
     public static boolean isOptionOn(final int opt)
     {
         return (showErrors & opt) == opt;
     }
     
+    /**
+     * @param mySQLFormatedStr
+     * @param currentServerType
+     * @return
+     */
     public static String getServerTypeSpecificSQL(final String mySQLFormatedStr, final SERVERTYPE currentServerType)
     {
         String mySQLFormatedString = mySQLFormatedStr;
@@ -2207,11 +2925,19 @@ public class BasicSQLUtils
         return mySQLFormatedString;
     }
     
+    /**
+     * @param str
+     * @return
+     */
     private static String stripSingleQuotes(final String str)
     {
         return str.replace("`", "");
     }
     
+    /**
+     * @param strArg
+     * @return
+     */
     private static String stripEngineCharSet(final String strArg)
     {
         String str = strArg;
@@ -2220,11 +2946,20 @@ public class BasicSQLUtils
         return str;
     }
     
+    /**
+     * @param str
+     * @return
+     */
     private static String stripIntSize(final String str)
     {
         return str.replaceAll("\\(11\\)", "");  
     }
     
+    /**
+     * @param name
+     * @param currentServerType
+     * @return
+     */
     public static String createIndexFieldStatment(final String name, final SERVERTYPE currentServerType) 
     {
         if (currentServerType == SERVERTYPE.MS_SQLServer)
@@ -2238,6 +2973,11 @@ public class BasicSQLUtils
         return "alter table "+name+" add index INX_"+name+" (NewID)";
     }
     
+    /**
+     * @param connection
+     * @param tableName
+     * @param currentServerType
+     */
     public static void setIdentityInsertONCommandForSQLServer(final Connection connection, 
                                                               final String tableName,
                                                               final SERVERTYPE currentServerType) 
@@ -2245,6 +2985,11 @@ public class BasicSQLUtils
         setIdentityInserCommandForSQLServer(connection, tableName, "ON", currentServerType); 
     }
     
+    /**
+     * @param connection
+     * @param tableName
+     * @param currentServerType
+     */
     public static void setIdentityInsertOFFCommandForSQLServer(final Connection connection, 
                                                                final String tableName,
                                                                final SERVERTYPE currentServerType) 
@@ -2252,6 +2997,12 @@ public class BasicSQLUtils
         setIdentityInserCommandForSQLServer(connection, tableName, "OFF", currentServerType); 
     }   
     
+    /**
+     * @param connection
+     * @param tableName
+     * @param mySwitch
+     * @param currentServerType
+     */
     public static void setIdentityInserCommandForSQLServer(final Connection connection,
                                                            final String tableName,
                                                            final String mySwitch,
@@ -2334,6 +3085,10 @@ public class BasicSQLUtils
         }  
     }
     
+    /**
+     * @param connection
+     * @param currentServerType
+     */
     public static void removeForeignKeyConstraints(final Connection connection,
                                                    final SERVERTYPE currentServerType)
     {
@@ -2341,7 +3096,7 @@ public class BasicSQLUtils
         {
             if (currentServerType == SERVERTYPE.MS_SQLServer) 
             {
-                List<String> myTables = getTableNames(connection, currentServerType);       
+                List<String> myTables = getTableNames(connection);       
                 for (Iterator<String> i = myTables.iterator( ); i.hasNext( ); ) 
                 {
                     String s = i.next( );
@@ -2365,93 +3120,5 @@ public class BasicSQLUtils
             edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(BasicSQLUtils.class, ex);
             log.error(ex);
         } 
-    }
-    
-    public static String generateShowTablesCommand(final String databaseName,
-                                                   final SERVERTYPE currentServerType) 
-    {
-        if (currentServerType == SERVERTYPE.MS_SQLServer) 
-        {
-            return "SELECT TABLE_NAME FROM  "+databaseName+".INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = "
-                    + "\'BASE TABLE\' ";//AND TABLE_SCHEMA = \'"+ databaseName + "\'";
-        }
-        return "show tables";
-        
-    }
-
-    public static String generateDescribeTableCommand(final String tableName, String databaseName,
-                                                      final SERVERTYPE currentServerType) 
-    {
-        if (currentServerType == SERVERTYPE.MS_SQLServer) 
-        {
-            return "SELECT COLUMN_NAME, DATA_TYPE FROM "+databaseName+".INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = \'"+tableName+"\' ";
-                    //+"AND TABLE_SCHEMA = \'"+ databaseName + "\'";
-        }
-        return "describe "+tableName;
-    }
-    
-    //-----------------------------------------------------------------------
-    //-- Inner Classes
-    //-----------------------------------------------------------------------
-    public class FieldMetaData
-    {
-        protected String name;
-        protected String type;
-        protected boolean isDate;
-        protected boolean isPrecision;
-
-        public FieldMetaData(String name, 
-                             String type,
-                             boolean isDate,
-                             boolean isPrecision)
-        {
-            this.name = name;
-            this.type = type;
-            this.isDate = isDate;
-            this.isPrecision = isPrecision;
-        }
-
-        public String getName()
-        {
-            return name;
-        }
-
-        public String getType()
-        {
-            return type;
-        }
-
-        /**
-         * @return the isDate
-         */
-        public boolean isDate()
-        {
-            return isDate;
-        }
-
-        /**
-         * @return the hasPrecision
-         */
-        public boolean isPrecision()
-        {
-            return isPrecision;
-        }
-
-        /**
-         * @param isDate the isDate to set
-         */
-        public void setDate(boolean isDate)
-        {
-            this.isDate = isDate;
-        }
-
-        /**
-         * @param isPrecision the isPrecision to set
-         */
-        public void setPrecision(boolean isPrecision)
-        {
-            this.isPrecision = isPrecision;
-        }
-        
     }
 }

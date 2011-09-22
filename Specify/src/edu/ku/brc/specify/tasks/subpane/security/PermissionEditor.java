@@ -439,7 +439,7 @@ public class PermissionEditor extends JPanel implements PermissionPanelContainer
 			return;
 		}
 		
-        log.debug("Saving Principal: "+principal.getId()+" - "+principal.getName()+ "  hashCode: "+principal.hashCode());
+        //log.debug("Saving Principal: "+principal.getId()+" - "+principal.getName()+ "  hashCode: "+principal.hashCode());
         
 		int numRows = model.getRowCount();
 		int taskCol = nameColTitle != null ? table.getColumn(nameColTitle).getModelIndex() : -1;
@@ -458,7 +458,7 @@ public class PermissionEditor extends JPanel implements PermissionPanelContainer
 			Boolean canMod  = getValueAt(row, modCol);
 			Boolean canDel  = getValueAt(row, delCol);
 			
-			log.debug(perm.getName()+"  v: " +canView+"  a: " + canAdd+"  m: " + canMod+"  d: " + canDel+" ");
+			//log.debug(perm.getName()+"  v: " +canView+"  a: " + canAdd+"  m: " + canMod+"  d: " + canDel+" ");
 			
 			if ( !(canView || canAdd || canMod || canDel) )
 			{
@@ -473,7 +473,7 @@ public class PermissionEditor extends JPanel implements PermissionPanelContainer
 			}
 			else if (perm.hasChanged())
 			{
-			    log.debug("Saving: " + perm.getName()+" ["+perm.getActions()+"]");
+			    log.debug("Saving: " + perm.getName()+" ["+perm.getActions()+"] "+principal.getName()+", "+principal.getGroupType()+", "+principal.getGroupSubClass()+", "+principal.getPriority());
 				// set new flags
 				perm.setActions(canView, canAdd, canMod, canDel);
 

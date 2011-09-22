@@ -19,21 +19,9 @@
 */
 package edu.ku.brc.dbsupport;
 
-import java.awt.Frame;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
-import java.sql.Connection;
-
-import javax.swing.JPasswordField;
-import javax.swing.JTextField;
-
-import com.jgoodies.forms.builder.PanelBuilder;
-import com.jgoodies.forms.layout.CellConstraints;
-import com.jgoodies.forms.layout.FormLayout;
-
-import edu.ku.brc.ui.CustomDialog;
-import edu.ku.brc.ui.UIHelper;
-import edu.ku.brc.ui.UIRegistry;
+import java.util.Vector;
 
 /**
  * Abstract class for setting application context. It is designed that each application should implement its own.<br>
@@ -52,61 +40,55 @@ import edu.ku.brc.ui.UIRegistry;
  * @author rods
  *
  */
+/**
+ * @author rods
+ *
+ * @code_status Alpha
+ *
+ * Created Date: Nov 24, 2009
+ *
+ */
 public abstract class SchemaUpdateService
 {
     public static final String factoryName = "edu.ku.brc.af.core.db.SchmeaUpdateService"; //$NON-NLS-1$
     
+    public enum SchemaUpdateType {Success, SuccessAppVer, SuccessSilent, Error, NotNeeded}
+    
     public enum CONTEXT_STATUS {OK, Error, Ignore, Initial}
     
+    protected Vector<String> errMsgList = new Vector<String>();
+
     protected static SchemaUpdateService instance = null;
     
     /**
-     * @return
+     * 
      */
-    protected DBConnection getITConnection()
+    public SchemaUpdateService()
     {
-        JTextField     userNameTF = new JTextField(15);
-        JPasswordField passwordTF = new JPasswordField();
-        
-        CellConstraints cc = new CellConstraints();
-        PanelBuilder    pb = new PanelBuilder(new FormLayout("p,2px,p", "p,4px,p"));
-        
-        pb.add(UIHelper.createI18NFormLabel("username"), cc.xy(1, 1));
-        pb.add(userNameTF, cc.xy(3, 1));
-        
-        pb.add(UIHelper.createI18NFormLabel("password"), cc.xy(1, 3));
-        pb.add(passwordTF, cc.xy(3, 3));
-        
-        pb.setDefaultDialogBorder();
-        
-        CustomDialog dlg = new CustomDialog((Frame)UIRegistry.getMostRecentWindow(), "", true, pb.getPanel());
-        dlg.setVisible(true);
-        if (!dlg.isCancelled())
-        {
-            DBConnection dbc    = DBConnection.getInstance();
-            DBConnection dbConn = new DBConnection(userNameTF.getText(), new String(passwordTF.getPassword()),  dbc.getConnectionStr(), dbc.getDriver(), dbc.getDialect(), dbc.getDatabaseName());
-            try
-            {
-                Connection conn = dbConn.createConnection();
-                conn.close();
-                
-                dbConn.setServerName(dbc.getServerName());
-                return dbConn;
-                
-            } catch (Exception ex)
-            {
-                
-            }
-        }
-        return null;
+        super();
+    }
+
+    /**
+     * @return the errMsgList
+     */
+    public Vector<String> getErrMsgList()
+    {
+        return errMsgList;
     }
     
     /**
      * Returns a View by name, meaning a ViewSet name and a View name inside the ViewSet.
      * @param viewName the name of the view (cannot be null)
+     * @param versionNumber the current version number of the application
      * @return the view
      */
-    public abstract boolean updateSchema();
+    public abstract SchemaUpdateType updateSchema(String versionNumber);
+    
+    
+    /**
+     * @return a string with the version number for the database schema
+     */
+    public abstract String getDBSchemaVersionFromXML();
     
     /**
      * Returns the instance of the AppContextMgr.

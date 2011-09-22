@@ -38,7 +38,7 @@ import javax.persistence.Transient;
 @org.hibernate.annotations.Entity(dynamicInsert=true, dynamicUpdate=true)
 @org.hibernate.annotations.Proxy(lazy = false)
 @Table(name = "commonnametxcitation")
-public class CommonNameTxCitation extends DataModelObjBase implements java.io.Serializable 
+public class CommonNameTxCitation extends DataModelObjBase implements java.io.Serializable, Cloneable
 {
     protected Integer commonNameTxCitationId;
     protected String remarks;
@@ -302,8 +302,27 @@ public class CommonNameTxCitation extends DataModelObjBase implements java.io.Se
 	{
 		this.commonNameTx = commonNameTx;
 	}
+    
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.datamodel.DataModelObjBase#getParentTableId()
+     */
+    @Override
+    @Transient
+    public Integer getParentTableId()
+    {
+        return CommonNameTx.getClassTableId();
+    }
 
-
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.datamodel.DataModelObjBase#getParentId()
+     */
+    @Override
+    @Transient
+    public Integer getParentId()
+    {
+        return commonNameTx != null ? commonNameTx.getId() : null;
+    }
+    
 	/* (non-Javadoc)
 	 * @see edu.ku.brc.specify.datamodel.DataModelObjBase#initialize()
 	 */
@@ -323,4 +342,18 @@ public class CommonNameTxCitation extends DataModelObjBase implements java.io.Se
 		commonNameTx = null;
 	}
 
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.datamodel.DataModelObjBase#clone()
+     */
+    @Override
+    public Object clone() throws CloneNotSupportedException
+    {
+        CommonNameTxCitation obj = (CommonNameTxCitation)super.clone();
+        
+        obj.commonNameTxCitationId = null;
+        //obj.referenceWork = null;
+        obj.commonNameTx  = null;
+        
+        return obj;
+    }
 }

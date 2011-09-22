@@ -75,6 +75,8 @@ public class GeologicTimePeriod extends DataModelObjBase implements java.io.Seri
     protected Float                         startUncertainty;
     protected Float                         endPeriod;
     protected Float                         endUncertainty;
+    protected String                        text1;
+    protected String                        text2;
     protected Boolean                       isBioStrat;
     protected GeologicTimePeriodTreeDef     definition;
     protected GeologicTimePeriodTreeDefItem definitionItem;
@@ -125,6 +127,8 @@ public class GeologicTimePeriod extends DataModelObjBase implements java.io.Seri
         definitionItem = null;
         parent = null;
         isBioStrat = false;
+        text1 = null;
+        text2 = null;
 
         children                  = new HashSet<GeologicTimePeriod>();
         bioStratsPaleoContext     = new HashSet<PaleoContext>();
@@ -334,6 +338,40 @@ public class GeologicTimePeriod extends DataModelObjBase implements java.io.Seri
         this.guid = guid;
     }
 
+    /**
+     * @return the text1
+     */
+    @Column(name = "Text1", length = 128)
+    public String getText1()
+    {
+        return text1;
+    }
+
+    /**
+     * @param text1 the text1 to set
+     */
+    public void setText1(String text1)
+    {
+        this.text1 = text1;
+    }
+
+    /**
+     * @return the text2
+     */
+    @Column(name = "Text2", length = 128)
+    public String getText2()
+    {
+        return text2;
+    }
+
+    /**
+     * @param text2 the text2 to set
+     */
+    public void setText2(String text2)
+    {
+        this.text2 = text2;
+    }
+
     @Column(name="IsAccepted")
     public Boolean getIsAccepted()
     {
@@ -374,7 +412,7 @@ public class GeologicTimePeriod extends DataModelObjBase implements java.io.Seri
         this.acceptedChildren = acceptedChildren;
     }
 
-    @ManyToOne
+    @ManyToOne(cascade = {}, fetch = FetchType.LAZY)
     @JoinColumn(name = "AcceptedID")
     public GeologicTimePeriod getAcceptedGeologicTimePeriod()
     {
@@ -400,7 +438,7 @@ public class GeologicTimePeriod extends DataModelObjBase implements java.io.Seri
     /**
      * 
      */
-    @ManyToOne
+    @ManyToOne(cascade = {}, fetch = FetchType.LAZY)
     @JoinColumn(name = "GeologicTimePeriodTreeDefID", nullable = false)
     public GeologicTimePeriodTreeDef getDefinition()
     {
@@ -415,7 +453,7 @@ public class GeologicTimePeriod extends DataModelObjBase implements java.io.Seri
     /**
      * 
      */
-    @ManyToOne
+    @ManyToOne(cascade = {}, fetch = FetchType.EAGER)
     @JoinColumn(name = "GeologicTimePeriodTreeDefItemID", nullable = false)
     public GeologicTimePeriodTreeDefItem getDefinitionItem()
     {
@@ -434,7 +472,7 @@ public class GeologicTimePeriod extends DataModelObjBase implements java.io.Seri
     /**
      * 
      */
-    @ManyToOne
+    @ManyToOne(cascade = {}, fetch = FetchType.LAZY)
     @JoinColumn(name = "ParentID")
     public GeologicTimePeriod getParent()
     {
@@ -446,7 +484,9 @@ public class GeologicTimePeriod extends DataModelObjBase implements java.io.Seri
         this.parent = parent;
     }
 
-    @OneToMany(cascade = {javax.persistence.CascadeType.ALL}, fetch = FetchType.LAZY, mappedBy = "parent")
+    //@OneToMany(cascade = {javax.persistence.CascadeType.ALL}, fetch = FetchType.LAZY, mappedBy = "parent")
+    @OneToMany(mappedBy = "parent")
+    @Cascade( {CascadeType.ALL} )
     public Set<GeologicTimePeriod> getChildren()
     {
         return this.children;
@@ -495,7 +535,27 @@ public class GeologicTimePeriod extends DataModelObjBase implements java.io.Seri
     {
         this.chronosStratsPaleoContext = chronosStratsPaleoContext;
     }
+    
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.datamodel.DataModelObjBase#getParentTableId()
+     */
+    @Override
+    @Transient
+    public Integer getParentTableId()
+    {
+        return GeologicTimePeriod.getClassTableId();
+    }
 
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.datamodel.DataModelObjBase#getParentId()
+     */
+    @Override
+    @Transient
+    public Integer getParentId()
+    {
+        return parent != null ? parent.getId() : null;
+    }
+    
     @Transient
     public Integer getTreeId()
     {

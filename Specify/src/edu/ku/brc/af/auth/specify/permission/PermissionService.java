@@ -43,8 +43,11 @@ import javax.security.auth.Subject;
 import org.apache.log4j.Logger;
 
 import edu.ku.brc.af.auth.specify.policy.DatabaseService;
+import edu.ku.brc.af.core.AppContextMgr;
 import edu.ku.brc.dbsupport.DataProviderFactory;
 import edu.ku.brc.dbsupport.DataProviderSessionIFace;
+import edu.ku.brc.specify.conversion.BasicSQLUtils;
+import edu.ku.brc.specify.datamodel.Collection;
 import edu.ku.brc.specify.datamodel.SpPermission;
 import edu.ku.brc.specify.datamodel.SpPrincipal;
 import edu.ku.brc.specify.datamodel.SpecifyUser;
@@ -210,6 +213,10 @@ public class PermissionService
         return hash;
     }
     
+    /**
+     * @param principals
+     * @return
+     */
     private static String getPrincipalSet(final List<SpPrincipal> principals) 
     {
         StringBuffer inClause = new StringBuffer();
@@ -277,23 +284,17 @@ public class PermissionService
     public static List<Permission> findPrincipalBasedPermissions(Integer principalId)
     {
         if(debug)log.debug("findPrincipalBasedPermissions - principalId: "+ principalId); //$NON-NLS-1$
-        if (principalId == 3)
-        {
-            int x = 0;
-            x++;
-        }
         List<Permission> perms = new ArrayList<Permission>();
-        Connection conn = null;
+        Connection        conn = null;
         PreparedStatement pstmt = null;
         try
         {
-            //XXX convert to hibernate
+            Collection collection = (Collection)AppContextMgr.getInstance().getClassObject(Collection.class); 
             conn = DatabaseService.getInstance().getConnection();
-            String sql = "SELECT sppermission.SpPermissionID SpPermissionID, " //$NON-NLS-1$
-                    + "sppermission.PermissionClass PermissionClass, sppermission.Name Name, "         //$NON-NLS-1$
-                    + "sppermission.Actions Actions " + "FROM spprincipal_sppermission, sppermission " //$NON-NLS-1$ //$NON-NLS-2$
-                    + "WHERE spprincipal_sppermission.SpPrincipalID="+principalId+" "                  //$NON-NLS-1$ //$NON-NLS-2$
-                    + "AND sppermission.SpPermissionID=spprincipal_sppermission.SpPermissionID ";      //$NON-NLS-1$
+            String sql = String.format("SELECT pm.SpPermissionID, pm.PermissionClass, pm.Name, pm.Actions, p.userGroupScopeID FROM sppermission AS pm " +
+                                        "Inner Join spprincipal_sppermission AS sp ON pm.SpPermissionID = sp.SpPermissionID " +
+                                        "Inner Join spprincipal AS p ON sp.SpPrincipalID = p.SpPrincipalID " +
+                                        "WHERE p.SpPrincipalID = %d AND p.userGroupScopeID = %d", principalId, collection.getId());
             if(debug)log.debug("sql: " + sql); //$NON-NLS-1$
             pstmt = conn.prepareStatement(sql);
             ResultSet rs = pstmt.executeQuery();
@@ -496,13 +497,18 @@ public class PermissionService
     private static boolean doesSpPrincipalHavePermission(SpPrincipal sp, Permission permission)
     {
         if(debug)log.debug("doesSpPrincipalHavePermission"); //$NON-NLS-1$
-        boolean isPermissionGranted = false;
-        Connection conn = null;
-        PreparedStatement pstmt = null;
-        Integer principalId = sp.getId();
-        Integer permissionId = getPermissionsId(permission);
-        if(principalId ==null || permissionId==null)
+        
+        boolean           isPermissionGranted = false;
+        Connection        conn                = null;
+        PreparedStatement pstmt               = null;
+        Integer           principalId         = sp.getId();
+        Integer           permissionId        = getPermissionsId(permission);
+        
+        if (principalId == null || permissionId == null)
+        {
             return false;
+        }
+        
         try
         {
             //XXX convert to hibernate
@@ -560,10 +566,10 @@ public class PermissionService
         {
             //XXX convert to hibernate
             conn = DatabaseService.getInstance().getConnection();   
-            String query = "SELECT sppermission.SpPermissionID FROM sppermission WHERE sppermission.Actions=\""+permission.getActions()+"\" " //$NON-NLS-1$ //$NON-NLS-2$
-            + "AND sppermission.Name=\""+permission.getName() + "\" " //$NON-NLS-1$ //$NON-NLS-2$
-            + "AND sppermission.PermissionClass=\""+permission.getClass().getCanonicalName()+ "\" "; //$NON-NLS-1$ //$NON-NLS-2$
-             pstmt = conn.prepareStatement(query);
+            String query = "SELECT sppermission.SpPermissionID FROM sppermission WHERE sppermission.Actions='"+permission.getActions()+"' " //$NON-NLS-1$ //$NON-NLS-2$
+            + "AND sppermission.Name='" + permission.getName() + "' " //$NON-NLS-1$ //$NON-NLS-2$
+            + "AND sppermission.PermissionClass='"+permission.getClass().getCanonicalName()+ "' "; //$NON-NLS-1$ //$NON-NLS-2$
+             pstmt = conn.prepareStatement(BasicSQLUtils.escapeStringLiterals(query));
             if(debug)log.debug("executing: " + query); //$NON-NLS-1$
             ResultSet rs = pstmt.executeQuery();
             while (rs.next())
@@ -602,7 +608,7 @@ public class PermissionService
      * @param sp
      * @param permission
      */
-    public static void giveSpPrincipalPermission(SpPrincipal sp, Permission permission)
+    public static void giveSpPrincipalPermission(final SpPrincipal sp, final Permission permission)
     {
         createPermission(permission);
         joinSpPrincipalPermission(sp, permission);
@@ -611,7 +617,7 @@ public class PermissionService
     /**
      * @param permission
      */
-    private static void createPermission(Permission permission) 
+    private static void createPermission(final Permission permission) 
     {
         Connection conn = null;
         PreparedStatement pstmt = null; 
@@ -624,7 +630,6 @@ public class PermissionService
             pstmt.setString(2, permission.getName());
             pstmt.setString(3, permission.getClass().getName());
             pstmt.executeUpdate();
-            conn.close();
         }
         catch (SQLException e)
         {
@@ -636,8 +641,8 @@ public class PermissionService
         {
             try
             {
-                if (conn != null)  conn.close();
                 if (pstmt != null)  pstmt.close(); 
+                if (conn != null)  conn.close();
             } catch (SQLException e)
             {
                 edu.ku.brc.af.core.UsageTracker.incrSQLUsageCount();
@@ -675,10 +680,9 @@ public class PermissionService
             if (session != null)
             {
                 session.close();
-                return principal;
             }
         }
-        return null;
+        return principal;
     }  
     
     /**
@@ -688,7 +692,7 @@ public class PermissionService
      */
     public static boolean runCheckPermssion(final Subject s, final Permission perm)
     {
-        if(debug)log.debug("runCheckPermssion - calling doAsPrivileged to check if subject has permission"); //$NON-NLS-1$
+        if(debug)log.debug(String.format("runCheckPermssion - calling doAsPrivileged to check if subject has permission [%s] [%s]", perm.getName(), perm.getActions())); //$NON-NLS-1$
         try
         {
             //log.debug("runCheckPermssion: calling doAsPrivileged"); //$NON-NLS-1$

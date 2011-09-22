@@ -45,8 +45,14 @@ import org.apache.log4j.Logger;
 import org.dom4j.Element;
 import org.dom4j.io.SAXReader;
 
-import edu.ku.brc.ui.UIRegistry;
+import com.thoughtworks.xstream.XStream;
+import com.thoughtworks.xstream.core.util.QuickWriter;
+import com.thoughtworks.xstream.io.HierarchicalStreamWriter;
+import com.thoughtworks.xstream.io.xml.PrettyPrintWriter;
+import com.thoughtworks.xstream.io.xml.XppDriver;
+
 import edu.ku.brc.ui.UIHelper;
+import edu.ku.brc.ui.UIRegistry;
 import edu.ku.brc.util.XMLChecksumUtil;
 
 
@@ -109,7 +115,7 @@ public class XMLHelper
         
         if (!file.exists())
         {
-            log.error("the file ["+file+"] doesn't exist."); //$NON-NLS-1$ //$NON-NLS-2$
+            //log.error("the file ["+file+"] doesn't exist."); //$NON-NLS-1$ //$NON-NLS-2$
             return null;
         }
 
@@ -169,7 +175,7 @@ public class XMLHelper
         {
         	// Check the working path.
             File cfgDir = new File(UIRegistry.getDefaultWorkingPath() + File.separator + "config"); //$NON-NLS-1$
-            log.debug("Checking Working Path["+cfgDir.getAbsolutePath()+"]"); //$NON-NLS-1$ //$NON-NLS-2$
+            //log.debug("Checking Working Path["+cfgDir.getAbsolutePath()+"]"); //$NON-NLS-1$ //$NON-NLS-2$
             if (!cfgDir.exists())
             {
             	// Second check to see if the config dir is a child directory
@@ -391,8 +397,11 @@ public class XMLHelper
        try
        {
            output = new BufferedWriter(new FileWriter(outFile));
-           output.write(contents);
-           output.flush();
+           if (contents != null)
+           {
+               output.write(contents);
+               output.flush();
+           }
            
        } finally
        {
@@ -402,6 +411,32 @@ public class XMLHelper
            }
        }
    }
+   
+    /**
+     * @return XStream with HierarchicalStreamWriter for CDATA fields.
+     */
+    public static XStream createXStreamWithCData()
+    {
+       return new XStream(
+               new XppDriver() 
+               {
+                   @Override
+                   public HierarchicalStreamWriter createWriter(Writer out) 
+                   {
+                       return new PrettyPrintWriter(out) 
+                       {
+                           @Override
+                           protected void writeText(QuickWriter writer, String text) 
+                           {
+                               writer.write("<![CDATA[");
+                               writer.write(text);
+                               writer.write("]]>");
+                           }
+                       };
+                   }
+               }
+           );
+    }
    
    public static void indent(final StringBuilder sb, final int width)
    {

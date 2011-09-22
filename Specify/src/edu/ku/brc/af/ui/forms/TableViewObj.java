@@ -27,7 +27,6 @@ import static org.apache.commons.lang.StringUtils.split;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
-import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
@@ -99,6 +98,7 @@ import edu.ku.brc.af.ui.forms.persist.FormCellLabel;
 import edu.ku.brc.af.ui.forms.persist.FormCellLabelIFace;
 import edu.ku.brc.af.ui.forms.persist.FormCellSubView;
 import edu.ku.brc.af.ui.forms.persist.FormCellSubViewIFace;
+import edu.ku.brc.af.ui.forms.persist.FormDevHelper;
 import edu.ku.brc.af.ui.forms.persist.FormViewDef;
 import edu.ku.brc.af.ui.forms.persist.FormViewDefIFace;
 import edu.ku.brc.af.ui.forms.persist.TableViewDef;
@@ -151,6 +151,7 @@ public class TableViewObj implements Viewable,
 
     // Data Members
     protected DataProviderSessionIFace      session        = null;
+    protected boolean                       doingAction    = false;
     protected boolean                       isEditing      = false;
     protected boolean                       isSavable      = false;  // via the relationship
     protected boolean                       formIsInNewDataMode = false; // when this is true it means the form was cleared and new data is expected
@@ -205,6 +206,8 @@ public class TableViewObj implements Viewable,
     protected JComboBox                     selectorCBX     = null;
     protected int                           mainCompRowInx  = 1;
     protected boolean                       addSearch;
+    protected boolean                       includeAddBtn;
+    protected boolean                       doSpecialAdd;
     protected JButton                       searchButton    = null;
     protected JButton                       editButton      = null;
     protected JButton                       newButton       = null;
@@ -212,6 +215,7 @@ public class TableViewObj implements Viewable,
     protected JPanel                        sepController   = null;
 
     protected BusinessRulesIFace            businessRules   = null; 
+    protected Class<?>                      dataClass;
 
     protected DraggableRecordIdentifier     draggableRecIdentifier   = null;
     
@@ -244,12 +248,17 @@ public class TableViewObj implements Viewable,
      * @param mvParent the parent
      * @param formValidator the validator
      * @param options the creation options
+     * @param cellName the name of the cell when it is a subview
+     * @param dataClass the class of the data that is put into the form
+     * @param bgColor
      */
     public TableViewObj(final ViewIFace     view,
                         final AltViewIFace  altView,
                         final MultiView     mvParent,
                         final FormValidator formValidator,
                         final int           options,
+                        final String        cellName,
+                        final Class<?>      dataClass,
                         final Color         bgColor)
     {
         this.view        = view;
@@ -258,7 +267,9 @@ public class TableViewObj implements Viewable,
         this.options     = options;
         this.viewDef     = altView.getViewDef();
         this.formValidator = formValidator;
-        
+        this.cellName      = cellName;
+        this.dataClass     = dataClass;
+
         businessRules    = view.createBusinessRule();
         dataGetter       = altView.getViewDef().getDataGettable();
         this.formViewDef = (FormViewDefIFace)altView.getViewDef();
@@ -271,11 +282,16 @@ public class TableViewObj implements Viewable,
         boolean hideSaveBtn                = MultiView.isOptionOn(options, MultiView.HIDE_SAVE_BTN);
         isEditing                          = MultiView.isOptionOn(options, MultiView.IS_EDITTING) && altView.getMode() == AltViewIFace.CreationMode.EDIT;
         
-        addSearch = mvParent != null && MultiView.isOptionOn(mvParent.getOptions(), MultiView.ADD_SEARCH_BTN);
-        if (addSearch)
+        addSearch     = mvParent != null && MultiView.isOptionOn(mvParent.getOptions(), MultiView.ADD_SEARCH_BTN);
+        includeAddBtn = mvParent != null && MultiView.isOptionOn(mvParent.getOptions(), MultiView.INCLUDE_ADD_BTN);
+        doSpecialAdd  = addSearch && includeAddBtn;
+        
+        // rods 7/23/10 - Not sure why this and the code below was added, because
+        // it includes a search btn when in View mode
+        /*if (addSearch)
         {
             isEditing = false;
-        }
+        }*/
         
         setValidator(formValidator);
 
@@ -321,7 +337,7 @@ public class TableViewObj implements Viewable,
                     altView.setMode(AltViewIFace.CreationMode.EDIT);
                 }
                 
-                switcherUI = FormViewObj.createMenuSwitcherPanel(mvParent, view, altView, altViewsList, mainComp);
+                switcherUI = FormViewObj.createMenuSwitcherPanel(mvParent, view, altView, altViewsList, mainComp, cellName, dataClass);
                 
                 if (tempMode != null)
                 {
@@ -330,13 +346,17 @@ public class TableViewObj implements Viewable,
                 
                 if (altViewsList.size() > 0)
                 {
-                    if (isEditing || addSearch)
+                    if (isEditing) //|| addSearch) // rods 7/23/10 - removed 'addSearch' because it was showing up in View Mode
                     {
-                        String delTTStr = ResultSetController.createTooltip("RemoveRecordTT", view.getObjTitle());
-                        deleteButton = UIHelper.createIconBtnTT("DeleteRecord", IconManager.IconSize.Std16, delTTStr, false, new ActionListener() {
+                        String delTTStr = ResultSetController.createTooltip(addSearch ? "RemoveRecordTT" : "DeleteRecordTT", view.getObjTitle());
+                        deleteButton = UIHelper.createIconBtnTT(addSearch ? "Eraser16" : "DeleteRecord", IconManager.IconSize.Std16, delTTStr, false, new ActionListener() {
                             public void actionPerformed(ActionEvent e)
                             {
-                                deleteRow(table.getSelectedRow());
+                                if (deleteButton.isEnabled())
+                                {
+                                    deleteButton.setEnabled(false);
+                                    deleteRow(table.getSelectedRow());
+                                }
                             }
                         });
                         
@@ -358,33 +378,71 @@ public class TableViewObj implements Viewable,
                                 log.error("Couldn't find TableInfo for class["+view.getClassName()+"]");
                             }
                             
-                            searchButton = UIHelper.createIconBtnTT("Search", IconManager.IconSize.Std16, srchTTStr, false, new ActionListener() {
+                            searchButton = UIHelper.createIconBtnTT(addSearch ? "SearchAdd" : "Search", IconManager.IconSize.Std16, srchTTStr, false, new ActionListener() {
+                                @Override
                                 public void actionPerformed(ActionEvent e)
                                 {
-                                    doSearch();
+                                    if (searchButton.isEnabled())
+                                    {
+                                        searchButton.setEnabled(false);
+                                        try
+                                        {
+                                            doSearch();
+                                        } finally
+                                        {
+                                            searchButton.setEnabled(true);
+                                        }
+                                    }
+
                                 }
                             });
                             searchButton.setEnabled(true);
+                            String saTTStr = ResultSetController.createTooltip("SearchAddRecordTT", view.getObjTitle());
+                            searchButton.setToolTipText(saTTStr);
                             
                         } else
                         {
                             String edtTTStr  = ResultSetController.createTooltip("EditRecordTT",   view.getObjTitle());
-                            String newTTStr  = ResultSetController.createTooltip("NewRecordTT",    view.getObjTitle());
                             editButton   = UIHelper.createIconBtnTT("EditForm", IconManager.IconSize.Std16, edtTTStr, false, new ActionListener() {
                                 public void actionPerformed(ActionEvent e)
                                 {
-                                    editRow(table.getSelectedRow(), false);
-                                }
-                            });
-                            newButton    = UIHelper.createIconBtnTT("CreateObj", IconManager.IconSize.Std16, newTTStr, false, new ActionListener() {
-                                public void actionPerformed(ActionEvent e)
-                                {
-                                    editRow(table.getSelectedRow(), true);
+                                    if (editButton.isEnabled())
+                                    {
+                                        editButton.setEnabled(false);
+                                        try
+                                        {
+                                            editRow(table.getSelectedRow(), false);
+                                        } finally
+                                        {
+                                            editButton.setEnabled(true);
+                                        }
+                                    }
                                 }
                             });
                         }
                         
-                        boolean isAbove = mvParent.getSeparator() != null;  
+                        if (doSpecialAdd || !addSearch)
+                        {
+                            String newTTStr  = ResultSetController.createTooltip("NewRecordTT",    view.getObjTitle());
+                            newButton = UIHelper.createIconBtnTT("CreateObj", IconManager.IconSize.Std16, newTTStr, false, new ActionListener() {
+                                public void actionPerformed(ActionEvent e)
+                                {
+                                    if (newButton.isEnabled())
+                                    {
+                                        newButton.setEnabled(false);
+                                        try
+                                        {
+                                            editRow(table.getSelectedRow(), true);
+                                        } finally
+                                        {
+                                            newButton.setEnabled(true);
+                                        }
+                                    }
+                                }
+                            });
+                        }
+                        
+                        boolean isAbove = mvParent != null && mvParent.getSeparator() != null;  
                         
                         int cnt = (deleteButton != null ? 1 : 0) + (searchButton != null ? 1 : 0) + (editButton != null ? 1 : 0) + (newButton != null ? 1 : 0);
                         
@@ -436,12 +494,22 @@ public class TableViewObj implements Viewable,
                          editButton.addActionListener(new ActionListener() {
                             public void actionPerformed(ActionEvent e)
                             {
-                                editRow(table.getSelectedRow(), false);
+                                if (editButton.isEnabled())
+                                {
+                                    editButton.setEnabled(false);
+                                    try
+                                    {
+                                        editRow(table.getSelectedRow(), false);
+                                    } finally
+                                    {
+                                        editButton.setEnabled(true);
+                                    }
+                                }
                             }
                         });
                          PanelBuilder builder = new PanelBuilder(new FormLayout("f:1px:g,p,10px", "p"));
                          builder.add(editButton, cc.xy(2,1));
-                         if (mvParent.getSeparator() != null)
+                         if (mvParent != null && mvParent.getSeparator() != null)
                          {
                              sepController = builder.getPanel();
                          } else
@@ -492,7 +560,8 @@ public class TableViewObj implements Viewable,
         
         if (AppContextMgr.isSecurityOn())
         {
-            setPermsFromTableInfo(view.getClassName());
+            String shortClasName = MultiView.getClassNameFromParentMV(dataClass, mvParent, cellName);
+            setPermsFromTableInfo(shortClasName != null ? shortClasName : view.getClassName());
         } else
         {
             perm = new PermissionSettings(PermissionSettings.ALL_PERM);
@@ -545,9 +614,10 @@ public class TableViewObj implements Viewable,
         return deleteButton;
     }
 
-    /**
-     * @return the mvParent
+    /* (non-Javadoc)
+     * @see edu.ku.brc.af.ui.forms.Viewable#getMVParent()
      */
+    @Override
     public MultiView getMVParent()
     {
         return mvParent;
@@ -629,8 +699,13 @@ public class TableViewObj implements Viewable,
                                 rsController.setIndex(len-1, false);
                             }
                             model.fireDataChanged();
-                            tellMultiViewOfChange();
-                            formValidator.validateRoot();
+                            
+                            if (addSearch && mvParent != null && 
+                                mvParent.getTopLevel().getCurrentValidator() != null)
+                            {
+                                mvParent.getTopLevel().getCurrentValidator().setHasChanged(true);
+                                mvParent.getTopLevel().getCurrentValidator().validateForm();
+                            }
                             
                             newObjsList.addAll(newDataObjects);
                             
@@ -676,12 +751,7 @@ public class TableViewObj implements Viewable,
      */
     public void setVisibleRowCount(int rows)
     {
-        if (table != null)
-        {
-            table.setPreferredScrollableViewportSize(new Dimension( 
-                    table.getPreferredScrollableViewportSize().width, 
-                    rows*table.getRowHeight()));
-        }
+        UIHelper.setVisibleRowCount(table, rows);
     }
     
     /**
@@ -691,19 +761,8 @@ public class TableViewObj implements Viewable,
      */
     public void setVisibleRowCountForHeight(int rows)
     { 
-        if (table != null)
-        {
-            int height = 0; 
-            for(int row=0; row<rows; row++) 
-                height += table.getRowHeight(row); 
-         
-            table.setPreferredScrollableViewportSize(new Dimension( 
-                    table.getPreferredScrollableViewportSize().width, 
-                    height 
-            ));
-        }
+        UIHelper.setVisibleRowCountForHeight(table, rows);
     }
-
 
     /**
      * Sets all the Columns to be center justified this COULD be set up in the table info.
@@ -922,9 +981,10 @@ public class TableViewObj implements Viewable,
      * @param isEdit whether we are editing or view
      * @param isNew hwther the object is new
      */
-    @SuppressWarnings("unchecked")
     protected void editRow(final int rowIndex, final boolean isNew)
     {
+        FormDataObjIFace origObj = null;
+        FormDataObjIFace dObj    = null;
         if (isNew)
         {
             // Check to see if the business rules will be creating the object
@@ -936,7 +996,7 @@ public class TableViewObj implements Viewable,
             } else
             {
                 // OK, we need to create it locally
-                FormDataObjIFace dObj;
+                
                 if (classToCreate != null)
                 {
                     dObj = FormHelper.createAndNewDataObj(classToCreate);
@@ -944,16 +1004,28 @@ public class TableViewObj implements Viewable,
                 {
                     dObj = FormHelper.createAndNewDataObj(view.getClassName());
                 }
-                editRow(dObj, rowIndex, isNew);
+                
+                dObj = editRow(dObj, rowIndex, isNew);
             }
         } else
         {
-            FormDataObjIFace dObj = (FormDataObjIFace)dataObjList.get(rowIndex);
+            dObj = (FormDataObjIFace)dataObjList.get(rowIndex);
             if (dObj == null)
             {
                 return;
             }
-            editRow(dObj, rowIndex, isNew);
+            origObj = dObj;
+            dObj = editRow(dObj, rowIndex, isNew);
+        }
+        
+        if (origObj != null && origObj != dObj)
+        {
+            int inx = dataObjList.indexOf(origObj);
+            if (inx > -1)
+            {
+                dataObjList.removeElementAt(inx);
+                dataObjList.insertElementAt(dObj, inx);
+            }
         }
     }
     
@@ -973,16 +1045,18 @@ public class TableViewObj implements Viewable,
      * @param isNew hwther the object is new
      */
     @SuppressWarnings("unchecked")
-    protected void editRow(final FormDataObjIFace dObj, final int rowIndex, final boolean isNew)
+    protected FormDataObjIFace editRow(final FormDataObjIFace dObjArg, final int rowIndex, final boolean isNew)
     {
+        FormDataObjIFace dObj = dObjArg;
+        
         // Add it in here so the Business Rules has a parent object to
         // get state from.
-        if (parentDataObj != null && isEditing && isNew)
+        if (!doSpecialAdd && parentDataObj != null && isEditing && isNew)
         {
             parentDataObj.addReference(dObj, dataSetFieldName);
         }
         
-        final ViewBasedDisplayIFace dialog = FormHelper.createDataObjectDialog(altView, mainComp, dObj, isEditing, isNew);
+        final ViewBasedDisplayIFace dialog = FormHelper.createDataObjectDialog(mainComp, dObj, isEditing, isNew);
         if (dialog != null)
         {
             // Now we need to get the MultiView and add it into the MV tree
@@ -1013,16 +1087,52 @@ public class TableViewObj implements Viewable,
                     if (dObj.getId() != null)
                     {
                         localSession = DataProviderFactory.getInstance().createSession();
+                        //dObj = localSession.merge(dObj);
                         localSession.attach(dObj);
+                        try
+                        {
+                            localSession.attach(dObj);
+                            
+                        } catch (org.hibernate.HibernateException ex)
+                        {
+                            String msg = ex.getMessage();
+                            if (StringUtils.isNotEmpty(msg) && StringUtils.contains(msg, "dirty collection"))
+                            {
+                                //dObj = localSession.merge(dObj);
+                            }
+                        }
                     }
                     dialog.setSession(localSession);
                 }
                 
-                System.err.println(dObj);
+                if (isNew)
+                {
+                    FormViewObj fvo = dialog.getMultiView().getCurrentViewAsFormViewObj();
+                    if (fvo != null)
+                    {
+                        fvo.setCreatingNewObject(true);
+                        if (fvo.getBusinessRules() != null)
+                        {
+                            fvo.getBusinessRules().afterCreateNewObj(dObj);
+                        }
+                    }
+                }
                 dialog.setData(dObj);
-                dialog.showDisplay(true);
-                
+                if (localSession != null)
+                {
+                    localSession.close();
+                    localSession = null;
+                }
                 dialog.setSession(null);
+                
+                dialog.createUI();
+                
+                if (addSearch && includeAddBtn && isEditing && isNew)
+                {
+                    dialog.setDoSave(true);
+                    dialog.getOkBtn().setText(UIRegistry.getResourceString("SAVE"));
+                }
+                dialog.showDisplay(true);
                 
             } catch (Exception ex)
             {
@@ -1053,8 +1163,14 @@ public class TableViewObj implements Viewable,
                     if (mvParent != null)
                     {
                         tellMultiViewOfChange();
+
+                        Object daObj = dialog.getMultiView().getCurrentViewAsFormViewObj() != null ? dialog.getMultiView().getCurrentViewAsFormViewObj().getCurrentDataObj() : null;
+                        if (daObj == null)
+                        {
+                            daObj = dialog.getMultiView().getData();
+                        }
+                        dObj = daObj instanceof FormDataObjIFace ? (FormDataObjIFace)daObj : dObj;
                         
-                        Object daObj = dialog.getMultiView().getData();
                         if (isNew)
                         {
                             if (daObj instanceof Orderable)
@@ -1102,7 +1218,13 @@ public class TableViewObj implements Viewable,
                         comp.validate();
                         comp.repaint();
                     }
-                } else if (dialog.getBtnPressed() == ViewBasedDisplayIFace.CANCEL_BTN)
+                    
+                    if (doSpecialAdd && parentDataObj != null && isEditing && isNew)
+                    {
+                        parentDataObj.addReference(dObj, dataSetFieldName);
+                    }
+                    
+                } else if (dialog.isCancelled())
                 {
                     // since it was added in before the dlg was shown we now need to remove.
                     if (parentDataObj != null && isEditing && isNew)
@@ -1110,10 +1232,16 @@ public class TableViewObj implements Viewable,
                         parentDataObj.removeReference(dObj, dataSetFieldName);
                     }
                     
-                    if (mvParent.getMultiViewParent() != null && mvParent.getMultiViewParent().getCurrentValidator() != null)
+                    if (mvParent.getMultiViewParent() != null)
                     {
-                        mvParent.getCurrentValidator().setHasChanged(true);
-                        mvParent.getMultiViewParent().getCurrentValidator().validateForm();
+                        if (mvParent.getMultiViewParent().getCurrentValidator() != null)
+                        {
+                            // rods 04/28/11 - it shouldn't turn on the save btn on Cancel
+                            //mvParent.getCurrentValidator().setHasChanged(true);
+                            mvParent.getMultiViewParent().getCurrentValidator().validateForm();
+                        }
+                        
+                        multiView.getCurrentViewAsFormViewObj().doWasCacelled();
                     }
                 }
             }
@@ -1124,6 +1252,7 @@ public class TableViewObj implements Viewable,
             parentDataObj.removeReference(dObj, dataSetFieldName);
         }
 
+        return dObj;
     }
     
     /**
@@ -1168,8 +1297,8 @@ public class TableViewObj implements Viewable,
         if (dObj != null)
         {
             Object[] delBtnLabels = {getResourceString(addSearch ? "Remove" : "Delete"), getResourceString("CANCEL")};
-            int rv = JOptionPane.showOptionDialog(UIRegistry.getTopWindow(), UIRegistry.getLocalizedMessage("ASK_DELETE", dObj.getIdentityTitle()),
-                                                  getResourceString("Delete"),
+            int rv = JOptionPane.showOptionDialog(UIRegistry.getTopWindow(), UIRegistry.getLocalizedMessage(addSearch ? "ASK_REMOVE" : "ASK_DELETE", dObj.getIdentityTitle()),
+                                                  getResourceString(addSearch ? "Remove" : "Delete"),
                                                   JOptionPane.YES_NO_OPTION,
                                                   JOptionPane.QUESTION_MESSAGE,
                                                   null,
@@ -1478,7 +1607,7 @@ public class TableViewObj implements Viewable,
                     dataObjList =(List<Object>)session.getDataList(sqlStr);
                 }
 */
-            } else
+            } else if (dataObj != null)
             {
                 // single object
                 dataObjList.add(dataObj);
@@ -1711,6 +1840,18 @@ public class TableViewObj implements Viewable,
         }
         */
     }
+    
+    /* (non-Javadoc)
+     * @see edu.ku.brc.af.ui.forms.Viewable#enableMultiViewSwitch(boolean)
+     */
+    public void enableMultiViewSwitch(boolean enabled)
+    {
+        if (switcherUI != null)
+        {
+            switcherUI.setEnabled(enabled);   
+            switcherUI.repaint();
+        }
+    }
 
     /* (non-Javadoc)
      * @see edu.ku.brc.af.ui.forms.Viewable#dataHasChanged()
@@ -1723,7 +1864,6 @@ public class TableViewObj implements Viewable,
     /* (non-Javadoc)
      * @see edu.ku.brc.af.ui.forms.Viewable#setSession(org.hibernate.Session)
      */
-    @SuppressWarnings("unchecked")
     public void setSession(final DataProviderSessionIFace session)
     {
         this.session = session;
@@ -2317,7 +2457,7 @@ public class TableViewObj implements Viewable,
                 } else if (formCell instanceof FormCellSubView)
                 {
                     FormCellSubView subViewDef = (FormCellSubView)formCell;
-                    DBTableInfo ti = DBTableIdMgr.getInstance().getByClassName(subViewDef.getClassDesc());
+                    DBTableInfo ti = subViewDef.getClassDesc() == null ? null : DBTableIdMgr.getInstance().getByClassName(subViewDef.getClassDesc());
                     if (ti != null)
                     {
                         label = ti.getTitle();
@@ -2546,7 +2686,7 @@ public class TableViewObj implements Viewable,
             
             if (isLoading)
             {
-                return column == 0 && row == 0 ? UIRegistry.getResourceBundle("LOADING") : "";
+                return column == 0 && row == 0 ? UIRegistry.getResourceString("LOADING") : "";
                 
             } else if (isRestricted != null && isRestricted)
             {
@@ -2575,7 +2715,11 @@ public class TableViewObj implements Viewable,
                     return null;
                 }
                 
-                Object dataVal           = dataValues[0];
+                Object dataVal = dataValues[0];
+                /*if (session != null && session.isOpen() && dataVal instanceof FormDataObjIFace && ((FormDataObjIFace)dataVal).getId() != null)
+                {
+                    session.attach(dataVal);
+                }*/
                 String dataObjFormatName = colInfo.getDataObjFormatName();
                 if (StringUtils.isNotEmpty(dataObjFormatName))
                 {
@@ -2592,7 +2736,7 @@ public class TableViewObj implements Viewable,
                     }
                 }
                 
-                if (dataVal instanceof Set)
+                if (dataVal instanceof Set<?>)
                 {
                     Set<?> objSet = (Set<?>)dataVal;
                     if (objSet.size() > 0)
@@ -2619,7 +2763,8 @@ public class TableViewObj implements Viewable,
                                 
                                 if (adapter == null || adapter.getPickList() == null)
                                 {
-                                    throw new RuntimeException("PickList Adapter ["+pickListName+"] cannot be null!");
+                                    FormDevHelper.showFormDevError("PickList Adapter ["+pickListName+"] cannot be null!");
+                                    return null;
                                 }
                                 colInfo.setAdaptor(adapter);
                             }
@@ -2686,11 +2831,14 @@ public class TableViewObj implements Viewable,
                     return data;
                 }
 
-                for (PickListItemIFace item : adapter.getList())
+                if (value != null)
                 {
-                    if (item.getValue().equals(value.toString()))
+                    for (PickListItemIFace item : adapter.getList())
                     {
-                        return item.getTitle();
+                        if (item.getValue() != null && item.getValue().equals(value.toString()))
+                        {
+                            return item.getTitle();
+                        }
                     }
                 }
             }

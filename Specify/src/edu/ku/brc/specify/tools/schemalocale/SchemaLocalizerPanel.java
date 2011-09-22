@@ -29,6 +29,7 @@ import static edu.ku.brc.ui.UIHelper.createTextField;
 import static edu.ku.brc.ui.UIRegistry.getResourceString;
 
 import java.awt.Frame;
+import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
@@ -46,6 +47,7 @@ import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
+import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JOptionPane;
@@ -83,11 +85,11 @@ import edu.ku.brc.af.ui.weblink.WebLinkMgr;
 import edu.ku.brc.helpers.SwingWorker;
 import edu.ku.brc.specify.datamodel.SpLocaleContainer;
 import edu.ku.brc.specify.datamodel.SpLocaleContainerItem;
-import edu.ku.brc.specify.tools.schemalocale.LocalizerApp.PackageTracker;
 import edu.ku.brc.ui.CustomDialog;
 import edu.ku.brc.ui.JStatusBar;
 import edu.ku.brc.ui.UIHelper;
 import edu.ku.brc.ui.UIRegistry;
+import edu.ku.brc.ui.dnd.SimpleGlassPane;
 import edu.ku.brc.util.ComparatorByStringRepresentation;
 
 /**
@@ -110,7 +112,7 @@ public class SchemaLocalizerPanel extends LocalizerBasePanel implements Property
     protected LocalizableContainerIFace currContainer   = null;
     protected boolean                   includeHiddenUI = true;              // Must be set before creating the panel
     protected boolean                   isDBSchema      = true;
-    protected boolean                   useDisciplines  = true;
+    protected boolean                   useDisciplines  = false;
     
     protected DisciplineBasedPanel      disciplineBasedPanel = null;
 
@@ -149,10 +151,11 @@ public class SchemaLocalizerPanel extends LocalizerBasePanel implements Property
     protected JButton                   webLinkBtn = null;
     
     protected Hashtable<String, String>         resHash     = new Hashtable<String, String>();
-    protected Hashtable<String, PackageTracker> packageHash = new Hashtable<String, PackageTracker>();
     protected Hashtable<String, Boolean>        nameHash    = new Hashtable<String, Boolean>();
     
     protected PropertyChangeListener            listener    = null;
+    
+    protected Byte                      schemaType;
     
 
     /**
@@ -163,12 +166,14 @@ public class SchemaLocalizerPanel extends LocalizerBasePanel implements Property
     public SchemaLocalizerPanel(final PropertyChangeListener pcListener, 
                                 final DataObjFieldFormatMgr  dataObjFieldFormatMgrCache,
                                 final UIFieldFormatterMgr    uiFieldFormatterMgrCache,
-                                final WebLinkMgr             webLinkMgrCache)
+                                final WebLinkMgr             webLinkMgrCache,
+                                final Byte schemaType)
     {
         this.listener                   = pcListener;
         this.dataObjFieldFormatMgrCache = dataObjFieldFormatMgrCache;
         this.uiFieldFormatterMgrCache   = uiFieldFormatterMgrCache;
         this.webLinkMgrCache            = webLinkMgrCache;
+        this.schemaType = schemaType;
         init();
     }
 
@@ -272,7 +277,7 @@ public class SchemaLocalizerPanel extends LocalizerBasePanel implements Property
         JScrollPane tblsp = UIHelper.createScrollPane(tablesList);
         
         // LocalizableNameDescIFace
-        fieldPanel = new FieldItemPanel(this, webLinkMgrCache, includeHiddenUI, true, isDBSchema, this);
+        fieldPanel = new FieldItemPanel(this, webLinkMgrCache, includeHiddenUI, true, isDBSchema, this, schemaType);
         fieldPanel.setStatusBar(statusBar);
         fieldPanel.setLocalizableIO(localizableIO);
         
@@ -440,8 +445,13 @@ public class SchemaLocalizerPanel extends LocalizerBasePanel implements Property
     		return;
     	}
     	
+    	String contatinerFmtName = currContainer.getFormat();
+    	
         // add formatters to the combo box
-        int selectedInx = -1;
+        int     selectedInx = -1;
+        Integer curFmtInx   = null;
+        
+        int inx = 0;
         for (DataObjSwitchFormatter format : fList)
         {
         	model.addElement(format);
@@ -452,10 +462,16 @@ public class SchemaLocalizerPanel extends LocalizerBasePanel implements Property
         	    // of the combo box model, because we are adding the formatters one by one.
         		selectedInx = model.getSize() - 1;
         	}
+        	
+        	if (contatinerFmtName != null && format.getName().equals(contatinerFmtName))
+        	{
+        	    curFmtInx = inx;
+        	}
+        	inx++;
         }
         
         // select format from list that is currently assigned to table
-        dataObjFmtCbo.setSelectedIndex(selectedInx);
+        dataObjFmtCbo.setSelectedIndex(curFmtInx != null ? curFmtInx : selectedInx);
     }
     
     /**
@@ -480,8 +496,13 @@ public class SchemaLocalizerPanel extends LocalizerBasePanel implements Property
 
         if (currContainer == null) return;
         
+        String contatinerAggName = currContainer.getAggregator();
+        
         // add formatters to the combo box
-        int selectedInx = -1;
+        int     selectedInx = -1;
+        Integer curAggInx   = null;
+        
+        int inx = 0;
         for (DataObjAggregator aggregator : fList)
         {
             model.addElement(aggregator);
@@ -492,10 +513,16 @@ public class SchemaLocalizerPanel extends LocalizerBasePanel implements Property
                 // of the combo box model, because we are adding the formatters one by one.
                 selectedInx = model.getSize() - 1;
             }
+            
+            if (contatinerAggName != null && aggregator.getName().equals(contatinerAggName))
+            {
+                curAggInx = inx;
+            }
+            inx++;
         }
         
         // select format from list that is currently assigned to table
-        aggregatorCbo.setSelectedIndex(selectedInx);
+        aggregatorCbo.setSelectedIndex(curAggInx != null ? curAggInx : selectedInx);
     }
 
     /**
@@ -655,14 +682,14 @@ public class SchemaLocalizerPanel extends LocalizerBasePanel implements Property
         }
 
         // formatter and aggregator controls
-        dataObjFmtLbl.setEnabled(enable);
-        dataObjFmtCbo.setEnabled(enable);
-        dataObjFmtBtn.setEnabled(enable);
-        aggregatorLbl.setEnabled(enable);
-        aggregatorCbo.setEnabled(enable);
-        aggregatorBtn.setEnabled(enable);
-        webLinkLbl.setEnabled(enable);
-        webLinkBtn.setEnabled(enable);
+        dataObjFmtLbl.setEnabled(enable && schemaType != SpLocaleContainer.WORKBENCH_SCHEMA);
+        dataObjFmtCbo.setEnabled(enable && schemaType != SpLocaleContainer.WORKBENCH_SCHEMA);
+        dataObjFmtBtn.setEnabled(enable && schemaType != SpLocaleContainer.WORKBENCH_SCHEMA);
+        aggregatorLbl.setEnabled(enable && schemaType != SpLocaleContainer.WORKBENCH_SCHEMA);
+        aggregatorCbo.setEnabled(enable && schemaType != SpLocaleContainer.WORKBENCH_SCHEMA);
+        aggregatorBtn.setEnabled(enable && schemaType != SpLocaleContainer.WORKBENCH_SCHEMA);
+        webLinkLbl.setEnabled(enable && schemaType != SpLocaleContainer.WORKBENCH_SCHEMA);
+        webLinkBtn.setEnabled(enable && schemaType != SpLocaleContainer.WORKBENCH_SCHEMA);
     }
     
     /**
@@ -733,15 +760,46 @@ public class SchemaLocalizerPanel extends LocalizerBasePanel implements Property
         {
             listener.propertyChange(new PropertyChangeEvent(this, "copyStart", null, null));
         }
-        UIRegistry.getStatusBar().setIndeterminate(getClass().getSimpleName(), true);
+        
+        final String progressName = getClass().getSimpleName();
+        
+        UIRegistry.getStatusBar().setIndeterminate(progressName, true);
+        
+        final Window parentWin = (Window)UIRegistry.getMostRecentWindow();
+        final SimpleGlassPane glassPane = new SimpleGlassPane("Copying Locale...", 18);
+        glassPane.setVisible(true);
+        if (parentWin instanceof JFrame)
+        {
+            JFrame parentDlg = (JFrame)UIRegistry.getMostRecentWindow();
+            parentDlg.setGlassPane(glassPane);
+            //parentDlg.getOkBtn().setEnabled(false);
+            
+        } else
+        {
+            CustomDialog parentFrm = (CustomDialog)UIRegistry.getMostRecentWindow();
+            parentFrm.setGlassPane(glassPane);
+            parentFrm.getOkBtn().setEnabled(false);
+        }
         
         SwingWorker workerThread = new SwingWorker()
         {
             @Override
             public Object construct()
             {
-                localizableIO.copyLocale(srcLocale, dstLocale);  
-                
+                localizableIO.copyLocale(SchemaLocalizerPanel.this, srcLocale, dstLocale, new PropertyChangeListener()
+                {
+                    @Override
+                    public void propertyChange(final PropertyChangeEvent evt)
+                    {
+                        SwingUtilities.invokeLater(new Runnable() {
+                            @Override
+                            public void run()
+                            {
+                                glassPane.setProgress((Integer)evt.getNewValue());
+                            }
+                        });
+                    }
+                });  
                 return null;
             }
             
@@ -749,7 +807,6 @@ public class SchemaLocalizerPanel extends LocalizerBasePanel implements Property
             @Override
             public void finished()
             {
-                UIRegistry.getStatusBar().setText("");
                 enableUIControls(true);
                 tablesList.setEnabled(true);
                 fieldPanel.setEnabled(true);
@@ -758,7 +815,21 @@ public class SchemaLocalizerPanel extends LocalizerBasePanel implements Property
                 {
                     listener.propertyChange(new PropertyChangeEvent(this, "copyEnd", null, null));
                 }
-                UIRegistry.getStatusBar().setProgressDone(getClass().getSimpleName());
+                glassPane.setVisible(false);
+                
+                if (parentWin instanceof JFrame)
+                {
+                    //CustomFrame parentDlg = (CustomFrame)UIRegistry.getMostRecentWindow();
+                    //parentDlg.getOkBtn().setEnabled(true);
+                    
+                } else
+                {
+                    CustomDialog parentFrm = (CustomDialog)UIRegistry.getMostRecentWindow();
+                    parentFrm.getOkBtn().setEnabled(true);
+                }
+                UIRegistry.getStatusBar().setProgressDone(progressName);
+                UIRegistry.getStatusBar().setText("");
+                setTableInfoChanged(true);
             }
         };
         
@@ -767,7 +838,7 @@ public class SchemaLocalizerPanel extends LocalizerBasePanel implements Property
     }
     
     /**
-     * Geta ll the data from the UI for both the container and the field.
+     * Get all the data from the UI for both the container and the field.
      */
     protected void getAllDataFromUI()
     {
@@ -788,15 +859,36 @@ public class SchemaLocalizerPanel extends LocalizerBasePanel implements Property
         {
             prevTable.setIsHidden(tblHideChk.isSelected());
             
+            boolean formatterChanged = false;
             DataObjSwitchFormatter dataObjFmt = (DataObjSwitchFormatter)dataObjFmtCbo.getSelectedItem();
-            prevTable.setFormat(dataObjFmt != null ? dataObjFmt.getName() : null);
+            if (dataObjFmt != null)
+            {
+                String fName = prevTable.getFormat();
+                formatterChanged = fName == null || !fName.equals(dataObjFmt.getName());
+                prevTable.setFormat(dataObjFmt.getName());
+                formatterChanged = true;
+            } else
+            {
+                prevTable.setFormat(null);
+            }
             
+            boolean aggChanged = false;
             DataObjAggregator dataObjAgg = (DataObjAggregator)aggregatorCbo.getSelectedItem();
-            ((SpLocaleContainer)prevTable).setAggregator(dataObjAgg != null ? dataObjAgg.getName() : null);
+            if (dataObjAgg != null)
+            {
+                SpLocaleContainer container = (SpLocaleContainer)prevTable;
+                String            aggName   = container.getAggregator();
+                aggChanged = aggName == null || !aggName.equals(dataObjAgg.getName());
+                container.setAggregator(dataObjAgg.getName());
+                aggChanged = true;
+            } else
+            {
+                ((SpLocaleContainer)prevTable).setAggregator(null);
+            }            
             
             boolean nameChanged = setNameDescStrForCurrLocale(prevTable, tblNameText.getText());
             boolean descChanged = setDescStrForCurrLocale(prevTable,     tblDescText.getText());
-            if (nameChanged || descChanged)
+            if (nameChanged || descChanged || formatterChanged || aggChanged)
             {
                 setHasChanged(true);
             }
@@ -962,45 +1054,29 @@ public class SchemaLocalizerPanel extends LocalizerBasePanel implements Property
         if (currContainer != null)
         {
             tableInfo = DBTableIdMgr.getInstance().getInfoByTableName(currContainer.getName());
-            if (currContainer != null)
+                
+            tblDescText.setText(getDescStrForCurrLocale(currContainer));
+            tblNameText.setText(getNameDescStrForCurrLocale(currContainer));
+            tblHideChk.setSelected(currContainer.getIsHidden());
+            
+            fillDataObjFormatterCombo();
+            fillAggregatorCombo();
+            
+            if (doAutoSpellCheck)
             {
-                
-                if (currContainer != null)
-                {
-                    tblDescText.setText(getDescStrForCurrLocale(currContainer));
-                    tblNameText.setText(getNameDescStrForCurrLocale(currContainer));
-                    tblHideChk.setSelected(currContainer.getIsHidden());
-                    
-                    fillDataObjFormatterCombo();
-                    fillAggregatorCombo();
-                    
-                    if (doAutoSpellCheck)
-                    {
-                        checker.spellCheck(tblNameText);
-                        checker.spellCheck(tblDescText);
-                    }
-                    
-                    
-                    if (disciplineBasedPanel != null && currContainer instanceof DisciplineBasedContainer)
-                    {
-                        disciplineBasedPanel.set((DisciplineBasedContainer)currContainer, jlistItem);
-                    }
-                    fieldPanel.setContainer(currContainer, jlistItem);
-
-                } else
-                {
-                    noTableSelected();
-                }
-
-                prevTable = currContainer;
-                
-            } else
-            {
-                fieldPanel.setContainer(null, null);
-                disciplineBasedPanel.set((DisciplineBasedContainer)null, null);
-                
-                log.error("jlistItem was null in list");
+                checker.spellCheck(tblNameText);
+                checker.spellCheck(tblDescText);
             }
+            
+            
+            if (disciplineBasedPanel != null && currContainer instanceof DisciplineBasedContainer)
+            {
+                disciplineBasedPanel.set((DisciplineBasedContainer)currContainer, jlistItem);
+            }
+            fieldPanel.setContainer(currContainer, jlistItem);
+
+            prevTable = currContainer;
+                
             enableUIControls(currContainer != null);
             
         } else

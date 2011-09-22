@@ -26,6 +26,7 @@ import java.sql.ResultSet;
 import java.sql.Statement;
 import java.util.Collection;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Vector;
@@ -35,15 +36,19 @@ import javax.swing.JButton;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 
+import edu.ku.brc.af.core.GenericLSIDGeneratorFactory;
 import edu.ku.brc.af.core.db.DBFieldInfo;
 import edu.ku.brc.af.core.db.DBRelationshipInfo;
 import edu.ku.brc.af.core.db.DBTableChildIFace;
 import edu.ku.brc.af.core.db.DBTableIdMgr;
 import edu.ku.brc.af.core.db.DBTableInfo;
 import edu.ku.brc.af.core.expresssearch.QueryAdjusterForDomain;
+import edu.ku.brc.af.ui.forms.formatters.UIFieldFormatterIFace;
 import edu.ku.brc.dbsupport.DBConnection;
 import edu.ku.brc.dbsupport.DataProviderSessionIFace;
+import edu.ku.brc.specify.config.SpecifyLSIDGeneratorFactory;
 import edu.ku.brc.specify.conversion.BasicSQLUtils;
+import edu.ku.brc.specify.datamodel.AttachmentOwnerIFace;
 import edu.ku.brc.ui.UIRegistry;
 
 /**
@@ -63,8 +68,11 @@ public class BaseBusRules implements BusinessRulesIFace
     protected List<String> reasonList  = new Vector<String>();
     protected Class<?>[]   dataClasses;
     
+    
+    protected HashSet<AttachmentOwnerIFace<?>>   attachOwners  = new HashSet<AttachmentOwnerIFace<?>>();
+    
     /**
-     * The data class that is used within the busniess rules.
+     * The data class that is used within the business rules.
      * @param dataClass the data class
      */
     public BaseBusRules(final Class<?> ... dataClasses)
@@ -176,6 +184,15 @@ public class BaseBusRules implements BusinessRulesIFace
     }
 
     /* (non-Javadoc)
+     * @see edu.ku.brc.af.ui.forms.BusinessRulesIFace#afterCreateNewObj(java.lang.Object)
+     */
+    @Override
+    public void afterCreateNewObj(Object newDataObj)
+    {
+        // no op
+    }
+
+    /* (non-Javadoc)
      * @see edu.ku.brc.af.ui.forms.BusinessRulesIFace#createNewObj(boolean, java.lang.Object)
      */
     @Override
@@ -183,6 +200,17 @@ public class BaseBusRules implements BusinessRulesIFace
     {
     }
 
+    /**
+     * @param attOwner
+     */
+    protected void addExtraObjectForProcessing(final Object dObj)
+    {
+        if (dObj instanceof AttachmentOwnerIFace<?>)
+        {
+            attachOwners.add((AttachmentOwnerIFace<?>)dObj);
+        }
+    }
+    
     /**
      * Checks to see if it can be deleted.
      * @param tableName the table name to check
@@ -254,6 +282,16 @@ public class BaseBusRules implements BusinessRulesIFace
     }
 
     /**
+     * Calls QueryAdjusterForDomain.getSpecialColumns to get any extra Where Columns
+     * @param tableInfo the table information
+     * @return String or null
+     */
+    protected String getExtraWhereColumns(final DBTableInfo tableInfo)
+    {
+        return QueryAdjusterForDomain.getInstance().getSpecialColumns(tableInfo, false, false, tableInfo.getAbbrev());
+    }
+    
+    /**
      * @param stmt
      * @param tableName
      * @param columnName
@@ -276,7 +314,7 @@ public class BaseBusRules implements BusinessRulesIFace
             }
             idString.deleteCharAt(idString.length()-2);
             DBTableInfo tableInfo    = DBTableIdMgr.getInstance().getInfoByTableName(tableName);
-            String      extraColumns = QueryAdjusterForDomain.getInstance().getSpecialColumns(tableInfo, false, false, tableInfo.getAbbrev());
+            String      extraColumns = getExtraWhereColumns(tableInfo);
             String      join         = QueryAdjusterForDomain.getInstance().getJoinClause(tableInfo, false, tableInfo.getAbbrev(), false);
             String      queryString  = "select count(*) from " + tableName + " "+ tableInfo.getAbbrev() +" " + (join != null ? join : "") + "  where " + tableInfo.getAbbrev() + "." + columnName + " in (" + idString.toString() + ") ";
             if (StringUtils.isNotEmpty(extraColumns))
@@ -402,6 +440,12 @@ public class BaseBusRules implements BusinessRulesIFace
         try
         {
             conn = DBConnection.getInstance().createConnection();
+            if (conn == null)
+            {
+                log.debug("Couldn't create connection! Reason: "+DBConnection.getInstance().getErrorMsg());
+                return false;
+            }
+            
             stmt = conn.createStatement();
 
             for (int i=0;i<nameCombos.length;i++)
@@ -665,9 +709,11 @@ public class BaseBusRules implements BusinessRulesIFace
      * @see edu.ku.brc.ui.forms.BusinessRulesIFace#beforeDelete(java.lang.Object, edu.ku.brc.dbsupport.DataProviderSessionIFace)
      */
     @Override
-    public void beforeDelete(final Object dataObj, final DataProviderSessionIFace session)
+    public Object beforeDelete(final Object dataObj, final DataProviderSessionIFace session)
     {
         // do nothing
+        return dataObj;
+
     }
 
     /* (non-Javadoc)
@@ -717,7 +763,27 @@ public class BaseBusRules implements BusinessRulesIFace
                                               final Class<?>         dataClass,
                                               final String           primaryFieldName)
     {
-        return isCheckDuplicateNumberOK(fieldName, dataObj, dataClass, primaryFieldName, false);
+        return isCheckDuplicateNumberOK(fieldName, dataObj, dataClass, primaryFieldName, true);
+    }
+    
+    /**
+     * Helper method for checking for a duplicate number in a field that is unique.
+     * @param fieldName the name of the field to be checked
+     * @param dataObj the data object containing the number
+     * @param dataClass the class of the object beng checked
+     * @param primaryFieldName the primary key field
+     * @param numberMissingKey the localization key for the error message
+     * @param numberInUseKey  the localization key for the error message
+     * @param useSpecial use Discipline or CollectionMemberID etc to constrain the search
+     * @return whether it is ok or in error
+     */
+    protected STATUS isCheckDuplicateNumberOK(final String           fieldName, 
+                                              final FormDataObjIFace dataObj,
+                                              final Class<?>         dataClass,
+                                              final String           primaryFieldName,
+                                              final boolean          useSpecial)
+    {
+        return isCheckDuplicateNumberOK(fieldName, dataObj, dataClass, primaryFieldName, false, useSpecial);
     }
 
     /**
@@ -727,13 +793,15 @@ public class BaseBusRules implements BusinessRulesIFace
      * @param dataClass the class of the object beng checked
      * @param primaryFieldName the primary key field
      * @param isEmptyOK is it ok for the field to be empty
+     * @param useSpecial use Discipline or CollectionMemberID etc to constrain the search
      * @return whether it is ok or in error
      */
     protected STATUS isCheckDuplicateNumberOK(final String           fieldName, 
                                               final FormDataObjIFace dataObj,
                                               final Class<?>         dataClass,
                                               final String           primaryFieldName,
-                                              final boolean          isEmptyOK)
+                                              final boolean          isEmptyOK,
+                                              final boolean          useSpecial)
     {
         String fieldValue = (String)FormHelper.getValue(dataObj, fieldName);
         
@@ -764,9 +832,9 @@ public class BaseBusRules implements BusinessRulesIFace
             {
                 sql += " AND " + colName + " <> " + id;
             }
-            sql += StringUtils.isNotEmpty(special) ? (" AND "+special) : "";
+            sql += StringUtils.isNotEmpty(special) && useSpecial ? (" AND "+special) : "";
             
-            log.debug(sql);
+            //log.debug(sql);
             
             Integer cnt = BasicSQLUtils.getCount(sql);
             
@@ -873,6 +941,100 @@ public class BaseBusRules implements BusinessRulesIFace
     {
         return processBusinessRules(dataObj);
     }
+    
+    /* (non-Javadoc)
+     * @see edu.ku.brc.af.ui.forms.BusinessRulesIFace#beginSecondaryRuleProcessing()
+     */
+    @Override
+    public void startProcessingBeforeAfterRules()
+    {
+        
+    }
+
+    /* (non-Javadoc)
+     * @see edu.ku.brc.af.ui.forms.BusinessRulesIFace#endSecondaryRuleProcessing()
+     */
+    @Override
+    public void endProcessingBeforeAfterRules()
+    {
+        
+    }
+
+    /**
+     * @param data
+     */
+    protected void setLSID(final FormDataObjIFace data)
+    {
+        if (data != null)
+        {
+            boolean doLSID = ((SpecifyLSIDGeneratorFactory)SpecifyLSIDGeneratorFactory.getInstance()).isPrefOn(data.getTableId());
+            if (doLSID)
+            {
+                //----------------------------------------------------------------
+                // We want Version to always be on
+                //AppPreferences remote = AppPreferences.getRemote();
+                //String                prefix       = "Prefs.LSID.";
+                boolean               doVersioning = true;//remote.getBoolean(prefix + "UseVersioning", false);
+                //----------------------------------------------------------------
+                UIFieldFormatterIFace formatter    = null;
+                
+                if (data.getTableId() == 1)
+                {
+                    DBFieldInfo fi = DBTableIdMgr.getInstance().getInfoById(1).getFieldByColumnName("CatalogNumber");
+                    formatter = fi.getFormatter();
+                }
+                
+                String lsid = GenericLSIDGeneratorFactory.getInstance().setLSIDOnId(data, doVersioning, formatter);
+                if (lsid != null)
+                {
+                    FormHelper.setValue(data, "guid", lsid);
+                }
+            }
+        }
+    }
+    
+    /**
+     * Removed an Object from a Collection by Id.
+     * @param collection the Java Collection
+     * @param dataObj the data object to be removed
+     */
+    public static void removeById(final Collection<?> collection, final FormDataObjIFace dataObj)
+    {
+        for (Object obj : collection.toArray())
+        {
+            if (obj instanceof FormDataObjIFace)
+            {
+                FormDataObjIFace colObj = (FormDataObjIFace)obj;
+                if (obj == colObj || (colObj.getId() != null && dataObj.getId() != null && dataObj.getId().equals(colObj.getId())))
+                {
+                    collection.remove(obj);
+                    break;
+                }
+            }
+        }
+    }
+
+    /**
+     * Removed an Object from a Collection by Id.
+     * @param collection the Java Collection
+     * @param dataObj the data object to be removed
+     */
+    public static int countDataObjectById(final Collection<?> collection, final FormDataObjIFace dataObj)
+    {
+        int cnt = 0;
+        for (Object obj : collection.toArray())
+        {
+            if (obj instanceof FormDataObjIFace)
+            {
+                FormDataObjIFace colObj = (FormDataObjIFace)obj;
+                if (dataObj == colObj || (colObj.getId() != null && dataObj.getId() != null && dataObj.getId().equals(colObj.getId())))
+                {
+                    cnt++;
+                }
+            }
+        }
+        return cnt;
+    }
 
     /* (non-Javadoc)
      * @see edu.ku.brc.ui.forms.BusinessRulesIFace#doesSearchObjectRequireNewParent()
@@ -936,27 +1098,5 @@ public class BaseBusRules implements BusinessRulesIFace
     public void aboutToShutdown()
     {
         // no op
-    }
-    
-    
-    /**
-     * Removed an Object from a Collection by Id.
-     * @param collection the Java Collection
-     * @param dataObj the data object to be removed
-     */
-    public static void removeById(final Collection<?> collection, final FormDataObjIFace dataObj)
-    {
-        for (Object obj : collection.toArray())
-        {
-            if (obj instanceof FormDataObjIFace)
-            {
-                FormDataObjIFace colObj = (FormDataObjIFace)obj;
-                if (obj == colObj || (colObj.getId() != null && dataObj.getId() != null && dataObj.getId().equals(colObj.getId())))
-                {
-                    collection.remove(obj);
-                    break;
-                }
-            }
-        }
     }
 }

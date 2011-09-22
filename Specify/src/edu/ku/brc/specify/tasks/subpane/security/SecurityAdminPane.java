@@ -34,12 +34,14 @@ import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.Vector;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
@@ -54,6 +56,7 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JTree;
+import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
@@ -74,6 +77,8 @@ import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
 
 import edu.ku.brc.af.auth.SecurityMgr;
+import edu.ku.brc.af.auth.specify.principal.AdminPrincipal;
+import edu.ku.brc.af.auth.specify.principal.UserPrincipal;
 import edu.ku.brc.af.core.AppContextMgr;
 import edu.ku.brc.af.core.Taskable;
 import edu.ku.brc.af.tasks.subpane.BaseSubPane;
@@ -120,9 +125,12 @@ public class SecurityAdminPane extends BaseSubPane
     private String                                      currentTitle        = null;
     private JAutoCompTextField                          searchText;
     
+    private Discipline                                  nodesDiscipline = null;
+    private Division                                    nodesDivision = null;
+    
     // manages creation and deletion of items on the navigation tree
-     NavigationTreeMgr navTreeMgr;
-     private NavigationTreeContextMenuMgr navTreeContextMgr;
+    private NavigationTreeMgr            navTreeMgr;
+    private NavigationTreeContextMenuMgr navTreeContextMgr;
     
     @SuppressWarnings("unused")
     private boolean hasPermissionToModify = false;
@@ -131,8 +139,9 @@ public class SecurityAdminPane extends BaseSubPane
     @SuppressWarnings("unused")
     private boolean hasPermissionToDelete = false;
     
-    private DataModelObjBaseWrapper objWrapper       = null;
-    private DataModelObjBaseWrapper secondObjWrapper = null;
+    private DataModelObjBaseWrapper objWrapper        = null;
+    private DataModelObjBaseWrapper secondObjWrapper  = null;
+    private DataModelObjBaseWrapper collectionWrapper = null;
     
     @SuppressWarnings("unused")
     private final int formOptions = MultiView.IS_EDITTING | MultiView.IS_NEW_OBJECT;
@@ -195,17 +204,17 @@ public class SecurityAdminPane extends BaseSubPane
         JPanel navTreePanel = createFullTreeNavPanel(); // navigation jTree gets created here 
         navTreePanel.setMinimumSize(new Dimension(200, 200));
         
-        PanelBuilder btnPB = new PanelBuilder(new FormLayout("p,4px,p,4px,p,4px,p,f:p:g", "p"));
-        JButton addUserBtn = UIHelper.createIconBtn("add-person", IconManager.IconSize.NonStd, "Add New User to Group", null); // I18N
-        JButton addExtUserBtn = UIHelper.createIconBtn("addext-person", IconManager.IconSize.NonStd, "Add Existing User to Group", null); // I18N
-        //JButton rmvUserBtn = UIHelper.createIconBtn("rmv-person", IconManager.IconSize.NonStd, "Remove User from Group (does not delete the user)", null);
-        JButton delUserBtn = UIHelper.createIconBtn("del-person", IconManager.IconSize.NonStd, "Delete User from Group", null);
+        PanelBuilder btnPB    = new PanelBuilder(new FormLayout("p,4px,p,4px,p,4px,p,4px,p,f:p:g", "p"));
+        JButton addUserBtn    = UIHelper.createIconBtn("add-person", IconManager.IconSize.NonStd, "SEC_ADDNEWUSERGRP_TT", null); // I18N
+        JButton addExtUserBtn = UIHelper.createIconBtn("addext-person", IconManager.IconSize.NonStd, "SEC_ADDEXTUSERGRP_TT", null); // I18N
+        JButton addToAdminBtn = UIHelper.createIconBtn("AdminGroup", IconManager.IconSize.Std24, "SEC_ADDADMUSERGRP_TT", null); // I18N
+        JButton delUserBtn    = UIHelper.createIconBtn("del-person", IconManager.IconSize.NonStd, "SEC_DELUSRGRP_TT", null);
         btnPB.add(addUserBtn,    cc.xy(1, 1));
         btnPB.add(addExtUserBtn, cc.xy(3, 1));
-        //btnPB.add(rmvUserBtn,    cc.xy(5, 1));
-        btnPB.add(delUserBtn,    cc.xy(5, 1));
+        btnPB.add(addToAdminBtn, cc.xy(5, 1));
+        btnPB.add(delUserBtn,    cc.xy(7, 1));
         
-        navTreeContextMgr.setBtn(addUserBtn, addExtUserBtn, delUserBtn);
+        navTreeContextMgr.setBtn(addUserBtn, addExtUserBtn, addToAdminBtn, delUserBtn);
                
         // Other components that were added to the tree panel are now created here
         // It's better to include the scrollpane with the navigation JTree in a separate panel
@@ -285,8 +294,10 @@ public class SecurityAdminPane extends BaseSubPane
                 DataModelObjBaseWrapper dataWrp = (DataModelObjBaseWrapper) (node.getUserObject());
                 
                 // get parent if it is a user
-                DataModelObjBaseWrapper secondObjWrp = null;
-                Object                  dataObj      = dataWrp.getDataObj();
+                /*DataModelObjBaseWrapper userObjWrp    = null;
+                DataModelObjBaseWrapper groupObjWrp   = null;
+                DataModelObjBaseWrapper collectionWrp = null;
+                Object                  dataObj     = dataWrp.getDataObj();
                 if (dataObj instanceof SpecifyUser)
                 {
                     // XXX Also might need to check to see if anyone is logged into the Group
@@ -297,7 +308,9 @@ public class SecurityAdminPane extends BaseSubPane
                     if (!spUser.getIsLoggedIn() || currentUser.getId().equals(spUser.getId()))
                     {
                         DefaultMutableTreeNode parent = (DefaultMutableTreeNode) node.getParent();
-                        secondObjWrp = (DataModelObjBaseWrapper) parent.getUserObject();
+                        userObjWrp    = (DataModelObjBaseWrapper) node.getUserObject();
+                        groupObjWrp   = (DataModelObjBaseWrapper) parent.getUserObject();
+                        collectionWrp = (DataModelObjBaseWrapper) ((DefaultMutableTreeNode)parent.getParent()).getUserObject();
                         
                     } else
                     {
@@ -314,7 +327,45 @@ public class SecurityAdminPane extends BaseSubPane
                     }
                 }
 
-                showInfoPanel(dataWrp, secondObjWrp, node.toString());
+                nodesDiscipline = navTreeMgr.getParentOfClass(node, Discipline.class);
+                nodesDivision   = nodesDiscipline != null ? nodesDiscipline.getDivision() : null;
+                showInfoPanel(dataWrp, userObjWrp, groupObjWrp, collectionWrp, node.toString());
+                updateUIEnabled(dataWrp);*/
+                
+                // get parent if it is a user
+                DataModelObjBaseWrapper secondObjWrp = null;
+                DataModelObjBaseWrapper collectionWrp = null;
+                Object                  dataObj       = dataWrp.getDataObj();
+                if (dataObj instanceof SpecifyUser)
+                {
+                    // XXX Also might need to check to see if anyone is logged into the Group
+                    // when editing a Group
+                    SpecifyUser currentUser = AppContextMgr.getInstance().getClassObject(SpecifyUser.class);
+                    SpecifyUser spUser      = (SpecifyUser)dataObj;
+                    
+                    if (!spUser.getIsLoggedIn() || currentUser.getId().equals(spUser.getId()))
+                    {
+                        DefaultMutableTreeNode parent = (DefaultMutableTreeNode) node.getParent();
+                        secondObjWrp  = (DataModelObjBaseWrapper) parent.getUserObject();
+                        collectionWrp = (DataModelObjBaseWrapper) ((DefaultMutableTreeNode)parent.getParent()).getUserObject();
+                    } else
+                    {
+                        UIRegistry.showLocalizedError("SecuirytAdminPane.USR_IS_ON", spUser.getName());
+                        
+                        SwingUtilities.invokeLater(new Runnable() {
+                            @Override
+                            public void run()
+                            {
+                                tree.clearSelection();
+                            }
+                        });
+                        return;
+                    }
+                }
+
+                nodesDiscipline = navTreeMgr.getParentOfClass(node, Discipline.class);
+                nodesDivision   = nodesDiscipline != null ? nodesDiscipline.getDivision() : null;
+                showInfoPanel(dataWrp, secondObjWrp, collectionWrp, node.toString());
                 updateUIEnabled(dataWrp);
             }
         };
@@ -389,7 +440,7 @@ public class SecurityAdminPane extends BaseSubPane
     private DefaultTreeModel createNavigationTreeModel()
     {
         DataProviderSessionIFace session = DataProviderFactory.getInstance().createSession();
-        DefaultMutableTreeNode root = new DefaultMutableTreeNode(UIRegistry.getAppName());
+        DefaultMutableTreeNode   root    = new DefaultMutableTreeNode(UIRegistry.getAppName());
 
         try
         {
@@ -452,20 +503,16 @@ public class SecurityAdminPane extends BaseSubPane
         TreeSet<Division> divisions = new TreeSet<Division>(institution.getDivisions()); 
         for (Division division : divisions)
         {
-            TreeSet<Discipline> disciplines = new TreeSet<Discipline>(division.getDisciplines()); 
-            for (Discipline discipline : disciplines)
+            //log.debug("Adding Division "+division.getName());
+            for (Discipline discipline : division.getDisciplines())
             {
-                DefaultMutableTreeNode discNode = new DefaultMutableTreeNode(new DataModelObjBaseWrapper(discipline));
+                //log.debug("  Adding Discipline "+discipline.getName());
+                DataModelObjBaseWrapper dmob     = new DataModelObjBaseWrapper(discipline);
+                DefaultMutableTreeNode  discNode = new DefaultMutableTreeNode(dmob);
                 instNode.add(discNode);
                 addCollectionsRecursively(session, discNode, discipline);
                 addGroup(session, discNode, discipline);
             }
-//            {
-//                // The code below is to add divisions when these are to be visible (in a future release)
-//                DefaultMutableTreeNode divNode = new DefaultMutableTreeNode(new DataModelObjBaseWrapper(division));
-//                instNode.add(divNode);
-//                addDisciplinesRecursively(session, divNode, division);
-//            }
         }
     }
 
@@ -483,6 +530,7 @@ public class SecurityAdminPane extends BaseSubPane
         TreeSet<Discipline> disciplines = new TreeSet<Discipline>(division.getDisciplines()); 
         for (Discipline discipline : disciplines)
         {
+            log.debug("    Adding Discipline "+discipline.getName());
             DefaultMutableTreeNode discNode = new DefaultMutableTreeNode(new DataModelObjBaseWrapper(discipline));
             divNode.add(discNode);
             addCollectionsRecursively(session, discNode, discipline);
@@ -503,6 +551,7 @@ public class SecurityAdminPane extends BaseSubPane
         TreeSet<Collection> collections = new TreeSet<Collection>(discipline.getCollections()); 
         for (Collection collection : collections)
         {
+            log.debug("    Adding Collection "+collection.getCollectionName());
             DefaultMutableTreeNode collNode = new DefaultMutableTreeNode(new DataModelObjBaseWrapper(collection));
             discNode.add(collNode);
             addGroup(session, collNode, collection);
@@ -518,10 +567,40 @@ public class SecurityAdminPane extends BaseSubPane
                           final DefaultMutableTreeNode node, 
                           final UserGroupScope scope)
     {
+        String userPrin = UserPrincipal.class.getName();
+        
         // sort groups
-        TreeSet<SpPrincipal> groups = new TreeSet<SpPrincipal>(scope.getUserGroups()); 
+        Vector<SpPrincipal> groups = new Vector<SpPrincipal>(); 
+        for (SpPrincipal group : scope.getUserGroups())
+        {
+            String subClass = group.getGroupSubClass();
+            if (group.getGroupType() == null && StringUtils.isNotEmpty(subClass) && subClass.equals(userPrin)) continue;
+            groups.add(group);
+        }
+        
+        Collections.sort(groups, new Comparator<SpPrincipal>()
+        {
+            @Override
+            public int compare(SpPrincipal obj1, SpPrincipal obj2)
+            {
+                if (obj1 != null && obj1.getPriority() != null && obj2 != null && obj2.getPriority() != null)
+                {
+                    return obj2.getPriority().compareTo(obj1.getPriority());
+                }
+                return 100; // shouldn't happen
+            }
+        });
+        
         for (SpPrincipal group : groups)
         {
+            log.debug(scope.getId()+"  "+scope.getTableId());
+            log.debug("      Group: "+group.getName()+"  "+ group.getGroupType()+"  "+ group.getGroupSubClass()+"  "+ group.getId());
+            
+            String subClass = group.getGroupSubClass();
+            if (group.getGroupType() == null && StringUtils.isNotEmpty(subClass) && subClass.equals(userPrin)) continue;
+            
+            //if (UserPrincipal.class.getCanonicalName().equals(group.getGroupSubClass())) continue;
+
             DefaultMutableTreeNode groupNode = new DefaultMutableTreeNode(new DataModelObjBaseWrapper(group));
             node.add(groupNode);
             
@@ -535,6 +614,7 @@ public class SecurityAdminPane extends BaseSubPane
                 user.getSpPrincipals().size();
                 DefaultMutableTreeNode userNode = new DefaultMutableTreeNode(new DataModelObjBaseWrapper(user));
                 groupNode.add(userNode);
+                log.debug("        SpUser: "+user.getName());
             }
         }
     }
@@ -772,14 +852,29 @@ public class SecurityAdminPane extends BaseSubPane
     
     /**
      * @param objWrapper
-     * @param secondObjWrapper
+     * @param groupObjWrapper
      * @param selectedObjTitle
      */
-    private void showInfoPanel(final DataModelObjBaseWrapper objWrapperArg, 
-                               final DataModelObjBaseWrapper secondObjWrapperArg,
+    /*private void showInfoPanel(final DataModelObjBaseWrapper objWrapperArg, 
+                               final DataModelObjBaseWrapper userObjWrapperArg,
+                               final DataModelObjBaseWrapper groupObjWrapperArg,
+                               final DataModelObjBaseWrapper collectionWrapperArg,
                                final String selectedObjTitle)
     {
-        String className = objWrapperArg.getType();
+        String     className  = objWrapperArg.getType();
+        CardLayout cardLayout = (CardLayout)(infoCards.getLayout());
+        
+        // This displays the panel that says they have all permissions
+        DataModelObjBaseWrapper wrpr = groupObjWrapperArg != null ? groupObjWrapperArg : objWrapperArg;
+        if (wrpr != null)
+        {
+            Object dataObj = wrpr.getDataObj();
+            if (dataObj instanceof SpPrincipal && ((SpPrincipal)dataObj).getGroupSubClass().equals(AdminPrincipal.class.getName()))
+            {
+                cardLayout.show(infoCards, AdminPrincipal.class.getCanonicalName());
+                return;
+            }
+        }
         
         if (currentEditorPanel != null && currentEditorPanel.hasChanged())
         {
@@ -805,7 +900,6 @@ public class SecurityAdminPane extends BaseSubPane
         currentTitle = selectedObjTitle;
         
         // show info panel that corresponds to the type of object selected
-        CardLayout               cardLayout   = (CardLayout)(infoCards.getLayout());
         AdminInfoSubPanelWrapper panelWrapper = infoSubPanels.get(className);
         
         currentEditorPanel  = editorPanels.get(className);
@@ -818,16 +912,87 @@ public class SecurityAdminPane extends BaseSubPane
         if (panelWrapper != null)
         {
             currentDisplayPanel = panelWrapper;
-            if (currentDisplayPanel.setData(objWrapperArg, secondObjWrapperArg) && currentEditorPanel != null)
+            if (currentDisplayPanel.setData(objWrapperArg, userObjWrapperArg, groupObjWrapperArg, collectionWrapperArg, nodesDivision) && currentEditorPanel != null)
             {
                 currentEditorPanel.setHasChanged(true);
             }
             cardLayout.show(infoCards, className);
         }
         
-        objWrapper       = objWrapperArg;
-        secondObjWrapper = secondObjWrapperArg;
+        objWrapper           = objWrapperArg;
+        groupObjWrapper      = groupObjWrapperArg;
+        collectionObjWrapper = collectionWrapperArg;
+    }*/
+    
+    private void showInfoPanel(final DataModelObjBaseWrapper objWrapperArg, 
+                               final DataModelObjBaseWrapper secondObjWrapperArg,
+                               final DataModelObjBaseWrapper collectionWrapperArg,
+                               final String selectedObjTitle)
+    {
+        String     className  = objWrapperArg.getType();
+        CardLayout cardLayout = (CardLayout)(infoCards.getLayout());
+        
+        // This displays the panel that says they have all permissions
+        DataModelObjBaseWrapper wrpr = secondObjWrapperArg != null ? secondObjWrapperArg : objWrapperArg;
+        if (wrpr != null)
+        {
+            Object dataObj = wrpr.getDataObj();
+            if (dataObj instanceof SpPrincipal && ((SpPrincipal)dataObj).getGroupSubClass().equals(AdminPrincipal.class.getName()))
+            {
+                cardLayout.show(infoCards, AdminPrincipal.class.getCanonicalName());
+                return;
+            }
+        }
+        
+        if (currentEditorPanel != null && currentEditorPanel.hasChanged())
+        {
+            String[] optionLabels = new String[] {getResourceString("SaveChangesBtn"), 
+                                                  getResourceString("DiscardChangesBtn"), 
+                                                  getResourceString("CANCEL")};
+            
+            int rv = JOptionPane.showOptionDialog(UIRegistry.getTopWindow(),
+                        UIRegistry.getLocalizedMessage("SaveChanges", currentTitle),
+                        getResourceString("SaveChangesTitle"),
+                        JOptionPane.YES_NO_CANCEL_OPTION,
+                        JOptionPane.QUESTION_MESSAGE,
+                        null,
+                        optionLabels,
+                        optionLabels[0]);
+        
+            if (rv == JOptionPane.YES_OPTION)
+            {
+                doSave(true);
+            }
+        }
+        
+        currentTitle = selectedObjTitle;
+        
+        // show info panel that corresponds to the type of object selected
+        AdminInfoSubPanelWrapper panelWrapper = infoSubPanels.get(className);
+        
+        currentEditorPanel  = editorPanels.get(className);
+        if (currentEditorPanel != null)
+        {
+            currentEditorPanel.setHasChanged(false);
+        }
+        
+        // fill form with object data
+        if (panelWrapper != null)
+        {
+            currentDisplayPanel = panelWrapper;
+            if (currentDisplayPanel.setData(objWrapperArg, secondObjWrapperArg, collectionWrapperArg, nodesDivision) && currentEditorPanel != null)
+            {
+                currentEditorPanel.setHasChanged(true);
+            }
+            cardLayout.show(infoCards, className);
+        }
+        
+        objWrapper        = objWrapperArg;
+        secondObjWrapper  = secondObjWrapperArg;
+        collectionWrapper = collectionWrapperArg;
     }
+    
+
     
     /**
      * Creates one panel for each kind of form that may be used and stores them for later
@@ -842,6 +1007,13 @@ public class SecurityAdminPane extends BaseSubPane
         createBlankInfoSubPanel(Institution.class, blankPanel);
         createBlankInfoSubPanel(Discipline.class, blankPanel);
         createBlankInfoSubPanel(Collection.class, blankPanel);
+        
+        JPanel allPermissions = new JPanel(new BorderLayout());
+        JLabel lbl = UIHelper.createI18NLabel("SEC_ALL_PERMISSIONS", SwingConstants.CENTER);
+        lbl.setFont(lbl.getFont().deriveFont(18.0f));
+        allPermissions.add(lbl, BorderLayout.CENTER);
+        
+        createBlankInfoSubPanel(AdminPrincipal.class, allPermissions);
         
         createUserPanel();
         createGroupPanel();
@@ -1027,10 +1199,11 @@ public class SecurityAdminPane extends BaseSubPane
            
         } catch (Exception ex)
         {
+            if (session != null) session.rollback();
+            
             ex.printStackTrace();
             edu.ku.brc.af.core.UsageTracker.incrHandledUsageCount();
             edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(SecurityAdminPane.class, ex);
-            session.rollback();
             
         } finally
         {
@@ -1039,7 +1212,6 @@ public class SecurityAdminPane extends BaseSubPane
                 session.close();
             }
         }
-            
     }
     
     /**
@@ -1047,7 +1219,7 @@ public class SecurityAdminPane extends BaseSubPane
      */
     protected void refreshTreeNode()
     {
-        if (currentDisplayPanel.setData(objWrapper, secondObjWrapper) && currentEditorPanel != null)
+        if (currentDisplayPanel.setData(objWrapper, secondObjWrapper, collectionWrapper, nodesDivision) && currentEditorPanel != null)
         {
             currentEditorPanel.setHasChanged(true);
         }

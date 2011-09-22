@@ -315,7 +315,8 @@ public class AppPrefsCache
             return colorEntry.getColorWrapper();
         }
         // else
-        throw new RuntimeException("Couldn't find Date Entry ["+fullName+"]"); //$NON-NLS-1$ //$NON-NLS-2$
+        //throw new RuntimeException("Couldn't find Date Entry ["+fullName+"]"); //$NON-NLS-1$ //$NON-NLS-2$
+        return null;
     }
 
 
@@ -342,12 +343,23 @@ public class AppPrefsCache
         if (hash.get(fullName) == null)
         {
             String defValue = simpleFormat.toPattern();
-            String prefVal  = checkForPref(fullName, defValue);
+            String prefVal  =  checkForPref(fullName, defValue);
+            
+            //-------------------------------------------------------------------------------
+            // This corrects the formatter when it has a two digit year (Bug 7555)
+            // still have not found out what is causing the problem.
+            //-------------------------------------------------------------------------------
+            if (prefVal.length() == 8 && StringUtils.countMatches(prefVal, "yyyy") == 0)
+            {
+                prefVal = StringUtils.replace(prefVal, "yy", "yyyy");
+            }
+            
             simpleFormat.applyPattern(prefVal);
             DateFormatCacheEntry dateEntry = new DateFormatCacheEntry(simpleFormat, fullName, prefVal, defValue);
             getPref().addChangeListener(fullName, dateEntry);
             hash.put(fullName, dateEntry);
         }
+
     }
     
     /**
@@ -372,32 +384,48 @@ public class AppPrefsCache
      */
     public static SimpleDateFormat getDefaultDatePattern()
     {
+        boolean debug = AppPreferences.getLocalPrefs().getBoolean("DEBUG.DATES", false);
+        
         SimpleDateFormat sdf = new SimpleDateFormat();
         
         String[] pieces = sdf.toPattern().split(" "); //$NON-NLS-1$
         if (pieces != null)
         {
             String pattern = pieces[0];
-            //System.out.println(pattern);
             
-            //System.out.println("Months: "+ StringUtils.countMatches(pattern, "M"));
-            //System.out.println("Days:   "+ StringUtils.countMatches(pattern, "d"));
-            //System.out.println("Years:  "+ StringUtils.countMatches(pattern, "y"));
+            if (debug)
+            {
+                System.out.println("["+pattern+"]["+sdf.toPattern()+"]");
+            
+                System.out.println("Months: "+ StringUtils.countMatches(pattern, "M"));
+                System.out.println("Days:   "+ StringUtils.countMatches(pattern, "d"));
+                System.out.println("Years:  "+ StringUtils.countMatches(pattern, "y"));
+            }
             
             int months = StringUtils.countMatches(pattern, "M"); //$NON-NLS-1$
             int days   = StringUtils.countMatches(pattern, "d"); //$NON-NLS-1$
             int years  = StringUtils.countMatches(pattern, "y"); //$NON-NLS-1$
             
-            if (months == 1 && days == 1 && years == 2)
+            if (months == 1)
             {
                 pattern = pattern.replace("M", "MM"); //$NON-NLS-1$ //$NON-NLS-2$
+            }
+            if (days == 1)
+            {
                 pattern = pattern.replace("d", "dd"); //$NON-NLS-1$ //$NON-NLS-2$
+            }
+            if (years == 2)
+            {
                 pattern = pattern.replace("yy", "yyyy"); //$NON-NLS-1$ //$NON-NLS-2$
             }
-            //System.out.println(pattern);
-            //System.out.println("Months: "+ StringUtils.countMatches(pattern, "M"));
-            //System.out.println("Days:   "+ StringUtils.countMatches(pattern, "d"));
-            //System.out.println("Years:  "+ StringUtils.countMatches(pattern, "y"));
+            
+            if (debug)
+            {
+                System.out.println(pattern);
+                System.out.println("Months: "+ StringUtils.countMatches(pattern, "M"));
+                System.out.println("Days:   "+ StringUtils.countMatches(pattern, "d"));
+                System.out.println("Years:  "+ StringUtils.countMatches(pattern, "y"));
+            }
             return new SimpleDateFormat(pattern);
             
         }

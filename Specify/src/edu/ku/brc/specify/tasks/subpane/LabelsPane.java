@@ -19,8 +19,15 @@
 */
 package edu.ku.brc.specify.tasks.subpane;
 
+import static edu.ku.brc.ui.UIHelper.centerAndShow;
+import static edu.ku.brc.ui.UIHelper.createIconBtn;
 import static edu.ku.brc.ui.UIHelper.createLabel;
+import static edu.ku.brc.ui.UIHelper.createScrollPane;
+import static edu.ku.brc.ui.UIHelper.createTextArea;
+import static edu.ku.brc.ui.UIRegistry.forceTopFrameRepaint;
+import static edu.ku.brc.ui.UIRegistry.getMostRecentWindow;
 import static edu.ku.brc.ui.UIRegistry.getResourceString;
+import static edu.ku.brc.ui.UIRegistry.getTopWindow;
 
 import java.awt.BorderLayout;
 import java.awt.Frame;
@@ -34,7 +41,9 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
+import javax.swing.JButton;
 import javax.swing.JLabel;
+import javax.swing.JTextArea;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 
@@ -55,6 +64,10 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.hibernate.Session;
 
+import com.jgoodies.forms.builder.PanelBuilder;
+import com.jgoodies.forms.layout.CellConstraints;
+import com.jgoodies.forms.layout.FormLayout;
+
 import edu.ku.brc.af.core.AppContextMgr;
 import edu.ku.brc.af.core.AppResourceIFace;
 import edu.ku.brc.af.core.Taskable;
@@ -63,13 +76,12 @@ import edu.ku.brc.af.tasks.subpane.BaseSubPane;
 import edu.ku.brc.dbsupport.DBConnection;
 import edu.ku.brc.dbsupport.HibernateUtil;
 import edu.ku.brc.dbsupport.RecordSetIFace;
-import edu.ku.brc.specify.tasks.subpane.qb.QBJRDataSource;
-import edu.ku.brc.specify.tasks.subpane.qb.QBJRDataSourceBase;
-import edu.ku.brc.specify.tasks.subpane.qb.QBJRDataSourceListenerIFace;
+import edu.ku.brc.specify.tasks.subpane.qb.QBDataSource;
+import edu.ku.brc.specify.tasks.subpane.qb.QBDataSourceBase;
+import edu.ku.brc.specify.tasks.subpane.qb.QBDataSourceListenerIFace;
 import edu.ku.brc.specify.tasks.subpane.qb.ReportParametersPanel;
 import edu.ku.brc.ui.CustomDialog;
-import edu.ku.brc.ui.UIHelper;
-import edu.ku.brc.ui.UIRegistry;
+import edu.ku.brc.ui.IconManager;
 import edu.ku.brc.util.Pair;
 
 
@@ -84,7 +96,8 @@ import edu.ku.brc.util.Pair;
  */
 @SuppressWarnings("serial")
 public class LabelsPane extends BaseSubPane implements AsynchronousFilllListener, 
- 	JasperCompileListener, QBJRDataSourceListenerIFace
+                                                       JasperCompileListener, 
+                                                       QBDataSourceListenerIFace
 {
     // Static Data Members
     protected static final Logger    log = Logger.getLogger(LabelsPane.class);
@@ -106,6 +119,8 @@ public class LabelsPane extends BaseSubPane implements AsynchronousFilllListener
     protected boolean                requiresHibernate = false;
     protected Session                session           = null;
     protected ImageIcon              icon              = null;
+    
+    protected java.lang.Throwable    errThrowable      = null;
     
 
     /**
@@ -141,10 +156,10 @@ public class LabelsPane extends BaseSubPane implements AsynchronousFilllListener
 					try
 					{
 						asyncFillHandler.cancellFill();
-						if (dataSource != null && (dataSource instanceof QBJRDataSource)
+						if (dataSource != null && (dataSource instanceof QBDataSource)
 								&& loading.get())
 						{
-							((QBJRDataSource )dataSource).cancelLoad();
+							((QBDataSource )dataSource).cancelLoad();
 						}
 					} catch (JRException ex)
 					{
@@ -154,9 +169,8 @@ public class LabelsPane extends BaseSubPane implements AsynchronousFilllListener
 			}
         	
         });
-        
     }
-
+    
     /* (non-Javadoc)
      * @see edu.ku.brc.af.tasks.subpane.BaseSubPane#getIcon()
      */
@@ -183,8 +197,22 @@ public class LabelsPane extends BaseSubPane implements AsynchronousFilllListener
         if (label == null)
         {
             removeAll();
+            
+            CellConstraints cc = new CellConstraints();
+            PanelBuilder    pb = new PanelBuilder(new FormLayout("f:p:g,p,2px,p,f:p:g", "f:p:g, p, f:p:g"), this);//$NON-NLS-1$ //$NON-NLS-2$
+            
+            JButton moreBtn = createIconBtn("InfoIcon", IconManager.IconSize.Std16, null, new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e)
+                {
+                    showErrorMsgs();
+                }
+            });
             label = createLabel("", SwingConstants.CENTER);
-            add(label, BorderLayout.CENTER);
+            pb.add(label, cc.xy(2, 2));
+            pb.add(moreBtn, cc.xy(4, 2));
+            
+            moreBtn.setEnabled(true);
         }
         
         if (progressBarPanel != null)
@@ -202,6 +230,42 @@ public class LabelsPane extends BaseSubPane implements AsynchronousFilllListener
             }
           });
     }
+    
+    private void showErrorMsgs()
+    {
+        CellConstraints cc = new CellConstraints();
+        PanelBuilder    pb = new PanelBuilder(new FormLayout("f:p:g", "f:p:g"));
+        JTextArea       ta = createTextArea(40,80);
+        pb.add(createScrollPane(ta, true), cc.xy(1,1));
+        pb.setDefaultDialogBorder();
+        
+        ta.setText(errThrowable != null ? getStackTrace(errThrowable) : "");
+        ta.setEditable(false);
+        
+        CustomDialog dlg = new CustomDialog((Frame)getMostRecentWindow(), getResourceString("Error"), true, CustomDialog.OK_BTN, pb.getPanel());
+        dlg.setOkLabel(getResourceString("CLOSE"));
+        centerAndShow(dlg);
+    }
+    
+    /**
+     * @param throwable
+     * @return
+     */
+    protected String getStackTrace(Throwable throwable)
+    {
+        String        sep    = System.getProperty("line.separator");
+        StringBuilder result = new StringBuilder();
+        result.append(throwable.toString());
+        result.append(sep);
+
+        for (StackTraceElement element : throwable.getStackTrace())
+        {
+            result.append(element);
+            result.append(sep);
+        }
+        return result.toString();
+    }
+
     
     /**
      * Returns whether the LabelsPane contains a "label".
@@ -274,7 +338,7 @@ public class LabelsPane extends BaseSubPane implements AsynchronousFilllListener
         File compiledFile = (File )params.get("compiled-file");
         if (compiledFile != null)
         {
-            compileComplete(compiledFile);
+            compileComplete(compiledFile, null);
         }
         else
         {
@@ -289,7 +353,7 @@ public class LabelsPane extends BaseSubPane implements AsynchronousFilllListener
     /* (non-Javadoc)
      * @see edu.ku.brc.specify.tasks.subpane.JasperCompileListener#compileComplete(java.io.File)
      */
-    public void compileComplete(final File compiledFile)
+    public void compileComplete(final File compiledFile, final Throwable throwable)
     {
         compiling.set(false);
     	if (compiledFile != null)
@@ -306,10 +370,10 @@ public class LabelsPane extends BaseSubPane implements AsynchronousFilllListener
                         
                     } else if (dataSource != null)
                     {
-                        if (dataSource instanceof QBJRDataSourceBase)
+                        if (dataSource instanceof QBDataSourceBase)
                         {
                             //if source has not finished retrieving results, size = -1
-                            size = ((QBJRDataSourceBase )dataSource).size();
+                            size = ((QBDataSourceBase )dataSource).size();
                         }
                     }
 
@@ -321,12 +385,10 @@ public class LabelsPane extends BaseSubPane implements AsynchronousFilllListener
                         rpp = new ReportParametersPanel(jasperReport, true);
                         if (rpp.getParamCount() > 0)
                         {
-                            CustomDialog cd = new CustomDialog((Frame) UIRegistry.getTopWindow(), UIRegistry
-                                    .getResourceString("LabelsPane.REPORT_PARAMS"), true, rpp);
-                            UIHelper.centerAndShow(cd);
+                            CustomDialog cd = new CustomDialog((Frame) getTopWindow(), getResourceString("LabelsPane.REPORT_PARAMS"), true, rpp);
+                            centerAndShow(cd);
                             go = !cd.isCancelled(); // XXX what about x box?
                             cd.dispose();
-
                         }
                     }
                     
@@ -346,10 +408,8 @@ public class LabelsPane extends BaseSubPane implements AsynchronousFilllListener
                             }
                         }
                         
-                        parameters.put("RPT_IMAGE_DIR", JasperReportsCache.getImagePath()
-                                .getAbsolutePath());
-                        parameters.put("SUBREPORT_DIR", cachePath.getAbsoluteFile()
-                                + File.separator);
+                        parameters.put("RPT_IMAGE_DIR", JasperReportsCache.getImagePath().getAbsolutePath());
+                        parameters.put("SUBREPORT_DIR", cachePath.getAbsoluteFile() + File.separator);
                         parameters.put("DATASOURCE", dataSource);
                         
                         if (size > virtualizerThresholdSize)
@@ -368,8 +428,7 @@ public class LabelsPane extends BaseSubPane implements AsynchronousFilllListener
                         }
                         if (recordSet != null)
                         {
-                            parameters.put("itemnum", DBTableIdMgr.getInstance().getInClause(
-                                    recordSet));
+                            parameters.put("itemnum", DBTableIdMgr.getInstance().getInClause(recordSet));
                         }
 
                         // XXX What about losing a connection here?
@@ -381,15 +440,19 @@ public class LabelsPane extends BaseSubPane implements AsynchronousFilllListener
                                     session);
                         }
 
-                        if (dataSource instanceof QBJRDataSourceBase)
+                        if (dataSource instanceof QBDataSourceBase)
                         {
-                        	((QBJRDataSourceBase )dataSource).addListener(this);
+                        	((QBDataSourceBase )dataSource).addListener(this);
                         	progressLabel.setText(getResourceString("LabelsPane.LoadingReportData"));
                         }
                         else
                         {
                         	progressLabel.setText(getResourceString("JasperReportFilling"));
                         }
+                        
+                        //This needs to be done for newer jasperreports.jar. see bugzilla #7940 for details.
+                        jasperReport.setProperty("net.sf.jasperreports.awt.ignore.missing.font", "true");
+                        
                         if (recordSet != null || (recordSet == null && dataSource == null))
                         {
                             asyncFillHandler = AsynchronousFillHandle.createHandle(jasperReport,
@@ -426,6 +489,7 @@ public class LabelsPane extends BaseSubPane implements AsynchronousFilllListener
             }
         } else
         {
+            errThrowable = throwable;
             setLabelText(getResourceString("JasperReportCompileError"));
         }
         compiler = null;
@@ -448,7 +512,6 @@ public class LabelsPane extends BaseSubPane implements AsynchronousFilllListener
     
     protected void closeSession()
     {
-        
         if (session != null)
         {
             try
@@ -457,9 +520,9 @@ public class LabelsPane extends BaseSubPane implements AsynchronousFilllListener
                 
             } catch (Exception ex)
             {
+                log.error(ex);
                 edu.ku.brc.af.core.UsageTracker.incrHandledUsageCount();
                 edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(LabelsPane.class, ex);
-                log.error(ex);
             }
         }
     }
@@ -469,6 +532,7 @@ public class LabelsPane extends BaseSubPane implements AsynchronousFilllListener
      */
     public void reportFillError(java.lang.Throwable t)
     {
+        errThrowable = t;
         removeAll();
         setLabelText(getResourceString("JasperReportFillError"));
         log.error(t);
@@ -510,6 +574,7 @@ public class LabelsPane extends BaseSubPane implements AsynchronousFilllListener
                     }
                     catch (Exception ex)
                     {
+                        errThrowable = ex;
                         edu.ku.brc.af.core.UsageTracker.incrHandledUsageCount();
                         edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(LabelsPane.class, ex);
                         setLabelText(getResourceString("JasperReportCreatingViewer"));
@@ -541,26 +606,27 @@ public class LabelsPane extends BaseSubPane implements AsynchronousFilllListener
             
             add(jasperViewer, BorderLayout.CENTER);
 
-            UIRegistry.forceTopFrameRepaint();
+            forceTopFrameRepaint();
 
             closeSession();
             
         } catch (Exception ex)
         {
+            errThrowable = ex;
+            log.error(ex);
             edu.ku.brc.af.core.UsageTracker.incrHandledUsageCount();
             edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(LabelsPane.class, ex);
             setLabelText(getResourceString("JasperReportCreatingViewer"));
-            log.error(ex);
             ex.printStackTrace();
         }
         asyncFillHandler = null;
     }
 
 	/* (non-Javadoc)
-	 * @see edu.ku.brc.specify.tasks.subpane.qb.QBJRDataSourceListenerIFace#currentRow(int)
+	 * @see edu.ku.brc.specify.tasks.subpane.qb.QBDataSourceListenerIFace#currentRow(int)
 	 */
 	@Override
-	public void currentRow(final int currentRow)
+	public void currentRow(final long currentRow)
 	{
 		SwingUtilities.invokeLater(new Runnable(){
 
@@ -570,30 +636,30 @@ public class LabelsPane extends BaseSubPane implements AsynchronousFilllListener
 			@Override
 			public void run()
 			{
-				if (progressBar.isIndeterminate() && dataSource instanceof QBJRDataSource)
+				if (progressBar.isIndeterminate() && dataSource instanceof QBDataSource)
 				{
 					progressBar.setMinimum(0);
-					progressBar.setMaximum(((QBJRDataSource )dataSource).size());
+					progressBar.setMaximum(((QBDataSource )dataSource).size());
 					progressBar.setIndeterminate(false);
 				}
-				progressBar.setValue(currentRow);
+				progressBar.setValue((int )currentRow);
 			}
 			
 		});
 	}
 
 	/* (non-Javadoc)
-	 * @see edu.ku.brc.specify.tasks.subpane.qb.QBJRDataSourceListenerIFace#done(int)
+	 * @see edu.ku.brc.specify.tasks.subpane.qb.QBDataSourceListenerIFace#done(int)
 	 */
 	@Override
-	public void done(int rows)
+	public void done(long rows)
 	{
 		// TODO Auto-generated method stub
 		
 	}
 
 	/* (non-Javadoc)
-	 * @see edu.ku.brc.specify.tasks.subpane.qb.QBJRDataSourceListenerIFace#filling()
+	 * @see edu.ku.brc.specify.tasks.subpane.qb.QBDataSourceListenerIFace#filling()
 	 */
 	@Override
 	public void filling()
@@ -614,7 +680,7 @@ public class LabelsPane extends BaseSubPane implements AsynchronousFilllListener
 	}
 
 	/* (non-Javadoc)
-	 * @see edu.ku.brc.specify.tasks.subpane.qb.QBJRDataSourceListenerIFace#loaded()
+	 * @see edu.ku.brc.specify.tasks.subpane.qb.QBDataSourceListenerIFace#loaded()
 	 */
 	@Override
 	public void loaded()
@@ -623,7 +689,7 @@ public class LabelsPane extends BaseSubPane implements AsynchronousFilllListener
 	}
 
 	/* (non-Javadoc)
-	 * @see edu.ku.brc.specify.tasks.subpane.qb.QBJRDataSourceListenerIFace#loading()
+	 * @see edu.ku.brc.specify.tasks.subpane.qb.QBDataSourceListenerIFace#loading()
 	 */
 	@Override
 	public void loading()
@@ -644,10 +710,10 @@ public class LabelsPane extends BaseSubPane implements AsynchronousFilllListener
 	}
 
 	/* (non-Javadoc)
-	 * @see edu.ku.brc.specify.tasks.subpane.qb.QBJRDataSourceListenerIFace#rowCount(int)
+	 * @see edu.ku.brc.specify.tasks.subpane.qb.QBDataSourceListenerIFace#rowCount(int)
 	 */
 	@Override
-	public void rowCount(final int rowCount)
+	public void rowCount(final long rowCount)
 	{
 		if (rowCount > 0)
 		{
@@ -663,7 +729,7 @@ public class LabelsPane extends BaseSubPane implements AsynchronousFilllListener
 				public void run()
 				{
 					progressBar.setMinimum(0);
-					progressBar.setMaximum(rowCount);
+					progressBar.setMaximum((int )rowCount);
 					progressBar.setValue(0);
 					progressBar.setIndeterminate(false);
 				}

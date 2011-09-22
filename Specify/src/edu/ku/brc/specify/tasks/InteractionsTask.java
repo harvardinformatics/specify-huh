@@ -26,12 +26,16 @@ import java.awt.Component;
 import java.awt.Frame;
 import java.awt.datatransfer.DataFlavor;
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Properties;
+import java.util.Set;
 import java.util.Vector;
 
 import javax.swing.JCheckBox;
@@ -86,9 +90,10 @@ import edu.ku.brc.af.ui.forms.Viewable;
 import edu.ku.brc.af.ui.forms.persist.ViewIFace;
 import edu.ku.brc.dbsupport.DataProviderFactory;
 import edu.ku.brc.dbsupport.DataProviderSessionIFace;
-import edu.ku.brc.dbsupport.RecordSetIFace;
-import edu.ku.brc.dbsupport.TableModel2Excel;
 import edu.ku.brc.dbsupport.DataProviderSessionIFace.QueryIFace;
+import edu.ku.brc.dbsupport.RecordSetIFace;
+import edu.ku.brc.dbsupport.RecordSetItemIFace;
+import edu.ku.brc.dbsupport.TableModel2Excel;
 import edu.ku.brc.helpers.EMailHelper;
 import edu.ku.brc.helpers.Encryption;
 import edu.ku.brc.helpers.SwingWorker;
@@ -114,10 +119,9 @@ import edu.ku.brc.specify.datamodel.Shipment;
 import edu.ku.brc.specify.datamodel.SpAppResource;
 import edu.ku.brc.specify.datamodel.SpReport;
 import edu.ku.brc.specify.datamodel.busrules.LoanBusRules;
-import edu.ku.brc.specify.tasks.subpane.qb.QueryBldrPane;
 import edu.ku.brc.specify.tasks.subpane.wb.wbuploader.Uploader;
 import edu.ku.brc.specify.ui.LoanReturnDlg;
-import edu.ku.brc.specify.ui.LoanReturnDlg.LoanReturnInfo;
+import edu.ku.brc.specify.ui.LoanReturnInfo;
 import edu.ku.brc.ui.ChooseFromListDlg;
 import edu.ku.brc.ui.CommandAction;
 import edu.ku.brc.ui.CommandDispatcher;
@@ -130,7 +134,6 @@ import edu.ku.brc.ui.ToolBarDropDownBtn;
 import edu.ku.brc.ui.UIHelper;
 import edu.ku.brc.ui.UIRegistry;
 import edu.ku.brc.ui.dnd.Trash;
-import edu.ku.brc.util.Pair;
 
 
 /**
@@ -169,6 +172,7 @@ public class InteractionsTask extends BaseTask
     protected static final String CREATE_MAILMSG       = "CreateMailMsg";
     protected static final String ADD_TO_LOAN          = "AddToLoan";
     protected static final String ADD_TO_GIFT          = "AddToGift";
+    protected static final String RET_LOAN             = "RET_LOAN";
     protected static final String OPEN_NEW_VIEW        = "OpenNewView";
     protected static final String LN_NO_PRP            = "LN_NO_PRP";
     
@@ -263,7 +267,7 @@ public class InteractionsTask extends BaseTask
                         {
                             tooltip = getLocalizedMessage("DET_OPEN_VIEW", view.getObjTitle());
                         }
-                    } else
+                    } else if (StringUtils.isNotEmpty(entry.getTooltip()))
                     {
                         tooltip = getLocalizedMessage(entry.getTooltip());
                     }
@@ -297,13 +301,13 @@ public class InteractionsTask extends BaseTask
 
     
     /* (non-Javadoc)
-	 * @see edu.ku.brc.af.tasks.BaseTask#doProcessAppCommands(edu.ku.brc.ui.CommandAction)
-	 */
-	@Override
-	protected void doProcessAppCommands(CommandAction cmdAction)
-	{
-		// TODO Auto-generated method stub
-		super.doProcessAppCommands(cmdAction);
+     * @see edu.ku.brc.af.tasks.BaseTask#doProcessAppCommands(edu.ku.brc.ui.CommandAction)
+     */
+    @Override
+    protected void doProcessAppCommands(CommandAction cmdAction)
+    {
+        // TODO Auto-generated method stub
+        super.doProcessAppCommands(cmdAction);
         
         if (cmdAction.isAction(APP_RESTART_ACT) ||
             cmdAction.isAction(APP_START_ACT))
@@ -311,9 +315,9 @@ public class InteractionsTask extends BaseTask
             this.isInitialized = false;
             initialize();
         }
-	}
+    }
 
-	/**
+    /**
      * Returns whether a table id if considered to be an Interaction.
      * @param tableId the table ID in question
      * @return true if it is a table that is handled by Interactions
@@ -593,7 +597,7 @@ public class InteractionsTask extends BaseTask
     /**
      * @param navBox
      * @param tableInfo
-     * @param label
+     * @param text
      * @param cmdType
      * @param action
      * @param viewName
@@ -617,8 +621,8 @@ public class InteractionsTask extends BaseTask
         {
             if (cmdAction.getAction().equals(PRINT_INVOICE))
             {
-            	//this.printableInvoiceTblIds.add(ef.getDataFlavorClass().
-            	System.out.println(ef);
+                //this.printableInvoiceTblIds.add(ef.getDataFlavorClass().
+                System.out.println(ef);
             }
             DataFlavorTableExt dfx = new DataFlavorTableExt(ef.getDataFlavorClass(), ef.getHumanReadable(), ef.getTableIdsAsArray());
             roc.addDragDataFlavor(dfx);
@@ -628,12 +632,12 @@ public class InteractionsTask extends BaseTask
         {
             if (cmdAction.getAction().equals(PRINT_INVOICE))
             {
-            	if (ef.getClassName().equals(RecordSetTask.class.getName()))
-            	{
-            		this.printableInvoiceTblIds.addAll(ef.getTableIds());
-            	}
+                if (ef.getClassName().equals(RecordSetTask.class.getName()))
+                {
+                    this.printableInvoiceTblIds.addAll(ef.getTableIds());
+                }
             }
-        	DataFlavorTableExt dfx = new DataFlavorTableExt(ef.getDataFlavorClass(), ef.getHumanReadable(), ef.getTableIdsAsArray());
+            DataFlavorTableExt dfx = new DataFlavorTableExt(ef.getDataFlavorClass(), ef.getHumanReadable(), ef.getTableIdsAsArray());
             roc.addDropDataFlavor(dfx);
         }
         return roc;
@@ -750,8 +754,8 @@ public class InteractionsTask extends BaseTask
         extendedNavBoxes.clear();
         extendedNavBoxes.addAll(navBoxes);
 
-        RecordSetTask rsTask = (RecordSetTask)ContextMgr.getTaskByClass(RecordSetTask.class);
-        List<NavBoxIFace> nbs = rsTask.getNavBoxes();
+        RecordSetTask     rsTask = (RecordSetTask)ContextMgr.getTaskByClass(RecordSetTask.class);
+        List<NavBoxIFace> nbs    = rsTask.getNavBoxes();
         if (nbs != null)
         {
             extendedNavBoxes.addAll(nbs);
@@ -821,10 +825,10 @@ public class InteractionsTask extends BaseTask
         {
             RecordSetIFace rs = (RecordSetIFace)data;
             
-            InvoiceInfo invoiceInfo = getInvoiceInfo(rs.getDbTableId());
+            InfoForTaskReport invoiceInfo = getInvoiceInfo(rs.getDbTableId());
             if (invoiceInfo != null)
             {
-            	launchInvoice(invoiceInfo, rs);
+                dispatchReport(invoiceInfo, rs, "LoanInvoice");
             }
         }
     }
@@ -878,6 +882,20 @@ public class InteractionsTask extends BaseTask
         }
         return rsList;
     }
+    
+    /**
+     * @return returns a list of RecordSets of InfoRequests
+     */
+    protected Vector<RecordSetIFace> getLoanRecordSetsFromSideBar()
+    {
+        Vector<RecordSetIFace> rsList = new Vector<RecordSetIFace>();
+        for (NavBoxItemIFace nbi : infoRequestNavBox.getItems())
+        {
+            rsList.add((RecordSet)nbi.getData());
+        }
+        return rsList;
+    }
+    
     /**
      * @param existingLoan
      * @param infoRequest
@@ -1162,7 +1180,8 @@ public class InteractionsTask extends BaseTask
      * Creates a new InfoRequest from a RecordSet.
      * @param recordSet the recordSet to use to create the InfoRequest
      */
-    protected void createInfoRequest(final RecordSetIFace recordSetArg)
+    protected void createInfoRequest(final RecordSetIFace recordSetArg,
+                                     final CommandAction cmdAction)
     {
         DBTableInfo tableInfo = DBTableIdMgr.getInstance().getInfoById(InfoRequest.getClassTableId());
         
@@ -1174,7 +1193,7 @@ public class InteractionsTask extends BaseTask
         RecordSetTask          rsTask       = (RecordSetTask)TaskMgr.getTask(RecordSetTask.RECORD_SET);
         List<RecordSetIFace>   colObjRSList = rsTask.getRecordSets(CollectionObject.getClassTableId());
 
-        RecordSetIFace recordSetFromDB = getRecordSetOfColObj(recordSetArg, colObjRSList.size());
+        RecordSetIFace recordSetFromDB = getRecordSetOfDataObjs(recordSetArg, CollectionObject.class, "catalogNumber", colObjRSList.size());
         
         if (recordSetFromDB != null)
         {
@@ -1191,8 +1210,15 @@ public class InteractionsTask extends BaseTask
             if (recordSet.getOrderedItems() != null && recordSet.getNumItems() > 0)
             {
                 Taskable irTask = TaskMgr.getTask("InfoRequest");
-                createFormPanel(irTask.getTitle(), view.getViewSetName(), view.getName(), "edit", infoRequest, MultiView.IS_NEW_OBJECT, 
-                                irTask.getIcon(16));
+                if (cmdAction != null && cmdAction.getData() instanceof Viewable)
+                {
+                    ((Viewable)cmdAction.getData()).setNewObject(infoRequest);
+                    
+                } else
+                {
+                    createFormPanel(irTask.getTitle(), view.getViewSetName(), view.getName(), "edit", infoRequest, MultiView.IS_NEW_OBJECT, 
+                                    irTask.getIcon(16));
+                }
                 
             } else
             {
@@ -1207,94 +1233,119 @@ public class InteractionsTask extends BaseTask
      */
     protected void checkToPrintLoan(final CommandAction cmdAction)
     {
-        if (cmdAction.getData() instanceof Loan)
+        boolean isGift = cmdAction.getData() instanceof Gift;
+        if (cmdAction.getData() instanceof Loan || isGift)
         {
-            Loan loan = (Loan)cmdAction.getData();
+            Loan loan = isGift ? null : (Loan)cmdAction.getData();
+            Gift gift = isGift ? (Gift)cmdAction.getData() : null;
             
-            Boolean     printLoan   = null;
-            FormViewObj formViewObj = getCurrentFormViewObj();
+            Boolean     doPrintInvoice = null;
+            FormViewObj formViewObj    = getCurrentFormViewObj();
             if (formViewObj != null)
             {
                 Component comp = formViewObj.getControlByName("generateInvoice");
                 if (comp instanceof JCheckBox)
                 {
-                    printLoan = ((JCheckBox)comp).isSelected();
+                    doPrintInvoice = ((JCheckBox)comp).isSelected();
                 }
             }
             
-            if (printLoan == null)
+            if (doPrintInvoice == null)
             {
-                Object[] options = {getResourceString("CreateLoanInvoice"), getResourceString("CANCEL")};
+                String    number  = isGift ? gift.getGiftNumber() :  loan.getLoanNumber();
+                String    btnLbl  = getResourceString(isGift ? "GIFT" : "LOAN");
+                String    msg     = getLocalizedMessage("CreateInvoiceForNum", getResourceString(isGift ? "GIFT" : "LOAN"), number);
+                Object[]  options = {btnLbl, getResourceString("CANCEL")};
                 int n = JOptionPane.showOptionDialog(UIRegistry.get(UIRegistry.FRAME),
-                                                    String.format(getResourceString("CreateLoanInvoiceForNum"), new Object[] {(loan.getLoanNumber())}),
-                                                    getResourceString("CreateLoanInvoice"),
+                                                    msg,
+                                                    btnLbl,
                                                     JOptionPane.YES_NO_OPTION,
                                                     JOptionPane.QUESTION_MESSAGE,
                                                     null,     //don't use a custom Icon
                                                     options,  //the titles of buttons
                                                     options[0]); //default button title
-                printLoan = n == 0;
+                doPrintInvoice = n == 0;
             }
             
             // XXX DEBUG
             //printLoan = false;
-            if (printLoan)
+            if (doPrintInvoice)
             {
-                InvoiceInfo invoice = getLoanReport();
+                InfoForTaskReport invoice = getReport(isGift);
                 
                 if (invoice == null)
                 {
                     return;
                 }
                 
-                
                 DataProviderSessionIFace session = null;
                 try
                 {
                     session = DataProviderFactory.getInstance().createSession();
                     //session.attach(loan);
-                    loan = (Loan)session.getData("From Loan where loanId = "+loan.getLoanId());
                     
-//                    if (loan.getShipments().size() == 0)
-//                    {
-//                        UIRegistry.displayErrorDlg(getResourceString("NO_SHIPMENTS_ERROR"));
-//                        
-//                    } else if (loan.getShipments().size() > 1)
-//                    {
-//                        // XXX Do we allow them to pick a shipment or print all?
-//                        UIRegistry.displayErrorDlg(getResourceString("MULTI_SHIPMENTS_NOT_SUPPORTED"));
-//                        
-//                    } else
-//                    {
-//                        // XXX At the moment this is just checking to see if there is at least one "good/valid" shipment
-//                        // but the hard part will be sending the correct info so the report can be printed
-//                        // using bouth a Loan Id and a Shipment ID, and at some point distinguishing between using
-//                        // the shipped by versus the shipper.
-//                        Shipment shipment = loan.getShipments().iterator().next();
-//                        if (shipment.getShippedBy() == null)
-//                        {
-//                            UIRegistry.displayErrorDlg(getResourceString("SHIPMENT_MISSING_SHIPPEDBY"));
-//                        } else if (shipment.getShippedBy().getAddresses().size() == 0)
-//                        {
-//                            UIRegistry.displayErrorDlg(getResourceString("SHIPPEDBY_MISSING_ADDR"));
-//                        } else if (shipment.getShippedTo() == null)
-//                        {
-//                            UIRegistry.displayErrorDlg(getResourceString("SHIPMENT_MISSING_SHIPPEDTO"));
-//                        } else if (shipment.getShippedTo().getAddresses().size() == 0)
-//                        {
-//                            UIRegistry.displayErrorDlg(getResourceString("SHIPPEDTO_MISSING_ADDR"));
-//                        } else
-//                        {
-                            //session.close();
-                            //session = null;
+                    String hql = isGift ? "FROM Gift WHERE giftId = "+gift.getGiftId() :
+                                          "FROM Loan WHERE loanId = "+loan.getLoanId();
+                    
+                    loan = isGift ? null : (Loan)session.getData(hql);
+                    gift = isGift ? (Gift)session.getData(hql) : null;
+                    
+                    Set<Shipment> shipments = isGift ? gift.getShipments() : loan.getShipments();
+                    if (shipments != null && shipments.size() == 0)
+                    {
+                        UIRegistry.displayErrorDlg(getResourceString("NO_SHIPMENTS_ERROR"));
+                        
+                    } else if (shipments.size() > 1)
+                    {
+                        // XXX Do we allow them to pick a shipment or print all?
+                        UIRegistry.displayErrorDlg(getResourceString("MULTI_SHIPMENTS_NOT_SUPPORTED"));
+                        
+                    } else
+                    {
+                        // XXX At the moment this is just checking to see if there is at least one "good/valid" shipment
+                        // but the hard part will be sending the correct info so the report can be printed
+                        // using both a Loan Id and a Shipment ID, and at some point distinguishing between using
+                        // the shipped by versus the shipper.
+                        Shipment shipment = isGift ? gift.getShipments().iterator().next() : loan.getShipments().iterator().next();
+                        if (shipment.getShippedBy() == null)
+                        {
+                            UIRegistry.displayErrorDlg(getResourceString("SHIPMENT_MISSING_SHIPPEDBY"));
+                            
+                        } else if (shipment.getShippedBy().getAddresses().size() == 0)
+                        {
+                            UIRegistry.displayErrorDlg(getResourceString("SHIPPEDBY_MISSING_ADDR"));
+                        } else if (shipment.getShippedTo() == null)
+                        {
+                            UIRegistry.displayErrorDlg(getResourceString("SHIPMENT_MISSING_SHIPPEDTO"));
+                        } else if (shipment.getShippedTo().getAddresses().size() == 0)
+                        {
+                            UIRegistry.displayErrorDlg(getResourceString("SHIPPEDTO_MISSING_ADDR"));
+                        } else
+                        {
+                            String  identTitle;
+                            int     tableId;
+                            Integer id;
+                            if (isGift)
+                            {
+                                identTitle = gift.getIdentityTitle();
+                                tableId    = gift.getTableId();
+                                id         = gift.getId();
+                            } else
+                            {
+                                identTitle = loan.getIdentityTitle();
+                                tableId    = loan.getTableId();
+                                id         = loan.getId();
+                            }
                             
                             RecordSet rs = new RecordSet();
                             rs.initialize();
-                            rs.setName(loan.getIdentityTitle());
-                            rs.setDbTableId(loan.getTableId());
-                            rs.addItem(loan.getId());
+                            rs.setName(identTitle);
+                            rs.setDbTableId(tableId);
+                            rs.addItem(id);
                             
-                            launchInvoice(invoice, rs);
+                            dispatchReport(invoice, rs, "LoanInvoice");
+                        }
+                    }
                 } finally
                 {
                     if (session != null)
@@ -1306,36 +1357,9 @@ public class InteractionsTask extends BaseTask
         }
     }
     
-    /**
-     * @param invoice
-     * @param rs
-     * 
-     * Builds and dispatches command to launch invoice
-     */
-    protected void launchInvoice(final InvoiceInfo invoice, final RecordSetIFace rs)
+    public InfoForTaskReport getReport(final boolean isGift)
     {
-        if (invoice.getSpReport() != null)
-        {
-            SpReport spRep = invoice.getSpReport();
-            QueryBldrPane.runReport(spRep, UIRegistry.getResourceString("LoanInvoice"),
-                    rs);
-        }
-        else
-        {
-            SpAppResource rep = invoice.getSpAppResource();
-            CommandAction cmd = new CommandAction(ReportsBaseTask.REPORTS, ReportsBaseTask.PRINT_REPORT,
-                    rs);
-            cmd.getProperties().put("title", rep.getName());
-            cmd.getProperties().put("file", rep.getFileName());
-            cmd.getProperties().put("reporttype", "report");
-            cmd.getProperties().put("name", rep.getName());
-            CommandDispatcher.dispatch(cmd);
-        }
-    }
-    
-    public InvoiceInfo getLoanReport()
-    {
-    	return getInvoiceInfo(DBTableIdMgr.getInstance().getIdByShortName("Loan"));
+        return getInvoiceInfo(DBTableIdMgr.getInstance().getIdByShortName(isGift ? "Gift" : "Loan"));
     }
     
     /**
@@ -1345,16 +1369,16 @@ public class InteractionsTask extends BaseTask
      * 
      * Fairly goofy code. Eventually may want to add ui to allow labeling resources as "invoice" (see printLoan()).
      */
-    public InvoiceInfo getInvoiceInfo(final int invoiceTblId)
+    public InfoForTaskReport getInvoiceInfo(final int invoiceTblId)
     {
         DataProviderSessionIFace session = null;
-        ChooseFromListDlg<InvoiceInfo> dlg = null;
+        ChooseFromListDlg<InfoForTaskReport> dlg = null;
         try
         {
             session = DataProviderFactory.getInstance().createSession();
             List<AppResourceIFace> reps = AppContextMgr.getInstance().getResourceByMimeType(ReportsBaseTask.LABELS_MIME);
             reps.addAll(AppContextMgr.getInstance().getResourceByMimeType(ReportsBaseTask.REPORTS_MIME));
-            Vector<InvoiceInfo> repInfo = new Vector<InvoiceInfo>();
+            Vector<InfoForTaskReport> repInfo = new Vector<InfoForTaskReport>();
             
             for (AppResourceIFace rep : reps)
             {
@@ -1365,17 +1389,17 @@ public class InteractionsTask extends BaseTask
                 try
                 {
                     Integer tblId = null;
-                	try
+                    try
                     {
-                    	tblId = Integer.valueOf(tableid);
+                        tblId = Integer.valueOf(tableid);
                     }
                     catch (NumberFormatException ex)
                     {
-                    	//continue;
+                        //continue;
                     }
                     if (tblId == null)
                     {
-                    	continue;
+                        continue;
                     }
                     
                     if (tblId.equals(invoiceTblId))
@@ -1410,14 +1434,14 @@ public class InteractionsTask extends BaseTask
                 }
                 if (includeIt)
                 {
-                    repInfo.add(new InvoiceInfo((SpAppResource )rep, spReport));
+                    repInfo.add(new InfoForTaskReport((SpAppResource )rep, spReport));
                 }
             }
             
             if (repInfo.size() == 0)
             {
-            	UIRegistry.displayInfoMsgDlgLocalized("InteractionsTask.NoInvoiceFound", 
-                			DBTableIdMgr.getInstance().getTitleForId(invoiceTblId));
+                UIRegistry.displayInfoMsgDlgLocalized("InteractionsTask.NoInvoiceFound", 
+                            DBTableIdMgr.getInstance().getTitleForId(invoiceTblId));
                 return null;
             }
             
@@ -1426,8 +1450,8 @@ public class InteractionsTask extends BaseTask
                 return repInfo.get(0);
             }
             
-            dlg = new ChooseFromListDlg<InvoiceInfo>((Frame) UIRegistry
-                    .getTopWindow(), UIRegistry.getResourceString("REP_CHOOSE_INVOICE"),
+            dlg = new ChooseFromListDlg<InfoForTaskReport>((Frame) UIRegistry
+                    .getTopWindow(), getResourceString("REP_CHOOSE_INVOICE"),
                     repInfo);
             dlg.setVisible(true);
             if (dlg.isCancelled()) 
@@ -1512,7 +1536,7 @@ public class InteractionsTask extends BaseTask
 //            }
             
 //            dlg = new ChooseFromListDlg<SpAppResource>((Frame) UIRegistry
-//                    .getTopWindow(), UIRegistry.getResourceString("REP_CHOOSE_SP_REPORT"),
+//                    .getTopWindow(), getResourceString("REP_CHOOSE_SP_REPORT"),
 //                    aprs);
 //            dlg.setVisible(true);
 //            if (dlg.isCancelled()) 
@@ -1694,26 +1718,28 @@ public class InteractionsTask extends BaseTask
     /**
      * Starts process to return a loan.
      * @param multiView the current form doing the return
-     * @param loan the loan being returned
      * @param agent the agent doing the return
+     * @param returnedDate the date it was returned
      * @param returns the list of items being returned
+     * @param doingSingleItem whether it is a single item
      */
-    protected void doReturnLoan(final MultiView            multiView,
-                                final Loan                 loanArg,
-                                final Agent                agent, 
-                                final List<LoanReturnInfo> returns)
+    protected void doReturnLoans(final MultiView            multiView,
+                                 final Agent                agent, 
+                                 final Calendar             returnedDate, 
+                                 final List<LoanReturnInfo> returns,
+                                 final boolean              doingSingleItem)
     {
         final JStatusBar statusBar = UIRegistry.getStatusBar();
         statusBar.setIndeterminate(INTERACTIONS, true);
         
-        String msg = getResourceString("ReturningLoanItems");
+        String msg = getResourceString("InteractionsTask.ReturningLoanItems");
         statusBar.setText(msg);
         UIRegistry.writeSimpleGlassPaneMsg(msg, 24);
         
         final SwingWorker worker = new SwingWorker()
         {
-            protected int  numLPR = 0;
-            protected Loan loan   = null;
+            protected int numLPR = 0;
+            protected HashMap<Integer, Loan> mergedLoans = new HashMap<Integer, Loan>();
             
             @Override
             public Object construct()
@@ -1722,14 +1748,20 @@ public class InteractionsTask extends BaseTask
                 try
                 {
                     session = DataProviderFactory.getInstance().createSession();
-                    
                     session.beginTransaction();
                     
-                    loan = session.merge(loanArg);
-                    
                     for (LoanReturnInfo loanRetInfo : returns)
-                    {   
+                    { 
                         LoanPreparation loanPrep = loanRetInfo.getLoanPreparation();
+                        Loan            loan     = mergedLoans.get(loanPrep.getLoan().getId()); // get already merged loan
+                        
+                        if (loan == null)
+                        {
+                            loan = session.merge(loanPrep.getLoan());
+                            mergedLoans.put(loan.getId(), loan);
+                        }
+                        
+                        // Find the LoanPrep in the Merged Loan Object
                         for (LoanPreparation lp : loan.getLoanPreparations())
                         {
                             if (loanPrep.getId().equals(lp.getId()))
@@ -1741,54 +1773,52 @@ public class InteractionsTask extends BaseTask
                         // The loanRetInfo contains the total number of Resolved and Returned
                         // so we need to go get the number already resolved/returned and subtract it
                         // to get the remaining difference for this last LoanReturnPrep
-                        int qtyRes = 0;
-                        int qtyRet = 0;
-                        for (LoanReturnPreparation lrp : loanPrep.getLoanReturnPreparations())
-                        {
-                            qtyRes += lrp.getQuantityResolved();
-                            qtyRet += lrp.getQuantityReturned();
-                        }
-                        
                         LoanReturnPreparation loanRetPrep = new LoanReturnPreparation();
                         loanRetPrep.initialize();
                         loanRetPrep.setReceivedBy(agent);
                         loanRetPrep.setModifiedByAgent(Agent.getUserAgent());
-                        loanRetPrep.setReturnedDate(Calendar.getInstance());
-                        loanRetPrep.setQuantityResolved(loanRetInfo.getResolvedQty() - qtyRes);
-                        loanRetPrep.setQuantityReturned(loanRetInfo.getReturnedQty() - qtyRet);
-                        
-                        loanRetPrep.setRemarks(loanRetInfo.getRemarks());
+                        loanRetPrep.setReturnedDate(returnedDate);
+                        loanRetPrep.setQuantityResolved(loanRetInfo.getResolvedQty());
+                        loanRetPrep.setQuantityReturned(loanRetInfo.getReturnedQty());
                         
                         loanPrep.setIsResolved(loanRetInfo.isResolved());
+                        loanRetPrep.setRemarks(loanRetInfo.getRemarks());
                         loanPrep.setQuantityResolved(loanRetInfo.getResolvedQty());
                         loanPrep.setQuantityReturned(loanRetInfo.getReturnedQty());
+                        
                         loanPrep.addReference(loanRetPrep, "loanReturnPreparations");
+                        
+                        if (doingSingleItem)
+                        {
+                            boolean isClosed = true;
+                            for (LoanPreparation lp : loan.getLoanPreparations())
+                            {
+                                if (lp.getQuantityResolved().equals(lp.getQuantity()))
+                                {
+                                    if (!lp.getIsResolved())
+                                    {
+                                        lp.setIsResolved(true);
+                                    }
+                                } else
+                                {
+                                    isClosed = false;
+                                }
+                            }
+                            loan.setIsClosed(isClosed);
+                            
+                        } else
+                        {
+                            loan.setIsClosed(true);
+                        }
                         
                         session.save(loanRetPrep);
                         session.saveOrUpdate(loanPrep);
                         session.saveOrUpdate(loan);
                     }
                     
-                    boolean isClosed = true;
-                    for (LoanPreparation lp : loan.getLoanPreparations())
-                    {
-                        if (lp.getQuantityResolved().equals(lp.getQuantity()))
-                        {
-                            if (!lp.getIsResolved())
-                            {
-                                lp.setIsResolved(true);
-                            }
-                        } else
-                        {
-                            isClosed = false;
-                        }
-                    }
-                    loan.setIsClosed(isClosed);
-                    session.saveOrUpdate(loan);
-                    
                     session.commit();
                     
-                    numLPR = returns.size();
+                    numLPR += returns.size();
                     
                 } catch (Exception ex)
                 {
@@ -1813,9 +1843,15 @@ public class InteractionsTask extends BaseTask
             {
                 statusBar.setProgressDone(INTERACTIONS);
                 statusBar.setText("");
-                multiView.setIsNewForm(false, true);
-                multiView.setData(null);
-                multiView.setData(loan);
+                if (multiView != null)
+                {
+                    multiView.setIsNewForm(false, true);
+                    multiView.setData(null);
+                    if (doingSingleItem && mergedLoans.size() == 1)
+                    {
+                        multiView.setData(mergedLoans.values().iterator().next());
+                    }
+                }
                 UIRegistry.clearSimpleGlassPaneMsg();
                 
                 UIRegistry.showLocalizedMsg(JOptionPane.INFORMATION_MESSAGE, "InteractionsTask.LN_RET_TITLE", "InteractionsTask.RET_LN_SV", numLPR);
@@ -1865,7 +1901,7 @@ public class InteractionsTask extends BaseTask
                     List<LoanReturnInfo> returns = dlg.getLoanReturnInfo();
                     if (returns.size() > 0)
                     {
-                        doReturnLoan(mv, loan, dlg.getAgent(), returns);
+                        doReturnLoans(mv, dlg.getAgent(), dlg.getDate(), returns, true);
                     }
                 }
             }
@@ -2076,8 +2112,8 @@ public class InteractionsTask extends BaseTask
     {
         NavBoxButton nb = (NavBoxButton)cmdActionDB.getSrcObj();
         int option = JOptionPane.showOptionDialog(UIRegistry.getMostRecentWindow(), 
-                String.format(UIRegistry.getResourceString("InteractionsTask.CONFIRM_DELETE_IR"), nb.getName()),
-                UIRegistry.getResourceString("InteractionsTask.CONFIRM_DELETE_TITLE_IR"), 
+                String.format(getResourceString("InteractionsTask.CONFIRM_DELETE_IR"), nb.getName()),
+                getResourceString("InteractionsTask.CONFIRM_DELETE_TITLE_IR"), 
                 JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, null, null, JOptionPane.NO_OPTION); // I18N
         
         if (option == JOptionPane.YES_OPTION)
@@ -2085,6 +2121,96 @@ public class InteractionsTask extends BaseTask
             InfoRequest infoRequest = deleteInfoRequest(cmdActionDB.getId());
             deleteInfoRequestFromUI(null, infoRequest);
         }
+    }
+    
+    /**
+     * @param dataObj
+     */
+    private void returnLoan(final RecordSetIFace dataObj)
+    {
+        RecordSetIFace recordSet = null;
+        if (dataObj instanceof RecordSetIFace)
+        {
+            recordSet = dataObj;
+            
+        } else if (dataObj == null)
+        {
+            RecordSetTask            rsTask     = (RecordSetTask)ContextMgr.getTaskByClass(RecordSetTask.class);
+            Vector<RecordSetIFace>   loanRSList = new Vector<RecordSetIFace>(rsTask.getRecordSets(Loan.getClassTableId()));
+            
+            recordSet = getRecordSetOfDataObjs(null, Loan.class, "loanNumber", loanRSList.size());
+        }
+        
+        if (recordSet == null)
+        {
+            return;
+        }
+        
+        List<LoanReturnInfo> lriList = new ArrayList<LoanReturnInfo>();
+        
+        if (recordSet.getDbTableId() == Loan.getClassTableId())
+        {
+            DataProviderSessionIFace session = null;
+            try
+            {
+                HashSet<Integer> loanHashMap = new HashSet<Integer>();
+                
+                session = DataProviderFactory.getInstance().createSession();
+                
+                for (RecordSetItemIFace rsi : recordSet.getItems())
+                {
+                    if (!loanHashMap.contains(rsi.getRecordId()))
+                    {
+                        Loan loan = session.get(Loan.class, rsi.getRecordId());
+                        if (loan != null)
+                        {
+                            loanHashMap.add(rsi.getRecordId());
+                            
+                            if (!loan.getIsClosed())
+                            {
+                                for (LoanPreparation lp : loan.getLoanPreparations())
+                                {
+                                    if (!lp.getIsResolved())
+                                    {
+                                        // Returned items are always resolved.
+                                        // but resolved items are not always returned.
+                                        int qty         = lp.getQuantity();
+                                        int qtyResolved = lp.getQuantityResolved();
+                                        int qtyReturned = lp.getQuantityReturned();
+                                        
+                                        int qtyToBeReturned = qty - qtyResolved;
+                                        qtyResolved += qtyToBeReturned;
+                                        qtyReturned += qtyToBeReturned;
+                                        
+                                        lriList.add(new LoanReturnInfo(lp, null, qtyToBeReturned, qtyResolved, true));
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                
+            } catch (Exception ex)
+            {
+                ex.printStackTrace();
+                edu.ku.brc.af.core.UsageTracker.incrHandledUsageCount();
+                edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(InteractionsTask.class, ex);
+                
+            } finally
+            {
+                if (session != null)
+                {
+                    session.close();
+                }
+            }
+        }
+        
+        if (lriList.size() > 0)
+        {
+            Agent currAgent = AppContextMgr.getInstance().getClassObject(Agent.class);
+            doReturnLoans(null, currAgent, Calendar.getInstance(), lriList, false);
+        }
+
     }
     
     /**
@@ -2127,10 +2253,10 @@ public class InteractionsTask extends BaseTask
                 
             } if (cmdAction.getData() instanceof CommandAction)
             {
-            	RecordSetIFace recordSet = RecordSetTask.askForRecordSet(this.printableInvoiceTblIds, null, true);
+                RecordSetIFace recordSet = RecordSetTask.askForRecordSet(this.printableInvoiceTblIds, null, true);
                 if (recordSet != null)
                 {
-                	printInvoice(cmdAction.getPropertyAsString("file"), recordSet);
+                    printInvoice(cmdAction.getPropertyAsString("file"), recordSet);
                 }
             }
             
@@ -2231,10 +2357,10 @@ public class InteractionsTask extends BaseTask
             
         } else if (cmdAction.isAction(INFO_REQ_MESSAGE))
         {
-            if (cmdAction.getData() == cmdAction)
+            if (cmdAction.getData() == cmdAction || cmdAction.getData() instanceof Viewable)
             {
                 // We get here when a user clicks on a InfoRequest NB action 
-                createInfoRequest(null);
+                createInfoRequest(null, cmdAction);
                 
             } else if (cmdAction.getData() instanceof RecordSetIFace)
             {
@@ -2249,7 +2375,7 @@ public class InteractionsTask extends BaseTask
                         
                     } else if (rs.getDbTableId() == CollectionObject.getClassTableId())
                     {
-                        createInfoRequest((RecordSetIFace)data);
+                        createInfoRequest((RecordSetIFace)data, cmdAction);
                     }
                 }
             } else if (cmdAction.getData() instanceof CommandActionForDB)
@@ -2258,9 +2384,20 @@ public class InteractionsTask extends BaseTask
                 showInfoReqForm((CommandActionForDB)cmdAction.getData(), null);
             }
             
-        } else if (cmdAction.isAction("ReturnLoan"))
+        } else if (cmdAction.isAction("ReturnLoan")) // from the 'Return Loan' button on the form
         {
             returnLoan();
+            
+        } else if (cmdAction.isAction("RET_LOAN")) // from the sidebar
+        {
+            if (cmdAction.getData() instanceof RecordSetIFace)
+            {
+                returnLoan((RecordSetIFace)cmdAction.getData());
+                
+            } else if (cmdAction.getData() == cmdAction)
+            {
+                returnLoan(null);
+            }
             
         } else if (cmdAction.isAction(DELETE_CMD_ACT))
         {
@@ -2370,61 +2507,4 @@ public class InteractionsTask extends BaseTask
                                 {true, false, false, false}};
     }
     
-    /**
-     * @author timbo
-     *
-     * @code_status Alpha
-     *
-     *Stores info about reports.
-     */
-    private class InvoiceInfo extends Pair<SpAppResource, SpReport> implements Comparable<InvoiceInfo>
-    {
-        /**
-         * @param appResource
-         * @param report
-         */
-        public InvoiceInfo(final SpAppResource spAppResource, final SpReport spReport)
-        {
-            super(spAppResource, spReport);
-        }
-        
-        /**
-         * @return the appResource
-         */
-        public SpAppResource getSpAppResource()
-        {
-            return getFirst();
-        }
-        
-        /**
-         * @return the spReport
-         */
-        public SpReport getSpReport()
-        {
-            return getSecond();
-        }
-
-        /* (non-Javadoc)
-         * @see edu.ku.brc.util.Pair#toString()
-         */
-        @Override
-        public String toString()
-        {
-            return getSpAppResource().getName();
-        }
-
-        /* (non-Javadoc)
-         * @see java.lang.Comparable#compareTo(java.lang.Object)
-         */
-        @Override
-        public int compareTo(InvoiceInfo o)
-        {
-            // TODO Auto-generated method stub
-            return getSpAppResource().getName().compareTo(o.getSpAppResource().getName());
-        }
-        
-        
-    }
-    
-
 }

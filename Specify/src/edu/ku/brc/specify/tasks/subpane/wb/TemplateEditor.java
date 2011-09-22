@@ -27,15 +27,13 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Frame;
-import java.awt.Toolkit;
-import java.awt.datatransfer.Clipboard;
-import java.awt.datatransfer.StringSelection;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.List;
@@ -49,6 +47,7 @@ import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JList;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.ListCellRenderer;
@@ -78,15 +77,24 @@ import edu.ku.brc.af.core.db.DBTableIdMgr;
 import edu.ku.brc.af.core.db.DBTableInfo;
 import edu.ku.brc.af.core.expresssearch.TableFieldPair;
 import edu.ku.brc.helpers.XMLHelper;
+import edu.ku.brc.specify.conversion.BasicSQLUtils;
+import edu.ku.brc.specify.datamodel.Agent;
 import edu.ku.brc.specify.datamodel.Determination;
 import edu.ku.brc.specify.datamodel.Discipline;
 import edu.ku.brc.specify.datamodel.SpLocaleContainer;
 import edu.ku.brc.specify.datamodel.Taxon;
 import edu.ku.brc.specify.datamodel.TaxonTreeDef;
 import edu.ku.brc.specify.datamodel.TreeDefItemStandardEntry;
+import edu.ku.brc.specify.datamodel.Treeable;
 import edu.ku.brc.specify.datamodel.WorkbenchTemplate;
 import edu.ku.brc.specify.datamodel.WorkbenchTemplateMappingItem;
 import edu.ku.brc.specify.tasks.WorkbenchTask;
+import edu.ku.brc.specify.tasks.subpane.wb.wbuploader.DB;
+import edu.ku.brc.specify.tasks.subpane.wb.wbuploader.UploadData;
+import edu.ku.brc.specify.tasks.subpane.wb.wbuploader.UploadMappingDef;
+import edu.ku.brc.specify.tasks.subpane.wb.wbuploader.UploadMessage;
+import edu.ku.brc.specify.tasks.subpane.wb.wbuploader.Uploader;
+import edu.ku.brc.specify.tasks.subpane.wb.wbuploader.WorkbenchUploadMapper;
 import edu.ku.brc.specify.ui.HelpMgr;
 import edu.ku.brc.ui.CustomDialog;
 import edu.ku.brc.ui.DefaultModifiableListModel;
@@ -109,7 +117,10 @@ import edu.ku.brc.util.Pair;
 public class TemplateEditor extends CustomDialog
 {
     private static final Logger log = Logger.getLogger(TemplateEditor.class);
-        
+
+    private static int taxId = 4;
+    private static int taxOnlyId = 4000;
+
     protected JButton                        mapToBtn;
     protected JButton                        unmapBtn;
     protected JButton                        upBtn;
@@ -148,6 +159,8 @@ public class TemplateEditor extends CustomDialog
 																								IconManager.STD_ICON_SIZE);
 
 	protected TableInfoListRenderer							tableInfoListRenderer;
+	
+	protected List<String>									tablesWithAttachments = null;
     
     /**
      * Constructor.
@@ -411,9 +424,11 @@ public class TemplateEditor extends CustomDialog
         middlePanel.add(unmapBtn, cc.xy(1, 3));
         
         btnPanel = middlePanel.getPanel();
+        btnPanel.setOpaque(false);
         
         PanelBuilder outerMiddlePanel = new PanelBuilder(new FormLayout("c:p:g", "f:p:g, p, f:p:g"));
         outerMiddlePanel.add(btnPanel, cc.xy(1, 2));
+        outerMiddlePanel.getPanel().setOpaque(false);
         
         // Main Pane Layout
         PanelBuilder    builder = new PanelBuilder(new FormLayout("f:max(200px;p):g, 5px, max(200px;p), 5px, p:g, 5px, f:max(250px;p):g, 2px, p", 
@@ -508,9 +523,7 @@ public class TemplateEditor extends CustomDialog
         panel.add(createLabel(sb.toString()), BorderLayout.CENTER);
         
         // Set into Clipboard
-        StringSelection stsel  = new StringSelection(clipBrdTxt.toString());
-        Clipboard       sysClipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
-        sysClipboard.setContents(stsel, stsel);
+        UIHelper.setTextToClipboard(clipBrdTxt.toString());
         
         CustomDialog dialog = new CustomDialog((JFrame)UIRegistry.getTopWindow(), "Mappings", true, CustomDialog.OK_BTN, panel);
         dialog.setVisible(true);
@@ -754,11 +767,171 @@ public class TemplateEditor extends CustomDialog
     }
     
     /**
+     * @return true if unmap operation should continue
+     * 
+     *
+     */
+    protected boolean okToUnmap(FieldMappingPanel fmp)
+    {
+    	if (!isEditMode)
+    	{
+    		return true;
+    	}
+    	
+    	return checkAttachmentsForUnmap(fmp);
+    	
+    }
+    
+    /**
+     * @param fmp
+     * @return true if un-mapping fmp is ok relative to attachments
+     * 
+     * Checks to see if unmapping fmp removes the table that any attachments are using. If so
+     * the user is asked to confirm the unmapping.
+     */
+    protected boolean checkAttachmentsForUnmap(FieldMappingPanel fmp)
+    {
+    	if (fmp.getFieldInfo() == null)
+    	{
+    		return true;
+    	}
+    	if (tablesWithAttachments == null)
+    	{
+    		buildTablesWithAttachments();
+    	}
+    	if (tablesWithAttachments.size() == 0)
+    	{
+    		return true;
+    	}
+    	if (!isLastMappingToItsTable(fmp))
+    	{
+    		return true;
+    	}
+		String fmpTblName = getAttachToTblName(fmp);
+		if (fmpTblName == null)
+		{
+			return true;
+		}
+    	for (String attachedToTable : tablesWithAttachments)
+    	{
+    		if (fmpTblName.equalsIgnoreCase(attachedToTable))
+    		{
+    			return confirmUnmapAttachToTable(fmp);
+    		}
+    	}
+    	return true;
+    }
+    
+    /**
+     * @param fmp
+     * @return
+     */
+    protected boolean confirmUnmapAttachToTable(FieldMappingPanel fmp)
+    {
+    	return UIRegistry.displayConfirmLocalized("TemplateEditor.ConfirmAttachedToUnmapTitle", "TemplateEditor.confireAttachedToUnmap", "OK", "Cancel",
+    			JOptionPane.WARNING_MESSAGE);
+    }
+    
+    /**
+     * @param fmp
+     * @return
+     */
+    protected String getAttachToTblName(FieldMappingPanel fmp)
+    {
+    	if (fmp.getFieldInfo() == null)
+    	{
+    		return null;
+    	}
+    	if (!isTreeMapping(fmp) || getRank(fmp.getFieldInfo()) == -1)
+    	{
+    		return fmp.getFieldInfo().getTableinfo().getName();
+    	}
+    	String tblName = fmp.getFieldInfo().getTableinfo().getName();
+    	return (tblName.equalsIgnoreCase("determination") ? "taxon" : tblName) + getRank(fmp.getFieldInfo());
+    }
+    
+    /**
+     * @param fmp
+     * @return true if fmp is a mapping to a treeable table
+     */
+    protected boolean isTreeMapping(FieldMappingPanel fmp)
+    {
+    	if (fmp.getFieldInfo() == null)
+    	{
+    		return false;
+    	}
+    	if (Treeable.class.isAssignableFrom(fmp.getFieldInfo().getTableinfo().getClassObj()))
+    	{
+    		return true;
+    	}
+    	if (fmp.getFieldInfo().getTableinfo().getClassObj().equals(Determination.class))
+    	{
+    		return getRank(fmp.getFieldInfo()) != -1;
+    	}
+    	return false;
+    }
+    
+    /**
+     * @param fmp
+     * @return true if no other fields in fmp's table are mapped
+     */
+    protected boolean isLastMappingToItsTable(FieldMappingPanel fmp)
+    {
+    	if (fmp.getFieldInfo() == null)
+    	{
+    		return true; //???
+    	}
+    	for (int i = 0; i < mapModel.size(); i++)
+    	{
+    		FieldMappingPanel fmp2 = mapModel.getElementAt(i);
+    		if (fmp2.getFieldInfo() != null)
+    		{
+    			if (fmp2 != fmp && fmp2.getFieldInfo().getTableinfo().getName().equals(fmp.getFieldInfo().getTableinfo().getName()))
+    			{
+    				if (isTreeMapping(fmp))
+    				{
+    					if (getRank(fmp.getFieldInfo()) == getRank(fmp2.getFieldInfo()))
+    					{
+    						return false;
+    					}
+    				} else
+    				{
+    					return false;
+    				}
+    			}
+    		}
+    	}
+    	return true;
+    }
+    
+    /**
+     * build list of distinct tables to which attachments are currently linked
+     */
+    protected void buildTablesWithAttachments()
+    {
+    	tablesWithAttachments = new Vector<String>();
+    	//this depends on the current practice of maintaining a 1-1 between Workbench and WorkbenchTemplate
+    	String sql = "select distinct attachToTableName from workbenchrowimage wri inner join workbenchrow wr on wr.WorkbenchRowID = wri.WorkbenchRowID "
+    		+ "inner join workbench w on w.WorkbenchID = wr.WorkbenchID "
+    		+ "where AttachToTableName is not null and WorkbenchTemplateID = " + workbenchTemplate.getId();
+    	Vector<Object> results = BasicSQLUtils.querySingleCol(sql);
+    	for (Object result : results)
+    	{
+    		tablesWithAttachments.add(result.toString());
+    	}
+    }
+    
+    /**
      * Unmap the Field or remove the item if there is no file.
      */
     protected void unmap()
     {
         FieldMappingPanel fmp = (FieldMappingPanel)mapList.getSelectedValue();
+        
+        if (!okToUnmap(fmp))
+        {
+        	return;
+        }
         
         FieldInfo fieldInfo = fmp.getFieldInfo();
         if (fieldInfo != null)
@@ -779,6 +952,8 @@ public class TemplateEditor extends CustomDialog
         }
         
         setChanged(true);
+
+        //checkUploadability();
         
         // Need to Sort Here
         updateEnabledState();
@@ -823,27 +998,46 @@ public class TemplateEditor extends CustomDialog
      */
     protected boolean taxonOnlyInUse(final FieldMappingPanel currentMap)
     {
+    	return tableInUse(currentMap, 4000);
+    }
+
+    /**
+     * @param currentMap
+     * @param tableId
+     * @return true if fields are currently mapped to tableId.
+     */
+    protected boolean tableInUse(final FieldMappingPanel currentMap, final int tableId)
+    {
     	for (int m = 0; m < mapModel.size(); m++)
     	{
     		FieldMappingPanel fmp = (FieldMappingPanel )mapModel.get(m);
-    		if (fmp != currentMap && fmp.getFieldInfo() != null && fmp.getFieldInfo().getTableinfo().getTableId() == 4000)
+    		if (fmp != currentMap && fmp.getFieldInfo() != null && fmp.getFieldInfo().getTableinfo().getTableId() == tableId)
     		{
     			return true;
     		}
     	}
     	return false;
     }
-
+    
     /**
      * @param currentMap
      * @return true if all mappings are to the 'Taxon Import Only' table.
      */
     protected boolean onlyTaxonOnlyInUse(final FieldMappingPanel currentMap)
     {
+    	return onlyTableInUse(currentMap, 4000);
+    }
+    
+    /**
+     * @param currentMap
+     * @return true if all mappings are to the table with tableId
+     */
+    protected boolean onlyTableInUse(final FieldMappingPanel currentMap, final int tableId)
+    {
     	for (int m = 0; m < mapModel.size(); m++)
     	{
     		FieldMappingPanel fmp = (FieldMappingPanel )mapModel.get(m);
-    		if (fmp != currentMap && fmp.getFieldInfo() != null && fmp.getFieldInfo().getTableinfo().getTableId() != 4000)
+    		if (fmp != currentMap && fmp.getFieldInfo() != null && fmp.getFieldInfo().getTableinfo().getTableId() != tableId)
     		{
     			return false;
     		}
@@ -900,8 +1094,8 @@ public class TemplateEditor extends CustomDialog
      * @return the Taxonomic rank for fi if fi is a Taxonomic rank field (currently only the name for a rank - not Author, CommonName...),
      * otherwise returns -1
      *      
-     *      */
-    protected int getRank(final FieldInfo fi)
+     */
+    protected int getRankForTaxMapping(final FieldInfo fi)
     {
     	if (taxRanks == null)
     	{
@@ -910,7 +1104,7 @@ public class TemplateEditor extends CustomDialog
     	String fldName = fi.getFieldInfo().getName();
     	if (fi.getTableinfo().getClassObj().equals(Determination.class))
     	{
-    		//strip off trailing 1 or 2
+    		//strip off trailing 1 or 2 or 3 ...
     		fldName = fldName.substring(0, fldName.length()-1); 
     	}
     	for (TreeDefItemStandardEntry rank : taxRanks)
@@ -925,9 +1119,24 @@ public class TemplateEditor extends CustomDialog
     
     /**
      * @param fi
+     * @return
+     */
+    protected int getRank(final FieldInfo fi)
+    {
+    	if (fi.getTableinfo().getClassObj().equals(Determination.class) || fi.getTableinfo().getClassObj().equals(Taxon.class))
+    	{
+    		return getRankForTaxMapping(fi);
+    	}
+    	return -1;
+    }
+    
+    /**
+     * @param fi
      * @return true if fi is mappable
      * 
      * Checks for conflicts caused by availability of Taxon ranks in multiple tables.
+     * Ensures that Agent uploads are standalone - Agent can't be mapped when fields from other tables are mapped and fields
+     * from other tables can't be mapped when agent fields are mapped. 
      */
     protected String isMappable(final FieldInfo fi, final FieldMappingPanel currentMap)
     {
@@ -962,6 +1171,14 @@ public class TemplateEditor extends CustomDialog
     				return UIRegistry.getResourceString("TemplateEditor.TaxonOnlyOnly"); //XXX i18n
     			}
     		}
+    	}
+    	if (tableInUse(currentMap, Agent.getClassTableId()) && fi.getTableinfo().getTableId() != Agent.getClassTableId())
+    	{
+    		return UIRegistry.getResourceString("TemplateEditor.AgentOnly");
+    	}
+    	if (fi.getTableinfo().getTableId() == Agent.getClassTableId() && !onlyTableInUse(currentMap, Agent.getClassTableId()))
+    	{
+    		return UIRegistry.getResourceString("TemplateEditor.AgentOnlyOnly");
     	}
     	return null;
     }
@@ -1151,46 +1368,85 @@ public class TemplateEditor extends CustomDialog
      */
     protected Vector<TableInfo> getTablesForAutoMapping()
     {
-    	//currently just makes sure Determination follows Taxon;
-    	
+    	//orders by tableId, which has effect of making 'core' tables the first to be mapped, and makes sure Determination follows Taxon;
     	Vector<TableInfo> result = new Vector<TableInfo>();
-    	Integer detIndex = null;
-    	Integer taxIndex = null;
-    	Integer taxOnlyIndex = null;
+//    	Integer detIndex = null;
+//    	Integer taxIndex = null;
+//    	Integer taxOnlyIndex = null;
     	for (int t = 0; t < tableModel.size(); t++)
     	{
     		TableInfo tbl = (TableInfo )tableModel.get(t);
-    		if (tbl.getTableInfo().getClassObj().equals(Determination.class))
-    		{
-    			detIndex = t;
-    		}
-    		if (tbl.getTableInfo().getTableId() == 4)
-    		{
-    			taxIndex = t;
-    		}
-    		if (tbl.getTableInfo().getTableId() == 4000)
-    		{
-    			taxOnlyIndex = t;
-    		}
+//    		if (tbl.getTableInfo().getClassObj().equals(Determination.class))
+//    		{
+//    			detIndex = t;
+//    		}
+//    		if (tbl.getTableInfo().getTableId() == 4)
+//    		{
+//    			taxIndex = t;
+//    		}
+//    		if (tbl.getTableInfo().getTableId() == 4000)
+//    		{
+//    			taxOnlyIndex = t;
+//    		}
     		result.add(tbl);
     	}
-    	if (taxOnlyIndex != null && taxOnlyIndex.intValue() != tableModel.size()-1)
+    	Collections.sort(result, new Comparator<TableInfo>(){
+
+			/* (non-Javadoc)
+			 * @see java.util.Comparator#compare(java.lang.Object, java.lang.Object)
+			 */
+			@Override
+			public int compare(TableInfo arg0, TableInfo arg1)
+			{
+				int tid0 = arg0.getTableInfo().getTableId();
+				int tid1 = arg1.getTableInfo().getTableId();
+				if (tid0 == taxOnlyId)
+				{
+					tid0 = taxId;
+				}
+				if (tid1 == taxOnlyId)
+				{
+					tid1 = taxId;
+				}
+//				if (tid0 == taxId)
+//				{
+//					if (tid1 == detId)
+//					{
+//						tid1 = taxId -1;
+//					}
+//				}
+//				if (tid1 == taxId)
+//				{
+//					if (tid0 == detId)
+//					{
+//						tid0 = taxId -1;
+//					}
+//				}
+				return tid0 < tid1 ? -1 : tid0 == tid1 ? 0 : 1;
+			}
+    		
+    	});
+//    	if (taxOnlyIndex != null && taxOnlyIndex.intValue() != tableModel.size()-1)
+//    	{
+//    		TableInfo taxOnly = result.remove(taxOnlyIndex.intValue());
+//    		result.add(taxOnly);
+//    		if (detIndex != null && detIndex.intValue() > taxOnlyIndex)
+//    		{
+//    			detIndex += 1;
+//    		}
+//    		if (taxIndex != null && taxIndex.intValue() > taxOnlyIndex)
+//    		{
+//    			taxIndex += 1;
+//    		}
+//    	}
+//    	if (detIndex != null && taxIndex != null && detIndex.intValue() < taxIndex.intValue())
+//    	{
+//    		TableInfo det = result.remove(detIndex.intValue());
+//    		result.add(taxIndex, det);
+//    	}
+    	for (TableInfo tblInfo : result)
     	{
-    		TableInfo taxOnly = result.remove(taxOnlyIndex.intValue());
-    		result.add(taxOnly);
-    		if (detIndex != null && detIndex.intValue() > taxOnlyIndex)
-    		{
-    			detIndex += 1;
-    		}
-    		if (taxIndex != null && taxIndex.intValue() > taxOnlyIndex)
-    		{
-    			taxIndex += 1;
-    		}
-    	}
-    	if (detIndex != null && taxIndex != null && detIndex.intValue() < taxIndex.intValue())
-    	{
-    		TableInfo det = result.remove(detIndex.intValue());
-    		result.add(taxIndex, det);
+    		System.out.println(tblInfo.getTableInfo());
     	}
     	return result;
     }
@@ -1205,6 +1461,38 @@ public class TemplateEditor extends CustomDialog
         String fieldNameLowerNoWS = StringUtils.deleteWhitespace(fieldNameLower);
         
         FieldInfo fieldInfo  = null;
+        
+        // If we had no luck then just loop through everything looking for it.
+        // Actually we should do this search first since it is more specific.
+        if (fieldInfo == null)
+        {
+            Vector<TableInfo> tbls = getTablesForAutoMapping(); 
+            for (TableInfo tblInfo : tbls)
+            {
+                for (FieldInfo fi : tblInfo.getFieldItems())
+                {
+                    DBFieldInfo dbFieldInfo = fi.getFieldInfo();
+
+                    String tblFieldName = dbFieldInfo.getName().toLowerCase();
+                    String tblColumnName = dbFieldInfo.getColumn().toLowerCase();
+
+                    // System.out.println("["+tblFieldName+"]["+fieldNameLower+"]");
+                    if (tblFieldName.equals(fieldNameLower) || tblColumnName.equals(fieldNameLower)
+                            || tblColumnName.equals(fieldNameLowerNoWS)
+                            || tblFieldName.equals(fieldNameLowerNoWS)
+                            || tblFieldName.startsWith(fieldNameLower)
+                            || tblColumnName.startsWith(fieldNameLower)) 
+                    { 
+                        fieldInfo = fi;
+                        break;
+                    }
+                }
+                if (fieldInfo != null)
+                {
+                    break;
+                }
+            }
+        }
         
         // find the mapping that matches this column name
         for (Pair<String, TableFieldPair> mapping: automappings)
@@ -1236,37 +1524,7 @@ public class TemplateEditor extends CustomDialog
             if (fieldInfo != null) break;
         }
         
-        // If we had no luck then just loop through everything looking for it.
-        if (fieldInfo == null)
-        {
-            Vector<TableInfo> tbls = getTablesForAutoMapping(); 
-        	for (TableInfo tblInfo : tbls)
-            {
-                for (FieldInfo fi : tblInfo.getFieldItems())
-                {
-                    DBFieldInfo dbFieldInfo = fi.getFieldInfo();
 
-                    String tblFieldName = dbFieldInfo.getName().toLowerCase();
-                    String tblColumnName = dbFieldInfo.getColumn().toLowerCase();
-
-                    // System.out.println("["+tblFieldName+"]["+fieldNameLower+"]");
-                    if (tblFieldName.equals(fieldNameLower) || tblColumnName.equals(fieldNameLower)
-                            || tblColumnName.equals(fieldNameLowerNoWS)
-                            || tblFieldName.equals(fieldNameLowerNoWS)
-                            || tblFieldName.startsWith(fieldNameLower)
-                            || tblColumnName.startsWith(fieldNameLower)) 
-                    { 
-                        fieldInfo = fi;
-                        break;
-                    }
-                }
-                if (fieldInfo != null)
-                {
-                    break;
-                }
-            }
-        }
-        
         //check to see if a mapping to fieldInfo has already been made.
         if (fieldInfo != null && previouslyMapped.add(fieldInfo))
         {
@@ -1413,6 +1671,10 @@ public class TemplateEditor extends CustomDialog
     protected void adjustMappings()
     {
         boolean doTaxOnlyRemap = true;
+        boolean unMapTaxOnlys = false;
+        boolean contaminateAgent = false;
+        boolean agentMapped = false;
+        boolean nonAgentMapped = false;
         for (Integer tblId : getTblsMapped())
         {
         	if (!(tblId.equals(DBTableIdMgr.getInstance().getByClassName(Taxon.class.getName()).getTableId())
@@ -1420,7 +1682,47 @@ public class TemplateEditor extends CustomDialog
         			|| tblId.equals(4000)))
         	{
         		doTaxOnlyRemap = false;
-        		break;
+        	}
+        	if (tblId.equals(4000))
+        	{
+        		unMapTaxOnlys = true;
+        	}
+        	if (tblId.equals(Agent.getClassTableId()))
+        	{
+        		agentMapped = true;
+        	} else
+        	{
+        		nonAgentMapped = true;
+        	}
+        }
+        contaminateAgent = agentMapped && nonAgentMapped;
+        if (contaminateAgent)
+        {
+            int agentFlds = 0;
+            Vector<Integer> others = new Vector<Integer>();
+        	for (int m=0; m<mapModel.getSize(); m++)
+            {
+                FieldMappingPanel fmp = mapModel.getElementAt(m);
+                if (fmp.getFieldInfo() != null) 
+                {
+                	if (fmp.getFieldInfo().getTableinfo().getTableId() == Agent.getClassTableId())
+                	{
+                		agentFlds++;
+                	} else
+                	{
+                		others.add(fmp.getFieldInfo().getTableinfo().getTableId());
+                	}
+                }
+            }
+        	if (agentFlds < others.size())
+        	{
+        		unmapTable(Agent.getClassTableId());
+        	} else
+        	{
+        		for (Integer tblId : others)
+        		{
+        			unmapTable(tblId);
+        		}
         	}
         }
         if (doTaxOnlyRemap)
@@ -1471,6 +1773,30 @@ public class TemplateEditor extends CustomDialog
                 newInfo.setInUse(true);
                 fmp.setFieldInfo(newInfo);
                 fmp.setIcon(DBTableIdMgr.getInstance().getByClassName(Taxon.class.getName()).getIcon(IconManager.STD_ICON_SIZE));
+            }
+        }
+        else if (unMapTaxOnlys)
+        {
+            unmapTable(4000);
+        }
+    }
+    
+    /**
+     * @param tableId
+     * 
+     * Unmaps all mappings to table with tableId
+     */
+    protected void unmapTable(final int tableId)
+    {
+        for (int m=0; m<mapModel.getSize(); m++)
+        {
+            FieldMappingPanel fmp = mapModel.getElementAt(m);
+            if (fmp.getFieldInfo() != null && fmp.getFieldInfo().getTableinfo().getTableId() == tableId)
+            {
+            	log.info("unmapping " + fmp.getFieldName());
+                fmp.getFieldInfo().setInUse(false);
+                fmp.setFieldInfo(null);
+                fmp.setIcon(blankIcon);
             }
         }
     }
@@ -1601,9 +1927,19 @@ public class TemplateEditor extends CustomDialog
                     item = new WorkbenchTemplateMappingItem();
                     item.initialize();
                 
-                    item.setCaption(colInfo.getColName());
-                    item.setImportedColName(colInfo.getColName());
+                    //trim to fit. User will have been warned of truncation during import.
+                    String caption = colInfo.getCaption();
+                    int maxCapLen = DBTableIdMgr.getInstance().getInfoByTableName("workbenchtemplatemappingitem").getFieldByColumnName("Caption").getLength();
+                    int maxImportedColNameLen = DBTableIdMgr.getInstance().getInfoByTableName("workbenchtemplatemappingitem").getFieldByColumnName("ImportedColName").getLength();
+                    item.setCaption(caption.length() > maxCapLen ? caption.substring(0, maxCapLen) : caption);
+                    item.setImportedColName(caption.length() > maxImportedColNameLen ? caption.substring(0, maxImportedColNameLen) : caption);
                     origColNum = fmp.isAdded() ? -1 : colInfo.getColInx();
+                    
+                    item.setXCoord(Integer.valueOf(colInfo.getFormXCoord()).shortValue());
+                    item.setYCoord(Integer.valueOf(colInfo.getFormYCoord()).shortValue());
+                    item.setFieldType(Integer.valueOf(colInfo.getFrmFieldType()).shortValue());
+                    item.setMetaData(colInfo.getFrmMetaData());
+                    
                     newItems.add(item);
                     
                 } else
@@ -1626,6 +1962,83 @@ public class TemplateEditor extends CustomDialog
         }
 
         return newItems;
+    }
+    
+    /**
+     * @param item
+     * @return
+     */
+    protected boolean updateMappingItem(FieldMappingPanel fmp, WorkbenchTemplateMappingItem item)
+    {
+        if (fmp.getFieldInfo() == null)
+        {
+        	return false;
+        }
+        
+        
+        ImportColumnInfo colInfo = fmp.getColInfo();
+        FieldInfo fieldInfo = fmp.getFieldInfo();
+        
+        item.setCaption(colInfo.getCaption());
+        item.setImportedColName(colInfo.getColName());
+        item.setXCoord(Integer.valueOf(colInfo.getFormXCoord()).shortValue());
+        item.setYCoord(Integer.valueOf(colInfo.getFormYCoord()).shortValue());
+        item.setFieldType(Integer.valueOf(colInfo.getFrmFieldType()).shortValue());
+        item.setMetaData(colInfo.getFrmMetaData());
+        
+        Integer origColNum = fmp.isAdded() ? -1 : colInfo.getColInx();
+            
+        item.setFieldName(fieldInfo.getFieldInfo().getName());
+        item.setSrcTableId(fieldInfo.getTableinfo().getTableId());
+        item.setTableName(fieldInfo.getTableinfo().getName());
+        short len = (short)fieldInfo.getFieldInfo().getLength();
+        item.setDataFieldLength(len == -1 ? 15 : len);
+        
+        item.setViewOrder(fmp.getViewOrder());
+        item.setOrigImportColumnIndex(origColNum.shortValue());
+        
+    	return true;
+    }
+    
+    protected boolean checkUploadability()
+    {
+    	Collection<WorkbenchTemplateMappingItem> mappings = getCurrentMappings();
+		WorkbenchUploadMapper importMapper = new WorkbenchUploadMapper(mappings);
+        try
+        {
+        	DB db = new DB();
+    		Vector<UploadMappingDef> maps = importMapper.getImporterMapping();
+        	Uploader result = new Uploader(db, new UploadData(maps, null), null, mappings, true);
+        	Vector<UploadMessage> structureErrors = result.verifyUploadability();
+        	if (structureErrors.size() > 0) 
+        	{ 
+        		//throw new WorkbenchValidatorException(structureErrors);
+        		return false;
+        	}
+        	return true;
+        } catch (Exception ex)
+        {
+        	//throw new UploaderException(ex);
+        	return false;
+        }
+    	
+    }
+    /**
+     * @return current 'snapshot' of mappings
+     */
+    protected Collection<WorkbenchTemplateMappingItem> getCurrentMappings()
+    {
+        Collection<WorkbenchTemplateMappingItem> result = new Vector<WorkbenchTemplateMappingItem>();
+    	for (int i=0;i<mapModel.size();i++)
+        {
+    		WorkbenchTemplateMappingItem item = new WorkbenchTemplateMappingItem();
+    		item.initialize();
+    		if (updateMappingItem(mapModel.getElementAt(i), item))
+    		{
+    			result.add(item);
+    		}
+        }
+    	return result;
     }
     
     /**

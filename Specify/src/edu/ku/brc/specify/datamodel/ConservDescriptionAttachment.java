@@ -23,6 +23,7 @@ import java.io.Serializable;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
@@ -50,11 +51,11 @@ public class ConservDescriptionAttachment extends DataModelObjBase implements Ob
                                                                               Serializable,
                                                                               Comparable<ConservDescriptionAttachment>
 {
-    protected Integer    conservDescriptionAttachmentId;
-    protected ConservDescription     conservDescription;
-    protected Attachment attachment;
-    protected Integer    ordinal;
-    protected String     remarks;
+    protected Integer            conservDescriptionAttachmentId;
+    protected ConservDescription conservDescription;
+    protected Attachment         attachment;
+    protected Integer            ordinal;
+    protected String             remarks;
     
     public ConservDescriptionAttachment()
     {
@@ -93,7 +94,7 @@ public class ConservDescriptionAttachment extends DataModelObjBase implements Ob
         this.conservDescriptionAttachmentId = conservDescriptionAttachmentId;
     }
 
-    @ManyToOne
+    @ManyToOne(cascade = {}, fetch = FetchType.LAZY)
     @JoinColumn(name = "ConservDescriptionID", nullable = false)
     public ConservDescription getConservDescription()
     {
@@ -105,8 +106,8 @@ public class ConservDescriptionAttachment extends DataModelObjBase implements Ob
         this.conservDescription = conservDescription;
     }
 
-    @ManyToOne()
-    @Cascade( {CascadeType.SAVE_UPDATE, CascadeType.MERGE, CascadeType.LOCK} )
+    @ManyToOne(cascade = {}, fetch = FetchType.EAGER)
+    @Cascade( { CascadeType.ALL, CascadeType.DELETE_ORPHAN })
     @JoinColumn(name = "AttachmentID", nullable = false)
     @OrderBy("ordinal ASC")
     public Attachment getAttachment()
@@ -178,7 +179,27 @@ public class ConservDescriptionAttachment extends DataModelObjBase implements Ob
     {
         return conservDescriptionAttachmentId;
     }
+    
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.datamodel.DataModelObjBase#getParentTableId()
+     */
+    @Override
+    @Transient
+   public Integer getParentTableId()
+    {
+        return ConservDescription.getClassTableId();
+    }
 
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.datamodel.DataModelObjBase#getParentId()
+     */
+    @Override
+    @Transient
+    public Integer getParentId()
+    {
+        return conservDescription != null ? conservDescription.getId() : null;
+    }
+    
     /* (non-Javadoc)
      * @see edu.ku.brc.specify.datamodel.DataModelObjBase#getTableId()
      */
@@ -226,6 +247,10 @@ public class ConservDescriptionAttachment extends DataModelObjBase implements Ob
      */
     public int compareTo(ConservDescriptionAttachment obj)
     {
-        return ordinal.compareTo(obj.ordinal);
+        if (ordinal != null && obj != null && obj.ordinal != null)
+        {
+            return ordinal.compareTo(obj.ordinal);
+        }
+        return 0;
     }
 }

@@ -46,7 +46,7 @@ import org.apache.commons.lang.StringUtils;
 @org.hibernate.annotations.Entity(dynamicInsert=true, dynamicUpdate=true)
 @org.hibernate.annotations.Proxy(lazy = false)
 @Table(name = "agentgeography")
-public class AgentGeography extends DataModelObjBase implements Serializable
+public class AgentGeography extends DataModelObjBase implements Serializable, Cloneable
 {
 
     protected Integer agentGeographyId;
@@ -176,6 +176,26 @@ public class AgentGeography extends DataModelObjBase implements Serializable
     }
     
     /* (non-Javadoc)
+     * @see edu.ku.brc.specify.datamodel.DataModelObjBase#getParentTableId()
+     */
+    @Override
+    @Transient
+    public Integer getParentTableId()
+    {
+        return Agent.getClassTableId();
+    }
+
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.datamodel.DataModelObjBase#getParentId()
+     */
+    @Override
+    @Transient
+    public Integer getParentId()
+    {
+        return agent != null ? agent.getId() : null;
+    }
+    
+    /* (non-Javadoc)
      * @see edu.ku.brc.ui.forms.FormDataObjIFace#getTableId()
      */
     @Override
@@ -212,5 +232,17 @@ public class AgentGeography extends DataModelObjBase implements Serializable
         }
         
         return super.getIdentityTitle();
+    }
+    
+
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.datamodel.DataModelObjBase#clone()
+     */
+    @Override
+    public Object clone() throws CloneNotSupportedException
+    {
+        AgentGeography obj = (AgentGeography) super.clone();
+        obj.setAgentGeographyId(null);
+        return obj;
     }
 }

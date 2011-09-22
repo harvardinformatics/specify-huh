@@ -206,9 +206,15 @@ public class CustomStatQueries implements CustomQueryIFace
         // XXX (need try block)
         Session  session  = HibernateUtil.getNewSession();
         
+        Calendar startCal = Calendar.getInstance();
+        startCal.setTime(startDate.getTime());
+        
+        Calendar endCal = Calendar.getInstance();
+        endCal.setTime(endDate.getTime());
+        
         Criteria criteria = session.createCriteria(CollectionObject.class);
-        criteria.add(Expression.ge("timestampCreated", startDate.getTime()));
-        criteria.add(Expression.le("timestampCreated", endDate.getTime()));
+        criteria.add(Expression.ge("catalogedDate", startCal));
+        criteria.add(Expression.le("catalogedDate", endCal));
         criteria.add(Expression.eq("collectionMemberId", AppContextMgr.getInstance().getClassObject(Collection.class).getCollectionId()));
 
         criteria.setProjection(Projections.rowCount());
@@ -231,19 +237,11 @@ public class CustomStatQueries implements CustomQueryIFace
             
         Session  session  = HibernateUtil.getNewSession();
         
-        Calendar endDate = Calendar.getInstance();
-        Calendar today   = Calendar.getInstance();
-        endDate.clear();
-        endDate.set(Calendar.YEAR,         today.get(Calendar.YEAR));
-        endDate.set(Calendar.MONTH,        today.get(Calendar.MONTH));
-        endDate.set(Calendar.DAY_OF_MONTH, today.get(Calendar.DAY_OF_MONTH));
-        
-        endDate.add(Calendar.MONTH, 6);
-        System.out.println(endDate);
+        Calendar today = Calendar.getInstance();
         
         Criteria criteria = session.createCriteria(Loan.class);
         criteria.add(Restrictions.isNotNull("currentDueDate"));
-        criteria.add(Restrictions.lt("currentDueDate", endDate));
+        criteria.add(Restrictions.lt("currentDueDate", today));
         
         Criteria dsp = criteria.createCriteria("discipline");
         dsp.add(Restrictions.eq("disciplineId", AppContextMgr.getInstance().getClassObject(Discipline.class).getDisciplineId()));

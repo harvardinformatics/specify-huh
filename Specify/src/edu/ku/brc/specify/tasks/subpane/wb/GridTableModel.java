@@ -19,7 +19,6 @@
 */
 package edu.ku.brc.specify.tasks.subpane.wb;
 
-import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collections;
@@ -27,6 +26,7 @@ import java.util.Set;
 import java.util.Vector;
 
 import javax.swing.ImageIcon;
+import javax.swing.SwingUtilities;
 
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.StringUtils;
@@ -38,6 +38,8 @@ import edu.ku.brc.specify.datamodel.WorkbenchRow;
 import edu.ku.brc.specify.datamodel.WorkbenchRowFpMsg;
 import edu.ku.brc.specify.datamodel.WorkbenchRowImage;
 import edu.ku.brc.specify.datamodel.WorkbenchTemplateMappingItem;
+import edu.ku.brc.specify.plugins.sgr.SGRPluginImpl;
+import edu.ku.brc.specify.plugins.sgr.WorkbenchColorizer;
 import edu.ku.brc.ui.IconManager;
 import edu.ku.brc.ui.UIRegistry;
 import edu.ku.brc.ui.tmanfe.SpreadSheetModel;
@@ -57,74 +59,64 @@ public class GridTableModel extends SpreadSheetModel
 {
     private static final Logger log = Logger.getLogger(GridTableModel.class);
             
-    protected Workbench          workbench;
+    protected WorkbenchPaneSS	 workbenchPaneSS;
     protected boolean            batchMode        = false;
     protected boolean            isInImageMode        = false;
     protected boolean            isInFilteredPushMode = false;
     protected boolean            isUserEdit           = true;
     protected ImageIcon          blankIcon = IconManager.getIcon("Blank", IconManager.IconSize.Std16);
     protected ImageIcon          imageIcon = IconManager.getIcon("CardImage", IconManager.IconSize.Std16);
+    
+    protected Vector<GridTableHeader>      headers          = new Vector<GridTableHeader>();
+    protected WorkbenchTemplateMappingItem imageMappingItem = null;
 
-    protected WorkbenchTemplateMappingItem imageMappingItem  = null;
-    protected WorkbenchTemplateMappingItem queryProgressItem = null;
-    
-    private Vector<WorkbenchTemplateMappingItem> headers  = new Vector<WorkbenchTemplateMappingItem>();
-    private String imageColCaption  = UIRegistry.getResourceString("WB_IMAGE");
-    private String queryProgCaption = UIRegistry.getResourceString("WB_FP_QUERYPROGRESS");
-    private int hiddenColumnCount = 0;
-    
-    /**
-     * @param workbench
+	private GridTableHeader sgrHeading;
+
+    public GridTableHeader getSgrHeading() {
+		return sgrHeading;
+	}
+
+	/**
+     * @param workbenchPaneSS
      */
-    public GridTableModel(final Workbench    workbench)
+    public GridTableModel(final WorkbenchPaneSS workbenchPaneSS)
     {
         super();
-        
-        imageMappingItem = new WorkbenchTemplateMappingItem()
-        {
-            @Override
-            public String getFieldName()
-            {
-                return "Image";
-            }
-
-        };
-        imageMappingItem.initialize();
-        imageMappingItem.setCaption(imageColCaption);
-        
-        queryProgressItem = new WorkbenchTemplateMappingItem()
-        {
-            @Override
-            public String getFieldName()
-            {
-                return "QueryProgress";
-            }
-
-        };
-        queryProgressItem.initialize();
-        queryProgressItem.setCaption(queryProgCaption);
-        
-        setWorkbench(workbench);
+        this.workbenchPaneSS = workbenchPaneSS;
+        setWorkbench(workbenchPaneSS.getWorkbench());
     }
     
     /**
      * Sets in a new Workbench.
      * @param workbench the new wb
      */
-    public void setWorkbench(final Workbench workbench)
+    protected void setWorkbench(final Workbench workbench)
     {
-        this.workbench = workbench;
-        
-        boolean addImageColumn = getImageColumnIndex() >= 0;
-        boolean addQueryProgColumn = getQueryProgIndex() >= 0;
-        
         // Make the new Header List
         headers.clear();
         headers.addAll(workbench.getWorkbenchTemplate().getWorkbenchTemplateMappingItems());
         Collections.sort(headers);
         
-        if (addImageColumn) addHiddenColumn(imageMappingItem);
-        if (addQueryProgColumn) addHiddenColumn(queryProgressItem);
+        sgrHeading = new SgrHeading((short) headers.size());
+
+        headers.add(sgrHeading);
+        
+        if (imageMappingItem != null)
+        {
+            headers.add(imageMappingItem);
+        }
+    }
+    
+    /**
+     * @return the workbench
+     */
+    protected Workbench getWorkbench()
+    {
+    	if (workbenchPaneSS != null)
+    	{
+    		return workbenchPaneSS.getWorkbench();
+    	}
+    	return null;
     }
     
     /**
@@ -138,7 +130,7 @@ public class GridTableModel extends SpreadSheetModel
     /**
      * @return whether it is in image mode or not.
      */
-    boolean isInImageMode()
+    public boolean isInImageMode()
     {
         return isInImageMode;
     }
@@ -155,15 +147,30 @@ public class GridTableModel extends SpreadSheetModel
      * Sets the model into image mode so it can add a the image column to the spreadsheet.
      * @param isInImageMode
      */
-    void setInImageMode(boolean isInImageMode)
+    public void setInImageMode(boolean isInImageMode)
     {
         if (!this.isInImageMode && isInImageMode)
         {
-            addHiddenColumn(imageMappingItem);
+            if (imageMappingItem == null)
+            {
+                imageMappingItem = new WorkbenchTemplateMappingItem()
+                {
+                    @Override
+                    public String getFieldName()
+                    {
+                        return "Image";
+                    }
+
+                };
+                imageMappingItem.initialize();
+                imageMappingItem.setCaption(UIRegistry.getResourceString("WB_IMAGE"));
+                imageMappingItem.setViewOrder((short)headers.size());
+            }
+            headers.add(imageMappingItem);
             
         } else if (this.isInImageMode && !isInImageMode)
         {
-            removeHiddenColumn(imageMappingItem);
+            headers.remove(imageMappingItem);
         }
         this.isInImageMode = isInImageMode;
         fireTableStructureChanged();
@@ -202,8 +209,13 @@ public class GridTableModel extends SpreadSheetModel
     @Override
     public String getColumnName(final int column)
     {
-        String label = headers.get(column).getCaption();
-        return label == null ? "" : label;
+        if (headers != null)
+        {
+            String label = headers.get(column).getCaption();
+            return label != null ? label : "";
+        }
+        log.error("columnList should not be null!");
+        return "N/A";
     }
 
     /* (non-Javadoc)
@@ -211,8 +223,9 @@ public class GridTableModel extends SpreadSheetModel
      */
     public int getRowCount()
     {
-        return workbench != null ? workbench.getWorkbenchRows().size() : 0;
+        return getWorkbench() != null ? getWorkbench().getWorkbenchRows().size() : 0;
     }
+    
 
     /* (non-Javadoc)
      * @see javax.swing.table.TableModel#getValueAt(int, int)
@@ -220,9 +233,9 @@ public class GridTableModel extends SpreadSheetModel
     public Object getValueAt(int row, int column)
     {
         // if this is the image column...
-        if (isInImageMode && column == getImageColumnIndex())
+        if (headers.get(column) == imageMappingItem)
         {
-            WorkbenchRow rowObj = workbench.getRow(row);
+            WorkbenchRow rowObj = getWorkbench().getRow(row);
             Set<WorkbenchRowImage> images = rowObj.getWorkbenchRowImages();
             if (images != null && images.size() > 0)
             {
@@ -238,6 +251,13 @@ public class GridTableModel extends SpreadSheetModel
             }
             // else
             return "";
+        }
+        if (headers.get(column) == sgrHeading)
+        {
+            SGRPluginImpl sgr = (SGRPluginImpl) workbenchPaneSS.getPlugin(SGRPluginImpl.class);
+            WorkbenchColorizer colorizer = sgr.getColorizer();
+            Float score = colorizer.getScoreForRow(workbenchPaneSS.getWorkbench().getRow(row), true);
+            return score != null ? "" + Math.round(100*score) : "";
         }
         
         // if this is the fp query progress column...
@@ -269,7 +289,7 @@ public class GridTableModel extends SpreadSheetModel
         // otherwise...
         if (getRowCount() > row)
         {
-            return workbench.getWorkbenchRowsAsList().get(row).getData(column);
+            return getWorkbench().getWorkbenchRowsAsList().get(row).getData(column);
         }
         return null;
     }
@@ -316,7 +336,7 @@ public class GridTableModel extends SpreadSheetModel
      * @see javax.swing.table.AbstractTableModel#setValueAt(java.lang.Object, int, int)
      */
     @Override
-    public void setValueAt(Object value, int row, int column)
+    public void setValueAt(final Object value, final int row, final int column)
     {
         if (isInImageMode && column == getImageColumnIndex())
         {
@@ -379,7 +399,7 @@ public class GridTableModel extends SpreadSheetModel
     {
         for (int rowInx : rows)
         {
-            WorkbenchRow wbRow = workbench.getRow(rowInx);
+            WorkbenchRow wbRow = getWorkbench().getRow(rowInx);
             for (int col : cols)
             {
                 wbRow.setData("", (short)col, true);

@@ -23,6 +23,7 @@ import java.util.Vector;
 
 import org.apache.commons.lang.StringUtils;
 
+import edu.ku.brc.specify.datamodel.WorkbenchDataItem;
 import edu.ku.brc.specify.datamodel.WorkbenchRow;
 
 /**
@@ -79,10 +80,11 @@ public class UploadData
     	{
     		return true;
     	}
-    	for (int col = 0; col < getCols(); col++)
+    	
+    	WorkbenchRow wbrow = getWbRow(row);
+    	for (int c = 0; c < getCols(); c++)
     	{
-    		String val = get(row, col);
-    		if (!StringUtils.isBlank(val))
+    		if (!StringUtils.isBlank(wbrow.getData(c)))
     		{
     			return false;
     		}
@@ -112,7 +114,14 @@ public class UploadData
     public UploadData(Vector<UploadMappingDef> mappings, Vector<WorkbenchRow> wbRows)
     {
         this.mappings = mappings;
-        this.wbRows = wbRows;
+        if (wbRows != null)
+        {
+        	this.wbRows = wbRows;
+        } else
+        {
+        	this.wbRows = new Vector<WorkbenchRow>();
+        }
+        
     }
     
     /**
@@ -122,4 +131,24 @@ public class UploadData
     {
         this.wbRows = freshRows;
     }
+    
+    /**
+     * @param wbFldName
+     * @return index for column named wbFldName
+     */
+    public int indexOfWbFldName(String wbFldName)
+    {
+    	if (wbRows.size() > 0)
+    	{
+    		for (WorkbenchDataItem wbdi : wbRows.get(0).getWorkbenchDataItems())
+    		{
+    			if (wbdi.getWorkbenchTemplateMappingItem().getCaption().equals(wbFldName))
+    			{
+    				return wbdi.getColumnNumber();
+    			}
+    		}
+    	}
+    	return -1;
+    }
+    
 }

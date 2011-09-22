@@ -19,14 +19,18 @@
 */
 package edu.ku.brc.specify.tools;
 
+import java.io.DataOutputStream;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Vector;
 
-import org.apache.axis.utils.StringUtils;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
 
 import edu.ku.brc.specify.tools.StrLocaleEntry.STATUS;
 
@@ -40,54 +44,64 @@ import edu.ku.brc.specify.tools.StrLocaleEntry.STATUS;
  */
 public class StrLocaleFile
 {
-    protected String path;
-    protected String srcPath;
+    private static final Logger  log                = Logger.getLogger(StrLocaleFile.class);
+            
+    protected String                            dstPath;
+    protected String                            srcPath;
     protected Vector<StrLocaleEntry>            items      = new Vector<StrLocaleEntry>();
-    protected Hashtable<Integer, Integer>       mapper     = new Hashtable<Integer, Integer>();
     protected Hashtable<String, StrLocaleEntry> itemHash   = new Hashtable<String, StrLocaleEntry>();
     protected Hashtable<String, String>         chkHash    = new Hashtable<String, String>();
     protected boolean                           isDestination;
     protected Hashtable<String, Integer>        keyToInxMap = new Hashtable<String, Integer>();
-
+    protected Vector<StrLocaleEntry>			keys = new Vector<StrLocaleEntry>();
+    
     /**
-     * @param path
+     * @param dstPath
      */
-    public StrLocaleFile(final String  path, 
+    public StrLocaleFile(final String  dstPath, 
                          final String  srcPath,
                          final boolean isDestination)
     {
         super();
-        this.path          = path;
+        this.dstPath       = dstPath;
         this.srcPath       = srcPath;
         this.isDestination = isDestination;
         
-        load(path);
-    }
-
-    /**
-     * @return
-     */
-    public int size()
-    {
-        return itemHash.size();
+        load();
     }
     
+    /**
+     * @return number of actual resources with keys in the file
+     */
+    public int getNumberOfKeys()
+    {
+    	return keys.size();
+    }
+    
+    /**
+     * @param key
+     * @return
+     */
     public Integer getInxForKey(final String key)
     {
         return keyToInxMap.get(key);
     }
     
     /**
-     * @param path
+     * 
      */
     @SuppressWarnings("unchecked")
-    private void load(final String path)
+    private void load()
     {
+        char[] dstBytes = new char[2048];
         try
         {
-            File file = new File(path);
+            itemHash.clear();
+            
+            File file = new File(dstPath);
             if (file.exists())
             {
+                int duplicateCnt = 0;
                 int index = 0;
                 int count = 0;
                 List<String> lines = (List<String>)FileUtils.readLines(file);
@@ -104,16 +118,77 @@ public class StrLocaleFile
                         String key   = line.substring(0, inx);
                         String value = line.substring(inx+1, line.length());
                         
+                        boolean debug = false;//key.equals("TOP5") && StringUtils.contains(dstPath, "_pt");
+                        
+                        if (debug)
+                        {
+                            //System.out.println((byte)value.charAt(12)+"="+value.charAt(12));
+                            char spec = '�';
+                            int fInx = value.indexOf(spec);
+                            if (fInx > -1)
+                            {
+                                int jj = 0;
+                                byte[] bytes = value.getBytes();
+                                for (int ii=0;ii<bytes.length;ii++)
+                                {
+                                    byte b1 = bytes[ii];
+                                    short s1 = (short)(b1 < 0 ? (256 + b1) : b1);
+                                    if (s1 > 127 && s1 != 195) s1 += 64;
+                                    
+                                    //System.out.println(ii+"  "+bytes[ii]+" ");
+                                    if (s1 == 195)
+                                    {
+                                        ii++;
+                                        b1 = bytes[ii];
+                                        s1 = (short)(b1 < 0 ? (256 + b1) : b1);
+                                        if (s1 > 127 && s1 != 195) s1 += 64;
+                                        
+                                        dstBytes[jj++] = (char)s1;
+                                    } else
+                                    {
+                                        dstBytes[jj++] = (char)bytes[ii];
+                                    }
+                                }
+                                System.out.print(value+'=');
+                                value = new String(dstBytes, 0, jj);
+                                System.out.println(value);
+                            }
+                            /*for (String k : l10nMappingHash.keySet())
+                            {
+                                String before = value;
+                                int    sInx   = value.indexOf(k);
+                                if (sInx > -1)
+                                {
+                                    for (int i=0;i<value.length();i++)
+                                    {
+                                        byte b = (byte)value.charAt(i);
+                                        System.out.print(b);
+                                        if (b < 0) b = (byte)(256 + (int)b);
+                                        System.out.println(" ["+value.charAt(i)+"]["+b+"]");
+                                    }
+                                    //int eInx = sInx + 2;
+                                    //value = value.substring(0, sInx-1) + l10nMappingHash.get(k) + (eInx < value.length() ? value.substring(eInx) : "");
+                                    //value = StringUtils.replace(value, k, l10nMappingHash.get(k));
+                                    //System.out.println("Contains["+k+"] b4["+before+"]["+value+"]["+k+"]["+l10nMappingHash.get(k)+"]");
+                                } else
+                                {
+                                    System.out.println("NOT Contains["+k+"]");
+                                }
+                            }*/
+                        }
+                                                
                         if (itemHash.get(key) != null)
                         {
-                            System.err.println("Key '"+key+"' on Line "+count+" is a duplicate.");
+                            log.error("Key '"+key+"' on Line "+count+" is a duplicate.");
+                            duplicateCnt++;
+                            
                         } else
                         {
                             StrLocaleEntry entry = new StrLocaleEntry(key, value, null, StringUtils.isEmpty(value) ? STATUS.IsNew : STATUS.IsOK);
                             items.add(entry);
                             itemHash.put(key, entry);
-                            mapper.put(index, count);
-                            keyToInxMap.put(key, index);
+                            keyToInxMap.put(key, keys.size());
+                            keys.add(entry);
                         }
                         
                         index++;
@@ -124,9 +199,15 @@ public class StrLocaleFile
                     }
                     count++;
                 }
+                log.error(duplicateCnt+" duplicate keys: "+dstPath);
             }
             
-            loadCheckFile(path);
+            if (isDestination)
+            {
+                loadCheckFile();
+            }
+            
+            clearEditFlags();
             
         } catch (IOException ex)
         {
@@ -138,13 +219,13 @@ public class StrLocaleFile
      * @param path
      */
     @SuppressWarnings("unchecked")
-    private void loadCheckFile(final String path)
+    private void loadCheckFile()
     {
         try
         {
             chkHash.clear();
             
-            File file = new File(path+".orig");
+            File file = new File(dstPath+".orig");
             if (file.exists())
             {
                 List<String> lines = (List<String>)FileUtils.readLines(file);
@@ -171,54 +252,81 @@ public class StrLocaleFile
      * @param value
      * @return
      */
-    public boolean isSrcSameAsDest(final String key, final String value)
+    public boolean isSrcSameAsDest(final String key, final String srcValue)
     {
-        String oldValue = chkHash.get(key);
-        if (oldValue != null)
+        String origValue = chkHash.get(key);
+        if (origValue != null)
         {
-            return oldValue.equals(value);
+            return origValue.equals(srcValue);
         }
         return false;
     }
     
-
     /**
-     * 
+     * Save as Ascii.
      */
-    public void save()
+    public boolean save()
     {
-        Vector<String> lines = new Vector<String>();
-        for (StrLocaleEntry entry : items)
-        {
-            if (entry.getKey() == null)
-            {
-                lines.add("");
-            } else if (entry.getKey().equals("#"))
-            {
-                lines.add(entry.getSrcStr());
-            } else
-            {
-                lines.add(entry.getKey()+ "="+ (entry.getDstStr() == null ? "" : entry.getDstStr()));
-            }
-        }
-        
+        FileOutputStream fos = null;
+        DataOutputStream dos = null;
+
         try
         {
-            FileUtils.writeLines(new File(path), lines);
+            fos = new FileOutputStream(dstPath);
+            dos = new DataOutputStream(fos);//, "UTF-8");
             
-            if (srcPath != null)
+            for (StrLocaleEntry entry : items)
             {
-                File origFile = new File(srcPath);
-                File outFile  = new File(path+".orig");
-                FileUtils.copyFile(origFile, outFile);
+                String str = "";
+                if (entry.getKey() == null)
+                {
+                    
+                } else if (entry.getKey().equals("#"))
+                {
+                    str = entry.getSrcStr();
+                } else
+                {
+                    str = entry.getKey()+ "="+ (entry.getDstStr() == null ? "" : entry.getDstStr());
+                }
+                
+                str += '\n';
+                dos.writeBytes(str);
             }
+            dos.flush();
+            dos.close();
+            return true;
             
-        } catch (IOException ex)
+        } catch (Exception e)
         {
-            ex.printStackTrace();
+            System.out.println("e: " + e);
         }
+        return false;
     }
     
+    /**
+     * clear edited flag for all items
+     */
+    public void clearEditFlags()
+    {
+        for (StrLocaleEntry entry : items) 
+        {
+        	entry.setEdited(false);
+        }
+    }
+    /**
+     * @return true if any items have been edited since last save
+     */
+    public boolean isEdited()
+    {
+        for (StrLocaleEntry entry : items) 
+        {
+        	if (entry.isEdited())
+        	{
+        		return true;
+        	}
+        }
+        return false;
+    }
     /**
      * 
      */
@@ -243,15 +351,11 @@ public class StrLocaleFile
         }
     }*/
     
-    /**
-     * @param index
-     * @return
-     */
-    public StrLocaleEntry get(final int index)
+    public StrLocaleEntry getKey(final int index)
     {
-        return items.get(mapper.get(index));
+    	return keys.get(index);
     }
-    
+        
     /**
      * @return
      */
@@ -275,6 +379,57 @@ public class StrLocaleFile
     {
         return chkHash;
     }
+
+	/**
+	 * @return the path
+	 */
+	public String getPath()
+	{
+		return dstPath;
+	}
+
+	/**
+	 * @return the srcPath
+	 */
+	public String getSrcPath()
+	{
+		return srcPath;
+	}
     
-    
+	
+    /* (non-Javadoc)
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public String toString()
+	{
+		return FilenameUtils.getName(getPath());
+	}
+
+//	public static void main(String[] args)
+//    {
+//    	try
+//    	{
+//    		List<String> text = FileUtils.readLines(new File("/home/timo/LanguageCodesLarge.txt"));
+//    		List<String> newText = new Vector<String>();
+//    		newText.add("<languagecodes>");
+//    		Iterator<String> lines = text.iterator();
+//    		while (lines.hasNext())
+//    		{
+//    			String[] codes = lines.next().split("\t");
+//    			if (codes.length > 4)
+//    			{
+//    				String newLine = "<languagecode englishname=\"" + codes[4].trim() + "\" code=\"" + codes[0].trim() + "\"/>";
+//    				newText.add(newLine);
+//    			}
+//    		}
+//    		newText.add("</languagecodes>");
+//    		FileUtils.writeLines(new File("/home/timo/LanguageCodesLittle.txt"), newText);
+//    	} catch (Exception e)
+//    	{
+//    		e.printStackTrace();
+//    		System.exit(1);
+//    	}
+//    	
+//    }
 }

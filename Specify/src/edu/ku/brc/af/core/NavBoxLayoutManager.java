@@ -25,7 +25,6 @@ import java.awt.Dimension;
 import java.awt.LayoutManager2;
 import java.util.Vector;
 
-import edu.ku.brc.ui.dnd.FpPublish;
 import edu.ku.brc.ui.dnd.Trash;
 
 /**
@@ -145,7 +144,6 @@ public class NavBoxLayoutManager implements LayoutManager2
             int y = borderPadding;
     
             Trash trash = null;
-            FpPublish fpPub = null;
             
             for (Component comp: comps)
             {
@@ -153,10 +151,6 @@ public class NavBoxLayoutManager implements LayoutManager2
                 if (comp instanceof Trash)
                 {
                     trash = (Trash)comp;
-                    
-                } else if (comp instanceof FpPublish)
-                {
-                    fpPub = (FpPublish)comp;
                     
                 } else
                 {
@@ -170,13 +164,6 @@ public class NavBoxLayoutManager implements LayoutManager2
                 Dimension size = trash.getPreferredSize();
                 int trashY = parentSize.height - size.height-1;
                 trash.setBounds((parentSize.width - size.width)/2, trashY > y ? trashY : y, size.width, size.height);
-            }
-            
-            if (fpPub != null)
-            {
-                Dimension size = fpPub.getPreferredSize();
-                int fpPubY = parentSize.height - size.height - trash.getSize().height - 20;
-                fpPub.setBounds((parentSize.width - size.width)/2, fpPubY > y ? fpPubY : y, size.width, size.height);
             }
         }
     }

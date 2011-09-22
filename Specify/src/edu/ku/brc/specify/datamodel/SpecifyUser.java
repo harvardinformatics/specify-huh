@@ -41,7 +41,6 @@ import org.hibernate.annotations.Cascade;
 
 import edu.ku.brc.af.auth.specify.principal.AdminPrincipal;
 import edu.ku.brc.af.auth.specify.principal.GroupPrincipal;
-import edu.ku.brc.af.auth.specify.principal.UserPrincipal;
 import edu.ku.brc.af.core.AppContextMgr;
 import edu.ku.brc.specify.SpecifyUserTypes;
 
@@ -70,7 +69,7 @@ public class SpecifyUser extends DataModelObjBase implements java.io.Serializabl
     protected Long                      accumMinLoggedIn;
     
     //protected Short                     privLevel;
-    protected Set<RecordSet>            recordSets;
+    //protected Set<RecordSet>            recordSets;
     protected Set<Workbench>            workbenches;
     protected Set<WorkbenchTemplate>    workbenchTemplates;
     protected Set<SpAppResource>        spAppResources;
@@ -112,7 +111,7 @@ public class SpecifyUser extends DataModelObjBase implements java.io.Serializabl
 		loginOutTime = null;
         
         //privLevel          = null;
-        recordSets         = new HashSet<RecordSet>();
+        //recordSets         = new HashSet<RecordSet>();
         workbenches        = new HashSet<Workbench>();
         workbenchTemplates = new HashSet<WorkbenchTemplate>();
         spAppResources     = new HashSet<SpAppResource>();
@@ -211,7 +210,7 @@ public class SpecifyUser extends DataModelObjBase implements java.io.Serializabl
     /**
      * 
      */
-    @Column(name = "Password", unique = false, nullable = false, insertable = true, updatable = true, length = 64)
+    @Column(name = "Password", unique = false, nullable = false, insertable = true, updatable = true, length = 255)
     public String getPassword()
     {
         return this.password;
@@ -292,7 +291,10 @@ public class SpecifyUser extends DataModelObjBase implements java.io.Serializabl
      */
     public void setLoginOutTime(Timestamp loginOutTime)
     {
-        this.loginOutTime = loginOutTime;
+        if (loginOutTime != null && loginOutTime.getTime() > 0)
+        {
+            this.loginOutTime = loginOutTime;
+        }
     }
 
     /**
@@ -368,21 +370,21 @@ public class SpecifyUser extends DataModelObjBase implements java.io.Serializabl
     /**
      * 
      */
-    @OneToMany(cascade = { CascadeType.REMOVE }, fetch = FetchType.LAZY, mappedBy = "specifyUser")
-    @org.hibernate.annotations.Cascade( { org.hibernate.annotations.CascadeType.ALL, org.hibernate.annotations.CascadeType.DELETE_ORPHAN })
-    public Set<RecordSet> getRecordSets()
-    {
-        return this.recordSets;
-    }
-
-    /**
-     * @param recordSets - 
-     * void
-     */
-    public void setRecordSets(Set<RecordSet> recordSets)
-    {
-        this.recordSets = recordSets;
-    }
+//    @OneToMany(cascade = { CascadeType.REMOVE }, fetch = FetchType.LAZY, mappedBy = "specifyUser")
+//    //@org.hibernate.annotations.Cascade( { org.hibernate.annotations.CascadeType.ALL, org.hibernate.annotations.CascadeType.DELETE_ORPHAN })
+//    public Set<RecordSet> getRecordSets()
+//    {
+//        return this.recordSets;
+//    }
+//
+//    /**
+//     * @param recordSets - 
+//     * void
+//     */
+//    public void setRecordSets(Set<RecordSet> recordSets)
+//    {
+//        this.recordSets = recordSets;
+//    }
 
     /**
      * 
@@ -651,12 +653,34 @@ public class SpecifyUser extends DataModelObjBase implements java.io.Serializabl
         for (SpPrincipal principal : getSpPrincipals())
         {
             if (GroupPrincipal.class.getCanonicalName().equals(principal.getGroupSubClass()) ||
-                    AdminPrincipal.class.getCanonicalName().equals(principal.getGroupSubClass()))
+                AdminPrincipal.class.getCanonicalName().equals(principal.getGroupSubClass()))
             {
                 ++count;
             }
         }
+        
         return count;
+    }
+    
+    /**
+     * Counts the actual number of user groups this user belongs to.
+     * That's not the same thing as counting the principals, because in JAAS a principal may be
+     * a single user or a group. 
+     * @return the actual number of user groups this user belongs to.
+     */
+    @Transient
+    public boolean canRemoveFromGroup()
+    {
+        /*int grpCnt   = 0;
+        for (SpPrincipal principal : getSpPrincipals())
+        {
+            if (GroupPrincipal.class.getCanonicalName().equals(principal.getGroupSubClass()))
+            {
+                ++grpCnt;
+            }
+        }*/
+        
+        return getUserGroupCount() > 1;
     }
     
     /**
@@ -681,13 +705,22 @@ public class SpecifyUser extends DataModelObjBase implements java.io.Serializabl
      * @return the user principal
      */
     @Transient
-    public SpPrincipal getUserPrincipal()
+    public SpPrincipal getUserPrincipal(final String groupClassStr, final Integer collectionID)
     {
-        for (SpPrincipal principal : getSpPrincipals())
+        if (collectionID != null)
         {
-            if (UserPrincipal.class.getCanonicalName().equals(principal.getGroupSubClass()))
+            for (SpPrincipal principal : getSpPrincipals())
             {
-                return principal;
+                if (groupClassStr.equals(principal.getGroupSubClass()))
+                {
+                    Integer colId = SpPrincipal.getUserGroupScopeFromPrincipal(principal.getId());
+                    //Integer colId = principal.getScope() != null ? principal.getScope().getId() : null;
+                    //System.err.println(String.format("getUserPrincipal[%d]: [%d][%d]", principal.getId(), colId != null ? colId : -1, collectionID));
+                    if (colId != null && collectionID.equals(colId))
+                    {
+                        return principal;
+                    }
+                }
             }
         }
         
@@ -732,6 +765,6 @@ public class SpecifyUser extends DataModelObjBase implements java.io.Serializabl
         }
         
         // else
-        return timestampCreated.compareTo(obj.timestampCreated);
+        return timestampCreated != null && obj != null && obj.timestampCreated != null ? timestampCreated.compareTo(obj.timestampCreated) : 0;
     }
 }

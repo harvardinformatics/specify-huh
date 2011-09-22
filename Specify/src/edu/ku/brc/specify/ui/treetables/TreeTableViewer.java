@@ -20,7 +20,6 @@
 package edu.ku.brc.specify.ui.treetables;
 
 import static edu.ku.brc.ui.UIHelper.createLabel;
-import static edu.ku.brc.ui.UIHelper.createTextArea;
 import static edu.ku.brc.ui.UIRegistry.getResourceString;
 
 import java.awt.BorderLayout;
@@ -37,9 +36,12 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionAdapter;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -61,12 +63,10 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
-import javax.swing.JTextArea;
 import javax.swing.KeyStroke;
 import javax.swing.ListModel;
 import javax.swing.ListSelectionModel;
 import javax.swing.ScrollPaneConstants;
-import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;
 import javax.swing.event.ListSelectionEvent;
@@ -75,13 +75,10 @@ import javax.swing.event.ListSelectionListener;
 import org.apache.log4j.Logger;
 import org.apache.poi.hssf.record.formula.functions.T;
 
-import com.jgoodies.forms.builder.PanelBuilder;
-import com.jgoodies.forms.layout.CellConstraints;
-import com.jgoodies.forms.layout.FormLayout;
-
 import edu.ku.brc.af.auth.PermissionSettings;
 import edu.ku.brc.af.core.SubPaneMgr;
 import edu.ku.brc.af.core.Taskable;
+import edu.ku.brc.af.core.UsageTracker;
 import edu.ku.brc.af.core.db.DBTableIdMgr;
 import edu.ku.brc.af.core.db.DBTableInfo;
 import edu.ku.brc.af.prefs.AppPreferences;
@@ -90,16 +87,16 @@ import edu.ku.brc.af.ui.db.ViewBasedDisplayDialog;
 import edu.ku.brc.af.ui.db.ViewBasedDisplayIFace;
 import edu.ku.brc.af.ui.forms.BusinessRulesIFace;
 import edu.ku.brc.af.ui.forms.EditViewCompSwitcherPanel;
-import edu.ku.brc.af.ui.forms.FormDataObjIFace;
 import edu.ku.brc.af.ui.forms.FormViewObj;
 import edu.ku.brc.af.ui.forms.MultiView;
 import edu.ku.brc.af.ui.forms.Viewable;
 import edu.ku.brc.af.ui.forms.validation.UIValidator;
-import edu.ku.brc.dbsupport.DataProviderFactory;
-import edu.ku.brc.dbsupport.DataProviderSessionIFace;
-import edu.ku.brc.dbsupport.StaleObjectException;
 import edu.ku.brc.helpers.SwingWorker;
 import edu.ku.brc.specify.conversion.BasicSQLUtils;
+import edu.ku.brc.specify.datamodel.Geography;
+import edu.ku.brc.specify.datamodel.GeologicTimePeriod;
+import edu.ku.brc.specify.datamodel.LithoStrat;
+import edu.ku.brc.specify.datamodel.Storage;
 import edu.ku.brc.specify.datamodel.Taxon;
 import edu.ku.brc.specify.datamodel.TreeDefIface;
 import edu.ku.brc.specify.datamodel.TreeDefItemIface;
@@ -112,6 +109,9 @@ import edu.ku.brc.specify.treeutils.TreeDataService;
 import edu.ku.brc.specify.treeutils.TreeDataServiceFactory;
 import edu.ku.brc.specify.treeutils.TreeFactory;
 import edu.ku.brc.specify.treeutils.TreeHelper;
+import edu.ku.brc.specify.treeutils.TreeMergeException;
+import edu.ku.brc.specify.treeutils.TreeMerger;
+import edu.ku.brc.specify.treeutils.TreeMergerUIIFace;
 import edu.ku.brc.ui.CustomDialog;
 import edu.ku.brc.ui.DragDropCallback;
 import edu.ku.brc.ui.IconManager;
@@ -151,7 +151,7 @@ public class TreeTableViewer <T extends Treeable<T,D,I>,
 	
 	private static final boolean debugFind = false;
 	
-	private enum NODE_DROPTYPE {MOVE_NODE, SYNONIMIZE_NODE, CANCEL_DROP}
+	public enum NODE_DROPTYPE {MOVE_NODE, SYNONIMIZE_NODE, MERGE_NODE, CANCEL_DROP}
 	
 	/** Status message display widget. */
 	protected JStatusBar statusBar;
@@ -172,6 +172,7 @@ public class TreeTableViewer <T extends Treeable<T,D,I>,
     protected FindPanel findPanel;
 	
 	protected D treeDef;
+	protected List<TreeDefItemIface<T,D,I>> sortedTreeDefItems = null; 
 	
     protected String  findName;
     protected int     resultsIndex;
@@ -250,6 +251,7 @@ public class TreeTableViewer <T extends Treeable<T,D,I>,
 		canAdd = isEditMode && perms.canAdd();
 		canDelete = isEditMode && perms.canDelete();
 		this.treeDef = treeDef;
+		sortedTreeDefItems = buildSortedTreeDefItems();
 		allButtons = new Vector<AbstractButton>();
 		statusBar = UIRegistry.getStatusBar();
 		popupMenu = new TreeNodePopupMenu(this, isEditMode, canAdd, canDelete);
@@ -266,82 +268,9 @@ public class TreeTableViewer <T extends Treeable<T,D,I>,
         selNodePrefName = "selected_node:" + treeDef.getClass().getSimpleName() + ":" + treeDef.getTreeDefId();
         
         countGrabberExecutor = Executors.newFixedThreadPool(10);
+        
 	}
 	
-	//XXX - move renumber and verify code somewhere else (possibly debug menu) or dump it.
-	public void renumberNodes()
-	{
-//	    final NodeNumberer<T,D,I> nodeNumberer = new NodeNumberer<T,D,I>(treeDef);
-//        final JStatusBar nStatusBar = UIRegistry.getStatusBar();
-//        nStatusBar.setProgressRange(nodeNumberer.getProgressName(), 0, 100);
-//        
-//        UIRegistry.writeSimpleGlassPaneMsg(getLocalizedMessage("Updating Tree Structure"), 24);
-//        
-//        nodeNumberer.addPropertyChangeListener(
-//                new PropertyChangeListener() {
-//                    public  void propertyChange(final PropertyChangeEvent evt) {
-//                        if ("progress".equals(evt.getPropertyName())) 
-//                        {
-//                            nStatusBar.setValue(nodeNumberer.getProgressName(), (Integer)evt.getNewValue());
-//                        }
-//                    }
-//                });
-//        try
-//        {
-//            nodeNumberer.execute();
-//            nodeNumberer.get();
-//        }
-//        catch (Exception ex)
-//        {
-//            System.out.println(ex);
-//        }
-//        
-//        UIRegistry.clearSimpleGlassPaneMsg();
-//        nStatusBar.setProgressDone(nodeNumberer.getProgressName());
-
-	    try
-	    {
-	        treeDef.updateAllNodeNumbers(null, false);
-	    }
-	    catch (Exception ex)
-	    {
-    edu.ku.brc.af.core.UsageTracker.incrHandledUsageCount();
-    edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(TreeTableViewer.class, ex);
-	        System.out.println(ex);
-	    }
-	    
-//        final NodeNumberVerifier<T,D,I> nodeVerifier = new NodeNumberVerifier<T,D,I>(treeDef);
-//        nStatusBar.setProgressRange(nodeVerifier.getProgressName(), 0, 100);
-//        UIRegistry.writeSimpleGlassPaneMsg(getLocalizedMessage("Checking Tree Structure"), 24);
-//        
-//        nodeVerifier.addPropertyChangeListener(
-//                new PropertyChangeListener() {
-//                    public  void propertyChange(final PropertyChangeEvent evt) {
-//                        if ("progress".equals(evt.getPropertyName())) 
-//                        {
-//                            nStatusBar.setValue(nodeNumberer.getProgressName(), (Integer)evt.getNewValue());
-//                        }
-//                    }
-//                });
-//        try
-//        {
-//            nodeVerifier.execute();
-//            nodeVerifier.get();
-//        }
-//        catch (Exception ex)
-//        {
-//            System.out.println(ex);
-//        }
-//        
-//        UIRegistry.clearSimpleGlassPaneMsg();
-//        nStatusBar.setProgressDone(nodeVerifier.getProgressName());
-
-	    
-	}
-	public D getTreeDef()
-	{
-		return this.treeDef;
-	}
 	
     /* (non-Javadoc)
 	 * @see edu.ku.brc.af.tasks.subpane.BaseSubPane#showingPane(boolean)
@@ -543,7 +472,7 @@ public class TreeTableViewer <T extends Treeable<T,D,I>,
         Map<Integer,String> rankNamesMap = new HashMap<Integer, String>();
         for (I defItem: treeDef.getTreeDefItems())
         {
-            rankNamesMap.put(defItem.getRankId(), defItem.getName());
+            rankNamesMap.put(defItem.getRankId(), defItem.getDisplayText());
         }
         
 		listHeaders[0] = new TreeViewerListHeader(lists[0],listModel,listCellRenderer,rankNamesMap);
@@ -964,12 +893,15 @@ public class TreeTableViewer <T extends Treeable<T,D,I>,
                     try
                     {
                         T nodeRecord = dataService.getNodeById(treeDef.getNodeClass(), nodeId);
-                        showPathToNode(nodeRecord);
-                        TreeNode node = listModel.getNodeById(nodeRecord.getTreeId());
-                        lists[0].setSelectedValue(node, true);
-                        lists[0].setSelectedValue(node, true);
-                        scrollToShowNode(node, 0);
-                        //log.info("Showing and selecting previously selected node: " + nodeRecord.getFullName());
+                        if (nodeRecord != null)
+                        {
+                        	showPathToNode(nodeRecord);
+                        	TreeNode node = listModel.getNodeById(nodeRecord.getTreeId());
+                        	lists[0].setSelectedValue(node, true);
+                        	lists[0].setSelectedValue(node, true);
+                        	scrollToShowNode(node, 0);
+                        	//log.info("Showing and selecting previously selected node: " + nodeRecord.getFullName());
+                        }
                     }
                     catch (Exception e)
                     {
@@ -1988,110 +1920,10 @@ public class TreeTableViewer <T extends Treeable<T,D,I>,
                 @Override
                 public Object construct()
                 {
-                    if (true)
-                    {
-                        success          = fvo.saveObject();
-                        afterSaveSuccess = success;
-                        mergedNode       = (T)fvo.getDataObj();
-                        
-                    } else
-                    {
-                        // save the node and update the tree viewer appropriately
-                        DataProviderSessionIFace session = DataProviderFactory.getInstance().createSession();
-                        try
-                        {
-                            mergedNode = session.merge(node);
-                        }
-                        catch (StaleObjectException e1)
-                        {
-                            edu.ku.brc.af.core.UsageTracker.incrHandledUsageCount();
-                            edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(TreeTableViewer.class, e1);
-                            // another user or process has changed the data "underneath" us
-                            UIRegistry.showLocalizedError("UPDATE_DATA_STALE");
-                            if (session != null)
-                            {
-                                session.close();
-                            }
-                            session = DataProviderFactory.getInstance().createSession();
-                            mergedNode = (T)session.load(node.getClass(), node.getTreeId());
-                            success = false;
-                            return success;
-                        }
-                        success = true;
-                        afterSaveSuccess = false;
-                        
-                        if (businessRules != null)
-                        {
-                            businessRules.beforeSave(mergedNode, session);
-                        }
-                        
-                        try
-                        {
-                            session.beginTransaction();
-                            
-                            MultiView mvParent = fvo.getMVParent();
-                            Vector<Object> deletedItems = mvParent != null ? mvParent.getDeletedItems() : null;
-                            if (deletedItems != null)
-                            {
-                                // Ok, at this point we have all of the deleted data objects,
-                                // but Josh has already done a merge. So we need to used the record Id
-                                // and build a new list with the merged objects.
-                                
-                                Hashtable<Integer, Boolean> idHash = new Hashtable<Integer, Boolean>();
-                                for (Object obj : deletedItems)
-                                {
-                                    Integer idInt = ((FormDataObjIFace)obj).getId(); // should never be null, but just in case
-                                    if (idInt != null)
-                                    {
-                                        int id = idInt;
-                                        idHash.put(id, true);
-                                    }
-                                    
-                                }
-                                
-                                FormViewObj.deleteItemsInDelList(session, deletedItems);
-                            }
-                            
-                            Vector<Object> toBeSavedItems = mvParent != null ? mvParent.getToBeSavedItems() : null;
-                            if (toBeSavedItems != null)
-                            {
-                                FormViewObj.saveItemsInToBeSavedList(session, toBeSavedItems);
-                            }
-                            
-                            session.saveOrUpdate(mergedNode);
-                            if (businessRules != null)
-                            {
-                                if (!businessRules.beforeSaveCommit(mergedNode, session))
-                                {
-                                    throw new Exception("Business rules processing failed");
-                                }
-                            }
-                            session.commit();
-                            //log.info("Successfully saved changes to " + mergedNode.getFullName());
-                            
-                            // at this point, the new node is in the DB (if success == true)
-        
-                            if (businessRules != null && success == true)
-                            {
-                                afterSaveSuccess = businessRules.afterSaveCommit(mergedNode, session);
-                            }
-                        }
-                        catch (Exception e)
-                        {
-                            edu.ku.brc.af.core.UsageTracker.incrHandledUsageCount();
-                            edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(TreeTableViewer.class, e);
-                            success = false;
-                            UIRegistry.showLocalizedError("UNRECOVERABLE_DB_ERROR");
-    
-                            log.error("Error while saving node changes.  Rolling back transaction.", e);
-                            session.rollback();
-                        }
-                        finally
-                        {
-                            session.close();
-                        }
-
-                    }
+                	success          = fvo.saveObject();
+                    //See revision 9036 for dead code that once (possibly) dealt with stale object exceptions
+                	afterSaveSuccess = success;
+                    mergedNode       = (T)fvo.getDataObj();
                     return success;
                 }
 
@@ -2357,17 +2189,191 @@ public class TreeTableViewer <T extends Treeable<T,D,I>,
     	{
     		return "TreeTableViewer.SynonymizeTextTaxon";
     	}
+    	if (treeDef.getNodeClass().equals(Geography.class))
+    	{
+    		return "TreeTableViewer.SynonymizeTextGeography";
+    	}
     	return "TreeTableViewer.SynonymizeText";
     }
-    
+  
+    protected String getMergeTextKey()
+    {
+    	if (treeDef.getNodeClass().equals(Taxon.class))
+    	{
+    		return "TreeTableViewer.MergeTextTaxon";
+    	}
+    	if (treeDef.getNodeClass().equals(Geography.class))
+    	{
+    		return "TreeTableViewer.MergeTextGeography";
+    	}
+    	if (treeDef.getNodeClass().equals(GeologicTimePeriod.class))
+    	{
+    		return "TreeTableViewer.MergeTextGeologicTimePeriod";
+    	}
+    	if (treeDef.getNodeClass().equals(LithoStrat.class))
+    	{
+    		return "TreeTableViewer.MergeTextLithoStrat";
+    	}
+    	if (treeDef.getNodeClass().equals(Storage.class))
+    	{
+    		return "TreeTableViewer.MergeTextStorage";
+    	}
+    	return "TreeTableViewer.MergeText";
+    }
+
     protected String getMoveTextKey()
     {
     	if (treeDef.getNodeClass().equals(Taxon.class))
     	{
     		return "TreeTableViewer.MoveTextTaxon";
     	}
+    	if (treeDef.getNodeClass().equals(Geography.class))
+    	{
+    		return "TreeTableViewer.MoveTextGeography";
+    	}
+    	if (treeDef.getNodeClass().equals(GeologicTimePeriod.class))
+    	{
+    		return "TreeTableViewer.MoveTextGeologicTimePeriod";
+    	}
+    	if (treeDef.getNodeClass().equals(LithoStrat.class))
+    	{
+    		return "TreeTableViewer.MoveTextLithoStrat";
+    	}
+    	if (treeDef.getNodeClass().equals(Storage.class))
+    	{
+    		return "TreeTableViewer.MoveTextStorage";
+    	}
+    	
     	return "TreeTableViewer.MoveText";
     }
+//    /**
+//     * @param draggedRecord
+//     * @param droppedRecord
+//     * @return
+//     */
+//    private NODE_DROPTYPE askForDropAction(final T        draggedRecord,
+//                                           final T        droppedOnRecord,
+//                                           final TreeNode droppedOnNode, 
+//                                           final TreeNode draggedNode)
+//    {
+//        boolean isSynonymizeOK = treeDef.isSynonymySupported() && isSynonymizeOK(droppedOnNode, draggedNode, treeDef.getSynonymizedLevel());
+//        boolean isMoveOK      = isMoveOK(droppedOnNode, draggedNode);
+//        boolean isMergeOK     = isMergeOK(droppedOnNode, draggedNode);
+//        
+//        if (treeDef.getSynonymizedLevel() == -1)
+//        {
+//            return NODE_DROPTYPE.MOVE_NODE;
+//        }
+//        
+//        if (false)
+//        {
+//            int numOptions = 1 + (isSynonymizeOK ? 1 : 0) + (isMoveOK ? 1 : 0);
+//            
+//            Object[] options = new Object[numOptions];
+//            numOptions = 0;
+//            
+//            int dlgOption = JOptionPane.CANCEL_OPTION;
+//            if (isSynonymizeOK)
+//            {
+//                options[numOptions++] = getResourceString("TreeTableView.SYNONIMIZE_NODE");
+//                dlgOption = JOptionPane.OK_CANCEL_OPTION;
+//            }
+//            
+//            if (isMoveOK)
+//            {
+//                options[numOptions++] = getResourceString("TreeTableView.MOVE_NODE");
+//                dlgOption = JOptionPane.YES_NO_CANCEL_OPTION;
+//            }
+//            
+//            options[numOptions++] = getResourceString("CANCEL");
+//            
+//            String msg = UIRegistry.getLocalizedMessage("TreeTableView.NODE_MSG", draggedRecord.getFullName(), droppedOnRecord.getFullName());
+//            int userChoice = JOptionPane.showOptionDialog(UIRegistry.getTopWindow(), 
+//                                                         msg, 
+//                                                         getResourceString("TreeTableView.NODE_ACTION_TITLE"), 
+//                                                         dlgOption,
+//                                                         JOptionPane.QUESTION_MESSAGE, null, options, options[0]);
+//            
+//            if (userChoice == JOptionPane.YES_OPTION || userChoice == JOptionPane.OK_OPTION)
+//            {
+//                return NODE_DROPTYPE.SYNONIMIZE_NODE;
+//                
+//            } else if (userChoice == JOptionPane.NO_OPTION)
+//            {
+//                return NODE_DROPTYPE.MOVE_NODE;
+//            }
+//        } else
+//        {
+//        	int numOptions = 2 + (isSynonymizeOK ? 1 : 0) + (isMoveOK ? 1 : 0) + (isMergeOK ? 1 : 0);
+//            
+//            CellConstraints cc = new CellConstraints();
+//            
+//            String rowLayout = numOptions == 4 ? "f:p:g, 10dlu, f:p:g, f:p:g" : "f:p:g, f:p:g";
+//            PanelBuilder    pb = new PanelBuilder(new FormLayout("r:p, 2dlu, f:p:g", rowLayout));
+//            
+//            String actionStr = isSynonymizeOK ? getResourceString("TreeTableView.SYNONIMIZE_NODE")
+//            		: getResourceString("TreeTableView.MOVE_NODE");
+//            String descStr = isSynonymizeOK ?
+//            		String.format(getResourceString(getSynonymizeTextKey()),
+//                    		draggedRecord.getFullName(), droppedOnRecord.getFullName(), 
+//                    		droppedOnRecord.getFullName(), draggedRecord.getFullName()) :
+//                    String.format(getResourceString(getMoveTextKey()),
+//                       		draggedRecord.getFullName(), droppedOnNode.getFullName());			
+//            JLabel actionLbl = createLabel("<html><b>" + actionStr + ":</b></html>");
+//            actionLbl.setVerticalAlignment(SwingConstants.BOTTOM);
+//            actionLbl.setVerticalTextPosition(SwingConstants.BOTTOM);
+//            pb.add(actionLbl, cc.xy(1, 1));
+//            JTextArea tab = createTextArea();
+//            tab.setEditable(false);
+//            tab.setLineWrap(true);
+//            tab.setWrapStyleWord(true);
+//            int big = treeDef.getNodeClass().equals(Taxon.class) ? (numOptions > 3 ? 11 : 16) : 2;
+//            int small = treeDef.getNodeClass().equals(Taxon.class) ? 5 : 2;
+//            tab.setRows(numOptions > 3 ? small : isMoveOK ? big : small);
+//            tab.setText(descStr);
+//        	pb.add(tab, cc.xy(3, 1));
+//            if (numOptions == 4)
+//            {
+//            	JLabel lbl = createLabel("<html><b>" + getResourceString("TreeTableView.MOVE_NODE") + ":</b></html>");
+//            	lbl.setVerticalAlignment(SwingConstants.BOTTOM);
+//            	lbl.setVerticalTextPosition(SwingConstants.BOTTOM);
+//            	pb.add(lbl, cc.xy(1, 3));
+//            	JTextArea tac = createTextArea();
+//            	tac.setEditable(false);
+//            	tac.setLineWrap(true);
+//            	tac.setWrapStyleWord(true);
+//            	tac.setRows(big);
+//            	tac.setText(String.format(getResourceString(getMoveTextKey()),
+//            		draggedRecord.getFullName(), droppedOnNode.getFullName()));
+//            	pb.add(tac, cc.xy(3, 3));
+//            }
+//            pb.setDefaultDialogBorder();
+//            DropDialog dlg = new DropDialog((Frame)UIRegistry.getTopWindow(), 
+//                                                getResourceString("TreeTableView.NODE_ACTION_TITLE"),
+//                                                isMoveOK, isSynonymizeOK, isMergeOK,
+//                                                pb.getPanel());
+//            dlg.setHelpContext("SYNONIMIZE_NODE");
+//            dlg.createUI();
+//            if (treeDef.getNodeClass().equals(Taxon.class))
+//            {
+//            	//Goofy attempt to adapt dialog size to changes in Font preference...
+//            	Dimension ps = dlg.getPreferredSize();
+//            	double newWidth = actionLbl.getWidth()*10 < ps.getWidth() ? ps.getWidth() : actionLbl.getWidth()*10;
+//            	ps.setSize(newWidth, ps.getHeight());
+//            	dlg.setSize(ps);
+//            }
+//            UIHelper.centerAndShow(dlg);
+//            
+//            if (!dlg.isCancelled() && dlg.getBtnPressed() != CustomDialog.HELP_BTN)
+//            {
+//            	return dlg.getAction();
+//            }
+//        }
+//        
+//        return NODE_DROPTYPE.CANCEL_DROP;
+//    }
+
+
     /**
      * @param draggedRecord
      * @param droppedRecord
@@ -2380,144 +2386,69 @@ public class TreeTableViewer <T extends Treeable<T,D,I>,
     {
         boolean isSynonymizeOK = treeDef.isSynonymySupported() && isSynonymizeOK(droppedOnNode, draggedNode, treeDef.getSynonymizedLevel());
         boolean isMoveOK      = isMoveOK(droppedOnNode, draggedNode);
+        boolean isMergeOK     = isMergeOK(droppedOnNode, draggedNode);
         
-        if (treeDef.getSynonymizedLevel() == -1)
-        {
-            return NODE_DROPTYPE.MOVE_NODE;
-        }
-        
-        if (false)
-        {
-            int numOptions = 1 + (isSynonymizeOK ? 1 : 0) + (isMoveOK ? 1 : 0);
-            
-            Object[] options = new Object[numOptions];
-            numOptions = 0;
-            
-            int dlgOption = JOptionPane.CANCEL_OPTION;
-            if (isSynonymizeOK)
-            {
-                options[numOptions++] = getResourceString("TreeTableView.SYNONIMIZE_NODE");
-                dlgOption = JOptionPane.OK_CANCEL_OPTION;
-            }
-            
-            if (isMoveOK)
-            {
-                options[numOptions++] = getResourceString("TreeTableView.MOVE_NODE");
-                dlgOption = JOptionPane.YES_NO_CANCEL_OPTION;
-            }
-            
-            options[numOptions++] = getResourceString("CANCEL");
-            
-            String msg = UIRegistry.getLocalizedMessage("TreeTableView.NODE_MSG", draggedRecord.getFullName(), droppedOnRecord.getFullName());
-            int userChoice = JOptionPane.showOptionDialog(UIRegistry.getTopWindow(), 
-                                                         msg, 
-                                                         getResourceString("TreeTableView.NODE_ACTION_TITLE"), 
-                                                         dlgOption,
-                                                         JOptionPane.QUESTION_MESSAGE, null, options, options[0]);
-            
-            if (userChoice == JOptionPane.YES_OPTION || userChoice == JOptionPane.OK_OPTION)
-            {
-                return NODE_DROPTYPE.SYNONIMIZE_NODE;
-                
-            } else if (userChoice == JOptionPane.NO_OPTION)
-            {
-                return NODE_DROPTYPE.MOVE_NODE;
-            }
-        } else
-        {
-            int numOptions = 2 + (isSynonymizeOK ? 1 : 0) + (isMoveOK ? 1 : 0);
-            
-            CellConstraints cc = new CellConstraints();
-            
-            String rowLayout = numOptions == 4 ? "t:p:g, 10dlu, t:p:g, f:p:g" : "t:p:g, f:p:g";
-            PanelBuilder    pb = new PanelBuilder(new FormLayout("r:p, 2dlu, f:p:g", rowLayout));
-            
-            String actionStr = isSynonymizeOK ? getResourceString("TreeTableView.SYNONIMIZE_NODE")
-            		: getResourceString("TreeTableView.MOVE_NODE");
-            String descStr = isSynonymizeOK ?
-            		String.format(getResourceString(getSynonymizeTextKey()),
-                    		draggedRecord.getFullName(), droppedOnRecord.getFullName(), 
-                    		droppedOnRecord.getFullName(), draggedRecord.getFullName()) :
-                    String.format(getResourceString(getMoveTextKey()),
-                       		draggedRecord.getFullName(), droppedOnNode.getFullName());			
-            JLabel actionLbl = createLabel("<html><b>" + actionStr + ":</b></html>");
-            actionLbl.setVerticalAlignment(SwingConstants.BOTTOM);
-            actionLbl.setVerticalTextPosition(SwingConstants.BOTTOM);
-            pb.add(actionLbl, cc.xy(1, 1));
-            JTextArea tab = createTextArea();
-            tab.setEditable(false);
-            tab.setLineWrap(true);
-            tab.setWrapStyleWord(true);
-            int big = treeDef.getNodeClass().equals(Taxon.class) ? (numOptions > 3 ? 11 : 16) : 2;
-            int small = treeDef.getNodeClass().equals(Taxon.class) ? 5 : 2;
-            tab.setRows(numOptions > 3 ? small : isMoveOK ? big : small);
-            tab.setText(descStr);
-        	pb.add(tab, cc.xy(3, 1));
-            if (numOptions == 4)
-            {
-            	JLabel lbl = createLabel("<html><b>" + getResourceString("TreeTableView.MOVE_NODE") + ":</b></html>");
-            	lbl.setVerticalAlignment(SwingConstants.BOTTOM);
-            	lbl.setVerticalTextPosition(SwingConstants.BOTTOM);
-            	pb.add(lbl, cc.xy(1, 3));
-            	JTextArea tac = createTextArea();
-            	tac.setEditable(false);
-            	tac.setLineWrap(true);
-            	tac.setWrapStyleWord(true);
-            	tac.setRows(big);
-            	tac.setText(String.format(getResourceString(getMoveTextKey()),
-            		draggedRecord.getFullName(), droppedOnNode.getFullName()));
-            	pb.add(tac, cc.xy(3, 3));
-            }
-            pb.setDefaultDialogBorder();
-                        
-            CustomDialog dlg = new CustomDialog((Frame)UIRegistry.getTopWindow(), 
-                                                getResourceString("TreeTableView.NODE_ACTION_TITLE"),
-                                                true,
-                                                numOptions == 4 ? CustomDialog.OKCANCELAPPLYHELP : CustomDialog.OKCANCELHELP,
-                                                pb.getPanel());
-            dlg.setHelpContext("SYNONIMIZE_NODE");
-            if (isSynonymizeOK)
-            {
-                dlg.setOkLabel(getResourceString("TreeTableView.SYNONIMIZE_NODE"));
-            }
-            
-            if (isMoveOK)
-            {
-                if (isSynonymizeOK)
-                {
-                    dlg.setApplyLabel(getResourceString("TreeTableView.MOVE_NODE"));   
-                    dlg.setCloseOnApplyClk(true);
-                } else
-                {
-                    dlg.setOkLabel(getResourceString("TreeTableView.MOVE_NODE"));
-                }
-            }
+//        if (treeDef.getSynonymizedLevel() == -1)
+//        {
+//            return NODE_DROPTYPE.MOVE_NODE;
+//        }
+                    
+//            String actionStr = isSynonymizeOK ? getResourceString("TreeTableView.SYNONIMIZE_NODE")
+//            		: getResourceString("TreeTableView.MOVE_NODE");
+//            String descStr = isSynonymizeOK ?
+//            		String.format(getResourceString(getSynonymizeTextKey()),
+//                    		draggedRecord.getFullName(), droppedOnRecord.getFullName(), 
+//                    		droppedOnRecord.getFullName(), draggedRecord.getFullName()) :
+//                    String.format(getResourceString(getMoveTextKey()),
+//                       		draggedRecord.getFullName(), droppedOnNode.getFullName());			
+//            JLabel actionLbl = createLabel("<html><b>" + actionStr + ":</b></html>");
+//            actionLbl.setVerticalAlignment(SwingConstants.BOTTOM);
+//            actionLbl.setVerticalTextPosition(SwingConstants.BOTTOM);
+//            pb.add(actionLbl, cc.xy(1, 1));
+//            JTextArea tab = createTextArea();
+//            tab.setEditable(false);
+//            tab.setLineWrap(true);
+//            tab.setWrapStyleWord(true);
+//            int big = treeDef.getNodeClass().equals(Taxon.class) ? (numOptions > 3 ? 11 : 16) : 2;
+//            int small = treeDef.getNodeClass().equals(Taxon.class) ? 5 : 2;
+//            tab.setRows(numOptions > 3 ? small : isMoveOK ? big : small);
+//            tab.setText(descStr);
+//        	pb.add(tab, cc.xy(3, 1));
+//            if (numOptions == 4)
+//            {
+//            	JLabel lbl = createLabel("<html><b>" + getResourceString("TreeTableView.MOVE_NODE") + ":</b></html>");
+//            	lbl.setVerticalAlignment(SwingConstants.BOTTOM);
+//            	lbl.setVerticalTextPosition(SwingConstants.BOTTOM);
+//            	pb.add(lbl, cc.xy(1, 3));
+//            	JTextArea tac = createTextArea();
+//            	tac.setEditable(false);
+//            	tac.setLineWrap(true);
+//            	tac.setWrapStyleWord(true);
+//            	tac.setRows(big);
+//            	tac.setText(String.format(getResourceString(getMoveTextKey()),
+//            		draggedRecord.getFullName(), droppedOnNode.getFullName()));
+//            	pb.add(tac, cc.xy(3, 3));
+//            }
+//            pb.setDefaultDialogBorder();
+            DropDialog dlg = new DropDialog((Frame)UIRegistry.getTopWindow(), 
+                                                isMoveOK, isSynonymizeOK, isMergeOK, draggedRecord.getName(),
+                                                droppedOnNode.getName(), getMoveTextKey(), getSynonymizeTextKey(), getMergeTextKey());
             dlg.createUI();
-            if (treeDef.getNodeClass().equals(Taxon.class))
-            {
-            	//Goofy attempt to adapt dialog size to changes in Font preference...
-            	Dimension ps = dlg.getPreferredSize();
-            	double newWidth = actionLbl.getWidth()*10 < ps.getWidth() ? ps.getWidth() : actionLbl.getWidth()*10;
-            	ps.setSize(newWidth, ps.getHeight());
-            	dlg.setSize(ps);
-            }
+//            if (treeDef.getNodeClass().equals(Taxon.class))
+//            {
+//            	//Goofy attempt to adapt dialog size to changes in Font preference...
+//            	Dimension ps = dlg.getPreferredSize();
+//            	double newWidth = actionLbl.getWidth()*10 < ps.getWidth() ? ps.getWidth() : actionLbl.getWidth()*10;
+//            	ps.setSize(newWidth, ps.getHeight());
+//            	dlg.setSize(ps);
+//            }
             UIHelper.centerAndShow(dlg);
             
-            int btn = dlg.getBtnPressed();
-            if (!dlg.isCancelled() && btn != CustomDialog.HELP_BTN)
+            if (!dlg.isCancelled() && dlg.getBtnPressed() != CustomDialog.HELP_BTN)
             {
-                if (isSynonymizeOK)
-                {
-                    if (isMoveOK)
-                    {
-                        return btn == CustomDialog.OK_BTN ? NODE_DROPTYPE.SYNONIMIZE_NODE : NODE_DROPTYPE.MOVE_NODE;
-                    }
-                    
-                    return NODE_DROPTYPE.SYNONIMIZE_NODE;
-                }
-                return NODE_DROPTYPE.MOVE_NODE;
+            	return dlg.getAction();
             }
-        }
+        //}
         
         return NODE_DROPTYPE.CANCEL_DROP;
     }
@@ -2558,13 +2489,15 @@ public class TreeTableViewer <T extends Treeable<T,D,I>,
 		if (nodeDropAction == NODE_DROPTYPE.SYNONIMIZE_NODE)
 		{
 			log.info("User requested new link be created between " + draggedNode.getName() + " and " + droppedOnNode.getName());
+            UsageTracker.incrUsageCount("TreeTableViewer.SynonomizeNode");
             
             if ((draggedNode.getAcceptedParentId() != null) && (droppedOnNode.getId() == draggedNode.getAcceptedParentId()))
             {
                 //log.info("User request to synonymize a node with it's current accepted parent.  Nothing to do.");
                 return false;
             }
-            
+
+
             new javax.swing.SwingWorker<Boolean, Object>() {
 
             	boolean result = false;
@@ -2819,13 +2752,17 @@ public class TreeTableViewer <T extends Treeable<T,D,I>,
 			final T newParent = droppedRecord;
             final TreeNode oldParentNode = listModel.getNodeById(draggedNode.getParentId());
             final TreeNode newParentNode = droppedOnNode;
-            
+
+            log.info("move requested: " + child.getFullName() + " to " + newParent.getFullName());
+            UsageTracker.incrUsageCount("TreeTableViewer.MoveNode");
+
 			if ( !TreeHelper.canChildBeReparentedToNode(child,newParent) )
 			{
 				log.info("Cannot reparent " + child.getName() + " to " + newParent.getName());
 				return false;
 			}
 			
+
 			new javax.swing.SwingWorker<Boolean, Object>() {
 
 				Boolean result = false;
@@ -2992,6 +2929,167 @@ public class TreeTableViewer <T extends Treeable<T,D,I>,
 			return true;
 			
 		}
+		else if (nodeDropAction == NODE_DROPTYPE.MERGE_NODE)
+		{
+            UsageTracker.incrUsageCount("WB.ShowWorkbenchProps");
+			final TreeNode oldParentNode = listModel.getNodeById(draggedNode.getParentId());
+	        final TreeNode newParentNode = droppedOnNode;
+	        log.info("merging " + oldParentNode.fullName + "(" + oldParentNode.id + ") into "
+	        		+ newParentNode.fullName + "(" + newParentNode.id + ")");
+            UsageTracker.incrUsageCount("TreeTableViewer.MergeNodes");
+	        
+	        SwingUtilities.invokeLater(new Runnable() {
+
+				@Override
+				public void run() {
+					hideChildren(oldParentNode);
+					hideChildren(newParentNode);
+				}
+	        	
+	        });
+			final TreeMergerUIIFace<T,D,I> face = new TreeMergerUIIFace<T,D,I>() {
+				/* (non-Javadoc)
+				 * @see edu.ku.brc.specify.treeutils.TreeMergerUIIFace#choose(java.util.List, boolean)
+				 */
+				@Override
+				public Integer choose(List<Integer> choices, boolean mustChoose)
+				{
+					System.out.print((mustChoose ? "You MUST choose: " : "Choose: "));
+					for (Integer id : choices)
+					{
+						System.out.print(id + "  ");
+					}
+					System.out.println();
+					return null;
+				}
+
+				/* (non-Javadoc)
+				 * @see edu.ku.brc.specify.treeutils.TreeMergerUIIFace#merged(java.lang.Integer, java.lang.Integer)
+				 */
+				@Override
+				public void merged(Integer toMergeId, Integer mergeIntoId)
+				{
+					System.out.println("merged " + toMergeId + " into " + mergeIntoId);
+					
+				}
+
+				/* (non-Javadoc)
+				 * @see edu.ku.brc.specify.treeutils.TreeMergerUIIFace#merging(java.lang.Integer, java.lang.Integer)
+				 */
+				@Override
+				public void merging(Integer toMergeId, Integer mergeIntoId)
+				{
+					System.out.println("merging " + toMergeId + " into " + mergeIntoId);
+				}
+
+				/* (non-Javadoc)
+				 * @see edu.ku.brc.specify.treeutils.TreeMergerUIIFace#moved(java.lang.Integer, java.lang.Integer, java.lang.Integer)
+				 */
+				@Override
+				public void moved(Integer movedId, Integer oldParentId,
+						Integer newParentId)
+				{
+					System.out.println("moved " + movedId + " from " + oldParentId + " to " + newParentId);
+				}
+				
+			};
+	        final TreeMerger<T, D, I> merger = new TreeMerger<T, D, I>(treeDef);
+	        merger.addListener(face);
+	        new javax.swing.SwingWorker<Object, Object>() {
+	        	Boolean result = false;
+				Exception killer = null;
+
+				/* (non-Javadoc)
+				 * @see javax.swing.SwingWorker#doInBackground()
+				 */
+				@Override
+				protected Object doInBackground() throws Exception
+				{
+					SwingUtilities.invokeLater(new Runnable() {
+
+						/*
+						 * (non-Javadoc)
+						 * 
+						 * @see java.lang.Runnable#run()
+						 */
+						@Override
+						public void run()
+						{
+							UIRegistry
+									.writeGlassPaneMsg(
+											UIRegistry.getResourceString("TreeTableViewer.Merging"),
+											24);
+							hideChildren(oldParentNode);
+							hideChildren(droppedOnNode);
+						}
+
+					});
+			        try
+			        {
+			        	merger.mergeTrees(draggedNode.getId(), droppedOnNode.getId());
+			        	result = true;
+			        } catch (Exception ex)
+			        {
+			        	log.error(ex);
+			        	result = false;
+			        	killer = ex;
+			        }
+					return result;
+				}
+
+				@Override
+				protected void done() {
+					SwingUtilities.invokeLater(new Runnable() {
+
+						/* (non-Javadoc)
+						 * @see java.lang.Runnable#run()
+						 */
+						@Override
+						public void run()
+						{
+							UIRegistry.clearGlassPaneMsg();
+						}
+						
+					});
+					if (result)
+					{
+						try
+						{
+							treeDef.updateAllNodes(null, true, true);
+						} catch (Exception ex)
+						{
+							edu.ku.brc.af.core.UsageTracker.incrHandledUsageCount();
+							edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(
+								TreeTableViewer.class, ex);
+						}
+					}
+			        SwingUtilities.invokeLater(new Runnable() {
+
+						@Override
+						public void run() {
+							showChildren(oldParentNode);
+							showChildren(newParentNode);
+						}
+			        	
+			        });
+					if (!result && killer != null)
+					{
+						if (killer instanceof TreeMergeException)
+						{
+							UIRegistry.displayErrorDlg(killer.getMessage());
+						}
+						else 
+						{
+							edu.ku.brc.af.core.UsageTracker.incrHandledUsageCount();
+							edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(
+									TreeTableViewer.class, killer);
+						}
+					}
+				}
+	        	
+	        }.execute();
+			
+		}
 		return false;
 	}
 	
@@ -3026,17 +3124,153 @@ public class TreeTableViewer <T extends Treeable<T,D,I>,
     	    if (rankLevel == -1 || (draggedRankId >= rankLevel && droppedRankId >= rankLevel)
     	    		|| draggedRankId == droppedRankId)
             {
-                boolean descendant = listModel.isDescendantOfNode(droppedOnNode, draggedNode);
-                if (!descendant)
-                {
-                    // check the other way as well
-                    descendant = listModel.isDescendantOfNode(draggedNode, droppedOnNode);
-                }
+                //given the above condition on the draggedNode's children, this call must return false...
+    	    	boolean descendant = listModel.isDescendantOfNode(droppedOnNode, draggedNode);
+//                if (!descendant)
+//                {
+//                    // check the other way as well
+//                    descendant = listModel.isDescendantOfNode(draggedNode, droppedOnNode);
+//                }
                 // log.debug("Synonymization request IS acceptable.");
                 return !descendant;
             }
         }
 	    return false;
+	}
+	
+	/**
+	 * @return list of treedefitems sorted by rank
+	 */
+	private List<TreeDefItemIface<T,D,I>> buildSortedTreeDefItems()
+	{
+		List<TreeDefItemIface<T,D,I>> result = new Vector<TreeDefItemIface<T,D,I>>(treeDef.getTreeDefItems());
+		Collections.sort(result, new Comparator<TreeDefItemIface<T,D,I>>(){
+
+			/* (non-Javadoc)
+			 * @see java.util.Comparator#compare(java.lang.Object, java.lang.Object)
+			 */
+			@Override
+			public int compare(TreeDefItemIface<T, D, I> arg0,
+					TreeDefItemIface<T, D, I> arg1) {
+				// TODO Auto-generated method stub
+				return arg0.getRankId().compareTo(arg1.getRankId());
+			}
+			
+		});
+		return result;
+	}
+	
+	/**
+	 * @return
+	 */
+	private String getTreeTableName()
+	{
+		Class<T> cls = treeDef.getNodeClass();
+		try
+		{
+			Method tblIdGetter = cls.getMethod("getClassTableId", (Class<?>[] )null);
+			Integer tableId = (Integer )tblIdGetter.invoke(null, (Object[] )null);
+			return DBTableIdMgr.getInstance().getInfoById(tableId).getName();
+		} catch (NoSuchMethodException ex)
+		{
+			return null;
+		} catch (SecurityException ex)
+		{
+			return null;
+		} catch (InvocationTargetException ex)
+		{
+			return null;
+		} catch (IllegalAccessException ex)
+		{
+			return null;
+		}
+	}
+	
+	/**
+	 * @param upper
+	 * @param lower
+	 * @return
+	 */
+	private List<Object> getInvalidChildRanksForMerge(final TreeNode upper, final TreeNode lower)
+	{
+		String sql = null;
+		String tbl = getTreeTableName();
+		if (tbl != null)
+		{
+			//assumes consistent naming of parent and rank fields in Treeable classes
+			sql = "select distinct RankID from " + tbl + " where ParentID = " + upper.getId() + " and RankID <= " + lower.getRank() + " order by RankID";
+		}
+		if (sql != null)
+		{
+			return BasicSQLUtils.querySingleCol(sql);
+		}
+		log.error("Unable to check ranks for merge: upper=" + upper.getFullName() + ", lower=" + lower.getFullName());
+		return null;
+	}
+	
+	/**
+	 * @param droppedOnNode
+	 * @param draggedNode
+	 * @return 	true if draggedNode can be merged into droppedOnNode
+	 */
+	private boolean isMergeOK(final TreeNode droppedOnNode, 
+	                              final TreeNode draggedNode)
+	{
+//		if (treeDef instanceof TaxonTreeDef)
+//		{
+//			return false;
+//		}
+		
+
+		//if a node with no children is dropped on a synonym then 
+		//any records linked to the the dropped node will be reassigned to
+		//the drop node.
+		//boolean synOK = droppedOnNode.getAcceptedParentId() == null 
+		//	||  !draggedNode.isHasChildren();
+		//BUT, for the taxon tree more work would be required (probably) to
+		//update Determination.PreferredTaxonID so preventing drops on synonyms for
+		//now
+		boolean synOK = droppedOnNode.getAcceptedParentId() == null;
+		if (!synOK)
+		{
+			return false;
+		}
+		
+		//Allowing cross-rank merges requires checking to be sure parenting rules are not violated.
+		if (droppedOnNode.getRank() != draggedNode.getRank())
+		{
+			TreeDefItemIface<T,D,I> draggedDef = treeDef.getDefItemByRank(draggedNode.getRank());
+			if (droppedOnNode.getRank() < draggedNode.getRank()) 
+			{
+				if (draggedDef.getIsEnforced() != null && draggedDef.getIsEnforced())
+				{
+					return false;
+				}
+				for (TreeDefItemIface<T,D,I> di : sortedTreeDefItems)
+				{
+					if (draggedDef.getIsEnforced() != null && draggedDef.getIsEnforced() && di.getRankId() > droppedOnNode.getRank() && di.getRankId() < draggedNode.getRank())
+					{
+						return false;
+					}
+				}
+				
+			} else
+			{
+				List<Object> invalidRanks = getInvalidChildRanksForMerge(draggedNode, droppedOnNode);
+				if (invalidRanks == null || invalidRanks.size() > 0)
+				{
+					return false;
+				}
+			}
+		}
+		return true;
+		
+		//rank - is higher into lower feasible? Do isEnforced rules need all the time anyway??
+		//accepted status ??? 
+		
+		//return draggedNode.getRank() == droppedOnNode.getRank(); //perhaps not a necessary restriction
+			//&& draggedNode.isHasChildren() && droppedOnNode.isHasChildren(); //else what's the point of merge?
+			//point of merging childless nodes would be for example to merge all localities in 'Douglas Co.' to 'Douglas'.
 	}
 	
 	/**
@@ -3110,12 +3344,28 @@ public class TreeTableViewer <T extends Treeable<T,D,I>,
 		if (isMoveOK(droppedOnNode, draggedNode))
 		{
         	//log.debug("Reparent request IS acceptable.");
-    		listModel.setDropLocationNode(droppedOn);
-    		isOK = true;
+    		if (!isOK)
+    		{
+    			listModel.setDropLocationNode(droppedOn);
+    			isOK = true;
+    		}
     		
     		if (isNodeDiff)
     		{
     		    msg += (msg.length() > 0 ? ", " : "") + getResourceString("TreeViewer.MOVE_IS_OK");
+    		}
+		}
+		
+		if (isMergeOK(droppedOnNode, draggedNode))
+		{
+    		if (!isOK)
+    		{
+    			listModel.setDropLocationNode(droppedOn);
+    			isOK = true;
+    		}
+    		if (isNodeDiff)
+    		{
+    		    msg += (msg.length() > 0 ? ", " : "") + getResourceString("TreeViewer.MERGE_IS_OK");
     		}
 		}
 		
@@ -3297,16 +3547,7 @@ public class TreeTableViewer <T extends Treeable<T,D,I>,
      */
     protected int getHighestPossibleNodeRank()
     {
-        int highestRank = Integer.MIN_VALUE;
-        for (I defItem: treeDef.getTreeDefItems())
-        {
-            Integer rank = defItem.getRankId();
-            if (rank != null && rank > highestRank)
-            {
-                highestRank = rank;
-            }
-        }
-        return highestRank;
+    	return sortedTreeDefItems.get(sortedTreeDefItems.size()-1).getRankId();
     }
     
 	/**
@@ -3620,12 +3861,20 @@ public class TreeTableViewer <T extends Treeable<T,D,I>,
         // add the nodes to the model
         if (childNodes.size() == 0)
         {
-            parentNode.setHasChildren(false);
-            parentNode.setHasVisualChildren(false);
-            listModel.nodeValuesChanged(parentNode);
+            if (parentNode != null)
+            {
+            	parentNode.setHasChildren(false);
+            	parentNode.setHasVisualChildren(false);
+            	listModel.nodeValuesChanged(parentNode);
+            }
             return childNodes;
         }
-        parentNode.setHasVisualChildren(true);
+        
+        if (parentNode != null)
+        {
+        	parentNode.setHasVisualChildren(true);
+        }
+        
         listModel.showChildNodes(childNodes, parentNode);
 
         if (parentNode != null)

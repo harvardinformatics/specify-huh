@@ -37,6 +37,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.dom4j.Element;
 
+import edu.ku.brc.af.core.AppContextMgr;
 import edu.ku.brc.af.core.db.AutoNumberIFace;
 import edu.ku.brc.af.core.db.DBFieldInfo;
 import edu.ku.brc.af.prefs.AppPrefsCache;
@@ -55,30 +56,60 @@ import edu.ku.brc.ui.UIRegistry;
  */
 public class UIFieldFormatterMgr implements AppPrefsChangeListener
 {
-    public static final String                                 factoryName    = "edu.ku.brc.ui.forms.formatters.UIFieldFormatterMgr";
+    // Static Members
+    public static final String                                   factoryName     = "edu.ku.brc.ui.forms.formatters.UIFieldFormatterMgr";
+    private static final Logger                                  log             = Logger.getLogger(UIFieldFormatterMgr.class);
+    protected static UIFieldFormatterMgr                         instance        = null;
+    protected static boolean                                     doingLocal      = false;
 
-    private static final Logger                                log            = Logger.getLogger(UIFieldFormatterMgr.class);
-
-    protected static UIFieldFormatterMgr                       instance    = null;
-    protected static boolean                                   doingLocal    = false;
-
-    protected boolean                                          hasChanged  = false;
-    protected Hashtable<String, UIFieldFormatterIFace>         hash        = new Hashtable<String, UIFieldFormatterIFace>();
+    // Data Members
+    protected boolean                                            hasChanged      = false;
+    protected Hashtable<String, UIFieldFormatterIFace>           hash            = new Hashtable<String, UIFieldFormatterIFace>();
     protected Hashtable<Class<?>, Vector<UIFieldFormatterIFace>> classToListHash = new Hashtable<Class<?>, Vector<UIFieldFormatterIFace>>();
-
+    private   AppContextMgr                                      appContextMgr   = null;
+ 
     /**
      * Protected Constructor
      */
     protected UIFieldFormatterMgr()
     {
-        load();
+        
     }
     
+    /**
+     * @return the contextMgr
+     */
+    public AppContextMgr getAppContextMgr()
+    {
+        if (appContextMgr == null)
+        {
+            appContextMgr = AppContextMgr.getInstance();
+        }
+        return appContextMgr;
+    }
+
+    /**
+     * @param contextMgr the contextMgr to set
+     */
+    public void setAppContextMgr(final AppContextMgr appContextMgr)
+    {
+        this.appContextMgr = appContextMgr;
+    }
+
+    /**
+     * Does cleanup.
+     */
+    public void shutdown()
+    {
+        hash.clear();
+        cleanClassToListHash();
+        appContextMgr = null;
+    }
     
     /**
      * Resets the Mgr so it gets reloaded.
      */
-    public static void reset()
+    public void reset()
     {
         if (instance != null)
         {
@@ -136,8 +167,10 @@ public class UIFieldFormatterMgr implements AppPrefsChangeListener
         {
             try
             {
-                return instance = (UIFieldFormatterMgr) Class.forName(factoryNameStr).newInstance();
-
+                instance = (UIFieldFormatterMgr) Class.forName(factoryNameStr).newInstance();
+                instance.load();
+                return instance;
+                
             } catch (Exception e)
             {
                 edu.ku.brc.af.core.UsageTracker.incrHandledUsageCount();
@@ -412,12 +445,16 @@ public class UIFieldFormatterMgr implements AppPrefsChangeListener
      */
     protected void addFormatterToMgr(final UIFieldFormatterIFace formatter)
     {
-        
-        Vector<UIFieldFormatterIFace> list = classToListHash.get(formatter.getDataClass());
+        List<UIFieldFormatterIFace> list = classToListHash.get(formatter.getDataClass());
         if (list == null)
         {
-            list = new Vector<UIFieldFormatterIFace>();
-            classToListHash.put(formatter.getDataClass(), list);
+            list = getFormatterList(formatter.getDataClass());
+            if (list == null)
+            {
+                Vector<UIFieldFormatterIFace> newList = new Vector<UIFieldFormatterIFace>();
+                classToListHash.put(formatter.getDataClass(), newList);
+                list = newList;
+            }
         }
         
         list.add(formatter);
@@ -476,6 +513,45 @@ public class UIFieldFormatterMgr implements AppPrefsChangeListener
     }
     
     /**
+     * @param formatElement
+     * @param name
+     * @param dataClassName
+     * @param fieldName
+     * @param isSingleField
+     * @return
+     */
+    protected AutoNumberIFace createAutoNum(final Element formatElement, 
+                                            final String  name,
+                                            final String  dataClassName, 
+                                            final String  fieldName, 
+                                            final boolean isSingleField)
+    {
+        AutoNumberIFace autoNumberObj = null;
+        Element autoNumberElement = (Element)formatElement.selectSingleNode("autonumber");
+        if (autoNumberElement != null)
+        {
+            String autoNumberClassName = autoNumberElement.getTextTrim();
+            if (StringUtils.isNotEmpty(autoNumberClassName) &&
+                StringUtils.isNotEmpty(dataClassName) &&
+                StringUtils.isNotEmpty(fieldName))
+            {
+                autoNumberObj = createAutoNumber(autoNumberClassName, dataClassName, fieldName, isSingleField);
+
+            } else
+            {
+                throw new RuntimeException(
+                        "The class cannot be empty for an external formatter! ["
+                                + name
+                                + "] or missing field name ["
+                                + fieldName
+                                + "] or missing data Class name ["
+                                + dataClassName + "]");
+            }
+        }
+        return autoNumberObj;
+    }
+    
+    /**
      * Creates a single UIFieldFormatter from a DOM Element.
      * @param formatElement the element
      * @return the formatter object
@@ -493,29 +569,6 @@ public class UIFieldFormatterMgr implements AppPrefsChangeListener
         boolean isDefault = XMLHelper.getAttr(formatElement, "default", false);
         boolean isSystem  = XMLHelper.getAttr(formatElement, "system", false);
 
-        AutoNumberIFace autoNumberObj = null;
-        Element autoNumberElement = (Element) formatElement.selectSingleNode("autonumber");
-        if (autoNumberElement != null)
-        {
-            String autoNumberClassName = autoNumberElement.getTextTrim();
-            if (StringUtils.isNotEmpty(autoNumberClassName) &&
-                StringUtils.isNotEmpty(dataClassName) &&
-                StringUtils.isNotEmpty(fieldName))
-            {
-                autoNumberObj = createAutoNumber(autoNumberClassName, dataClassName,fieldName);
-
-            } else
-            {
-                throw new RuntimeException(
-                        "The class cannot be empty for an external formatter! ["
-                                + name
-                                + "] or missing field name ["
-                                + fieldName
-                                + "] or missing data Class name ["
-                                + dataClassName + "]");
-            }
-        }
-        
         Element external = (Element) formatElement.selectSingleNode("external");
         if (external != null)
         {
@@ -526,7 +579,7 @@ public class UIFieldFormatterMgr implements AppPrefsChangeListener
                 {
                     formatter = Class.forName(externalClassName).asSubclass(UIFieldFormatterIFace.class).newInstance();
                     formatter.setName(name);
-                    formatter.setAutoNumber(autoNumberObj);
+                    formatter.setAutoNumber(createAutoNum(formatElement, name, dataClassName, fieldName, formatter.getFields().size() == 1));
                     formatter.setDefault(isDefault);
                     
                     hash.put(name, formatter);
@@ -647,7 +700,7 @@ public class UIFieldFormatterMgr implements AppPrefsChangeListener
             }
         }
 
-        formatter.setAutoNumber(autoNumberObj);
+        formatter.setAutoNumber(createAutoNum(formatElement, name, dataClassName, fieldName, formatter.getFields().size() == 1));
 
         return formatter;
     }
@@ -688,7 +741,7 @@ public class UIFieldFormatterMgr implements AppPrefsChangeListener
                 }
             } else
             {
-                log.debug("Couldn't open uiformatters.xml");
+                log.debug("Couldn't open DOM for uiformatters.xml");
             }
         } catch (Exception ex)
         {
@@ -798,11 +851,13 @@ public class UIFieldFormatterMgr implements AppPrefsChangeListener
      * @param autoNumberClassName the class name to be instantiated
      * @param dataClassName the data class name (which the auto number will operate on
      * @param fieldName  the field that will be incremented in the dataClassName object
+     * @param isSingleField whether the formatter is a single field
      * @return the auto number object or null
-     */
-    public static AutoNumberIFace createAutoNumber(final String autoNumberClassName, 
-                                                   final String dataClassName,
-                                                   final String fieldName)
+    */
+    public AutoNumberIFace createAutoNumber(final String autoNumberClassName, 
+                                            final String dataClassName,
+                                            final String fieldName,
+                                            final boolean isSingleField)
     {
         AutoNumberIFace autoNumberObj = null;
         try
@@ -845,10 +900,15 @@ public class UIFieldFormatterMgr implements AppPrefsChangeListener
             prefPostFix = "year";
         }
         
-        DateWrapper scrDateFormat = AppPrefsCache.getDateWrapper("ui", "formatting", "scrdateformat"+prefPostFix);
+        DateWrapper dateFormat = AppPrefsCache.getDateWrapper("ui", "formatting", "scrdateformat"+prefPostFix);
+        
+        if (partialType == UIFieldFormatter.PartialDateEnum.Search)
+        {
+            dateFormat = new DateWrapper(new SimpleDateFormat("yyyy-MM-dd"));
+        }
 
         StringBuilder newFormatStr = new StringBuilder();
-        String        formatStr    = scrDateFormat.getSimpleDateFormat().toPattern();
+        String        formatStr    = dateFormat.getSimpleDateFormat().toPattern();
         boolean       wasConsumed  = false;
         char          currChar     = ' ';
 
@@ -859,8 +919,9 @@ public class UIFieldFormatterMgr implements AppPrefsChangeListener
             {
                 if (c == 'M') // make sure we consume them
                 {
-                    if (partialType == UIFieldFormatter.PartialDateEnum.Full
-                            || partialType == UIFieldFormatter.PartialDateEnum.Month)
+                    if (partialType == UIFieldFormatter.PartialDateEnum.Full || 
+                        partialType == UIFieldFormatter.PartialDateEnum.Search || 
+                        partialType == UIFieldFormatter.PartialDateEnum.Month)
                     {
                         String s = "";
                         s += c;
@@ -878,7 +939,8 @@ public class UIFieldFormatterMgr implements AppPrefsChangeListener
 
                 } else if (c == 'd')
                 {
-                    if (partialType == UIFieldFormatter.PartialDateEnum.Full)
+                    if (partialType == UIFieldFormatter.PartialDateEnum.Full || 
+                        partialType == UIFieldFormatter.PartialDateEnum.Search)
                     {
                         String s = "";
                         s += c;
@@ -933,13 +995,13 @@ public class UIFieldFormatterMgr implements AppPrefsChangeListener
             }
         } // for
 
-        if (partialType == UIFieldFormatter.PartialDateEnum.Full)
+        if (partialType == UIFieldFormatter.PartialDateEnum.Full || partialType == UIFieldFormatter.PartialDateEnum.Search)
         {
-            formatter.setDateWrapper(scrDateFormat);
+            formatter.setDateWrapper(dateFormat);
         } else
         {
-            scrDateFormat.setSimpleDateFormat(new SimpleDateFormat(newFormatStr.toString()));
-            formatter.setDateWrapper(scrDateFormat);
+            dateFormat.setSimpleDateFormat(new SimpleDateFormat(newFormatStr.toString()));
+            formatter.setDateWrapper(dateFormat);
         }
     }
 
@@ -1046,9 +1108,15 @@ public class UIFieldFormatterMgr implements AppPrefsChangeListener
 
         } else if (fieldType != UIFieldFormatterField.FieldType.anychar)
         {
-            String key = "UIFieldFormatterMgr." + fieldType.toString();
-            String charPattern = UIRegistry.getResourceString(key);
-            pChar = charPattern.length() > 0 ? charPattern.charAt(0) : defChar;
+            if (fieldType != null)
+            {
+                String key = "UIFieldFormatterMgr." + fieldType.toString();
+                String charPattern = UIRegistry.getResourceString(key);
+                pChar = charPattern.length() > 0 ? charPattern.charAt(0) : defChar;
+            } else
+            {
+                pChar = defChar;
+            }
         } else
         {
             pChar = defChar;

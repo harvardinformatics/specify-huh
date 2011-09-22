@@ -23,7 +23,10 @@ import java.io.IOException;
 
 import org.apache.log4j.Logger;
 
+import edu.ku.brc.af.core.db.DBTableIdMgr;
+import edu.ku.brc.af.core.db.DBTableInfo;
 import edu.ku.brc.af.ui.forms.BaseBusRules;
+import edu.ku.brc.af.ui.forms.BusinessRulesIFace;
 import edu.ku.brc.dbsupport.DataProviderFactory;
 import edu.ku.brc.dbsupport.DataProviderSessionIFace;
 import edu.ku.brc.specify.datamodel.AccessionAttachment;
@@ -34,6 +37,7 @@ import edu.ku.brc.specify.datamodel.CollectionObjectAttachment;
 import edu.ku.brc.specify.datamodel.ConservDescriptionAttachment;
 import edu.ku.brc.specify.datamodel.ConservEventAttachment;
 import edu.ku.brc.specify.datamodel.DNASequencingRunAttachment;
+import edu.ku.brc.specify.datamodel.DataModelObjBase;
 import edu.ku.brc.specify.datamodel.FieldNotebookAttachment;
 import edu.ku.brc.specify.datamodel.FieldNotebookPageAttachment;
 import edu.ku.brc.specify.datamodel.FieldNotebookPageSetAttachment;
@@ -58,6 +62,9 @@ public class AttachmentReferenceBaseBusRules extends BaseBusRules
 {
     protected static Logger log = Logger.getLogger(AttachmentReferenceBaseBusRules.class);
     
+    /**
+     * 
+     */
     public AttachmentReferenceBaseBusRules()
     {
         super( AccessionAttachment.class,
@@ -77,7 +84,7 @@ public class AttachmentReferenceBaseBusRules extends BaseBusRules
                RepositoryAgreementAttachment.class,
                TaxonAttachment.class );
     }
-
+    
     /* (non-Javadoc)
      * @see edu.ku.brc.ui.forms.BaseBusRules#afterDeleteCommit(java.lang.Object)
      */
@@ -92,47 +99,47 @@ public class AttachmentReferenceBaseBusRules extends BaseBusRules
         //System.out.println("afterSaveCommit(): " + a.getOrigFilename());
         
         AttachmentBusRules attachBusRules = new AttachmentBusRules();
-        boolean okToDelete = attachBusRules.okToEnableDelete(a);
+        boolean okToDelete = a.getId() != null && attachBusRules.okToEnableDelete(a);
         
         if (okToDelete)
         {
-            boolean userApproved = askUserToApproveDelete(a);
-            if (userApproved)
+            try
             {
+                AttachmentUtils.getAttachmentManager().deleteAttachmentFiles(a);
+                
+                ////////////////////////////////////////////////////////////////////////////////////
+                // Bug 8433 - Cascade Rules take careof the deletion so this no longer needs to be done.
+                ////////////////////////////////////////////////////////////////////////////////////
+                /*DataProviderSessionIFace session = null;
                 try
                 {
-                    AttachmentUtils.getAttachmentManager().deleteAttachmentFiles(a);
-                    DataProviderSessionIFace session = null;
-                    try
-                    {
-                        session = DataProviderFactory.getInstance().createSession();
-                        
-                        Attachment aFromDisk = session.load(Attachment.class, a.getId());
-                        
-                        session.beginTransaction();
-                        session.delete(aFromDisk);
-                        session.commit();
-                    }
-                    catch (Exception e)
-                    {
-                        edu.ku.brc.af.core.UsageTracker.incrHandledUsageCount();
-                        edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(AttachmentReferenceBaseBusRules.class, e);
-                        log.error("Failed to delete Attachment record from database", e);
-                        
-                    } finally
-                    {
-                        if (session != null)
-                        {
-                            session.close();
-                        }
-                    }
+                    session = DataProviderFactory.getInstance().createSession();
+                    
+                    Attachment aFromDisk = session.load(Attachment.class, a.getId());
+                    
+                    session.beginTransaction();
+                    session.delete(aFromDisk);
+                    session.commit();
                 }
-                catch (IOException e)
+                catch (Exception e)
                 {
                     edu.ku.brc.af.core.UsageTracker.incrHandledUsageCount();
                     edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(AttachmentReferenceBaseBusRules.class, e);
-                    log.warn("Failed to delete attachment files from disk", e);
-                }
+                    log.error("Failed to delete Attachment record from database", e);
+                    
+                } finally
+                {
+                    if (session != null)
+                    {
+                        session.close();
+                    }
+                }*/
+            }
+            catch (IOException e)
+            {
+                edu.ku.brc.af.core.UsageTracker.incrHandledUsageCount();
+                edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(AttachmentReferenceBaseBusRules.class, e);
+                log.warn("Failed to delete attachment files from disk", e);
             }
         }
         
@@ -140,33 +147,53 @@ public class AttachmentReferenceBaseBusRules extends BaseBusRules
     }
     
     /**
-     * @param attachment
+     * @param cls
      * @return
      */
-    protected boolean askUserToApproveDelete(Attachment attachment)
+    private BusinessRulesIFace getBusRuleForClass(final Object dObj)
     {
-        /*
-        JOptionPane pane = new JOptionPane("Delete the associated files from the attachment storage system?  " + attachment.getOrigFilename()); // I18N
-        pane.setOptionType(JOptionPane.YES_NO_OPTION);
-        AttachmentManagerIface attachMgr = AttachmentUtils.getAttachmentManager();
-        File thumbnail = attachMgr.getThumbnail(attachment);
-        
-        if (thumbnail != null)
+        BusinessRulesIFace busRule = null;
+        DataModelObjBase   brObj   = (DataModelObjBase)dObj;
+        DBTableInfo        tblInfo = DBTableIdMgr.getInstance().getInfoById(brObj.getTableId());
+        if (tblInfo != null)
         {
-            ImageIcon icon = new ImageIcon(thumbnail.getAbsolutePath());
-            pane.setIcon(icon);
+            busRule = tblInfo.getBusinessRule();
         }
+        return busRule;
+    }
+    
+    /* (non-Javadoc)
+     * @see edu.ku.brc.af.ui.forms.BaseBusRules#beforeMerge(java.lang.Object, edu.ku.brc.dbsupport.DataProviderSessionIFace)
+     */
+    @Override
+    public void beforeMerge(Object dataObj, DataProviderSessionIFace session)
+    {
+        super.beforeMerge(dataObj, session);
         
-        JDialog paneDialog = pane.createDialog(UIRegistry.getMostRecentWindow(), "Confirm Deletion");
-        paneDialog.setVisible(true);
-        Object choice = pane.getValue();
-        
-        return ((Integer)choice == JOptionPane.YES_OPTION);
-        */
-        // rods - decided for now to always delete it.
-        return true;
+        ObjectAttachmentIFace<?> attRef = (ObjectAttachmentIFace<?>)dataObj;
+        getBusRuleForClass(attRef.getAttachment()).beforeMerge(attRef.getAttachment(), session);
     }
 
+    /* (non-Javadoc)
+     * @see edu.ku.brc.af.ui.forms.BaseBusRules#beforeSave(java.lang.Object, edu.ku.brc.dbsupport.DataProviderSessionIFace)
+     */
+    @Override
+    public void beforeSave(Object dataObj, DataProviderSessionIFace session)
+    {
+        super.beforeSave(dataObj, session);
+        ObjectAttachmentIFace<?> attRef = (ObjectAttachmentIFace<?>)dataObj;
+        getBusRuleForClass(attRef.getAttachment()).beforeSave(attRef.getAttachment(), session);
+    }
+
+    /* (non-Javadoc)
+     * @see edu.ku.brc.af.ui.forms.BaseBusRules#beforeSaveCommit(java.lang.Object, edu.ku.brc.dbsupport.DataProviderSessionIFace)
+     */
+    @Override
+    public boolean beforeSaveCommit(Object dataObj, DataProviderSessionIFace session) throws Exception
+    {
+        ObjectAttachmentIFace<?> attRef = (ObjectAttachmentIFace<?>)dataObj;
+        return getBusRuleForClass(attRef.getAttachment()).afterSaveCommit(attRef.getAttachment(), session);
+    }
 
     /* (non-Javadoc)
      * @see edu.ku.brc.ui.forms.BusinessRulesIFace#doesSearchObjectRequireNewParent()
@@ -183,7 +210,7 @@ public class AttachmentReferenceBaseBusRules extends BaseBusRules
     public Object processSearchObject(final Object newParentDataObj, 
                                       final Object dataObjectFromSearch)
     {
-        if (newParentDataObj instanceof ObjectAttachmentIFace)
+        if (newParentDataObj instanceof ObjectAttachmentIFace<?>)
         {
             ObjectAttachmentIFace<?> objAtt = (ObjectAttachmentIFace<?>)newParentDataObj;
             objAtt.setAttachment((Attachment)dataObjectFromSearch);

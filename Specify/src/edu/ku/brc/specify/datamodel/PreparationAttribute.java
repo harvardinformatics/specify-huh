@@ -22,6 +22,7 @@ package edu.ku.brc.specify.datamodel;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.Vector;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -33,7 +34,11 @@ import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.persistence.Transient;
 
+import org.apache.commons.lang.StringUtils;
 import org.hibernate.annotations.Index;
+
+import edu.ku.brc.af.ui.forms.formatters.DataObjFieldFormatMgr;
+import edu.ku.brc.specify.conversion.BasicSQLUtils;
 
 /**
  * @author rod
@@ -282,7 +287,7 @@ public class PreparationAttribute extends CollectionMember implements Cloneable
     /**
      * @return the preparationType
      */
-    @Column(name = "Text22", unique = false, nullable = true, insertable = true, updatable = true, length = 10)
+    @Column(name = "Text22", unique = false, nullable = true, insertable = true, updatable = true, length = 50)
     public String getText22()
     {
         return text22;
@@ -900,13 +905,58 @@ public class PreparationAttribute extends CollectionMember implements Cloneable
     @Override
     public Object clone() throws CloneNotSupportedException
     {
-        PreparationAttribute obj    = (PreparationAttribute)super.clone();
-        obj.preparationAttributeId  = null;
-        obj.preparations            = new HashSet<Preparation>();
+        PreparationAttribute obj = (PreparationAttribute)super.clone();
+        obj.preparationAttributeId    = null;
+        obj.preparations              = new HashSet<Preparation>();
         
         return obj;
     }
+    
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.datamodel.DataModelObjBase#getIdentityTitle()
+     */
+    @Override
+    @Transient
+    public String getIdentityTitle()
+    {
+        return toString();
+    }
 
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.datamodel.DataModelObjBase#toString()
+     */
+    @Override
+    public String toString()
+    {
+        String str = DataObjFieldFormatMgr.getInstance().format(this, getDataClass());
+        return StringUtils.isNotEmpty(str) ? str : "1";
+    }
+    
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.datamodel.DataModelObjBase#getParentTableId()
+     */
+    @Override
+    @Transient
+    public Integer getParentTableId()
+    {
+        return Preparation.getClassTableId();
+    }
+
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.datamodel.DataModelObjBase#getParentId()
+     */
+    @Override
+    @Transient
+    public Integer getParentId()
+    {
+        Vector<Object> ids = BasicSQLUtils.querySingleCol("SELECT PreparationID FROM preparation WHERE PreparationAttributeID = "+ preparationAttributeId);
+        if (ids.size() == 1)
+        {
+            return (Integer)ids.get(0);
+        }
+        return null;
+    }
+    
     /* (non-Javadoc)
      * @see edu.ku.brc.ui.forms.FormDataObjIFace#getDataClass()
      */

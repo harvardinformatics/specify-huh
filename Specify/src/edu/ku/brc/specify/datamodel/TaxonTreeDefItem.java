@@ -51,6 +51,7 @@ public class TaxonTreeDefItem extends DataModelObjBase implements Serializable,
 {
 	protected Integer				taxonTreeDefItemId;
 	protected String				name;
+	protected String				title;
 	protected String				remarks;
 	protected Integer				rankId;
 	protected Boolean				isEnforced;
@@ -82,6 +83,7 @@ public class TaxonTreeDefItem extends DataModelObjBase implements Serializable,
         super.init();
 		taxonTreeDefItemId = null;
 		name = null;
+		title = null;
 		remarks = null;
 		rankId = null;
 		isEnforced = null;
@@ -140,7 +142,44 @@ public class TaxonTreeDefItem extends DataModelObjBase implements Serializable,
 		this.name = name;
 	}
 
-    @Lob
+    /**
+     * @return the title
+     */
+    @Column(name = "Title", nullable=true, length = 64)
+	public String getTitle()
+	{
+		return this.title;
+	}
+
+    /**
+     * @param title the title to set
+     */
+    public void setTitle(String title)
+	{
+		this.title = title;
+	}
+
+    
+    /* (non-Javadoc)
+	 * @see edu.ku.brc.specify.datamodel.TreeDefItemIface#getDisplayText()
+	 */
+	@Override
+	@Transient
+	public String getDisplayText()
+	{
+		return (title != null ? title : name);
+	}
+
+	/* (non-Javadoc)
+	 * @see edu.ku.brc.specify.datamodel.TreeDefItemIface#setDisplayText(java.lang.String)
+	 */
+	@Override
+	public void setDisplayText(String text)
+	{
+		setTitle(text);
+	}
+
+	@Lob
     @Column(name = "Remarks", length = 4096)
 	public String getRemarks()
 	{
@@ -341,6 +380,26 @@ public class TaxonTreeDefItem extends DataModelObjBase implements Serializable,
 	}
     
     /* (non-Javadoc)
+     * @see edu.ku.brc.specify.datamodel.DataModelObjBase#getParentTableId()
+     */
+    @Override
+    @Transient
+   public Integer getParentTableId()
+    {
+        return TaxonTreeDef.getClassTableId();
+    }
+
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.datamodel.DataModelObjBase#getParentId()
+     */
+    @Override
+    @Transient
+    public Integer getParentId()
+    {
+        return parent != null ? parent.getId() : null;
+    }
+    
+    /* (non-Javadoc)
      * @see edu.ku.brc.ui.forms.FormDataObjIFace#getTableId()
      */
     @Override
@@ -357,8 +416,6 @@ public class TaxonTreeDefItem extends DataModelObjBase implements Serializable,
     {
         return 77;
     }
-
-    
     
     /* (non-Javadoc)
 	 * @see edu.ku.brc.specify.datamodel.TreeDefItemIface#hasTreeEntries()
@@ -413,7 +470,7 @@ public class TaxonTreeDefItem extends DataModelObjBase implements Serializable,
      */
     public int compareTo(TaxonTreeDefItem o)
     {
-        return rankId.compareTo(o.rankId);
+        return rankId != null && o != null && o.rankId != null ? rankId.compareTo(o.rankId) : 0;
     }
 
 }

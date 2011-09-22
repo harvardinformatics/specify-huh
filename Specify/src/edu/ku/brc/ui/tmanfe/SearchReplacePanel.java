@@ -77,7 +77,7 @@ import edu.ku.brc.ui.UIRegistry;
 @SuppressWarnings("serial")
 public class SearchReplacePanel extends JPanel
 {
-    private final String          FIND                    = "Find"; //i18n
+    private final String          FIND                    = "Find";
 
     protected SpreadSheet         table;
 
@@ -116,11 +116,10 @@ public class SearchReplacePanel extends JPanel
 
     protected static final Logger log                     = Logger
                                                                   .getLogger(SearchReplacePanel.class);
-    TableSearcher tableSearcher ;//= new TableSearcher(table, getPanel());
     /**
      * Constructor for the Find/Replace panel, takes a SearchableJXTable (extended from JXTable)
      * 
-     * @param query - a SearchableJXTable table
+     * @param mytable - a SearchableJXTable table
      */
     public SearchReplacePanel(final SpreadSheet mytable)
     {
@@ -128,7 +127,14 @@ public class SearchReplacePanel extends JPanel
         this.setVisible(false);
         createFindAndReplacePanel();
         handleTableSelections();
-        tableSearcher = new TableSearcher(table, this);
+    }
+        
+    /**
+     * @return
+     */
+    protected TableSearcher createTableSearcher()
+    {
+    	return new TableSearcher(table, this);
     }
     
     /**
@@ -141,9 +147,12 @@ public class SearchReplacePanel extends JPanel
         {
             public void valueChanged(ListSelectionEvent e)
             {
-                nextButton.setEnabled(true);
-                previousButton.setEnabled(true);
-                updateStatusLabel(-1, false);
+                if (!e.getValueIsAdjusting())
+                {
+                	nextButton.setEnabled(true);
+                	previousButton.setEnabled(true);
+                	updateStatusLabel(-1, false);
+                }
             }          
         };
         table.getSelectionModel().addListSelectionListener(listSelectionListener);
@@ -501,41 +510,44 @@ public class SearchReplacePanel extends JPanel
             //log.debug("updateTableUiForFoundValue() - Cell row[" + curRow + "] ");
             //log.debug("                               Cell col[" + curCol + "] ");
             //log.debug("updateTableUiForFoundValue() - preoapring to set selection model");
-            ListSelectionModel rsm = table.getSelectionModel();
-            ListSelectionModel csm = table.getColumnModel().getSelectionModel();
-            Rectangle rect = table.getCellRect(curRow, curCol, false);
-            if (!isSearchSelection())
+            if (curRow != -1 && curCol != -1)
             {
-            	rsm.setSelectionInterval(curRow, curRow);
-            	csm.setSelectionInterval(curCol, curCol);
-            }
-            else
-            {
-            	table.setEmphasizedCell(curRow, curCol);
-            	if (rect != null)
+            	ListSelectionModel rsm = table.getSelectionModel();
+            	ListSelectionModel csm = table.getColumnModel().getSelectionModel();
+            	Rectangle rect = table.getCellRect(curRow, curCol, false);
+            	if (!isSearchSelection())
             	{
-            		table.repaint(rect);
+            		rsm.setSelectionInterval(curRow, curRow);
+            		csm.setSelectionInterval(curCol, curCol);
             	}
             	else
             	{
-            		table.repaint();
+            		table.setEmphasizedCell(curRow, curCol);
+            		if (rect != null)
+            		{
+            			table.repaint(rect);
+            		}
+            		else
+            		{
+            			table.repaint();
+            		}
+            	}
+            	if (rect != null && table.getAutoscrolls()) 
+            	{
+            		//log.debug("updateTableUiForFoundValue() - preparing to scroll");
+            		table.scrollRectToVisible(rect);
+            		//log.debug("updateTableUiForFoundValue() - done scrolling");
             	}
             }
-            if (rect != null && table.getAutoscrolls()) 
-            {
-                //log.debug("updateTableUiForFoundValue() - preparing to scroll");
-                table.scrollRectToVisible(rect);
-                //log.debug("updateTableUiForFoundValue() - done scrolling");
-            }
-            if (isSearchDown())
-            {
-                enablePreviousButton();
-            }            
-            else
-            {
-                enableNextButton();
-            }
-            updateStatusLabel(replacementCount, isReplace);
+        	if (isSearchDown())
+        	{
+        		enablePreviousButton();
+        	}            
+        	else
+        	{
+        		enableNextButton();
+        	}
+        	updateStatusLabel(replacementCount, isReplace);
         }
         else
         {
@@ -683,11 +695,10 @@ public class SearchReplacePanel extends JPanel
             final String replaceValue = getRepalceFieldValue();
             final String findValue = getFindFieldValue();
             TableSearcherCell cell = null;
-            int replacementCount = 0;            
             if (source == replaceAllButton)
             {
                 log.debug("replaceAllButton --------------------------------------------------------");
-                tableSearcher = new TableSearcher(table, getPanel());
+                TableSearcher tableSearcher = createTableSearcher();
                 int selectedCol = 0;
                 int selectedRow = 0;
                 int rowCount = table.getModel().getRowCount();
@@ -707,22 +718,18 @@ public class SearchReplacePanel extends JPanel
                 		if (found)
                 		{
                 			tableSearcher.replace(cell, findValue, replaceValue, getMatchCaseFlag(), isSearchSelection());
-                			replacementCount++;
                 		}
                 		cell = tableSearcher.findNext(findValue, selectedRow, selectedCol, true, false, getMatchCaseFlag(), isSearchSelection());
                 		selectedCol = cell.getColumn();
                 		selectedRow = cell.getRow();
-                	}
-                	if (replacementCount > 0)
-                	{
-                		table.getModel().fireTableDataChanged();
                 	}
                 }
                 finally
                 {
                 	table.getModel().setBatchMode(oldBatchMode);
                 }
-                updateTableUiForFoundValue(cell, replacementCount, true);
+                tableSearcher.replacementCleanup();
+                updateTableUiForFoundValue(cell, tableSearcher.getReplacementCount(), true);
                 UsageTracker.incrUsageCount("WB.ReplaceAllButton");
             }
             else if(source == replaceButton )
@@ -740,15 +747,15 @@ public class SearchReplacePanel extends JPanel
             		return;
             	}
             	log.debug("replaceButton --------------------------------------------------------");
-                tableSearcher = new TableSearcher(table, getPanel());
+                TableSearcher tableSearcher = createTableSearcher();
                 int selectedCol = foundCell == null ? table.getSelectedColumn()-1 : foundCell.getColumn();
                 int selectedRow = foundCell == null ? table.getSelectedRow() : foundCell.getRow();
 
                 cell = tableSearcher.checkCell(getFindFieldValue(),selectedRow, selectedCol, getMatchCaseFlag(), isSearchSelection());
                 if (cell.isFound())
                 {
-                    replacementCount++;
                     tableSearcher.replace(cell, findValue, replaceValue, getMatchCaseFlag(), isSearchSelection());
+                    tableSearcher.replacementCleanup();
                     selectedCol = cell.getColumn();
                     selectedRow = cell.getRow();
                     
@@ -756,7 +763,7 @@ public class SearchReplacePanel extends JPanel
                     if (cell.isFound())
                     {
                     	foundCell = cell;
-                    	updateTableUiForFoundValue(foundCell, replacementCount, true);
+                    	updateTableUiForFoundValue(foundCell, tableSearcher.getReplacementCount(), true);
                     }
                     else 
                     {
@@ -801,7 +808,7 @@ public class SearchReplacePanel extends JPanel
         {
             isSearchDown = true;
             Object source = evt.getSource();
-            tableSearcher = new TableSearcher(table, getPanel());
+            TableSearcher tableSearcher = createTableSearcher();
             if (source == nextButton)
             {
                 log.debug("nextButton --------------------------------------------------------");

@@ -37,7 +37,6 @@ import edu.ku.brc.ui.CommandDispatcher;
 import edu.ku.brc.ui.CommandListener;
 import edu.ku.brc.ui.JTiledPanel;
 import edu.ku.brc.ui.UIRegistry;
-import edu.ku.brc.ui.dnd.FpPublish;
 import edu.ku.brc.ui.dnd.GhostActionable;
 import edu.ku.brc.ui.dnd.GhostGlassPane;
 import edu.ku.brc.ui.dnd.Trash;
@@ -62,7 +61,6 @@ public class NavBoxMgr extends JTiledPanel implements CommandListener
     private static final NavBoxMgr instance = new NavBoxMgr();
     
     private static Trash trash;
-    private static FpPublish fpPub;
     
     // Data Members
     private List<NavBoxIFace>   list   = Collections.synchronizedList(new ArrayList<NavBoxIFace>());
@@ -81,7 +79,6 @@ public class NavBoxMgr extends JTiledPanel implements CommandListener
        CommandDispatcher.register(PREFS, this);
        
        trash = Trash.getInstance();
-       fpPub = FpPublish.getInstance();
        
        MouseListener mouseListener = new MouseAdapter() 
        {
@@ -166,9 +163,6 @@ public class NavBoxMgr extends JTiledPanel implements CommandListener
             {
                 instance.add(trash);
                 ((GhostGlassPane)UIRegistry.get(UIRegistry.GLASSPANE)).add((GhostActionable)trash); // assumes trash implements GhostActionable (and why not?)
-                
-                instance.add(fpPub);
-                ((GhostGlassPane)UIRegistry.get(UIRegistry.GLASSPANE)).add((GhostActionable)fpPub);
             }
             
             for (NavBoxIFace box : list)
@@ -200,6 +194,14 @@ public class NavBoxMgr extends JTiledPanel implements CommandListener
                 splitPane.setDividerLocation(0);
             }
         }        
+    }
+    
+    public void closeSplitter()
+    {
+        if (splitPane != null)
+        {
+            splitPane.setDividerLocation(0.0);
+        }
     }
     
     /**

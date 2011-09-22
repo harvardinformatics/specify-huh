@@ -417,7 +417,27 @@ public class Gift extends DisciplineMember implements java.io.Serializable, Prep
     {
         this.division = division;
     }
+    
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.datamodel.DataModelObjBase#getParentTableId()
+     */
+    @Override
+    @Transient
+    public Integer getParentTableId()
+    {
+        return Division.getClassTableId();
+    }
 
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.datamodel.DataModelObjBase#getParentId()
+     */
+    @Override
+    @Transient
+   public Integer getParentId()
+    {
+        return division != null ? division.getId() : null;
+    }
+    
     /**
      * @return the addressOfRecord
      */
@@ -489,6 +509,17 @@ public class Gift extends DisciplineMember implements java.io.Serializable, Prep
             set.add(gp);
         }
         return set;
+    }
+
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.datamodel.DataModelObjBase#forceLoad()
+     */
+    @Override
+    public void forceLoad()
+    {
+        getGiftAgents().size();
+        getShipments().size();
+        getGiftPreparations().size();
     }
 
     /* (non-Javadoc)

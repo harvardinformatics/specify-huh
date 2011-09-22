@@ -39,7 +39,7 @@ import edu.ku.brc.util.Pair;
  */
 public interface UIFieldFormatterIFace
 {
-    public enum PartialDateEnum {None, Full, Month, Year}
+    public enum PartialDateEnum {None, Full, Month, Year, Search}
     public enum FormatterType   {generic, date, numeric} // all lower case to follow convention in uiformatters.xml
 
     /**
@@ -213,7 +213,7 @@ public interface UIFieldFormatterIFace
 
     /**
      * Sets the class that is used for generating the next number in the sequence.
-     * @param autoNumber the autonukmber generator class
+     * @param autoNumber the autonumber generator class
      */
     public abstract void setAutoNumber(AutoNumberIFace autoNumber);
 
@@ -223,6 +223,16 @@ public interface UIFieldFormatterIFace
      * @return the next incremented value in the sequence
      */
     public abstract String getNextNumber(String value);
+
+    /**
+     * @param value
+     * @param incrementValue
+     * @return next number.
+     * 
+     * If incrementValue is true, value is incremented to produce next number,
+     * otherwise, the highest existing number is incremented.
+     */
+    public abstract String getNextNumber(final String value, final boolean incrementValue);
 
     /**
      * @return true if part of the format needs user input, false it is auto-generated.
@@ -246,6 +256,14 @@ public interface UIFieldFormatterIFace
     // The Data Specific Methods
     //-----------------------------------------------------------------------
     
+    /**
+     * @return whether the format contains a dash character '-'
+     */
+    public abstract boolean hasDash();
+    
+    /**
+     * @param type
+     */
     public abstract void setType(FormatterType type);
     
     /**
@@ -287,7 +305,7 @@ public interface UIFieldFormatterIFace
     public abstract void setPartialDateType(PartialDateEnum partialDateType);
     
     /**
-     * @return
+     * @return cloned object
      */
     public abstract Object clone() throws CloneNotSupportedException;
 

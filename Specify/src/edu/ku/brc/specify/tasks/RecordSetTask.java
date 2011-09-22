@@ -49,6 +49,8 @@ import javax.swing.JPopupMenu;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 
+import edu.ku.brc.af.auth.SecurityMgr;
+import edu.ku.brc.af.auth.specify.permission.BasicSpPermission;
 import edu.ku.brc.af.core.AppContextMgr;
 import edu.ku.brc.af.core.ContextMgr;
 import edu.ku.brc.af.core.NavBox;
@@ -90,7 +92,7 @@ import edu.ku.brc.ui.RolloverCommand;
 import edu.ku.brc.ui.UIHelper;
 import edu.ku.brc.ui.UIRegistry;
 import edu.ku.brc.ui.dnd.DataActionEvent;
-import edu.ku.brc.ui.dnd.FpPublish;
+import edu.ku.brc.ui.dnd.FpPublish; // added by HUH for FP
 import edu.ku.brc.ui.dnd.Trash;
 /**
  * Takes care of offering up record sets, updating, deleting and creating them.
@@ -107,7 +109,7 @@ public class RecordSetTask extends BaseTask implements PropertyChangeListener
     // Static Data Members
     public static final String RECORD_SET     = "Record_Set";
     public static final String SAVE_RECORDSET = "Save";
-    public static final String FP_PUB_RECORDSET = "FpPublish";
+    public static final String FP_PUB_RECORDSET = "FpPublish"; // added by HUH for FP
     
     public static final DataFlavor RECORDSET_FLAVOR = new DataFlavor(RecordSetTask.class, RECORD_SET);
     
@@ -126,7 +128,6 @@ public class RecordSetTask extends BaseTask implements PropertyChangeListener
         super(RECORD_SET, getResourceString(RECORD_SET));
         
         draggableFlavors.add(Trash.TRASH_FLAVOR);
-        draggableFlavors.add(FpPublish.FP_PUB_FLAVOR);
         //draggableFlavors.add(RecordSetTask.RECORDSET_FLAVOR);
         
         CommandDispatcher.register(RECORD_SET, this);
@@ -276,10 +277,12 @@ public class RecordSetTask extends BaseTask implements PropertyChangeListener
                                                                    delCmdAction, 
                                                                    true, true);// true means make it draggable
 
+        // added by HUH for FP
         boolean fpPubOK = true; // TODO: FP MMK implement
         CommandAction fpPubCmdAction = fpPubOK ? new CommandAction(RECORD_SET, FP_PUB_RECORDSET, recordSet) : null;
         roc.setFpPublishCommandAction(fpPubCmdAction);
-
+        // end HUH addition
+        
         roc.setData(recordSet);
         addPopMenu(roc, delOK, modOK);
         
@@ -419,42 +422,64 @@ public class RecordSetTask extends BaseTask implements PropertyChangeListener
      */
     public void saveNewRecordSet(final RecordSet recordSet)
     {
-        UsageTracker.incrUsageCount("RS.SAVENEW");
-         
-        recordSet.setTimestampCreated(new Timestamp(System.currentTimeMillis()));
-        recordSet.setOwner(AppContextMgr.getInstance().getClassObject(SpecifyUser.class));
-        
-        if (persistRecordSet(recordSet))
+        boolean isOKToAdd = true;
+        /*
+         * This Don't work for some reason, and it should
+        if (AppContextMgr.isSecurityOn())
         {
-            RecordSetProxy rsProxy   = new RecordSetProxy(recordSet.getId(),
-                                                          recordSet.getType(),
-                                                          recordSet.getName(),
-                                                          recordSet.getDbTableId(),
-                                                          recordSet.getRemarks(),
-                                                          recordSet.getDataClass());
-
-            NavBoxItemIFace nbi = addToNavBox(rsProxy);
-            
-            NavBoxMgr.getInstance().addBox(navBox);
-
-            // XXX this is pathetic and needs to be generisized
-            navBox.invalidate();
-            navBox.setSize(navBox.getPreferredSize());
-            navBox.doLayout();
-            navBox.repaint();
-            NavBoxMgr.getInstance().invalidate();
-            NavBoxMgr.getInstance().doLayout();
-            NavBoxMgr.getInstance().repaint();
-            UIRegistry.forceTopFrameRepaint();
-
-            CommandDispatcher.dispatch(new CommandAction("Labels", "NewRecordSet", nbi));
+            isOKToAdd = SecurityMgr.getInstance().checkPermission("Task.Record_Set", BasicSpPermission.add);
         }
+         */
+        
+        if (isOKToAdd)
+        {
+            UsageTracker.incrUsageCount("RS.SAVENEW");
+            
+            recordSet.setTimestampCreated(new Timestamp(System.currentTimeMillis()));
+            recordSet.setOwner(AppContextMgr.getInstance().getClassObject(SpecifyUser.class));
+            
+            if (persistRecordSet(recordSet))
+            {
+                addRecordSetToNavBox(recordSet);
+            }
+        }
+    }
+    
+    /**
+     * Adds recordSet to the Recordset navbox list. And notifies the Labels task.
+     * 
+     * @param recordSet
+     */
+    public void addRecordSetToNavBox(final RecordSet recordSet)
+    {
+        RecordSetProxy rsProxy   = new RecordSetProxy(recordSet.getId(),
+                recordSet.getType(),
+                recordSet.getName(),
+                recordSet.getDbTableId(),
+                recordSet.getRemarks(),
+                recordSet.getDataClass());
+
+        NavBoxItemIFace nbi = addToNavBox(rsProxy);
+
+        NavBoxMgr.getInstance().addBox(navBox);
+
+        // XXX this is pathetic and needs to be generisized
+        navBox.invalidate();
+        navBox.setSize(navBox.getPreferredSize());
+        navBox.doLayout();
+        navBox.repaint();
+        NavBoxMgr.getInstance().invalidate();
+        NavBoxMgr.getInstance().doLayout();
+        NavBoxMgr.getInstance().repaint();
+        UIRegistry.forceTopFrameRepaint();
+
+        CommandDispatcher.dispatch(new CommandAction("Labels", "NewRecordSet", nbi));
 
     }
     
     /**
      * Delete a record set
-     * @param rs the recordSet to be deleted
+     * @param recordSet the recordSet to be deleted
      */
     protected void deleteRecordSet(final RecordSetIFace recordSet)
     {
@@ -503,6 +528,7 @@ public class RecordSetTask extends BaseTask implements PropertyChangeListener
         }
     }
 
+    // added by HUH for FP
     /**
      * Share a record set with the Filtered Push network
      */
@@ -511,6 +537,7 @@ public class RecordSetTask extends BaseTask implements PropertyChangeListener
         // TODO: FP MMK implement fpPublishRecordSet()
         log.debug("RecordSetTask: fpPublishRecordSet");
     }
+    // end HUH addition
     
     /**
      * Delete a record set
@@ -932,9 +959,9 @@ public class RecordSetTask extends BaseTask implements PropertyChangeListener
                                     ex2.printStackTrace();
                                 }
                             }
-                        } else
-                        {
-                            success = persistRecordSet(dstRecordSet);
+                        //} else
+                        //{
+                        //    success = persistRecordSet(dstRecordSet);
                         }
                         //System.err.println("Time: "+(System.currentTimeMillis() - start));
                         
@@ -1238,8 +1265,10 @@ public class RecordSetTask extends BaseTask implements PropertyChangeListener
         } else if (cmdAction.isAction("DELETEITEMS"))
         {
             processDeleteRSItems(cmdAction);
-
-        } else if (cmdAction.isAction(FP_PUB_RECORDSET))
+        } else if (cmdAction.isAction(ADD_TO_NAV_BOX)) 
+        {
+        	addToNavBox((RecordSet )cmdAction.getData());
+        } else if (cmdAction.isAction(FP_PUB_RECORDSET)) // added by HUH for FP
         {
             RecordSetIFace recordSet = null;
             if (cmdAction.getData() instanceof RecordSetIFace)
@@ -1260,6 +1289,7 @@ public class RecordSetTask extends BaseTask implements PropertyChangeListener
                 fpPublishRecordSet(recordSet);
             }
         }
+        // end HUH addition
         
 
     }
@@ -1463,7 +1493,7 @@ public class RecordSetTask extends BaseTask implements PropertyChangeListener
                 return dlg.getRecordSets().get(0);
             }*/
             // else
-            dlg.setVisible(true); // modal (waits for answer here)
+            UIHelper.centerAndShow(dlg);  // modal (waits for answer here)
             return dlg.isCancelled() ? null : dlg.getSelectedRecordSet();
         }
         
@@ -1475,8 +1505,8 @@ public class RecordSetTask extends BaseTask implements PropertyChangeListener
         return null;
     }
     
-    /**
-     * @return the permissions array
+    /* (non-Javadoc)
+     * @see edu.ku.brc.af.tasks.BaseTask#getPermsArray()
      */
     @Override
     protected boolean[][] getPermsArray()

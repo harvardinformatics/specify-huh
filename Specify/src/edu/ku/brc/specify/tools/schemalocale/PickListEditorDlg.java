@@ -30,29 +30,28 @@ import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Vector;
 
 import javax.swing.DefaultListModel;
 import javax.swing.JList;
+import javax.swing.ListModel;
 import javax.swing.SwingConstants;
 import javax.swing.event.DocumentListener;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
-import org.apache.commons.lang.StringUtils;
-
 import com.jgoodies.forms.builder.PanelBuilder;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
 
-import edu.ku.brc.af.core.AppContextMgr;
 import edu.ku.brc.af.core.db.DBFieldInfo;
-import edu.ku.brc.af.core.db.DBTableIdMgr;
 import edu.ku.brc.af.core.db.DBTableInfo;
-import edu.ku.brc.af.core.expresssearch.QueryAdjusterForDomain;
+import edu.ku.brc.af.tasks.subpane.FormPane.FormPaneAdjusterIFace;
 import edu.ku.brc.af.ui.db.ViewBasedDisplayDialog;
 import edu.ku.brc.af.ui.db.ViewBasedDisplayIFace;
+import edu.ku.brc.af.ui.forms.BusinessRulesIFace;
 import edu.ku.brc.af.ui.forms.BusinessRulesOkDeleteIFace;
 import edu.ku.brc.af.ui.forms.MultiView;
 import edu.ku.brc.af.ui.forms.formatters.UIFieldFormatterField;
@@ -61,8 +60,10 @@ import edu.ku.brc.af.ui.forms.validation.ValTextField;
 import edu.ku.brc.dbsupport.DataProviderFactory;
 import edu.ku.brc.dbsupport.DataProviderSessionIFace;
 import edu.ku.brc.specify.datamodel.Collection;
+import edu.ku.brc.specify.datamodel.DataModelObjBase;
 import edu.ku.brc.specify.datamodel.PickList;
 import edu.ku.brc.specify.datamodel.busrules.PickListBusRules;
+import edu.ku.brc.specify.tasks.services.PickListUtils;
 import edu.ku.brc.ui.CommandAction;
 import edu.ku.brc.ui.CommandDispatcher;
 import edu.ku.brc.ui.CustomDialog;
@@ -93,7 +94,7 @@ public class PickListEditorDlg extends CustomDialog implements BusinessRulesOkDe
     
     // Transient
     protected JList              pickListCache = null; // needed when deleting a PL
-    protected boolean            doImportExport;
+    protected boolean            doAddRemove;
     
     protected DBTableInfo        tableInfo    = null;
     protected DBFieldInfo        fieldInfo    = null;
@@ -103,18 +104,27 @@ public class PickListEditorDlg extends CustomDialog implements BusinessRulesOkDe
     
     /**
      * @param localizableIO
+     * @param doAddRemoveArg indicates whether to add the 'Add' and 'Remove' picklist btns
+     * @param doAddImpExp indicates whether to add the import/export buttons
      * @throws HeadlessException
      */
     public PickListEditorDlg(final LocalizableIOIFace localizableIO,
-                             final boolean doImportExport) throws HeadlessException
+                             final boolean doAddRemoveArg,
+                             final boolean doAddImpExp) throws HeadlessException
     {
         super((Frame)getTopWindow(), 
-              getResourceString("PICKLIST_EDITOR"), true, OKHELP, null, OK_BTN);
+              getResourceString("PICKLIST_EDITOR"), true, doAddRemoveArg ? OKCANCELAPPLYHELP : OKHELP, null, OK_BTN);
         
         this.localizableIO = localizableIO;
         this.helpContext   = "PL_HELP_CONTEXT";
         this.okLabel       = getResourceString("CLOSE");
-        this.doImportExport = doImportExport;
+        this.doAddRemove   = doAddRemoveArg;
+        
+        if (doAddImpExp)
+        {
+            this.cancelLabel = getResourceString("Export");
+            this.applyLabel  = getResourceString("Import");
+        }
     }
 
     /* (non-Javadoc)
@@ -129,7 +139,7 @@ public class PickListEditorDlg extends CustomDialog implements BusinessRulesOkDe
         CellConstraints cc = new CellConstraints();
         
         plList   = new JList();
-        edaPanel = configureList(plList, false, doImportExport);
+        edaPanel = configureList(plList, false, doAddRemove);
         
         sysPLList   = new JList();
         sysEDAPanel = configureList(sysPLList, true, false);
@@ -185,34 +195,41 @@ public class PickListEditorDlg extends CustomDialog implements BusinessRulesOkDe
      * @param isSystemPL
      * @return
      */
+    protected boolean loadList(final JList list, final boolean isSystemPL)
+    {
+        List<PickList> items = getPickLists(false, isSystemPL);
+        if (items == null)
+        {
+            // catastrophic error
+            // need error dlg
+            return false;
+        }
+        
+        DefaultListModel model = new DefaultListModel();
+        for (PickList pl : items)
+        {
+            model.addElement(pl);
+        }
+        list.setModel(model);
+        return true;
+    }
+    
+    /**
+     * @param list
+     * @param isSystemPL
+     * @param doAddRemoveArg
+     * @return
+     */
     protected EditDeleteAddPanel configureList(final JList   list, 
                                                final boolean isSystemPL,
-                                               final boolean doImportExportArg)
+                                               final boolean doAddRemoveArg)
     {
-        
         ActionListener addAL = null;
         ActionListener delAL = null;
         
         if (!isSystemPL)
         {
-            if (doImportExportArg)
-            {
-                /*addAL = new ActionListener()
-                {
-                    public void actionPerformed(ActionEvent e)
-                    {
-                        importPL(list);
-                    }
-                    
-                };
-                
-                delAL = new ActionListener() {
-                    public void actionPerformed(ActionEvent e)
-                    {
-                        exportPL(list);
-                    }
-                }; */
-            } else
+            if (doAddRemoveArg)
             {
                 addAL = new ActionListener()
                 {
@@ -245,72 +262,13 @@ public class PickListEditorDlg extends CustomDialog implements BusinessRulesOkDe
             edaPnl.getAddBtn().setEnabled(true);
         }
         
-        /*if (doImportExport && addAL != null && delAL != null)
+        /*if (doAddRemove && addAL != null && delAL != null)
         {
             edaPnl.getAddBtn().setIcon(IconManager.getIcon("Import16"));
             edaPnl.getDelBtn().setIcon(IconManager.getIcon("Export16"));
         }*/
         
-        List<PickList> items = null;
-        
-        DataProviderSessionIFace session = null;
-        try
-        {
-            session = DataProviderFactory.getInstance().createSession();
-            if (localizableIO != null)
-            {
-                items = localizableIO.getPickLists(null);
-                
-            } else
-            {
-                Vector<PickList> plItems = new Vector<PickList>();
-                
-                String sqlStr = "FROM PickList WHERE collectionId = COLLID AND isSystem = " + (isSystemPL ? 1 : 0);
-                String sql = QueryAdjusterForDomain.getInstance().adjustSQL(sqlStr);
-                List<?> pickLists = session.getDataList(sql);
-    
-                for (Object obj : pickLists)
-                {
-                    plItems.add((PickList)obj);
-                }
-                items = plItems;
-            }
-            
-            java.util.Collections.sort(items);
-            
-            collection = AppContextMgr.getInstance().getClassObject(Collection.class);
-            collection = (Collection)session.getData("FROM Collection WHERE collectionId = "+collection.getId());
-            collection.getPickLists().size();
-            
-        }  catch (Exception ex)
-        {
-            ex.printStackTrace();
-            edu.ku.brc.af.core.UsageTracker.incrHandledUsageCount();
-            edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(PickListEditorDlg.class, ex);
-            //log.error(ex);
-            // XXX error dialog
-            
-        } finally
-        {
-            if (session != null)
-            {
-                session.close();
-            }
-        }
-        
-        if (items == null)
-        {
-            // catastrophic error
-            // need error dlg
-            return null;
-        }
-        
-        DefaultListModel model = new DefaultListModel();
-        for (PickList pl : items)
-        {
-            model.addElement(pl);
-        }
-        list.setModel(model);
+        loadList(list, isSystemPL);
         
         list.addMouseListener(new MouseAdapter() {
             @Override
@@ -343,6 +301,22 @@ public class PickListEditorDlg extends CustomDialog implements BusinessRulesOkDe
     }
     
     /**
+     * @param doAll on true it gets all the picklists for a Collection
+     * @param isSystemPL if doAll is false, then it only gets system or not system
+     * @return a list of PickLists
+     */
+    protected List<PickList> getPickLists(final boolean doAll, 
+                                          final boolean isSystemPL)
+    {
+        List<PickList> items = PickListUtils.getPickLists(localizableIO, doAll, isSystemPL);
+        if (items != null)
+        {
+            collection = PickListUtils.getCollectionFromAppContext();
+        }
+        return items;
+    }
+    
+    /**
      * @param list
      */
     protected void addPL(final JList list)
@@ -352,9 +326,10 @@ public class PickListEditorDlg extends CustomDialog implements BusinessRulesOkDe
         
         collection.addReference(pickList, "pickLists");
         
-        if (editPL(pickList))
+        PickList savedPickList = editPL(pickList);
+        if (savedPickList != null)
         {
-            ((DefaultListModel)list.getModel()).addElement(pickList);
+            ((DefaultListModel)list.getModel()).addElement(savedPickList);
             newPickLists.add(pickList);
         }
     }
@@ -383,12 +358,7 @@ public class PickListEditorDlg extends CustomDialog implements BusinessRulesOkDe
                 edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(PickListEditorDlg.class, ex);
                 //log.error(ex);
                 pickListCache = null;
-            } finally
-            {
-                if (session != null)
-                {
-                    session.close();
-                }
+                
             }
         }
     }
@@ -396,8 +366,7 @@ public class PickListEditorDlg extends CustomDialog implements BusinessRulesOkDe
     /**
      * @return
      */
-    protected boolean importPL(@SuppressWarnings("unused")
-    final JList listArg)
+    protected boolean importPL(@SuppressWarnings("unused")final JList listArg)
     {
         isChanged = true;
         return true;
@@ -416,9 +385,9 @@ public class PickListEditorDlg extends CustomDialog implements BusinessRulesOkDe
      * @param pickList the PickList to be edited
      * @return true if it was saved ok
      */
-    protected boolean editPL(final PickList pickList)
+    protected PickList editPL(final PickList pickList)
     {
-        String tableName = pickList.getTableName();
+        /*String tableName = pickList.getTableName();
         String fieldName = pickList.getFieldName();
         if (StringUtils.isNotEmpty(tableName) && StringUtils.isNotEmpty(fieldName))
         {
@@ -430,6 +399,7 @@ public class PickListEditorDlg extends CustomDialog implements BusinessRulesOkDe
         }
         plBusRules.setTableInfo(tableInfo);
         plBusRules.setFieldInfo(fieldInfo);
+        */
         
         ViewBasedDisplayDialog dlg = new ViewBasedDisplayDialog((Frame)UIRegistry.getTopWindow(),
                 "SystemSetup",
@@ -443,7 +413,11 @@ public class PickListEditorDlg extends CustomDialog implements BusinessRulesOkDe
                 MultiView.HIDE_SAVE_BTN);
         
         dlg.setHelpContext("PL_ITEM_EDITOR");
-        dlg.setFormAdjuster(plBusRules);
+        BusinessRulesIFace busRules = dlg.getMultiView().getCurrentViewAsFormViewObj().getBusinessRules();
+        if (busRules instanceof FormPaneAdjusterIFace)
+        {
+            dlg.setFormAdjuster((FormPaneAdjusterIFace)busRules);
+        }
         
         MultiView    multiView = dlg.getMultiView();
         ValTextField tf        = multiView.getKids().get(0).getCurrentViewAsFormViewObj().getCompById("value");
@@ -469,21 +443,24 @@ public class PickListEditorDlg extends CustomDialog implements BusinessRulesOkDe
         
         dlg.setData(pickList);
         dlg.setModal(true);
-        dlg.setVisible(true);
+        UIHelper.centerAndShow(dlg);
         
         if (dlg.getBtnPressed() == ViewBasedDisplayIFace.OK_BTN)
         {
             dlg.getMultiView().getCurrentViewAsFormViewObj().traverseToGetDataFromForms();
             //boolean isOK = PickList.save(true, pickList);
-            boolean isOK = multiView.getCurrentViewAsFormViewObj().saveObject();
+            
+            
+            boolean  isOK    = multiView.getCurrentViewAsFormViewObj().saveObject();
+            PickList savedPL = (PickList)multiView.getCurrentViewAsFormViewObj().getDataObj(); // get the newly saved PickList
             if (isOK)
             {
                 isChanged = true;
                 dispatchChangeNotification(pickList);
             }
-            return isOK;
+            return !isOK ? null : savedPL;
         }
-        return false;
+        return null;
     }
     
     /**
@@ -504,15 +481,24 @@ public class PickListEditorDlg extends CustomDialog implements BusinessRulesOkDe
         
         if (selectedPL != null)
         {
-            PickList pickList = PickList.getDataObj(PickList.class, selectedPL.getId());
+            PickList pickList;
+            if (selectedPL.getId() != null)
+            {
+                pickList = DataModelObjBase.getDataObj(PickList.class, selectedPL.getId());
+            } else
+            {
+                pickList = selectedPL;
+            }
+            
             if (pickList != null)
             {
-                if (editPL(pickList))
+                PickList savedPickList = editPL(pickList);
+                if (savedPickList != null)
                 {
                     DefaultListModel model = ((DefaultListModel)list.getModel());
                     int inx = model.indexOf(selectedPL);
                     ((DefaultListModel)list.getModel()).removeElement(selectedPL);
-                    model.insertElementAt(pickList, inx);
+                    model.insertElementAt(savedPickList, inx);
                 }
             }
         }
@@ -524,7 +510,25 @@ public class PickListEditorDlg extends CustomDialog implements BusinessRulesOkDe
     @Override
     protected void applyButtonPressed()
     {
-        super.applyButtonPressed();
+        // Apply is Import All PickLists
+        
+        if (PickListUtils.importPickLists(localizableIO, collection))
+        {
+            loadList(sysPLList, true);
+            loadList(plList, false);
+        }
+    }
+    /**
+     * @param list
+     * @param hash
+     */
+    private void fillFromModel(final JList list, final HashSet<String> hash)
+    {
+        ListModel model = list.getModel();
+        for (int inx : list.getSelectedIndices())
+        {
+            hash.add(model.getElementAt(inx).toString());
+        }
     }
 
     /* (non-Javadoc)
@@ -533,9 +537,15 @@ public class PickListEditorDlg extends CustomDialog implements BusinessRulesOkDe
     @Override
     protected void cancelButtonPressed()
     {
-        super.cancelButtonPressed();
+        // Cancel is Export All PickLists
+        
+        HashSet<String> hash = new HashSet<String>();
+        fillFromModel(sysPLList, hash);
+        fillFromModel(plList, hash);
+        
+        PickListUtils.exportPickList(localizableIO, hash);
     }
-
+    
     /* (non-Javadoc)
      * @see edu.ku.brc.ui.forms.BusinessRulesOkDeleteIFace#doDeleteDataObj(java.lang.Object, edu.ku.brc.dbsupport.DataProviderSessionIFace, boolean)
      */

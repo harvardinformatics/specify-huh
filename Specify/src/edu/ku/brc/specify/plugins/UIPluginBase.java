@@ -34,7 +34,7 @@ import edu.ku.brc.ui.GetSetValueIFace;
 /**
  * @author rods
  *
- * @code_status Alpha
+ * @code_status Complete
  *
  * Created Date: Jul 18, 2007
  *
@@ -45,6 +45,7 @@ public abstract class UIPluginBase extends JPanel implements GetSetValueIFace, U
     protected String         cellName          = null;
     protected String         title             = null;  // suppose to be localized
     protected boolean        isViewMode        = true;
+    protected boolean        isNewObj          = true;
     protected Properties     properties        = null;
     protected FormViewObj    fvo               = null;
     protected Vector<ChangeListener> listeners = null;
@@ -64,6 +65,7 @@ public abstract class UIPluginBase extends JPanel implements GetSetValueIFace, U
     /* (non-Javadoc)
      * @see edu.ku.brc.ui.GetSetValueIFace#getValue()
      */
+    @Override
     public Object getValue()
     {
         return dataObj;
@@ -72,6 +74,7 @@ public abstract class UIPluginBase extends JPanel implements GetSetValueIFace, U
     /* (non-Javadoc)
      * @see edu.ku.brc.ui.GetSetValueIFace#setValue(java.lang.Object, java.lang.String)
      */
+    @Override
     public void setValue(Object value, String defaultValue)
     {
         dataObj = value == null ? defaultValue : value;
@@ -92,6 +95,7 @@ public abstract class UIPluginBase extends JPanel implements GetSetValueIFace, U
     /* (non-Javadoc)
      * @see edu.ku.brc.af.ui.forms.UIPluginable#initialize(java.util.Properties, boolean)
      */
+    @Override
     public void initialize(final Properties propertiesArg, final boolean isViewModeArg)
     {
         this.properties = propertiesArg;
@@ -101,6 +105,7 @@ public abstract class UIPluginBase extends JPanel implements GetSetValueIFace, U
     /* (non-Javadoc)
      * @see edu.ku.brc.af.ui.forms.UIPluginable#setCellName(java.lang.String)
      */
+    @Override
     public void setCellName(String cellName)
     {
         this.cellName = cellName;
@@ -109,6 +114,7 @@ public abstract class UIPluginBase extends JPanel implements GetSetValueIFace, U
     /* (non-Javadoc)
      * @see edu.ku.brc.af.ui.forms.UIPluginable#setChangeListener(javax.swing.event.ChangeListener)
      */
+    @Override
     public void addChangeListener(final ChangeListener listener)
     {
         if (this.listeners == null)
@@ -137,6 +143,7 @@ public abstract class UIPluginBase extends JPanel implements GetSetValueIFace, U
     /* (non-Javadoc)
      * @see edu.ku.brc.af.ui.forms.UIPluginable#shutdown()
      */
+    @Override
     public void shutdown()
     {
         if (listeners != null)
@@ -153,6 +160,24 @@ public abstract class UIPluginBase extends JPanel implements GetSetValueIFace, U
         dataObj = null;
     }
     
+    /* (non-Javadoc)
+     * @see edu.ku.brc.af.ui.forms.UIPluginable#carryForwardStateChange()
+     */
+    @Override
+    public void carryForwardStateChange()
+    {
+        // no op
+    }
+
+    /* (non-Javadoc)
+     * @see edu.ku.brc.af.ui.forms.UIPluginable#setNewObj(boolean)
+     */
+    @Override
+    public void setNewObj(boolean isNewObj)        // TODO Auto-generated method stub
+    {
+        this.isNewObj = isNewObj;
+    }
+
     /* (non-Javadoc)
      * @see edu.ku.brc.af.ui.forms.UIPluginable#canCarryForward()
      */

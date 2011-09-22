@@ -23,6 +23,7 @@ import java.io.Serializable;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
@@ -113,9 +114,9 @@ public class FieldNotebookPageSetAttachment extends DataModelObjBase implements 
         this.remarks = remarks;
     }
 
-    @ManyToOne
+    @ManyToOne(cascade = {}, fetch = FetchType.EAGER)
     @JoinColumn(name = "AttachmentID", nullable = false)
-    @Cascade( {CascadeType.SAVE_UPDATE, CascadeType.MERGE, CascadeType.LOCK} )
+    @Cascade( { CascadeType.ALL, CascadeType.DELETE_ORPHAN })
     public Attachment getAttachment()
     {
         return attachment;
@@ -126,7 +127,7 @@ public class FieldNotebookPageSetAttachment extends DataModelObjBase implements 
         this.attachment = attachment;
     }
 
-    @ManyToOne
+    @ManyToOne(cascade = {}, fetch = FetchType.LAZY)
     @JoinColumn(name = "FieldNotebookPageSetID", nullable = false)
     public FieldNotebookPageSet getFieldNotebookPageSet()
     {
@@ -158,6 +159,26 @@ public class FieldNotebookPageSetAttachment extends DataModelObjBase implements 
     public void setObject(FieldNotebookPageSet object)
     {
         setFieldNotebookPageSet(object);
+    }
+    
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.datamodel.DataModelObjBase#getParentTableId()
+     */
+    @Override
+    @Transient
+    public Integer getParentTableId()
+    {
+        return FieldNotebookPageSet.getClassTableId();
+    }
+
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.datamodel.DataModelObjBase#getParentId()
+     */
+    @Override
+    @Transient
+    public Integer getParentId()
+    {
+        return fieldNotebookPageSet != null ? fieldNotebookPageSet.getId() : null;
     }
     
     /* (non-Javadoc)
@@ -197,7 +218,11 @@ public class FieldNotebookPageSetAttachment extends DataModelObjBase implements 
      */
     public int compareTo(FieldNotebookPageSetAttachment obj)
     {
-        return ordinal.compareTo(obj.ordinal);
+        if (ordinal != null && obj != null && obj.ordinal != null)
+        {
+            return ordinal.compareTo(obj.ordinal);
+        }
+        return 0;
     }
 
 }

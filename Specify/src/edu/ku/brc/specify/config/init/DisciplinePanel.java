@@ -37,6 +37,7 @@ import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JTextField;
 import javax.swing.SwingConstants;
+import javax.swing.SwingUtilities;
 
 import org.apache.commons.lang.StringUtils;
 
@@ -44,8 +45,10 @@ import com.jgoodies.forms.builder.PanelBuilder;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
 
+import edu.ku.brc.dbsupport.DBConnection;
 import edu.ku.brc.specify.config.DisciplineType;
-import edu.ku.brc.ui.UIHelper;
+import edu.ku.brc.specify.conversion.BasicSQLUtils;
+import edu.ku.brc.ui.UIRegistry;
 import edu.ku.brc.util.Pair;
 
 /**
@@ -74,12 +77,10 @@ public class DisciplinePanel extends BaseSetupPanel
 
         CellConstraints cc = new CellConstraints();
         
-        
-        String rowDef = "p,2px," + UIHelper.createDuplicateJGoodiesDef("p", "2px", 2) + ",p:g";
-        PanelBuilder builder = new PanelBuilder(new FormLayout("p,2px,p:g", rowDef), this);
+        PanelBuilder builder = new PanelBuilder(new FormLayout("p,2px,p,f:p:g", "p,6px,p,2px,p"), this);
         int row = 1;
         
-        builder.add(createLabel(header, SwingConstants.CENTER), cc.xywh(1,row,3,1));row += 2;
+        builder.add(createLabel(header, SwingConstants.CENTER), cc.xywh(1, row, 3, 1)); row += 2;
         
         Vector<DisciplineType> dispList = new Vector<DisciplineType>();
         for (DisciplineType disciplineType : DisciplineType.getDisciplineList())
@@ -103,7 +104,8 @@ public class DisciplinePanel extends BaseSetupPanel
         builder.add(disciplines, cc.xy(3, row));
         row += 2;
         
-        disciplineName     = createField(builder, "DISP_NAME",  true, row);       row += 2;
+        makeStretchy = true;
+        disciplineName = createField(builder, "DISP_NAME",  true, row, 64); row += 2;
         
         updateBtnUI();
         
@@ -112,6 +114,18 @@ public class DisciplinePanel extends BaseSetupPanel
             public void actionPerformed(ActionEvent e)
             {
                 updateBtnUI();
+                
+                if (disciplines.getSelectedIndex() > -1)
+                {
+                    SwingUtilities.invokeLater(new Runnable() {
+                        @Override
+                        public void run()
+                        {
+                            DisciplineType dt = (DisciplineType)disciplines.getSelectedItem();
+                            disciplineName.setText(dt.getTitle());
+                        }
+                    });
+                }
             }
         });
     }
@@ -154,7 +168,19 @@ public class DisciplinePanel extends BaseSetupPanel
      */
     public boolean isUIValid()
     {
-        return StringUtils.isNotEmpty(disciplineName.getText()) && disciplines.getSelectedIndex() > -1;
+        String name = disciplineName.getText();
+        if (DBConnection.getInstance().getConnection() != null && StringUtils.isNotEmpty(name) && disciplines.getSelectedIndex() > -1)
+        {
+            int cnt = BasicSQLUtils.getCountAsInt(String.format("SELECT COUNT(*) FROM discipline WHERE Name = '%s'", name));
+            if (cnt > 0)
+            {
+                UIRegistry.showLocalizedError("DISPNAME_DUP", name);
+                return false;
+            }
+            return true;
+        }
+        
+        return false;
     }
     
     // Getters 
@@ -186,6 +212,4 @@ public class DisciplinePanel extends BaseSetupPanel
         list.add(new Pair<String, String>(getResourceString("DSP_NAME"), disciplineName.getText()));
         return list;
     }
-    
-    
 }

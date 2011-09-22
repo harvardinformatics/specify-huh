@@ -613,8 +613,7 @@ public class Collection extends UserGroupScope implements java.io.Serializable, 
     /**
      * @return the technicalContacts
      */
-    @OneToMany(cascade = {}, fetch = FetchType.LAZY, mappedBy = "collTechContact")
-    @org.hibernate.annotations.Cascade( { org.hibernate.annotations.CascadeType.ALL })
+    @OneToMany(cascade = {javax.persistence.CascadeType.ALL}, fetch = FetchType.LAZY, mappedBy = "collTechContact")
     public Set<Agent> getTechnicalContacts()
     {
         return technicalContacts;
@@ -623,8 +622,7 @@ public class Collection extends UserGroupScope implements java.io.Serializable, 
     /**
      * @return the contentContacts
      */
-    @OneToMany(cascade = {}, fetch = FetchType.LAZY, mappedBy = "collContentContact")
-    @org.hibernate.annotations.Cascade( { org.hibernate.annotations.CascadeType.ALL })
+    @OneToMany(cascade = {javax.persistence.CascadeType.ALL}, fetch = FetchType.LAZY, mappedBy = "collContentContact")
     public Set<Agent> getContentContacts()
     {
         return contentContacts;
@@ -660,7 +658,7 @@ public class Collection extends UserGroupScope implements java.io.Serializable, 
      */
     public int compareTo(Collection obj)
     {
-        return collectionName.compareTo(obj.collectionName);
+        return collectionName != null && obj != null && obj.collectionName != null ? collectionName.compareTo(obj.collectionName) : 0;
     }
 
     /**
@@ -684,8 +682,7 @@ public class Collection extends UserGroupScope implements java.io.Serializable, 
     /**
      * @return the leftSideRelTypes
      */
-    @OneToMany(cascade = {}, fetch = FetchType.LAZY, mappedBy = "leftSideCollection")
-    @org.hibernate.annotations.Cascade( { org.hibernate.annotations.CascadeType.ALL })
+    @OneToMany(cascade = {javax.persistence.CascadeType.ALL}, fetch = FetchType.LAZY, mappedBy = "leftSideCollection")
     public Set<CollectionRelType> getLeftSideRelTypes()
     {
         return leftSideRelTypes;
@@ -702,8 +699,9 @@ public class Collection extends UserGroupScope implements java.io.Serializable, 
     /**
      * @return the rightSideRelTypes
      */
+    //    @OneToMany(cascade = {javax.persistence.CascadeType.ALL}, fetch = FetchType.LAZY, mappedBy = "leftSideCollection")
     @OneToMany(cascade = {}, fetch = FetchType.LAZY, mappedBy = "rightSideCollection")
-    @org.hibernate.annotations.Cascade( { org.hibernate.annotations.CascadeType.ALL })
+    @Cascade( {CascadeType.ALL} )
     public Set<CollectionRelType> getRightSideRelTypes()
     {
         return rightSideRelTypes;
@@ -744,7 +742,12 @@ public class Collection extends UserGroupScope implements java.io.Serializable, 
         {
             ans.getTableNumber();
             ans.getCollections();
+            ans.getDivisions();
+            ans.getDisciplines();
         }
+        
+        rightSideRelTypes.size();
+        leftSideRelTypes.size();
     }
 
     /* (non-Javadoc)
@@ -756,7 +759,27 @@ public class Collection extends UserGroupScope implements java.io.Serializable, 
     {
         return collectionName;
     }
+    
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.datamodel.DataModelObjBase#getParentTableId()
+     */
+    @Override
+    @Transient
+    public Integer getParentTableId()
+    {
+        return Discipline.getClassTableId();
+    }
 
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.datamodel.DataModelObjBase#getParentId()
+     */
+    @Override
+    @Transient
+    public Integer getParentId()
+    {
+        return discipline != null ? discipline.getId() : null;
+    }
+    
     /* (non-Javadoc)
      * @see edu.ku.brc.ui.forms.FormDataObjIFace#getTableId()
      */

@@ -25,11 +25,11 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.LinkedList;
-import java.util.Locale;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 
+import edu.ku.brc.af.prefs.AppPreferences;
 import edu.ku.brc.af.ui.forms.formatters.UIFieldFormatterIFace;
 
 /**
@@ -116,7 +116,27 @@ public class DateConverter
                 }
                 return dateStr;
             }
+
+            @Override
+            public String adjustForPrecisionOut(String dateStr, UIFieldFormatterIFace.PartialDateEnum prec) throws ParseException
+            {
+                if (prec.equals(UIFieldFormatterIFace.PartialDateEnum.Year))
+                {
+                    return "00" + dateStr.substring(2,3) + "00" + dateStr.substring(5);
+                }
+                if (prec.equals(UIFieldFormatterIFace.PartialDateEnum.Month))
+                {
+                    return dateStr.substring(0,3) + "00" + dateStr.substring(5);
+                }
+                return dateStr;
+            }
             
+            @Override
+            public String getFormatString(String separator)
+            {
+                return "MM" + separator + "dd" + separator + "yyyy";
+            }
+
         },
         MON_DAY_SYEAR("[0123456789]?[0123456789]([ /\\.-])[0123456789]?[0123456789]\\1[0-9][0-9]")
         {
@@ -146,6 +166,7 @@ public class DateConverter
                 }
                 Calendar result = new GregorianCalendar();
                 result.setLenient(false);
+                df.setLenient(false);
                 result.setTime(df.parse(dateStr));
                 return result;
             }
@@ -185,6 +206,27 @@ public class DateConverter
                 }
                 return dateStr;
             }
+            
+            @Override
+            public String adjustForPrecisionOut(String dateStr, UIFieldFormatterIFace.PartialDateEnum prec) throws ParseException
+            {
+                if (prec.equals(UIFieldFormatterIFace.PartialDateEnum.Year))
+                {
+                    return "00" + dateStr.substring(2,3) + "00" + dateStr.substring(5);
+                }
+                if (prec.equals(UIFieldFormatterIFace.PartialDateEnum.Month))
+                {
+                    return dateStr.substring(0,3) + "00" + dateStr.substring(5);
+                }
+                return dateStr;
+            }
+            
+            @Override
+            public String getFormatString(String separator)
+            {
+                return "MM" + separator + "dd" + separator + "yy";
+            }
+
         },
         DAY_MON_LYEAR(
                 "[0123456789]?[0123456789]([ /\\.-])[0123456789]?[0123456789]\\1[0-9][0-9][0-9][0-9]")
@@ -215,6 +257,7 @@ public class DateConverter
                 }
                 Calendar result = new GregorianCalendar();
                 result.setLenient(false);
+                df.setLenient(false);
                 result.setTime(df.parse(dateStr));
                 return result;
             }
@@ -254,6 +297,27 @@ public class DateConverter
                 }
                 return dateStr;
             }
+            
+            @Override
+            public String adjustForPrecisionOut(String dateStr, UIFieldFormatterIFace.PartialDateEnum prec) throws ParseException
+            {
+                if (prec.equals(UIFieldFormatterIFace.PartialDateEnum.Year))
+                {
+                    return "00" + dateStr.substring(2,3) + "00" + dateStr.substring(5);
+                }
+                if (prec.equals(UIFieldFormatterIFace.PartialDateEnum.Month))
+                {
+                    return "00" + dateStr.substring(2);
+                }
+                return dateStr;
+            }
+            
+            @Override
+            public String getFormatString(String separator)
+            {
+                return "dd" + separator + "MM" + separator + "yyyy";
+            }
+
         },
         DAY_MON_SYEAR("[0-9]?[0-9]([ /\\.-])[0-9]?[0-9]\\1[0-9][0-9]")
         {
@@ -283,6 +347,7 @@ public class DateConverter
                 }
                 Calendar result = new GregorianCalendar();
                 result.setLenient(false);
+                df.setLenient(false);
                 result.setTime(df.parse(dateStr));
                 return result;
             }
@@ -322,6 +387,27 @@ public class DateConverter
                 }
                 return dateStr;
             }
+            
+            @Override
+            public String adjustForPrecisionOut(String dateStr, UIFieldFormatterIFace.PartialDateEnum prec) throws ParseException
+            {
+                if (prec.equals(UIFieldFormatterIFace.PartialDateEnum.Year))
+                {
+                    return "00" + dateStr.substring(2,3) + "00" + dateStr.substring(5);
+                }
+                if (prec.equals(UIFieldFormatterIFace.PartialDateEnum.Month))
+                {
+                    return "00" + dateStr.substring(2);
+                }
+                return dateStr;
+            }
+
+            @Override
+            public String getFormatString(String separator)
+            {
+                return "MM" + separator + "dd" + separator + "yy";
+            }
+            
         },
         LYEAR_MON_DAY(
         // "[0123456789]?[0123456789]([ /\\.-])[0123456789]?[0123456789]\\1[0-9][0-9][0-9][0-9]")
@@ -353,6 +439,7 @@ public class DateConverter
                 }
                 Calendar result = new GregorianCalendar();
                 result.setLenient(false);
+                df.setLenient(false);
                 result.setTime(df.parse(dateStr));
                 return result;
             }
@@ -392,6 +479,27 @@ public class DateConverter
                 }
                 return dateStr;
             }
+            
+            @Override
+            public String adjustForPrecisionOut(String dateStr, UIFieldFormatterIFace.PartialDateEnum prec) throws ParseException
+            {
+                if (prec.equals(UIFieldFormatterIFace.PartialDateEnum.Year))
+                {
+                    return dateStr.substring(0,5) + "00" + dateStr.substring(7,8) + "00";
+                }
+                if (prec.equals(UIFieldFormatterIFace.PartialDateEnum.Month))
+                {
+                    return dateStr.substring(0,8) + "00";
+                }
+                return dateStr;
+            }
+
+            @Override
+            public String getFormatString(String separator)
+            {
+                return "yyyy" + separator + "MM" + separator + "dd";
+            }
+            
         },
         DAY_CMON_LYEAR(
                 // "[0123456789]?[0123456789]([ /\\.-])[0123456789]?[0123456789]\\1[0-9][0-9][0-9][0-9]")
@@ -463,6 +571,27 @@ public class DateConverter
                         }
                         return dateStr;
                     }
+                    
+                    @Override
+                    public String adjustForPrecisionOut(String dateStr, UIFieldFormatterIFace.PartialDateEnum prec) throws ParseException
+                    {
+                        if (prec.equals(UIFieldFormatterIFace.PartialDateEnum.Year))
+                        {
+                            //NOTE: this switches the format to DAY_MON_LYEAR 
+                            return "00" + dateStr.substring(2,3) + "00" + dateStr.substring(6);
+                        }
+                        if (prec.equals(UIFieldFormatterIFace.PartialDateEnum.Month))
+                        {
+                            return "00" + dateStr.substring(2);
+                        }
+                        return dateStr;
+                    }
+
+                    @Override
+                    public String getFormatString(String separator)
+                    {
+                        return "dd" + separator + "MMM" + separator + "yyyy";
+                    }
                 };
         public final String regex;
 
@@ -479,6 +608,8 @@ public class DateConverter
         public abstract Calendar convertToCalendar(String original) throws ParseException;
         public abstract UIFieldFormatterIFace.PartialDateEnum getPrecision(String original) throws ParseException;
         public abstract String adjustForPrecision(String original, UIFieldFormatterIFace.PartialDateEnum prec) throws ParseException;
+        public abstract String adjustForPrecisionOut(String original, UIFieldFormatterIFace.PartialDateEnum prec) throws ParseException;
+        public abstract String getFormatString(String separator);
     }
 
     /**
@@ -486,8 +617,26 @@ public class DateConverter
      */
     public DateConverter()
     {
-        Locale loc = Locale.getDefault();
-        preferMonthDay = /*loc == Locale.CANADA || */loc == Locale.US;            
+        String currentFormat = AppPreferences.getRemote().get("ui.formatting.scrdateformat", null);  
+        if (currentFormat.startsWith("MM") || currentFormat.startsWith("mm"))
+        {
+        	preferMonthDay = true;
+        } else if (currentFormat.startsWith("DD") || currentFormat.startsWith("dd"))
+        {
+        	preferMonthDay = false;
+        } else
+        {
+            DateFormat df = DateFormat.getDateInstance(DateFormat.SHORT); //for default locale; SHORT -> completely numeric
+            Calendar result = new GregorianCalendar();
+            result.set(2000, 3, 1);
+            String dtstr = df.format(result.getTime());
+            int moIdx = dtstr.indexOf("4");
+            int dayIdx = dtstr.indexOf("1");
+            preferMonthDay = moIdx < dayIdx;
+        }
+        
+        //System.out.println(df.)
+        //preferMonthDay = /*loc == Locale.CANADA || */loc == Locale.US;            
     }
 
     /**

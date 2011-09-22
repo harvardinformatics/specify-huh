@@ -39,8 +39,10 @@ public interface AttachmentManagerIface
      * to provide a storage location that isn't already in use.
      * 
      * @param attachment the Attachment for which a storage location is needed
+     * @param doDisplayErrors false for silent mode, true for popu dialog errors
+     * @return true if successfully set
      */
-    public void setStorageLocationIntoAttachment(Attachment attachment);
+    public boolean setStorageLocationIntoAttachment(Attachment attachment, boolean doDisplayErrors);
     
     /**
      * Get a file handle to the attachment original.
@@ -88,6 +90,15 @@ public interface AttachmentManagerIface
      * @throws IOException if an error occurs when deleting the files
      */
     public void deleteAttachmentFiles(Attachment attachment) throws IOException;
+    
+    
+    /**
+     * Regenerates the thumbnail from the original file.
+     * @param attachment the attachment with thumbnail
+     * @return the File for the thumbnail.
+     * @throws IOException
+     */
+    public File regenerateThumbnail(final Attachment attachment) throws IOException;
     
     /**
      * Resets the baseDirectory.

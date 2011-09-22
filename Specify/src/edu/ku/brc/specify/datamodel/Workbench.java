@@ -27,6 +27,7 @@ import java.util.Vector;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
@@ -75,6 +76,12 @@ public class Workbench extends DataModelObjBase implements java.io.Serializable,
     protected SpPrincipal            group;
     protected String                 srcFilePath;
     protected String                 lockedByUserName;
+    
+    //for updates
+    /**
+     *  //The name of the 'main' table. The table for which WorkbenchRow.RecordId values are keys.
+     */
+    protected String				 exportedFromTableName; 
 
      // Transient Data
     protected Vector<WorkbenchRow> rows        = new Vector<WorkbenchRow>();
@@ -120,6 +127,7 @@ public class Workbench extends DataModelObjBase implements java.io.Serializable,
         specifyUser           = null;
         group                 = null;
         lockedByUserName      = null;
+        exportedFromTableName = null;
         
         rows.clear();
         //deletedRows.clear();
@@ -254,6 +262,23 @@ public class Workbench extends DataModelObjBase implements java.io.Serializable,
     
 
     /**
+	 * @return the exportedFromTableName
+	 */
+    @Column(name = "ExportedFromTableName", length = 128)
+	public String getExportedFromTableName()
+	{
+		return exportedFromTableName;
+	}
+
+	/**
+	 * @param exportedFromTableName the exportedFromTableName to set
+	 */
+	public void setExportedFromTableName(String exportedFromTableName)
+	{
+		this.exportedFromTableName = exportedFromTableName;
+	}
+
+	/**
      * Returns the path to the original File.
      * @return the path to the original File.
      */
@@ -309,7 +334,7 @@ public class Workbench extends DataModelObjBase implements java.io.Serializable,
     /**
      * 
      */
-    @ManyToOne
+    @ManyToOne(cascade = {}, fetch = FetchType.EAGER)
     @Cascade( {CascadeType.ALL, CascadeType.DELETE_ORPHAN} )
     @JoinColumn(name = "WorkbenchTemplateID", nullable = false)
     public WorkbenchTemplate getWorkbenchTemplate() {
@@ -346,7 +371,7 @@ public class Workbench extends DataModelObjBase implements java.io.Serializable,
     /**
      * 
      */
-    @ManyToOne
+    @ManyToOne(cascade = {}, fetch = FetchType.EAGER)
     @JoinColumn(name = "SpecifyUserID", nullable = false)
     @Cascade( {CascadeType.MERGE, CascadeType.LOCK} )
     public SpecifyUser getSpecifyUser() {
@@ -360,7 +385,7 @@ public class Workbench extends DataModelObjBase implements java.io.Serializable,
     /**
      * 
      */
-    @ManyToOne
+    @ManyToOne(cascade = {}, fetch = FetchType.EAGER)
     @JoinColumn(name = "SpPrincipalID")
     @Cascade( {CascadeType.MERGE, CascadeType.LOCK} )
     public SpPrincipal getGroup() {
@@ -370,6 +395,7 @@ public class Workbench extends DataModelObjBase implements java.io.Serializable,
     public void setGroup(SpPrincipal group) {
         this.group = group;
     }
+    
     
     /* (non-Javadoc)
      * @see edu.ku.brc.ui.forms.FormDataObjIFace#getTableId()
@@ -469,7 +495,7 @@ public class Workbench extends DataModelObjBase implements java.io.Serializable,
      */
     public int compareTo(Workbench obj)
     {
-        return name.compareTo(obj.name);
+        return name != null && obj != null && obj.name != null ? name.compareTo(obj.name) : 0;
     }
     
     //----------------------------------------------------
@@ -549,7 +575,12 @@ public class Workbench extends DataModelObjBase implements java.io.Serializable,
         {
             rows.get(i).setRowNumber((short)(i));
         }
-        //deletedRows.add(wbRow);
+        
+        if (wbRow.getWorkbenchRowImages() != null)
+        {
+        	//This fixes bug #7721 (for mysterious reasons)
+        	wbRow.getWorkbenchRowImages().clear();
+        }
         workbenchRows.remove(wbRow);
         return wbRow;
     }

@@ -113,14 +113,16 @@ public class AutoNumberGeneric implements AutoNumberIFace
     }
     
     /**
+     * @param formatter
      * @param session
-     * @param yearPos
+     * @param value
      * @param yearPos
      * @param pos
      * @return
      * @throws Exception
      */
-    protected Object getHighestObject(final Session session, 
+    protected String getHighestObject(final UIFieldFormatterIFace formatter, 
+                                      final Session session, 
                                       final String  value,
                                       final Pair<Integer, Integer> yearPos, 
                                       final Pair<Integer, Integer> pos) throws Exception
@@ -131,19 +133,28 @@ public class AutoNumberGeneric implements AutoNumberIFace
             return null;
         }
         
+        int yearLen = 0;
+        int posLen  = 0;
+        
         Integer yearVal = null;
         if (yearPos != null && StringUtils.isNotEmpty(value) && value.length() >= yearPos.second)
         {
             yearVal = extractIntegerValue(yearPos, value);
+            
+            yearLen = yearPos.second - yearPos.first;
         }
 
         //List list = session.createCriteria(classObj).addOrder( Order.desc(fieldName) ).setMaxResults(1).list();
-        StringBuilder sb = new StringBuilder(" FROM "+classObj.getSimpleName()); //$NON-NLS-1$
+        StringBuilder sb = new StringBuilder("SELECT "); //$NON-NLS-1$
+        sb.append(fieldName);
+        sb.append(" FROM "); //$NON-NLS-1$
+        sb.append(classObj.getSimpleName());
+        
         if (yearVal != null && yearPos != null)
         {
             sb.append(" WHERE '"); //$NON-NLS-1$
             sb.append(yearVal);
-            sb.append("' = substring("+fieldName+","+(yearPos.first+1)+","+yearPos.second+")"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
+            sb.append("' = substring("+fieldName+","+(yearPos.first+1)+","+yearLen+")"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
         }
         sb.append(" ORDER BY"); //$NON-NLS-1$
         
@@ -151,24 +162,26 @@ public class AutoNumberGeneric implements AutoNumberIFace
         {
             if (yearPos != null)
             {
-                sb.append(" substring("+fieldName+","+(yearPos.first+1)+","+yearPos.second+") desc"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
+                sb.append(" substring("+fieldName+","+(yearPos.first+1)+","+yearLen+") desc"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
                 
             }
             
             if (pos != null)
             {
+                posLen = pos.second - pos.first;
+                
                 if (yearPos != null)
                 {
                     sb.append(", "); //$NON-NLS-1$
                 }
-                sb.append(" substring("+fieldName+","+(pos.first+1)+","+pos.second+") desc"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
+                sb.append(" substring("+fieldName+","+(pos.first+1)+","+posLen+") desc"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
             }
             
             //System.err.println(sb.toString());
             List<?> list = session.createQuery(sb.toString()).setMaxResults(1).list();
             if (list.size() == 1)
             {
-                return list.get(0);
+                return list.get(0).toString();
             }
             
         } catch (Exception ex)
@@ -384,6 +397,14 @@ public class AutoNumberGeneric implements AutoNumberIFace
      */
     public String getNextNumber(final UIFieldFormatterIFace formatter, final String formValue)
     {
+    	return getNextNumber(formatter, formValue, false);
+    }
+
+    /* (non-Javadoc)
+     * @see edu.ku.brc.af.core.db.AutoNumberIFace#getNextNumber(edu.ku.brc.af.ui.forms.formatters.UIFieldFormatterIFace, java.lang.String, boolean)
+     */
+    public String getNextNumber(final UIFieldFormatterIFace formatter, final String formValue, final boolean incrementValue)
+    {
         errorMsg = null;
             
         if (StringUtils.isNotEmpty(formValue) && formatter.isLengthOK(formValue.length()))
@@ -396,26 +417,23 @@ public class AutoNumberGeneric implements AutoNumberIFace
                 UIFieldFormatterField  yearField = formatter.getYear();
                 Pair<Integer, Integer> yrPos     = yearField != null ? formatter.getYearPosition() : null;
                 
-                Object dataObj = getHighestObject(session, formValue, yrPos, formatter.getIncPosition());
-                //if (dataObj != null)
+                String valueToIncrement  = incrementValue ? formValue
+                		: getHighestObject(formatter, session, formValue, yrPos, formatter.getIncPosition());
+                
+                Pair<Integer, Integer> yearAndIncVal = getYearAndIncVal(formatter, valueToIncrement, formValue);
+                
+                // Should NEVER be null
+                if (yearAndIncVal != null)
                 {
-                    String highestValue  = dataObj != null ? (String)getter.getFieldValue(dataObj, fieldName) : null;
-                    
-                    Pair<Integer, Integer> yearAndIncVal = getYearAndIncVal(formatter, highestValue, formValue);
-                    
-                    // Should NEVER be null
-                    if (yearAndIncVal != null)
+                    if (yearAndIncVal.second != null)
                     {
-                        if (yearAndIncVal.second != null)
-                        {
-                            return buildNewNumber(formatter, formValue, yearAndIncVal);
-                        }
-                        errorMsg = getResourceString("AUTONUM_BAD_DATA_ERR");
-                        
-                    } else
-                    {
-                        errorMsg = "yearAndIncVal was NULL and should NEVER be!"; //$NON-NLS-1$
+                        return buildNewNumber(formatter, formValue, yearAndIncVal);
                     }
+                    errorMsg = getResourceString("AUTONUM_BAD_DATA_ERR");
+                    
+                } else
+                {
+                    errorMsg = "yearAndIncVal was NULL and should NEVER be!"; //$NON-NLS-1$
                 }
                 return null;
                 

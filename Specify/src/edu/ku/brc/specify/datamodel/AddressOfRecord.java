@@ -21,6 +21,7 @@ package edu.ku.brc.specify.datamodel;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.Vector;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -33,6 +34,8 @@ import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.persistence.Transient;
+
+import edu.ku.brc.specify.conversion.BasicSQLUtils;
 
 /**
  * @author rod
@@ -331,6 +334,48 @@ public class AddressOfRecord extends DataModelObjBase
     {
         return AddressOfRecord.class;
     }
+
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.datamodel.DataModelObjBase#getParentId()
+     */
+    @Override
+    @Transient
+    public Integer getParentId()
+    {
+        Vector<Object> ids = BasicSQLUtils.querySingleCol("SELECT AccessionID FROM accession WHERE AddressOfRecordID = "+ addressOfRecordId);
+        if (ids.size() == 1)
+        {
+            parentTblId = Accession.getClassTableId();
+            return (Integer)ids.get(0);
+        }
+        ids = BasicSQLUtils.querySingleCol("SELECT RepositoryAgreementID FROM repositoryagreement WHERE AddressOfRecordID = "+ addressOfRecordId);
+        if (ids.size() == 1)
+        {
+            parentTblId = RepositoryAgreement.getClassTableId();
+            return (Integer)ids.get(0);
+        }
+        ids = BasicSQLUtils.querySingleCol("SELECT LoanID FROM loan WHERE AddressOfRecordID = "+ addressOfRecordId);
+        if (ids.size() == 1)
+        {
+            parentTblId = Loan.getClassTableId();
+            return (Integer)ids.get(0);
+        }
+        ids = BasicSQLUtils.querySingleCol("SELECT ExchangeInID FROM exchangein WHERE AddressOfRecordID = "+ addressOfRecordId);
+        if (ids.size() == 1)
+        {
+            parentTblId = ExchangeIn.getClassTableId();
+            return (Integer)ids.get(0);
+        }
+        ids = BasicSQLUtils.querySingleCol("SELECT ExchangeOutID FROM exchangeout WHERE AddressOfRecordID = "+ addressOfRecordId);
+        if (ids.size() == 1)
+        {
+            parentTblId = ExchangeOut.getClassTableId();
+            return (Integer)ids.get(0);
+        }
+        parentTblId = null;
+        return null;
+    }
+
 
     /* (non-Javadoc)
      * @see edu.ku.brc.specify.datamodel.DataModelObjBase#getId()

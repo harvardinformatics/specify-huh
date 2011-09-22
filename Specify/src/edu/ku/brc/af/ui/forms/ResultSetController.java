@@ -391,7 +391,7 @@ public class ResultSetController implements ValidationListener
             {
                 delRecBtn = UIHelper.createIconBtn("DeleteRecord", null, null);    
             }
-            delRecBtn.setToolTipText(createTooltip("RemoveRecordTT", objTitle));
+            delRecBtn.setToolTipText(createTooltip("DeleteRecordTT", objTitle));
             delRecBtn.setMargin(insets);
             btnsHash.put(CommandType.DelItem, delRecBtn);
             
@@ -419,53 +419,27 @@ public class ResultSetController implements ValidationListener
         firstBtn.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent ae)
             {
-                if (notifyListenersAboutToChangeIndex(currentInx, 0))
-                {
-                    currentInx = 0;
-                    updateUI();
-                    notifyListeners();
-                }
+                firstRecord();
             }
         });
         prevBtn.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent ae)
             {
-                if (notifyListenersAboutToChangeIndex(currentInx, currentInx-1))
-                {
-                    // Note: notifyListenersAboutToChangeIndex sometimes can call a method
-                    // that ends up setting the currentInx and therefore we should make
-                    // sure that by decrementing it will still have a good value
-                    if (currentInx > 0)
-                    {
-                        currentInx--;
-                        updateUI();
-                        notifyListeners();
-                    }
-                }
+                prevRecord();
             }
         });
         nextBtn.addActionListener(new ActionListener()
                 {
             public void actionPerformed(ActionEvent ae)
             {
-                if (notifyListenersAboutToChangeIndex(currentInx, currentInx+1))
-                {
-                    currentInx++;
-                    updateUI();
-                    notifyListeners();
-                }
+                nextRecord();
             }
         });
         lastBtn.addActionListener(new ActionListener()
                 {
             public void actionPerformed(ActionEvent ae)
             {
-                if (notifyListenersAboutToChangeIndex(currentInx, lastInx))
-                {
-                    currentInx = lastInx;
-                    updateUI();
-                    notifyListeners();
-                }
+                lastRecord();
             }
         });
         
@@ -492,6 +466,68 @@ public class ResultSetController implements ValidationListener
         });
         popupMenu.add(mi);
         return popupMenu;
+    }
+    
+    /**
+     * 
+     */
+    private void firstRecord()
+    {
+        if (notifyListenersAboutToChangeIndex(currentInx, 0))
+        {
+            currentInx = 0;
+            updateUI();
+            notifyListeners();
+        }
+
+    }
+    
+    /**
+     * 
+     */
+    private void lastRecord()
+    {
+        if (notifyListenersAboutToChangeIndex(currentInx, lastInx))
+        {
+            currentInx = lastInx;
+            updateUI();
+            notifyListeners();
+        }
+
+    }
+    
+    /**
+     * 
+     */
+    public void prevRecord()
+    {
+        if (currentInx < 1) return;
+        
+        if (notifyListenersAboutToChangeIndex(currentInx, currentInx-1))
+        {
+            // Note: notifyListenersAboutToChangeIndex sometimes can call a method
+            // that ends up setting the currentInx and therefore we should make
+            // sure that by decrementing it will still have a good value
+            if (currentInx > 0)
+            {
+                currentInx--;
+                updateUI();
+                notifyListeners();
+            }
+        }
+
+    }
+    
+    public void nextRecord()
+    {
+        if (currentInx > numRecords-2) return;
+            
+        if (notifyListenersAboutToChangeIndex(currentInx, currentInx+1))
+        {
+            currentInx++;
+            updateUI();
+            notifyListeners();
+        }
     }
     
     /**
@@ -824,31 +860,34 @@ public class ResultSetController implements ValidationListener
      */
     protected static void installRS(final ResultSetController rsc)
     {
-        if (commandsHash == null)
+        if (commandsHash == null && rsc != null)
         {
             rsc.createRSActions();
         }
         
-        for (RSAction<CommandType> rsca : commandsHash.values())
+        if (commandsHash != null)
         {
-            rsca.setRs(rsc);
-            
-            if (rsc != null)
+            for (RSAction<CommandType> rsca : commandsHash.values())
             {
-                JButton btn = rsc.btnsHash.get(rsca.getType());
-                if (btn != null)
+                rsca.setRs(rsc);
+                
+                if (rsc != null)
                 {
-                    KeyStroke ks         = UIHelper.getKeyStroke(rsca.getType());
-                    String    ACTION_KEY = rsca.getType().toString();
-                    InputMap  inputMap   = btn.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
-                    ActionMap actionMap  = btn.getActionMap();
-                    
-                    inputMap.put(ks, ACTION_KEY);
-                    actionMap.put(ACTION_KEY, rsca);
-                    rsca.setBtn(btn);
-                } else
-                {
-                    //System.err.println("Btn for ["+rsca.getType()+"] is null");
+                    JButton btn = rsc.btnsHash.get(rsca.getType());
+                    if (btn != null)
+                    {
+                        KeyStroke ks         = UIHelper.getKeyStroke(rsca.getType());
+                        String    ACTION_KEY = rsca.getType().toString();
+                        InputMap  inputMap   = btn.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
+                        ActionMap actionMap  = btn.getActionMap();
+                        
+                        inputMap.put(ks, ACTION_KEY);
+                        actionMap.put(ACTION_KEY, rsca);
+                        rsca.setBtn(btn);
+                    } else
+                    {
+                        //System.err.println("Btn for ["+rsca.getType()+"] is null");
+                    }
                 }
             }
         }
@@ -980,13 +1019,35 @@ public class ResultSetController implements ValidationListener
         /* (non-Javadoc)
          * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
          */
+        @Override
         public void actionPerformed(ActionEvent e)
         {
-            if (rs != null)
+            if (rs != null && btn != null)
             {
-                if (btn != null)
+                // rods (04/26/11) NOTE: the 'doClick' on the button does not work.
+                // I think it has to do with the event being dispatched on the UI thread.
+                // With this change the call to change the index gets call directly
+                //btn.doClick();
+                switch (type)
                 {
-                    btn.doClick();
+                    case First:
+                        rs.firstRecord();
+                        break;
+                    case Previous:
+                        rs.prevRecord();
+                        break;
+                    case Next:
+                        rs.nextRecord();
+                        break;
+                    case Last:
+                        rs.lastRecord();
+                        break;
+                    case Save:
+                        break;
+                    case NewItem:
+                        break;
+                    case DelItem:
+                        break;
                 }
             }
         }

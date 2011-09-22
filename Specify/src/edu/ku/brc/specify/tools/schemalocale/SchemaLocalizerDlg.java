@@ -22,6 +22,7 @@ package edu.ku.brc.specify.tools.schemalocale;
 import static edu.ku.brc.ui.UIRegistry.getResourceString;
 
 import java.awt.BorderLayout;
+import java.awt.Dialog;
 import java.awt.Frame;
 import java.awt.HeadlessException;
 import java.beans.PropertyChangeEvent;
@@ -44,6 +45,7 @@ import org.hibernate.Session;
 import edu.ku.brc.af.core.AppContextMgr;
 import edu.ku.brc.af.core.SchemaI18NService;
 import edu.ku.brc.af.core.db.DBTableIdMgr;
+import edu.ku.brc.af.core.expresssearch.QueryAdjusterForDomain;
 import edu.ku.brc.af.ui.forms.formatters.DataObjFieldFormatMgr;
 import edu.ku.brc.af.ui.forms.formatters.UIFieldFormatterMgr;
 import edu.ku.brc.af.ui.weblink.WebLinkMgr;
@@ -66,6 +68,7 @@ import edu.ku.brc.ui.CustomDialog;
 import edu.ku.brc.ui.ToggleButtonChooserDlg;
 import edu.ku.brc.ui.ToggleButtonChooserPanel;
 import edu.ku.brc.ui.UIRegistry;
+import edu.ku.brc.ui.dnd.SimpleGlassPane;
 
 /**
  * @author rods
@@ -128,7 +131,14 @@ public class SchemaLocalizerDlg extends CustomDialog implements LocalizableIOIFa
         this.schemaType = schemaType;
         this.tableMgr   = tableMgr;
         
-        helpContext = "SL_HELP_CONTEXT";
+        if (schemaType == SpLocaleContainer.WORKBENCH_SCHEMA)
+        {
+        	helpContext = "wb_schema_config";
+        
+        } else
+        {
+        	helpContext = "SL_HELP_CONTEXT";
+        }
     }
 
 
@@ -161,9 +171,9 @@ public class SchemaLocalizerDlg extends CustomDialog implements LocalizableIOIFa
         //List<SpLocaleContainer> list = session.getDataList(SpLocaleContainer.class);
         
         localizableIOIFace = this;
-        localizableIOIFace.load();
+        localizableIOIFace.load(true);
         
-        schemaLocPanel = new SchemaLocalizerPanel(this, dataObjFieldFormatMgrCache, uiFieldFormatterMgrCache, webLinkMgrCache);
+        schemaLocPanel = new SchemaLocalizerPanel(this, dataObjFieldFormatMgrCache, uiFieldFormatterMgrCache, webLinkMgrCache, schemaType);
         schemaLocPanel.setLocalizableIO(localizableIOIFace);
         schemaLocPanel.setUseDisciplines(false);
         
@@ -187,7 +197,14 @@ public class SchemaLocalizerDlg extends CustomDialog implements LocalizableIOIFa
      */
     public void setTitle()
     {
-        super.setTitle(getResourceString("SCHEMA_CONFIG") +" - " + SchemaI18NService.getCurrentLocale().getDisplayName());
+        if (schemaType == SpLocaleContainer.WORKBENCH_SCHEMA)
+        {
+        	super.setTitle(getResourceString("WBSCHEMA_CONFIG") +" - " + SchemaI18NService.getCurrentLocale().getDisplayName());
+        	
+        } else
+        {
+        	super.setTitle(getResourceString("SCHEMA_CONFIG") +" - " + SchemaI18NService.getCurrentLocale().getDisplayName());
+        }
     }
 
     /* (non-Javadoc)
@@ -225,46 +242,45 @@ public class SchemaLocalizerDlg extends CustomDialog implements LocalizableIOIFa
         UIRegistry.getStatusBar().setText(getResourceString("SL_SAVING_SCHEMA_LOC"));
         UIRegistry.getStatusBar().setIndeterminate(SCHEMALOCDLG, true);
         
-        if (true) // Old Way
+        final SimpleGlassPane glassPane = new SimpleGlassPane(getResourceString("SchemaLocalizerFrame.SAVING"), 18);
+        setGlassPane(glassPane);
+        glassPane.setVisible(true);
+        
+        getOkBtn().setEnabled(false);
+        
+        SwingWorker workerThread = new SwingWorker()
         {
-            SwingWorker workerThread = new SwingWorker()
+            @Override
+            public Object construct()
             {
-                @Override
-                public Object construct()
-                {
-                    save();
-                    
-                    //SchemaI18NService.getInstance().loadWithLocale(new Locale("de", "", ""));
-                    int disciplineeId = AppContextMgr.getInstance().getClassObject(Discipline.class).getDisciplineId();
-                    SchemaI18NService.getInstance().loadWithLocale(schemaType, disciplineeId, tableMgr, Locale.getDefault());
-                    
-                    SpecifyAppContextMgr.getInstance().setForceReloadViews(true);
-                    
-                    UIFieldFormatterMgr.getInstance().load();
-                    WebLinkMgr.getInstance().reload();
-                    DataObjFieldFormatMgr.getInstance().load();
-                    
-                    return null;
-                }
+                save();
                 
-                @Override
-                public void finished()
-                {
-                    enabledDlgBtns(true);
-                    UIRegistry.getStatusBar().setProgressDone(SCHEMALOCDLG);
-                    UIRegistry.getStatusBar().setText("");
-                    finishedSaving();
-                }
-            };
+                //SchemaI18NService.getInstance().loadWithLocale(new Locale("de", "", ""));
+                int disciplineeId = AppContextMgr.getInstance().getClassObject(Discipline.class).getDisciplineId();
+                SchemaI18NService.getInstance().loadWithLocale(schemaType, disciplineeId, tableMgr, Locale.getDefault());
+                
+                SpecifyAppContextMgr.getInstance().setForceReloadViews(true);
+                
+                UIFieldFormatterMgr.getInstance().load();
+                WebLinkMgr.getInstance().reload();
+                DataObjFieldFormatMgr.getInstance().load();
+                
+                return null;
+            }
             
-            // start the background task
-            workerThread.start();
-        } else
-        {
-            save();
-            wasSaved = true;
-            finishedSaving();
-        }
+            @Override
+            public void finished()
+            {
+                glassPane.setVisible(false);
+                enabledDlgBtns(true);
+                UIRegistry.getStatusBar().setProgressDone(SCHEMALOCDLG);
+                UIRegistry.getStatusBar().setText("");
+                finishedSaving();
+            }
+        };
+        
+        // start the background task
+        workerThread.start();
     }
     
     /**
@@ -290,7 +306,7 @@ public class SchemaLocalizerDlg extends CustomDialog implements LocalizableIOIFa
         }
         Collections.sort(list);
 
-        ToggleButtonChooserDlg<DisplayLocale> dlg = new ToggleButtonChooserDlg<DisplayLocale>(null, 
+        ToggleButtonChooserDlg<DisplayLocale> dlg = new ToggleButtonChooserDlg<DisplayLocale>((Dialog)null, 
                                                    "CHOOSE_LOCALE", list, ToggleButtonChooserPanel.Type.RadioButton);
         dlg.setUseScrollPane(true);
         dlg.setVisible(true);
@@ -305,6 +321,7 @@ public class SchemaLocalizerDlg extends CustomDialog implements LocalizableIOIFa
     /* (non-Javadoc)
      * @see edu.ku.brc.specify.tools.schemalocale.LocalizableIOIFace#createResourceFiles()
      */
+    @Override
     public boolean createResourceFiles()
     {
         return false;
@@ -314,6 +331,7 @@ public class SchemaLocalizerDlg extends CustomDialog implements LocalizableIOIFa
     /* (non-Javadoc)
      * @see edu.ku.brc.specify.tools.schemalocale.LocalizableIOIFace#didModelChangeDuringLoad()
      */
+    @Override
     public boolean didModelChangeDuringLoad()
     {
         return false;
@@ -322,8 +340,11 @@ public class SchemaLocalizerDlg extends CustomDialog implements LocalizableIOIFa
     /* (non-Javadoc)
      * @see edu.ku.brc.specify.tools.schemalocale.LocalizableIOIFace#getContainerDisplayItems()
      */
+    @Override
     public Vector<LocalizableJListItem> getContainerDisplayItems()
     {
+        final String ATTACHMENT = "attachment";
+        
         Connection connection = null;
         Statement stmt        = null;
         ResultSet rs          = null;
@@ -331,16 +352,23 @@ public class SchemaLocalizerDlg extends CustomDialog implements LocalizableIOIFa
         {
             tableDisplayItems = new Vector<LocalizableJListItem>();
             
+            int dispId = AppContextMgr.getInstance().getClassObject(Discipline.class).getDisciplineId();
+            String sql = String.format("SELECT SpLocaleContainerID, Name FROM splocalecontainer WHERE DisciplineID = %d AND SchemaType = %d ORDER BY Name", dispId, schemaType);
+            
             connection = DBConnection.getInstance().createConnection();
             stmt       = connection.createStatement();
-            rs         = stmt.executeQuery("select SpLocaleContainerID, Name from splocalecontainer WHERE DisciplineID = "+AppContextMgr.getInstance().getClassObject(Discipline.class).getDisciplineId()+" order by name");
+            rs         = stmt.executeQuery(sql);
             
             while (rs.next())
             {
-                String tblName = rs.getString(2);
+                String  tblName      = rs.getString(2);
+                boolean isAttachment = (tblName.startsWith(ATTACHMENT) || tblName.endsWith(ATTACHMENT)) && !tblName.equals(ATTACHMENT);
+                
+                System.out.println(tblName+" "+isAttachment);
+                
                 if (shouldIncludeAppTables() || 
                     !(tblName.startsWith("sp") || 
-                            tblName.startsWith("attachment") || 
+                            isAttachment || 
                             tblName.startsWith("autonum") || 
                             tblName.equals("picklist") || 
                             tblName.equals("attributedef") || 
@@ -349,7 +377,6 @@ public class SchemaLocalizerDlg extends CustomDialog implements LocalizableIOIFa
                             tblName.startsWith("workbench") || 
                             tblName.endsWith("treedef") || 
                             tblName.endsWith("treedefitem") || 
-                            tblName.endsWith("attachment") || 
                             tblName.endsWith("attr") || 
                             tblName.endsWith("reltype")))
                 {
@@ -359,9 +386,9 @@ public class SchemaLocalizerDlg extends CustomDialog implements LocalizableIOIFa
             
         } catch (Exception ex)
         {
+            ex.printStackTrace();
             edu.ku.brc.af.core.UsageTracker.incrHandledUsageCount();
             edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(SchemaLocalizerDlg.class, ex);
-            ex.printStackTrace();
             
         } finally
         {
@@ -381,9 +408,9 @@ public class SchemaLocalizerDlg extends CustomDialog implements LocalizableIOIFa
                 }
             } catch (Exception e)
             {
+                e.printStackTrace();
                 edu.ku.brc.af.core.UsageTracker.incrHandledUsageCount();
                 edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(SchemaLocalizerDlg.class, e);
-                e.printStackTrace();
             }
         }
         return tableDisplayItems;
@@ -392,20 +419,23 @@ public class SchemaLocalizerDlg extends CustomDialog implements LocalizableIOIFa
     /* (non-Javadoc)
      * @see edu.ku.brc.specify.tools.schemalocale.LocalizableIOIFace#getContainer(edu.ku.brc.specify.tools.schemalocale.LocalizableJListItem, edu.ku.brc.specify.tools.schemalocale.LocalizableIOIFaceListener)
      */
-    public void getContainer(LocalizableJListItem item, LocalizableIOIFaceListener l)
+    @Override
+    public LocalizableContainerIFace getContainer(LocalizableJListItem item, LocalizableIOIFaceListener l)
     {
         loadTable(item.getId(), item.getName(), l);
+        return null;
     }
 
     /* (non-Javadoc)
      * @see edu.ku.brc.specify.tools.schemalocale.LocalizableIOIFace#getDisplayItems(edu.ku.brc.specify.tools.schemalocale.LocalizableJListItem)
      */
+    @Override
     public Vector<LocalizableJListItem> getDisplayItems(LocalizableJListItem containerArg)
     {
         Vector<LocalizableJListItem> items = itemJListItemsHash.get(containerArg);
         if (items == null)
         {
-            LocalizableContainerIFace cont = tableHash.get(containerArg.getId().intValue());
+            LocalizableContainerIFace cont = tableHash.get(containerArg.getId());
             if (cont != null)
             {
                 SpLocaleContainer container = (SpLocaleContainer)cont;
@@ -433,6 +463,7 @@ public class SchemaLocalizerDlg extends CustomDialog implements LocalizableIOIFa
     /* (non-Javadoc)
      * @see edu.ku.brc.specify.tools.schemalocale.LocalizableIOIFace#getItem(edu.ku.brc.specify.tools.schemalocale.LocalizableContainerIFace, edu.ku.brc.specify.tools.schemalocale.LocalizableJListItem)
      */
+    @Override
     public LocalizableItemIFace getItem(LocalizableContainerIFace containerArg, LocalizableJListItem item)
     {
         SpLocaleContainer container = (SpLocaleContainer)containerArg;
@@ -456,13 +487,61 @@ public class SchemaLocalizerDlg extends CustomDialog implements LocalizableIOIFa
     }
 
     /* (non-Javadoc)
-     * @see edu.ku.brc.specify.tools.schemalocale.LocalizableIOIFace#load()
+     * @see edu.ku.brc.specify.tools.schemalocale.LocalizableIOIFace#load(boolean)
      */
-    public boolean load()
+    @Override
+    public boolean load(final boolean useCurrentLocaleOnly)
     {
         enabledDlgBtns(true);
         
         return true;
+    }
+    
+    /**
+     * @param sessionArg
+     * @param containerId
+     * @return
+     */
+    protected SpLocaleContainer loadTable(final DataProviderSessionIFace sessionArg,
+                                          final int    containerId)
+    {
+        SpLocaleContainer        container = null;
+        DataProviderSessionIFace session   = null;
+        try
+        {
+            session = sessionArg != null ? sessionArg : DataProviderFactory.getInstance().createSession();
+            
+            int    dispId = AppContextMgr.getInstance().getClassObject(Discipline.class).getDisciplineId();
+            String sql    = String.format("FROM SpLocaleContainer WHERE disciplineId = %d AND spLocaleContainerId = %d", dispId, containerId);
+            container = (SpLocaleContainer)session.getData(sql);
+            tables.add(container);
+            tableHash.put(container.getId(), container);
+
+            for (SpLocaleContainerItem item : container.getItems())
+            {
+                // force Load of lazy collections
+                container.getDescs().size();
+                container.getNames().size();
+                item.getDescs().size();
+                item.getNames().size();
+            }
+            return container;
+            
+        } catch (Exception e)
+        {
+            e.printStackTrace();
+            edu.ku.brc.af.core.UsageTracker.incrHandledUsageCount();
+            edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(SchemaLocalizerDlg.class, e);
+            
+        } finally
+        {
+            if (session != null && sessionArg == null)
+            {
+                session.close();
+            }
+        }
+        
+        return null;
     }
     
     /**
@@ -492,40 +571,7 @@ public class SchemaLocalizerDlg extends CustomDialog implements LocalizableIOIFa
             @Override
             public Object construct()
             {
-                DataProviderSessionIFace session = null;
-                try
-                {
-                    session = DataProviderFactory.getInstance().createSession();
-                    
-                    String sql = "FROM SpLocaleContainer WHERE disciplineId = "+
-                    AppContextMgr.getInstance().getClassObject(Discipline.class).getDisciplineId() + " AND spLocaleContainerId = " + containerId;
-                    container = (SpLocaleContainer)session.getData(sql);
-                    tables.add(container);
-                    tableHash.put(container.getId().intValue(), container);
-
-                    for (SpLocaleContainerItem item : container.getItems())
-                    {
-                        // force Load of lazy collections
-                        container.getDescs().size();
-                        container.getNames().size();
-                        item.getDescs().size();
-                        item.getNames().size();
-                    }
-                    return container;
-                    
-                } catch (Exception e)
-                {
-                    edu.ku.brc.af.core.UsageTracker.incrHandledUsageCount();
-                    edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(SchemaLocalizerDlg.class, e);
-                    e.printStackTrace();
-                    
-                } finally
-                {
-                    if (session != null)
-                    {
-                        session.close();
-                    }
-                }
+                container = loadTable(null, containerId);
                 return null;
             }
             
@@ -551,9 +597,16 @@ public class SchemaLocalizerDlg extends CustomDialog implements LocalizableIOIFa
     /* (non-Javadoc)
      * @see edu.ku.brc.specify.tools.schemalocale.LocalizableIOIFace#save()
      */
+    @Override
     public boolean save()
     {
         schemaLocPanel.getAllDataFromUI();
+        
+        SimpleGlassPane glassPane = (SimpleGlassPane)getGlassPane();
+        if (glassPane != null)
+        {
+            glassPane.setProgress(0);
+        }
         
         // apply changes to formatters and save them to db
         DataObjFieldFormatMgr.getInstance().applyChanges(dataObjFieldFormatMgrCache);
@@ -567,23 +620,26 @@ public class SchemaLocalizerDlg extends CustomDialog implements LocalizableIOIFa
             {
                 session = DataProviderFactory.getInstance().createSession();
                 
+                double step  = 100.0 / (double)changedTables.size();
+                double total = 0.0;
+                
                 session.beginTransaction();
                 for (SpLocaleContainer container : changedTables)
                 {
-                    SpLocaleContainer c = session.merge(container);
-                    session.saveOrUpdate(c);
-                    for (SpLocaleItemStr str : c.getNames())
+                    SpLocaleContainer dbContainer = session.merge(container);
+                    session.saveOrUpdate(dbContainer);
+                    for (SpLocaleItemStr str : dbContainer.getNames())
                     {
                         session.saveOrUpdate(session.merge(str));
-                        System.out.println(c.getName()+" - "+str.getText());
+                        //System.out.println(c.getName()+" - "+str.getText());
                     }
-                    for (SpLocaleItemStr str : c.getDescs())
+                    for (SpLocaleItemStr str : dbContainer.getDescs())
                     {
                         session.saveOrUpdate(session.merge(str));
-                        System.out.println(c.getName()+" - "+str.getText());
+                        //System.out.println(c.getName()+" - "+str.getText());
                     }
                     
-                    for (SpLocaleContainerItem item : c.getItems())
+                    for (SpLocaleContainerItem item : dbContainer.getItems())
                     {
                         SpLocaleContainerItem i = session.merge(item);
                         session.saveOrUpdate(i);
@@ -591,18 +647,30 @@ public class SchemaLocalizerDlg extends CustomDialog implements LocalizableIOIFa
                         for (SpLocaleItemStr str : i.getNames())
                         {
                             session.saveOrUpdate(session.merge(str));
-                            System.out.println(i.getName()+" - "+str.getText());
+                            //System.out.println(i.getName()+" - "+str.getText());
                         }
                         
                         for (SpLocaleItemStr str : i.getDescs())
                         {
                             session.saveOrUpdate(session.merge(str));
-                            System.out.println(i.getName()+" - "+str.getText());
+                            //System.out.println(i.getName()+" - "+str.getText());
                         }
+                    }
+                    
+                    total += step;
+                    System.err.println(total+"  "+step);
+                    if (glassPane != null)
+                    {
+                        glassPane.setProgress((int)total);
                     }
                 }
                 session.commit();
                 session.flush();
+                
+                if (glassPane != null)
+                {
+                    glassPane.setProgress(100);
+                }
                 
             } catch (Exception ex)
             {
@@ -631,14 +699,15 @@ public class SchemaLocalizerDlg extends CustomDialog implements LocalizableIOIFa
     /* (non-Javadoc)
      * @see edu.ku.brc.specify.tools.schemalocale.LocalizableIOIFace#containerChanged(edu.ku.brc.specify.tools.schemalocale.LocalizableContainerIFace)
      */
+    @Override
     public void containerChanged(LocalizableContainerIFace container)
     {
         if (container instanceof SpLocaleContainer)
         {
-            if (changedTableHash.get(container.getId().intValue()) == null)
+            if (changedTableHash.get(container.getId()) == null)
             {
                 changedTables.add((SpLocaleContainer)container);
-                changedTableHash.put(container.getId().intValue(), container);
+                changedTableHash.put(container.getId(), container);
             }
         }
     }
@@ -646,6 +715,7 @@ public class SchemaLocalizerDlg extends CustomDialog implements LocalizableIOIFa
     /* (non-Javadoc)
      * @see edu.ku.brc.specify.tools.schemalocale.LocalizableIOIFace#isLocaleInUse(java.util.Locale)
      */
+    @Override
     public boolean isLocaleInUse(final Locale locale)
     {
         // First check the aDatabase because the extra locales are not loaded automatically.
@@ -670,6 +740,7 @@ public class SchemaLocalizerDlg extends CustomDialog implements LocalizableIOIFa
     /* (non-Javadoc)
      * @see edu.ku.brc.specify.tools.schemalocale.LocalizableIOIFace#getLocalesInUse()
      */
+    @Override
     public Vector<Locale> getLocalesInUse()
     {
         Hashtable<String, Boolean> localeHash = new Hashtable<String, Boolean>();
@@ -719,7 +790,14 @@ public class SchemaLocalizerDlg extends CustomDialog implements LocalizableIOIFa
         Session session = HibernateUtil.getNewSession();
         try
         {
-            Query   query = session.createQuery("SELECT DISTINCT nms.language FROM SpLocaleContainer as ctn INNER JOIN ctn.items as itm INNER JOIN itm.names nms WHERE nms.language <> NULL AND ctn.schemaType = "+ schemaType);
+            String sql = "SELECT DISTINCT nms.language FROM SpLocaleContainer as ctn " +
+            	         "INNER JOIN ctn.items as itm " +
+            	         "INNER JOIN itm.names nms " +
+            	         "INNER JOIN ctn.discipline as d " +
+            	         "WHERE d.userGroupScopeId = DSPLNID AND nms.language IS NOT NULL AND ctn.schemaType = "+ schemaType;
+            sql = QueryAdjusterForDomain.getInstance().adjustSQL(sql);
+            log.debug(sql);
+            Query   query = session.createQuery(sql);
             List<?> list  = query.list();
             for (Object lang : list)
             {
@@ -750,65 +828,27 @@ public class SchemaLocalizerDlg extends CustomDialog implements LocalizableIOIFa
         Session session = HibernateUtil.getNewSession();
         try
         {
-            Query   query = session.createQuery("SELECT DISTINCT nms.language FROM SpLocaleContainer as ctn INNER JOIN ctn.items as itm INNER JOIN itm.names nms WHERE nms.language = '"+locale.getLanguage()+"' AND ctn.schemaType = "+ schemaTypeArg);
+            String sql = String.format("SELECT DISTINCT nms.language FROM SpLocaleContainer as ctn " +
+                                       "INNER JOIN ctn.items as itm " +
+                                       "INNER JOIN itm.names nms " +
+                                       "INNER JOIN ctn.discipline as d " +
+                                       "WHERE  d.userGroupScopeId = DSPLNID AND nms.language = '%s' AND ctn.schemaType = %d",
+                                       locale.getLanguage(), schemaTypeArg);
+            sql = QueryAdjusterForDomain.getInstance().adjustSQL(sql);
+            Query   query = session.createQuery(sql);
             List<?> list  = query.list();
             return list.size() > 0;
             
         } catch (Exception ex)
         {
+            ex.printStackTrace();
             edu.ku.brc.af.core.UsageTracker.incrHandledUsageCount();
             edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(SchemaLocalizerDlg.class, ex);
-            ex.printStackTrace();
+            
         } finally
         {
             session.close();
         }
-
- 
-        /*
-        Connection connection = null;
-        Statement stmt        = null;
-        ResultSet rs          = null;
-        try
-        {
-            tableDisplayItems = new Vector<LocalizableJListItem>();
-            
-            connection = DBConnection.getInstance().createConnection();
-            stmt       = connection.createStatement();
-            rs         = stmt.executeQuery("select Language from splocaleitemstr where Country = '"+locale.getLanguage()+"'");
-            
-            return rs.first();
-            
-        } catch (Exception ex)
-        {
-            edu.ku.brc.af.core.UsageTracker.incrHandledUsageCount();
-            edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(SchemaLocalizerDlg.class, ex);
-            ex.printStackTrace();
-            
-        } finally
-        {
-            try
-            {
-                if (rs != null)
-                {
-                    rs.close();
-                }
-                if (stmt != null)
-                {
-                    stmt.close();
-                }
-                if (connection != null)
-                {
-                    connection.close();
-                }
-            } catch (Exception e)
-            {
-                edu.ku.brc.af.core.UsageTracker.incrHandledUsageCount();
-                edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(SchemaLocalizerDlg.class, e);
-                e.printStackTrace();
-            }
-        }
-*/
         return false;
     }
 
@@ -829,9 +869,10 @@ public class SchemaLocalizerDlg extends CustomDialog implements LocalizableIOIFa
      * @param srcLocale
      * @param dstLocale
      */
-    public void copyLocale(final LocalizableItemIFace item, final Locale srcLocale, final Locale dstLocale)
+    public void copyLocale(final LocalizableItemIFace item, 
+                           final Locale srcLocale, 
+                           final Locale dstLocale)
     {
-        item.fillDescs(descsList);
         item.fillNames(namesList);
         
         LocalizableStrIFace srcName = null;
@@ -850,6 +891,7 @@ public class SchemaLocalizerDlg extends CustomDialog implements LocalizableIOIFa
             item.addName(name);
         }
 
+        item.fillDescs(descsList);
         LocalizableStrIFace srcDesc = null;
         for (LocalizableStrIFace d : descsList)
         {
@@ -864,35 +906,56 @@ public class SchemaLocalizerDlg extends CustomDialog implements LocalizableIOIFa
         {
             LocalizableStrIFace desc = localizableStrFactory.create(srcDesc.getText(), dstLocale);
             item.addDesc(desc);
-        }                 
+        } 
     }
 
     /* (non-Javadoc)
-     * @see edu.ku.brc.specify.tools.schemalocale.LocalizableIOIFace#copyLocale(java.util.Locale, java.util.Locale)
+     * @see edu.ku.brc.specify.tools.schemalocale.LocalizableIOIFace#copyLocale(java.util.Locale, java.util.Locale, java.beans.PropertyChangeListener)
      */
-    public void copyLocale(Locale srcLocale, Locale dstLocale)
+    @Override
+    public void copyLocale(final LocalizableIOIFaceListener lcl, 
+                           Locale srcLocale, Locale dstLocale, 
+                           final PropertyChangeListener pcl)
     {
         UIRegistry.getStatusBar().setProgressRange(SCHEMALOCDLG, 0, getContainerDisplayItems().size());
 
         DataProviderSessionIFace session = DataProviderFactory.getInstance().createSession();
         try
         {
+            double step  = 100.0 / (double)tableDisplayItems.size();
+            double total = 0.0;
+            
             for (LocalizableJListItem listItem : tableDisplayItems)
             {
-                SpLocaleContainer container = (SpLocaleContainer)tableHash.get(listItem.getId().intValue());
+                //System.out.println(listItem.getName());
+                
+                SpLocaleContainer container = (SpLocaleContainer)tableHash.get(listItem.getId());
+                if (container == null)
+                {
+                    container = loadTable(session, listItem.getId());
+                    tableHash.put(listItem.getId(), container);
+                }
+                
                 if (container != null)
                 {
                     copyLocale(container, srcLocale, dstLocale);
                     
                     for (LocalizableItemIFace field : container.getItems())
                     {
+                        //System.out.println("  "+field.getName());
                         copyLocale(field, srcLocale, dstLocale);
                     }
+                    containerChanged(container);
                     
+                    if (pcl != null)
+                    {
+                        pcl.propertyChange(new PropertyChangeEvent(this, "progress", total, (int)(total+step)));
+                    }
                 } else
                 {
                     log.error("Couldn't find Container["+listItem.getId()+"]");
                 }
+                total += step;
             }
         } catch (Exception ex)
         {
@@ -905,12 +968,15 @@ public class SchemaLocalizerDlg extends CustomDialog implements LocalizableIOIFa
             UIRegistry.getStatusBar().setProgressDone(SCHEMALOCDLG);
         }
         
+        pcl.propertyChange(new PropertyChangeEvent(this, "progress", 99, 100));
+        
     }
 
     /* (non-Javadoc)
      * @see edu.ku.brc.specify.tools.schemalocale.LocalizableIOIFace#getPickLists(java.lang.String)
      */
     @SuppressWarnings("unchecked")
+    @Override
     public List<PickList> getPickLists(final String disciplineName)
     {
         if (StringUtils.isNotEmpty(disciplineName))
@@ -967,6 +1033,7 @@ public class SchemaLocalizerDlg extends CustomDialog implements LocalizableIOIFa
     /* (non-Javadoc)
      * @see edu.ku.brc.specify.tools.schemalocale.LocalizableIOIFace#exportToDirectory(java.io.File)
      */
+    @Override
     public boolean exportToDirectory(File expportDir)
     {
         throw new RuntimeException("Export is not implemented.");
@@ -975,6 +1042,7 @@ public class SchemaLocalizerDlg extends CustomDialog implements LocalizableIOIFa
     /* (non-Javadoc)
      * @see edu.ku.brc.specify.tools.schemalocale.LocalizableIOIFace#hasUpdatablePickLists()
      */
+    @Override
     public boolean hasUpdatablePickLists()
     {
         return true;
@@ -983,6 +1051,7 @@ public class SchemaLocalizerDlg extends CustomDialog implements LocalizableIOIFa
     /* (non-Javadoc)
      * @see java.beans.PropertyChangeListener#propertyChange(java.beans.PropertyChangeEvent)
      */
+    @Override
     public void propertyChange(PropertyChangeEvent evt)
     {
         if (evt.getPropertyName().equals("copyStart"))
@@ -994,7 +1063,23 @@ public class SchemaLocalizerDlg extends CustomDialog implements LocalizableIOIFa
             enabledDlgBtns(true);
         }
     }
-    
 
 
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.tools.schemalocale.LocalizableIOIFace#exportSingleLanguageToDirectory(java.io.File, java.util.Locale)
+     */
+    @Override
+    public boolean exportSingleLanguageToDirectory(File expportFile, Locale locale)
+    {
+        throw new RuntimeException("Not Impl");
+    }
+
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.tools.schemalocale.LocalizableIOIFace#hasChanged()
+     */
+    @Override
+    public boolean hasChanged()
+    {
+        throw new RuntimeException("Not Impl");
+    }
 }

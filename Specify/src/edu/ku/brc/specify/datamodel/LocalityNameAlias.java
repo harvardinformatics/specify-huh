@@ -47,7 +47,7 @@ import org.hibernate.annotations.Index;
 @org.hibernate.annotations.Table(appliesTo="localitynamealias", indexes =
     {   @Index (name="LocalityNameAliasIDX", columnNames={"Name"})
     })
-public class LocalityNameAlias extends DisciplineMember
+public class LocalityNameAlias extends DisciplineMember implements Cloneable
 {
     
     protected Integer  localityNameAliasId;
@@ -146,7 +146,26 @@ public class LocalityNameAlias extends DisciplineMember
     {
         this.locality = locality;
     }
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.datamodel.DataModelObjBase#getParentTableId()
+     */
+    @Override
+    @Transient
+    public Integer getParentTableId()
+    {
+        return Locality.getClassTableId();
+    }
 
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.datamodel.DataModelObjBase#getParentId()
+     */
+    @Override
+    @Transient
+   public Integer getParentId()
+    {
+        return locality != null ? locality.getId() : null;
+    }
+    
     /* (non-Javadoc)
      * @see edu.ku.brc.specify.datamodel.DataModelObjBase#getDataClass()
      */
@@ -175,6 +194,21 @@ public class LocalityNameAlias extends DisciplineMember
     public int getTableId()
     {
         return getClassTableId();
+    }
+    
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.datamodel.DataModelObjBase#clone()
+     */
+    @Override
+    public Object clone() throws CloneNotSupportedException
+    {
+        LocalityNameAlias lla = (LocalityNameAlias)super.clone();
+        lla.init();
+        
+        lla.localityNameAliasId = null;
+        lla.locality            = null;
+        
+        return lla;
     }
     
     /**

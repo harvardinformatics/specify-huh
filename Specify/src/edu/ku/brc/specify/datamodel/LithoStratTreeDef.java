@@ -20,7 +20,10 @@
 package edu.ku.brc.specify.datamodel;
 
 import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Set;
+import java.util.Vector;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -35,6 +38,8 @@ import javax.persistence.Transient;
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.CascadeType;
 
+import edu.ku.brc.specify.conversion.BasicSQLUtils;
+
 @SuppressWarnings("serial")
 @Entity
 @org.hibernate.annotations.Entity(dynamicInsert=true, dynamicUpdate=true)
@@ -42,6 +47,8 @@ import org.hibernate.annotations.CascadeType;
 @Table(name = "lithostrattreedef")
 public class LithoStratTreeDef extends BaseTreeDef<LithoStrat, LithoStratTreeDef, LithoStratTreeDefItem> implements java.io.Serializable
 {
+
+
 	protected Integer                    lithoStratTreeDefId;
     protected String                     name;
     protected String                     remarks;
@@ -359,6 +366,31 @@ public class LithoStratTreeDef extends BaseTreeDef<LithoStrat, LithoStratTreeDef
 	}
     
     /* (non-Javadoc)
+     * @see edu.ku.brc.specify.datamodel.DataModelObjBase#getParentTableId()
+     */
+    @Override
+    @Transient
+    public Integer getParentTableId()
+    {
+        return Discipline.getClassTableId();
+    }
+
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.datamodel.DataModelObjBase#getParentId()
+     */
+    @Override
+    @Transient
+    public Integer getParentId()
+    {
+        Vector<Object> ids = BasicSQLUtils.querySingleCol("SELECT DisciplineID FROM discipline WHERE LithoStratTreeDefID = "+ lithoStratTreeDefId);
+        if (ids.size() == 1)
+        {
+            return (Integer)ids.get(0);
+        }
+        return null;
+    }
+    
+    /* (non-Javadoc)
      * @see edu.ku.brc.specify.datamodel.TreeDefIface#getSynonymizedLevel()
      */
     @Transient
@@ -395,4 +427,21 @@ public class LithoStratTreeDef extends BaseTreeDef<LithoStrat, LithoStratTreeDef
     {
         return getIdentityTitle();
     }
+    
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.datamodel.BaseTreeDef#getStandardLevels()
+     */
+    @Override
+    @Transient
+    public List<TreeDefItemStandardEntry> getStandardLevels()
+    {
+        List<TreeDefItemStandardEntry> result = new LinkedList<TreeDefItemStandardEntry>();    
+        result.add(new TreeDefItemStandardEntry("LithoStratTreeDef.SuperGroup", 100)); //$NON-NLS-1$
+        result.add(new TreeDefItemStandardEntry("LithoStratTreeDef.Group", 200)); //$NON-NLS-1$
+        result.add(new TreeDefItemStandardEntry("LithoStratTreeDef.Formation", 300)); //$NON-NLS-1$
+        result.add(new TreeDefItemStandardEntry("LithoStratTreeDef.Member", 400)); //$NON-NLS-1$
+        result.add(new TreeDefItemStandardEntry("LithoStratTreeDef.Bed", 500)); //$NON-NLS-1$
+        return result;
+    }
+
 }

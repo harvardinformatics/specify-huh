@@ -21,6 +21,7 @@ package edu.ku.brc.specify.datamodel;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.Vector;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
@@ -35,6 +36,7 @@ import javax.persistence.Table;
 import javax.persistence.Transient;
 
 import edu.ku.brc.af.core.AppContextMgr;
+import edu.ku.brc.specify.conversion.BasicSQLUtils;
 
 /**
  * @author rods
@@ -272,6 +274,38 @@ public class AttributeDef extends DataModelObjBase implements java.io.Serializab
         collectionObjectAttr.setCollectionObject(null);
     }
 
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.datamodel.DataModelObjBase#getParentId()
+     */
+    @Override
+    @Transient
+    public Integer getParentId()
+    {
+        
+        Vector<Object> ids = BasicSQLUtils.querySingleCol("SELECT AttributeDefID FROM collectingeventattr WHERE AttributeDefID = "+ attributeDefId);
+        if (ids.size() == 1)
+        {
+            parentTblId = CollectingEventAttr.getClassTableId();
+            return (Integer)ids.get(0);
+        }
+        
+        ids = BasicSQLUtils.querySingleCol("SELECT AttributeDefID FROM preparationattr WHERE AttributeDefID = "+ attributeDefId);
+        if (ids.size() == 1)
+        {
+            parentTblId = PreparationAttr.getClassTableId();
+            return (Integer)ids.get(0);
+        }
+        
+        ids = BasicSQLUtils.querySingleCol("SELECT AttributeDefID FROM collectionobjectattr WHERE AttributeDefID = "+ attributeDefId);
+        if (ids.size() == 1)
+        {
+            parentTblId = CollectionObjectAttr.getClassTableId();
+            return (Integer)ids.get(0);
+        }
+        parentTblId = null;
+        return null;
+    }
+    
     /* (non-Javadoc)
      * @see edu.ku.brc.ui.forms.FormDataObjIFace#getTableId()
      */

@@ -19,8 +19,17 @@
 */
 package edu.ku.brc.specify.tasks;
 
+import static edu.ku.brc.ui.UIRegistry.askYesNoLocalized;
+import static edu.ku.brc.ui.UIRegistry.displayErrorDlgLocalized;
+import static edu.ku.brc.ui.UIRegistry.displayInfoMsgDlgLocalized;
+import static edu.ku.brc.ui.UIRegistry.forceTopFrameRepaint;
 import static edu.ku.brc.ui.UIRegistry.getLocalizedMessage;
+import static edu.ku.brc.ui.UIRegistry.getMostRecentWindow;
 import static edu.ku.brc.ui.UIRegistry.getResourceString;
+import static edu.ku.brc.ui.UIRegistry.getStatusBar;
+import static edu.ku.brc.ui.UIRegistry.getTopWindow;
+import static edu.ku.brc.ui.UIRegistry.showLocalizedMsg;
+import static edu.ku.brc.specify.tasks.services.PickListUtils.*;
 
 import java.awt.Frame;
 import java.awt.datatransfer.DataFlavor;
@@ -29,14 +38,15 @@ import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.io.File;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Vector;
 
+import javax.swing.JComponent;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
@@ -58,9 +68,11 @@ import edu.ku.brc.af.core.NavBox;
 import edu.ku.brc.af.core.NavBoxButton;
 import edu.ku.brc.af.core.NavBoxItemIFace;
 import edu.ku.brc.af.core.NavBoxMgr;
+import edu.ku.brc.af.core.SchemaI18NService;
 import edu.ku.brc.af.core.SubPaneIFace;
 import edu.ku.brc.af.core.SubPaneMgr;
 import edu.ku.brc.af.core.TaskMgr;
+import edu.ku.brc.af.core.ToolBarItemDesc;
 import edu.ku.brc.af.core.UsageTracker;
 import edu.ku.brc.af.core.db.DBTableIdMgr;
 import edu.ku.brc.af.core.db.DBTableInfo;
@@ -69,21 +81,26 @@ import edu.ku.brc.af.prefs.AppPreferences;
 import edu.ku.brc.af.tasks.subpane.DroppableFormObject;
 import edu.ku.brc.af.tasks.subpane.DroppableTaskPane;
 import edu.ku.brc.af.tasks.subpane.FormPane;
-import edu.ku.brc.af.tasks.subpane.SimpleDescPane;
 import edu.ku.brc.af.tasks.subpane.FormPane.FormPaneAdjusterIFace;
-import edu.ku.brc.af.ui.db.ViewBasedDisplayDialog;
+import edu.ku.brc.af.tasks.subpane.SimpleDescPane;
 import edu.ku.brc.af.ui.forms.BusinessRulesOkDeleteIFace;
+import edu.ku.brc.af.ui.forms.CollapsableSepExtraCompFactory;
 import edu.ku.brc.af.ui.forms.FormViewObj;
 import edu.ku.brc.af.ui.forms.MultiView;
+import edu.ku.brc.af.ui.forms.formatters.QueryComboboxEditor;
 import edu.ku.brc.af.ui.forms.persist.ViewIFace;
+import edu.ku.brc.af.ui.forms.validation.TypeSearchForQueryFactory;
 import edu.ku.brc.af.ui.weblink.WebLinkConfigDlg;
 import edu.ku.brc.af.ui.weblink.WebLinkMgr;
 import edu.ku.brc.dbsupport.DataProviderFactory;
 import edu.ku.brc.dbsupport.DataProviderSessionIFace;
 import edu.ku.brc.helpers.SwingWorker;
+import edu.ku.brc.helpers.XMLHelper;
 import edu.ku.brc.specify.SpecifyUserTypes.UserType;
 import edu.ku.brc.specify.config.ResourceImportExportDlg;
 import edu.ku.brc.specify.config.SpecifyAppContextMgr;
+import edu.ku.brc.specify.conversion.BasicSQLUtils;
+import edu.ku.brc.specify.datamodel.Collection;
 import edu.ku.brc.specify.datamodel.Discipline;
 import edu.ku.brc.specify.datamodel.Division;
 import edu.ku.brc.specify.datamodel.Institution;
@@ -92,16 +109,18 @@ import edu.ku.brc.specify.datamodel.PrepType;
 import edu.ku.brc.specify.datamodel.SpLocaleContainer;
 import edu.ku.brc.specify.datamodel.SpecifyUser;
 import edu.ku.brc.specify.datamodel.busrules.PickListBusRules;
+import edu.ku.brc.specify.tasks.services.PickListUtils;
 import edu.ku.brc.specify.tools.schemalocale.PickListEditorDlg;
 import edu.ku.brc.specify.tools.schemalocale.SchemaToolsDlg;
-import edu.ku.brc.specify.ui.NumberingSchemeDlg;
+import edu.ku.brc.specify.utilapps.BuildSampleDatabase;
+import edu.ku.brc.specify.utilapps.BuildSampleDatabase.UpdateType;
+import edu.ku.brc.ui.ChooseFromListDlg;
 import edu.ku.brc.ui.CommandAction;
 import edu.ku.brc.ui.CommandDispatcher;
 import edu.ku.brc.ui.CustomDialog;
 import edu.ku.brc.ui.IconManager;
 import edu.ku.brc.ui.RolloverCommand;
 import edu.ku.brc.ui.UIHelper;
-import edu.ku.brc.ui.UIRegistry;
 import edu.ku.brc.ui.dnd.Trash;
 import edu.ku.brc.util.Pair;
 
@@ -121,6 +140,9 @@ public class SystemSetupTask extends BaseTask implements FormPaneAdjusterIFace, 
     private static final String RESIMPORTEXPORT_SECURITY = "RESIMPORTEXPORT";
     private static final String SCHEMACONFIG_SECURITY    = "SCHEMACONFIG";
     private static final String WBSCHEMACONFIG_SECURITY  = "WBSCHEMACONFIG";
+    private static final String CANCELLED                = "_Cancelled_";
+    private static final String PICKLIST                 = "PickList";
+    
     
     public static final String     SYSTEMSETUPTASK        = "SystemSetup";
     public static final DataFlavor SYSTEMSETUPTASK_FLAVOR = new DataFlavor(SystemSetupTask.class, SYSTEMSETUPTASK);
@@ -197,18 +219,39 @@ public class SystemSetupTask extends BaseTask implements FormPaneAdjusterIFace, 
             
             NavBox collNavBox = new NavBox(getResourceString("COLL_DATA_OBJECTS"));
             createSysNavBtn(collNavBox, PrepType.getClassTableId(), true);
-            collNavBox.add(NavBox.createBtnWithTT(getResourceString("PICKLIST_EDITOR"), "PickList", "", IconManager.STD_ICON_SIZE, new ActionListener() {
+            collNavBox.add(NavBox.createBtnWithTT(getResourceString("PICKLIST_EDITOR"), PICKLIST, "", IconManager.STD_ICON_SIZE, new ActionListener() {
                 public void actionPerformed(ActionEvent e)
                 {
-                    PickListEditorDlg dlg = new PickListEditorDlg(null, true);
+                    PickListEditorDlg dlg = new PickListEditorDlg(null, false, false);
                     dlg.createUI();
                     dlg.setSize(400,500);
                     dlg.setVisible(true);
                 }
             })); 
+            
+            String title = getResourceString(getI18n("PL_EXPORT"));
+            collNavBox.add(NavBox.createBtnWithTT(title, PICKLIST, "", IconManager.STD_ICON_SIZE, new ActionListener() {
+                public void actionPerformed(ActionEvent e)
+                {
+                    PickListUtils.exportPickList(null, null);
+                }
+            })); 
+
+            title = getResourceString(getI18n("PL_IMPORT"));
+            collNavBox.add(NavBox.createBtnWithTT(title, PICKLIST, "", IconManager.STD_ICON_SIZE, new ActionListener() {
+                public void actionPerformed(ActionEvent e)
+                {
+                    Collection collection = PickListUtils.getCollectionFromAppContext();
+                    if (PickListUtils.importPickLists(null, collection))
+                    {
+                        AppContextMgr.getInstance().setClassObject(Collection.class, collection);
+                    }
+                }
+            })); 
+
             navBoxes.add(collNavBox);
             
-            if (AppPreferences.getLocalPrefs().getBoolean("debug.menu", false))
+            /*if (AppPreferences.getLocalPrefs().getBoolean("debug.menu", false))
             {
                 collNavBox.add(NavBox.createBtnWithTT(getResourceString("ANS_EDITOR"), "AutoNumberingScheme", "", IconManager.STD_ICON_SIZE, new ActionListener() {
                     public void actionPerformed(ActionEvent e)
@@ -220,7 +263,7 @@ public class SystemSetupTask extends BaseTask implements FormPaneAdjusterIFace, 
                     }
                 })); 
                 navBoxes.add(collNavBox);
-            }
+            }*/
             
             
         }
@@ -289,29 +332,30 @@ public class SystemSetupTask extends BaseTask implements FormPaneAdjusterIFace, 
      * Adds a new PickList to the NavBox Container.
      * @param pickList the new pickList
      */
-    protected void addPickList(final PickList pickList, final boolean isNew)
+    protected void addPickList(final PickList pickList, @SuppressWarnings("unused") final boolean isNew)
     {
         final String nameStr  = pickList.getName();
         
+        @SuppressWarnings("unused")
         RolloverCommand roc;
         if (pickList.getIsSystem())
         {
-            roc = (RolloverCommand)NavBox.createBtnWithTT(nameStr, "PickList", "", IconManager.STD_ICON_SIZE, new ActionListener() {
+            roc = (RolloverCommand)NavBox.createBtnWithTT(nameStr, PICKLIST, "", IconManager.STD_ICON_SIZE, new ActionListener() {
                 public void actionPerformed(ActionEvent e)
                 {
-                    startEditor(edu.ku.brc.specify.datamodel.PickList.class, "name", nameStr, name, "PickList");
+                    startEditor(edu.ku.brc.specify.datamodel.PickList.class, "name", nameStr, name, PICKLIST);
                 }
             });
         } /*else
         {
-            roc = (RolloverCommand)makeDnDNavBtn(navBox, nameStr, "PickList", null, 
+            roc = (RolloverCommand)makeDnDNavBtn(navBox, nameStr, PICKLIST, null, 
                 new CommandAction(SYSTEMSETUPTASK, DELETE_CMD_ACT, pickList.getPickListId()), 
                 true, true);// true means make it draggable
         
             roc.addActionListener(new ActionListener() {
                 public void actionPerformed(ActionEvent e)
                 {
-                    startEditor(edu.ku.brc.specify.datamodel.PickList.class, "name", nameStr, name, "PickList");
+                    startEditor(edu.ku.brc.specify.datamodel.PickList.class, "name", nameStr, name, PICKLIST);
                 }
             });
             roc.addDragDataFlavor(Trash.TRASH_FLAVOR);
@@ -340,7 +384,7 @@ public class SystemSetupTask extends BaseTask implements FormPaneAdjusterIFace, 
         {
             final JPopupMenu popupMenu = new JPopupMenu();
             
-            JMenuItem delMenuItem = new JMenuItem(UIRegistry.getResourceString("Delete"));
+            JMenuItem delMenuItem = new JMenuItem(getResourceString("Delete"));
             if (!pickList.getIsSystem())
             {
                 delMenuItem.addActionListener(new ActionListener() {
@@ -354,10 +398,10 @@ public class SystemSetupTask extends BaseTask implements FormPaneAdjusterIFace, 
             }
             popupMenu.add(delMenuItem);
             
-            JMenuItem viewMenuItem = new JMenuItem(UIRegistry.getResourceString("EDIT"));
+            JMenuItem viewMenuItem = new JMenuItem(getResourceString("EDIT"));
             viewMenuItem.addActionListener(new ActionListener() {
                 public void actionPerformed(ActionEvent actionEvent) {
-                    startEditor(edu.ku.brc.specify.datamodel.PickList.class, "name",  roc.getName(), roc.getName(), "PickList");
+                    startEditor(edu.ku.brc.specify.datamodel.PickList.class, "name",  roc.getName(), roc.getName(), PICKLIST);
                 }
               });
             popupMenu.add(viewMenuItem);
@@ -412,9 +456,9 @@ public class SystemSetupTask extends BaseTask implements FormPaneAdjusterIFace, 
             if (uiComp instanceof FormPane)
             {
                 Object dataObj = ((FormPane)uiComp).getData();
-                if (dataObj instanceof Collection<?>)
+                if (dataObj instanceof java.util.Collection<?>)
                 {
-                    Collection<?> collection = (Collection<?>)dataObj;
+                    java.util.Collection<?> collection = (java.util.Collection<?>)dataObj;
                     if (collection.size() > 0)
                     {
                         dataObj = collection.iterator().next();
@@ -536,8 +580,11 @@ public class SystemSetupTask extends BaseTask implements FormPaneAdjusterIFace, 
             
             if (dataItems != null)
             {
-                ViewIFace view = AppContextMgr.getInstance().getView("SystemSetup", viewName);
-                
+                ViewIFace view = AppContextMgr.getInstance().getView("Common", viewName);
+                if (view == null)
+                {
+                    view = AppContextMgr.getInstance().getView(null, viewName);
+                }
                 formPane = createFormPanel(tiTitle, 
                                             view.getViewSetName(), 
                                             view.getName(), 
@@ -660,10 +707,10 @@ public class SystemSetupTask extends BaseTask implements FormPaneAdjusterIFace, 
             
             if (dataItems != null)
             {
-                if (false)
+                /*if (false)
                 {
                     //DBTableInfo tableInfo = DBTableIdMgr.getInstance().getByShortClassName(clazz.getSimpleName());
-                    ViewBasedDisplayDialog dlg = new ViewBasedDisplayDialog((Frame)UIRegistry.getTopWindow(),
+                    ViewBasedDisplayDialog dlg = new ViewBasedDisplayDialog((Frame)getTopWindow(),
                             "SystemSetup",
                             viewName,
                             null, // displayName
@@ -683,10 +730,10 @@ public class SystemSetupTask extends BaseTask implements FormPaneAdjusterIFace, 
                     dlg.setWhichBtns(CustomDialog.OK_BTN);
                     dlg.setData(dataItems);
                     UIHelper.centerAndShow(dlg);
-                } else
+                } else*/
                 {
                     FormPane     pane = new FormPane(tableInfo.getTitle(), this, "SystemSetup", viewName, "edit", null, MultiView.RESULTSET_CONTROLLER, null); // not new data object
-                    CustomDialog dlg  = new CustomDialog((Frame)UIRegistry.getTopWindow(), tableInfo.getTitle(), true, pane);
+                    CustomDialog dlg  = new CustomDialog((Frame)getTopWindow(), tableInfo.getTitle(), true, pane);
                     dlg.setWhichBtns(CustomDialog.OK_BTN);
                     dlg.setOkLabel(getResourceString("CLOSE"));
                     pane.getMultiView().setData(dataItems);
@@ -775,7 +822,7 @@ public class SystemSetupTask extends BaseTask implements FormPaneAdjusterIFace, 
             NavBoxMgr.getInstance().invalidate();
             NavBoxMgr.getInstance().doLayout();
             NavBoxMgr.getInstance().repaint();
-            UIRegistry.forceTopFrameRepaint();
+            forceTopFrameRepaint();
         }
     }
     
@@ -795,9 +842,9 @@ public class SystemSetupTask extends BaseTask implements FormPaneAdjusterIFace, 
             
             UsageTracker.incrUsageCount("SS.SCHEMACFG");
             
-            UIRegistry.getStatusBar().setIndeterminate(SYSTEMSETUPTASK, true);
-            UIRegistry.getStatusBar().setText(getResourceString(getI18NKey("LOADING_LOCALES"))); //$NON-NLS-1$
-            UIRegistry.getStatusBar().repaint();
+            getStatusBar().setIndeterminate(SYSTEMSETUPTASK, true);
+            getStatusBar().setText(getResourceString(getI18NKey("LOADING_LOCALES"))); //$NON-NLS-1$
+            getStatusBar().repaint();
             
             SwingWorker workerThread = new SwingWorker()
             {
@@ -811,10 +858,12 @@ public class SystemSetupTask extends BaseTask implements FormPaneAdjusterIFace, 
                 @Override
                 public void finished()
                 {
-                    UIRegistry.getStatusBar().setText(""); //$NON-NLS-1$
-                    UIRegistry.getStatusBar().setProgressDone(SYSTEMSETUPTASK);
+                    getStatusBar().setText(""); //$NON-NLS-1$
+                    getStatusBar().setProgressDone(SYSTEMSETUPTASK);
                     
-                    SchemaToolsDlg dlg = new SchemaToolsDlg((Frame)UIRegistry.getTopWindow(), schemaType, tableMgr);
+                    JComponent videoBtn = CollapsableSepExtraCompFactory.getInstance().getComponent("Schema", "Config");
+                    SchemaToolsDlg dlg = new SchemaToolsDlg((Frame)getTopWindow(), schemaType, tableMgr);
+                    dlg.setExtraBtn(videoBtn);
                     dlg.setVisible(true);
                     if (!dlg.isCancelled())
                     {
@@ -842,14 +891,47 @@ public class SystemSetupTask extends BaseTask implements FormPaneAdjusterIFace, 
             Object[] options = { getResourceString("CONTINUE"),  //$NON-NLS-1$
                                  getResourceString("CANCEL")  //$NON-NLS-1$
                   };
-            return JOptionPane.YES_OPTION == JOptionPane.showOptionDialog(UIRegistry.getTopWindow(), 
+            return JOptionPane.YES_OPTION == JOptionPane.showOptionDialog(getTopWindow(), 
                                                              getLocalizedMessage(getI18NKey("REI_MSG")),  //$NON-NLS-1$
                                                              getResourceString(getI18NKey("REI_TITLE")),  //$NON-NLS-1$
                                                              JOptionPane.YES_NO_OPTION,
                                                              JOptionPane.QUESTION_MESSAGE, null, options, options[0]);
         }
         return false;
-
+    }
+    
+    /**
+     * @return the User Name who will get the resources imported into
+     */
+    protected String pickUserName()
+    {
+        Division division = AppContextMgr.getInstance().getClassObject(Division.class);
+        String currUserName = (AppContextMgr.getInstance().getClassObject(SpecifyUser.class)).getName();
+        String postSQL      = String.format(" FROM specifyuser su INNER JOIN agent a ON su.SpecifyUserID = a.SpecifyUserID " +
+                                            "INNER JOIN division d ON a.DivisionID = d.UserGroupScopeId " +
+                                            "WHERE su.Name <> '%s' AND d.UserGroupScopeId = %d", currUserName, division.getId());
+        
+        int count = BasicSQLUtils.getCountAsInt("SELECT COUNT(*) "+postSQL);
+        if (count == 0)
+        {
+            return null;
+        }
+        
+        int choice = askYesNoLocalized("SYSSTP_CHSE_ME", "SYSSTP_CHSE_DIF", getResourceString("SYSSTP_CHSE_USER"), "SYSSTP_CHSE_USER_TITLE");
+        if (choice == JOptionPane.YES_OPTION)
+        {
+            return null; // null means choose the current user
+        }
+        
+        Vector<Object> names = BasicSQLUtils.querySingleCol("SELECT su.Name " + postSQL); 
+        if (names.size() == 1)
+        {
+            return names.get(0).toString();
+        }
+        
+        ChooseFromListDlg<Object> dlg = new ChooseFromListDlg<Object>((Frame)getMostRecentWindow(), getResourceString("SYSSTP_CHSE_USER_TITLE"), names);
+        UIHelper.centerAndShow(dlg);
+        return !dlg.isCancelled() ? dlg.getSelectedObject().toString() : CANCELLED;
     }
 
     /**
@@ -859,11 +941,22 @@ public class SystemSetupTask extends BaseTask implements FormPaneAdjusterIFace, 
     {
         if (askBeforeStartingTool())
         {
-            ResourceImportExportDlg dlg = new ResourceImportExportDlg();
+            String userName = pickUserName();
+            if (userName != null && userName.equals(CANCELLED))
+            {
+                return;
+            }
+            
+            if (userName == null)
+            {
+                userName = AppContextMgr.getInstance().getClassObject(SpecifyUser.class).getName();
+            }
+            
+            ResourceImportExportDlg dlg = new ResourceImportExportDlg((SpecifyAppContextMgr)AppContextMgr.getInstance(), userName);
             dlg.setVisible(true);
             if (dlg.hasChanged())
             {
-                UIRegistry.showLocalizedMsg("Specify.ABT_EXIT");
+                showLocalizedMsg("Specify.ABT_EXIT");
                 CommandDispatcher.dispatch(new CommandAction(APP_CMD_TYPE, APP_REQ_EXIT));
                 
             } else
@@ -874,20 +967,23 @@ public class SystemSetupTask extends BaseTask implements FormPaneAdjusterIFace, 
     }
 
     
+    /**
+     * @param tree
+     */
     protected void doTreeUpdate(final BaseTreeTask<?,?,?> tree)
     {
         try
         {
-        	boolean success = tree.getCurrentTreeDef().updateAllNodeNumbers(null, true); //true forces a progress dialog. 
+        	boolean success = tree.getCurrentTreeDef().updateAllNodes(null, true, false); //true forces a progress dialog. 
         															   //Currently can't get WriteGlassPane working in this context.(???)
         	if (success)
         	{
-        		UIRegistry.displayInfoMsgDlgLocalized("SystemSetupTask.TREE_UPDATE_SUCCESS", tree.getTitle());
+        		displayInfoMsgDlgLocalized("SystemSetupTask.TREE_UPDATE_SUCCESS", tree.getTitle());
         	}
         }
         catch (Exception ex)
         {
-        	UIRegistry.displayErrorDlgLocalized("SystemSetupTask.TREE_UPDATE_DISASTER", tree.getTitle());
+        	displayErrorDlgLocalized("SystemSetupTask.TREE_UPDATE_DISASTER", tree.getTitle());
             UsageTracker.incrHandledUsageCount();
             edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(SystemSetupTask.class, ex);
         }
@@ -944,89 +1040,83 @@ public class SystemSetupTask extends BaseTask implements FormPaneAdjusterIFace, 
      */
     public List<MenuItemDesc> getMenuItems()
     {
-        final String COLSETUP_MENU   = "Specify.COLSETUP_MENU";
+        final String COLSETUP_MENU    = "Specify.COLSETUP_MENU";
         final String TREES_MENU       = "Specify.TREES_MENU";
-        final String SYSTEM_MENU     = "Specify.SYSTEM_MENU";
-        final String FULL_SYSTEM_MENU = SYSTEM_MENU + "/" + COLSETUP_MENU;
-        final String FULL_TREE_MENU  = SYSTEM_MENU + "/" + TREES_MENU;
+        final String SYSTEM_MENU      = "Specify.SYSTEM_MENU";
+        final String FULL_SYSTEM_MENU  = SYSTEM_MENU + "/" + COLSETUP_MENU;
+        final String FULL_TREE_MENU   = SYSTEM_MENU + "/" + TREES_MENU;
         SecurityMgr secMgr = SecurityMgr.getInstance();
         
         menuItems = new Vector<MenuItemDesc>();
         
         MenuItemDesc mid;
-        /*mid = createDataObjEditMenu(edu.ku.brc.specify.datamodel.Collection.class, "", FULL_SYSTEM_MENU);
+        String       titleArg; 
+        String       mneu; 
+        JMenuItem    mi;
+        
+        String menuDesc = getResourceString(TREES_MENU);
+        
+        
+        JMenu formsMenu = UIHelper.createLocalizedMenu("Specify.FORMS_MENU", "Specify.FORMS_MNEU"); //$NON-NLS-1$ //$NON-NLS-2$
+        mid = new MenuItemDesc(formsMenu, SYSTEM_MENU);
+        mid.setPosition(MenuItemDesc.Position.Top, menuDesc);
         mid.setSepPosition(MenuItemDesc.Position.After);
         menuItems.add(mid);
-        menuItems.add(createDataObjEditMenu(Discipline.class,  "", FULL_SYSTEM_MENU));
-        menuItems.add(createDataObjEditMenu(Division.class,    "", FULL_SYSTEM_MENU));
-        menuItems.add(createDataObjEditMenu(Institution.class, "", FULL_SYSTEM_MENU));
-        */
         
-        String    titleArg; 
-        String    mneu; 
-        JMenuItem mi;
-        String    menuDesc = getResourceString(TREES_MENU);
+        JMenu treesMenu = UIHelper.createLocalizedMenu("Specify.TREES_MENU", "Specify.TREES_MNEU"); //$NON-NLS-1$ //$NON-NLS-2$
+        mid = new MenuItemDesc(treesMenu, SYSTEM_MENU);
+        mid.setPosition(MenuItemDesc.Position.Top, menuDesc);
+        menuItems.add(mid);
         
-//      Implementing wb schema config in next release  
-//        if (!AppContextMgr.isSecurityOn() || 
-//            (secMgr.getPermission(WBSCHEMACONFIG_SECURITY) != null && 
-//             secMgr.getPermission(WBSCHEMACONFIG_SECURITY).canAdd()))
-//        {
-//            titleArg = getI18NKey("WBSCHEMA_CONFIG_MENU"); //$NON-NLS-1$
-//            mneu     = getI18NKey("WBSCHEMA_CONFIG_MNU");  //$NON-NLS-1$
-//            mi       = UIHelper.createLocalizedMenuItem(titleArg, mneu, titleArg, true, null); 
-//            mi.addActionListener(new ActionListener()
-//                    {
-//                        public void actionPerformed(ActionEvent ae)
-//                        {
-//                            DBTableIdMgr schema = new DBTableIdMgr(false);
-//                            schema.initialize(new File(XMLHelper.getConfigDirPath("specify_workbench_datamodel.xml"))); //$NON-NLS-1$
-//                            doSchemaConfig(SpLocaleContainer.WORKBENCH_SCHEMA, schema);
-//                        }
-//                    });
-//            mid = new MenuItemDesc(mi, SYSTEM_MENU);
-//            mid.setPosition(MenuItemDesc.Position.After, menuDesc);
-//            menuItems.add(mid);
-//        }
+        JMenu setupMenu = UIHelper.createLocalizedMenu("Specify.COLSETUP_MENU", "Specify.COLSETUP_MNEU"); //$NON-NLS-1$ //$NON-NLS-2$
+        mid = new MenuItemDesc(setupMenu, SYSTEM_MENU);
+        mid.setPosition(MenuItemDesc.Position.Top, menuDesc);
+        menuItems.add(mid);
         
-        if (!AppContextMgr.isSecurityOn()
-				|| SpecifyUser.isCurrentUserType(UserType.Manager))
+        if (!AppContextMgr.isSecurityOn() ||
+            (getPermissions() != null && getPermissions().canAdd()))
+        {
+            titleArg = getI18NKey("COLL_CONFIG");
+            mneu = getI18NKey("COLL_CONFIG_MNEU");
+            mi = UIHelper.createLocalizedMenuItem(titleArg, mneu, titleArg, true, null);
+            mi.addActionListener(new ActionListener()
+            {
+                public void actionPerformed(ActionEvent ae)
+                {
+                    SystemSetupTask.this.requestContext();
+                }
+            });
+            mid = new MenuItemDesc(mi, FULL_SYSTEM_MENU);
+            mid.setPosition(MenuItemDesc.Position.Top, FULL_SYSTEM_MENU);
+            menuItems.add(mid);
+        }
+        
+        if (!AppContextMgr.isSecurityOn() || SpecifyUser.isCurrentUserType(UserType.Manager))
 		{
 			Vector<BaseTreeTask<?,?,?>> trees = new Vector<BaseTreeTask<?,?,?>>(TreeTaskMgr.getInstance().getTreeTasks());
 			Collections.sort(trees, new Comparator<BaseTreeTask<?,?,?>>(){
-
-				/* (non-Javadoc)
-				 * @see java.util.Comparator#compare(java.lang.Object, java.lang.Object)
-				 */
 				@Override
-				public int compare(BaseTreeTask<?, ?, ?> arg0,
-						BaseTreeTask<?, ?, ?> arg1)
+				public int compare(BaseTreeTask<?, ?, ?> arg0, BaseTreeTask<?, ?, ?> arg1)
 				{
 					return arg0.getTitle().compareTo(arg1.getTitle());
 				}
-				
 			});
+			
         	for (final BaseTreeTask<?, ?, ?> tree : trees)
 			{
 				titleArg = getResourceString(getI18NKey("Tree_MENU")) + " " + tree.getTitle(); //$NON-NLS-1$
-				mneu = getI18NKey("Trees_MNU"); //$NON-NLS-1$
-				mi = UIHelper.createMenuItemWithAction((JMenu) null, titleArg,
-						mneu, titleArg, true, null);
+				mneu     = getI18NKey("Trees_MNU"); //$NON-NLS-1$
+				mi       = UIHelper.createMenuItemWithAction((JMenu) null, titleArg, mneu, titleArg, true, null);
 				mi.addActionListener(new ActionListener() {
 					public void actionPerformed(ActionEvent ae)
 					{
-						SwingUtilities.invokeLater(new Runnable(){
-
-							/* (non-Javadoc)
-							 * @see java.lang.Runnable#run()
-							 */
+						SwingUtilities.invokeLater(new Runnable() {
 							@Override
 							public void run()
 							{
 								doTreeUpdate(tree);							
 							}
 						});
-						
 					}
 				});
 				mi.setVisible(tree.isTreeOnByDefault());
@@ -1038,66 +1128,171 @@ public class SystemSetupTask extends BaseTask implements FormPaneAdjusterIFace, 
 			}
 		}
 		
-        
-        
+        String securityName = buildTaskPermissionName(RESIMPORTEXPORT_SECURITY);
         if (!AppContextMgr.isSecurityOn() || 
-            (secMgr.getPermission(RESIMPORTEXPORT_SECURITY) != null && 
-             !secMgr.getPermission(RESIMPORTEXPORT_SECURITY).hasNoPerm()))
+            (secMgr.getPermission(securityName) != null && 
+             !secMgr.getPermission(securityName).hasNoPerm()))
         {
             titleArg = getI18NKey("RIE_MENU"); //$NON-NLS-1$
             mneu     = getI18NKey("RIE_MNU");  //$NON-NLS-1$
             mi       = UIHelper.createLocalizedMenuItem(titleArg, mneu, titleArg, true, null); 
             mi.addActionListener(new ActionListener()
-                    {
-                        public void actionPerformed(ActionEvent ae)
-                        {
-                            doResourceImportExport();
-                        }
-                    });
-            mid = new MenuItemDesc(mi, SYSTEM_MENU);
-            mid.setPosition(MenuItemDesc.Position.After, menuDesc);
-            menuItems.add(mid);
-        }
-        
-        if (!AppContextMgr.isSecurityOn() || 
-            (secMgr.getPermission(SCHEMACONFIG_SECURITY) != null && 
-             secMgr.getPermission(SCHEMACONFIG_SECURITY).canAdd()))
-        {
-            titleArg = getI18NKey("SCHEMA_CONFIG_MENU"); //$NON-NLS-1$
-            mneu = getI18NKey("SCHEMA_CONFIG_MNU");  //$NON-NLS-1$
-            mi = UIHelper.createLocalizedMenuItem(titleArg, mneu, titleArg, true, null);
-            mi.addActionListener(new ActionListener()
-                    {
-                        public void actionPerformed(ActionEvent ae)
-                        {
-                        	doSchemaConfig(SpLocaleContainer.CORE_SCHEMA, DBTableIdMgr.getInstance());
-                        }
-                    });
-            mid = new MenuItemDesc(mi, SYSTEM_MENU);
-            mid.setPosition(MenuItemDesc.Position.After, menuDesc);
-            menuItems.add(mid);
-        }
-        
-        if (!AppContextMgr.isSecurityOn() || 
-             (getPermissions() != null && getPermissions().canAdd()))
-        {
-            titleArg = getI18NKey("COLL_CONFIG"); 
-            mneu     = getI18NKey("COLL_CONFIG_MNEU"); 
-            mi = UIHelper.createLocalizedMenuItem(titleArg, mneu, titleArg, true, null);
-            mi.addActionListener(new ActionListener()
             {
+                @Override
                 public void actionPerformed(ActionEvent ae)
                 {
-                	SystemSetupTask.this.requestContext();
+                    doResourceImportExport();
                 }
-            }); 
-            mid = new MenuItemDesc(mi, FULL_SYSTEM_MENU);
-            mid.setPosition(MenuItemDesc.Position.Top, FULL_SYSTEM_MENU);
+            });
+            mid = new MenuItemDesc(mi, SYSTEM_MENU);
+            mid.setPosition(MenuItemDesc.Position.Bottom, menuDesc);
+            mid.setSepPosition(MenuItemDesc.Position.After);
+            menuItems.add(mid);
+        }
+        
+        securityName = buildTaskPermissionName(SCHEMACONFIG_SECURITY);
+        if (!AppContextMgr.isSecurityOn() || 
+            (secMgr.getPermission(securityName) != null && 
+             secMgr.getPermission(securityName).canView()))
+        {
+            titleArg = getI18NKey("SCHEMA_CONFIG_MENU"); //$NON-NLS-1$
+            mneu     = getI18NKey("SCHEMA_CONFIG_MNU");  //$NON-NLS-1$
+            mi       = UIHelper.createLocalizedMenuItem(titleArg, mneu, titleArg, true, null);
+            mi.addActionListener(new ActionListener()
+            {
+                @Override
+                public void actionPerformed(ActionEvent ae)
+                {
+                	doSchemaConfig(SpLocaleContainer.CORE_SCHEMA, DBTableIdMgr.getInstance());
+                }
+            });
+            mid = new MenuItemDesc(mi, SYSTEM_MENU);
+            mid.setPosition(MenuItemDesc.Position.Bottom);
+            menuItems.add(mid);
+            
+            AppPreferences localPrefs = AppPreferences.getLocalPrefs();
+            if (localPrefs.getBoolean("QCBX_EDITOR", false))
+            {
+	            menuDesc = getResourceString(titleArg);
+	            titleArg = getI18NKey("QCBXEDITOR_MENU"); 
+	            mneu     = getI18NKey("QCBXEDITOR_MNEU"); 
+	            mi = UIHelper.createLocalizedMenuItem(titleArg, mneu, titleArg, true, null);
+	            mi.addActionListener(new ActionListener()
+	            {
+	                @Override
+	                public void actionPerformed(ActionEvent ae)
+	                {
+	                    TypeSearchForQueryFactory.getInstance().save();
+	                    
+	                    QueryComboboxEditor tse = new QueryComboboxEditor();
+	                    UIHelper.centerAndShow(tse);
+	                }
+	            }); 
+	            mid = new MenuItemDesc(mi, SYSTEM_MENU);
+	            mid.setPosition(MenuItemDesc.Position.Bottom);
+	            menuItems.add(mid);
+            }
+        }
+        
+        
+        if (!AppContextMgr.isSecurityOn() || 
+            (secMgr.getPermission(WBSCHEMACONFIG_SECURITY) != null && 
+             secMgr.getPermission(WBSCHEMACONFIG_SECURITY).canAdd()))
+        {
+            titleArg = getI18NKey("WBSCHEMA_CONFIG_MENU"); //$NON-NLS-1$
+            mneu     = getI18NKey("WBSCHEMA_CONFIG_MNU");  //$NON-NLS-1$
+            mi       = UIHelper.createLocalizedMenuItem(titleArg, mneu, titleArg, true, null); 
+            mi.addActionListener(new ActionListener()
+            {
+                @Override
+                public void actionPerformed(ActionEvent ae)
+                {
+                    doWorkBenchSchemaConfig();
+                }
+            });
+            mid = new MenuItemDesc(mi, SYSTEM_MENU);
+            mid.setPosition(MenuItemDesc.Position.Bottom, menuDesc);
             menuItems.add(mid);
         }
         
         return menuItems;
     }
+    
+    /**
+     * 
+     */
+    private void doWorkBenchSchemaConfig()
+    {
+        final DBTableIdMgr tableMgr = new DBTableIdMgr(false);
+        tableMgr.initialize(new File(XMLHelper.getConfigDirPath("specify_workbench_datamodel.xml"))); //$NON-NLS-1$
+        
+        final Discipline discipline = AppContextMgr.getInstance().getClassObject(Discipline.class);
+        String           sql        = String.format("SELECT COUNT(*) FROM splocalecontainer WHERE DisciplineID = %d AND SchemaType = %d", discipline.getId(), SpLocaleContainer.WORKBENCH_SCHEMA);
+        int containerCnt = BasicSQLUtils.getCountAsInt(sql);
+        if (containerCnt == 0)
+        {
+            getStatusBar().setIndeterminate(SYSTEMSETUPTASK, true);
+            final SwingWorker worker = new SwingWorker()
+            {
+                private boolean isOK = false;
+                
+                public Object construct()
+                {
+                    DataProviderSessionIFace session = null;
+                    try
+                    {
+                        session = DataProviderFactory.getInstance().createSession();
+                        session.beginTransaction();
+                        Discipline          disp = session.get(Discipline.class, discipline.getId());
+                        BuildSampleDatabase bsd  = new BuildSampleDatabase();
+                        bsd.loadSchemaLocalization(disp, SpLocaleContainer.WORKBENCH_SCHEMA, tableMgr, null, null, UpdateType.eBuildNew, session);
+                        session.commit();
+                        isOK = true;
+                        
+                    } catch (Exception ex)
+                    {
+                        try
+                        {
+                            session.rollback();
+                        } catch (Exception ex1) {}
+                        
+                        log.error(ex);
+                        edu.ku.brc.af.core.UsageTracker.incrHandledUsageCount();
+                        edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(SystemSetupTask.class, ex);
+                        
+                    } finally
+                    {
+                        if (session != null)
+                        {
+                            session.close();
+                        }
+                    }
+                    return null;
+                }
+
+                //Runs on the event-dispatching thread.
+                public void finished()
+                {
+                    getStatusBar().setProgressDone(SYSTEMSETUPTASK);
+                    
+                    if (isOK)
+                    {
+                        SchemaI18NService.getInstance().loadWithLocale(SpLocaleContainer.WORKBENCH_SCHEMA, discipline.getId(), tableMgr, SchemaI18NService.getCurrentLocale());
+                        doSchemaConfig(SpLocaleContainer.WORKBENCH_SCHEMA, tableMgr);
+                    }
+                }
+            };
+            worker.start();
+
+        } else
+        {
+            SchemaI18NService.getInstance().loadWithLocale(SpLocaleContainer.WORKBENCH_SCHEMA, discipline.getId(), tableMgr, SchemaI18NService.getCurrentLocale());
+            doSchemaConfig(SpLocaleContainer.WORKBENCH_SCHEMA, tableMgr);
+        }
+        
+        
+    }
+    
     
     /**
      * @param cls
@@ -1188,6 +1383,7 @@ public class SystemSetupTask extends BaseTask implements FormPaneAdjusterIFace, 
     // SecurityOption Interface
     //-------------------------------------------------------
 
+
     /* (non-Javadoc)
      * @see edu.ku.brc.af.tasks.BaseTask#getAdditionalSecurityOptions()
      */
@@ -1196,24 +1392,43 @@ public class SystemSetupTask extends BaseTask implements FormPaneAdjusterIFace, 
     {
         List<SecurityOptionIFace> list = new ArrayList<SecurityOptionIFace>();
         
-        list.add(new SecurityOption(RESIMPORTEXPORT_SECURITY, 
-                getResourceString("RIE_TITLE"), 
-                securityPrefix,
-                new BasicPermisionPanel("RIE_TITLE", 
-                                        "RIE_SEC_IMPORT", 
-                                        "RIE_SEC_EXPORT")));
+        SecurityOption secOpt = new SecurityOption(RESIMPORTEXPORT_SECURITY, 
+                                                    getResourceString("RIE_TITLE"), 
+                                                    securityPrefix,
+                                                    new BasicPermisionPanel("RIE_TITLE", 
+                                                                            "RIE_SEC_IMPORT", 
+                                                                            "RIE_SEC_EXPORT"));
+        addPerms(secOpt, new boolean[][] 
+                {{true, true, true, false},
+                {false, false, false, false},
+                {false, false, false, false},
+                {false, false, false, false}});
+        list.add(secOpt);
 
-        list.add(new SecurityOption(SCHEMACONFIG_SECURITY, 
-                getResourceString(getI18NKey("SCHEMA_CONFIG")), 
-                securityPrefix,
-                new BasicPermisionPanel(getI18NKey("SCHEMA_CONFIG"), 
-                                        "Enable")));
+        secOpt = new SecurityOption(SCHEMACONFIG_SECURITY, 
+                                    getResourceString(getI18NKey("SCHEMA_CONFIG")), 
+                                    securityPrefix,
+                                    new BasicPermisionPanel(getI18NKey("SCHEMA_CONFIG"), 
+                                                            "Enable"));
+        addPerms(secOpt, new boolean[][] 
+                {{true, false, false, false},
+                {false, false, false, false},
+                {false, false, false, false},
+                {false, false, false, false}});
+        list.add(secOpt);
 
-        list.add(new SecurityOption(WBSCHEMACONFIG_SECURITY, 
-                getResourceString(getI18NKey("WBSCHEMA_CONFIG")), 
-                securityPrefix,
-                new BasicPermisionPanel(getI18NKey("WBSCHEMA_CONFIG"), 
-                                        "Enable")));
+
+        secOpt = new SecurityOption(WBSCHEMACONFIG_SECURITY, 
+                                    getResourceString(getI18NKey("WBSCHEMA_CONFIG")), 
+                                    securityPrefix,
+                                    new BasicPermisionPanel(getI18NKey("WBSCHEMA_CONFIG"), 
+                                                            "Enable"));
+        addPerms(secOpt, new boolean[][] 
+                {{true, false, false, false},
+                {false, false, false, false},
+                {false, false, false, false},
+                {false, false, false, false}});
+        list.add(secOpt);
 
         return list;
     }
@@ -1241,7 +1456,7 @@ public class SystemSetupTask extends BaseTask implements FormPaneAdjusterIFace, 
             if (data instanceof Integer)
             {
                 final Integer id = (Integer) data;
-                UIRegistry.getStatusBar().setIndeterminate(SYSTEMSETUPTASK, true);
+                getStatusBar().setIndeterminate(SYSTEMSETUPTASK, true);
                 final SwingWorker worker = new SwingWorker()
                 {
                     public Object construct()
@@ -1274,13 +1489,38 @@ public class SystemSetupTask extends BaseTask implements FormPaneAdjusterIFace, 
                     //Runs on the event-dispatching thread.
                     public void finished()
                     {
-                        UIRegistry.getStatusBar().setProgressDone(SYSTEMSETUPTASK);
+                        getStatusBar().setProgressDone(SYSTEMSETUPTASK);
                         
                     }
                 };
                 worker.start();
             }
         }
+    }
+    
+    /* (non-Javadoc)
+     * @see edu.ku.brc.af.tasks.BaseTask#getToolBarItems()
+     */
+    @Override
+    public List<ToolBarItemDesc> getToolBarItems()
+    {
+        if (!AppContextMgr.isSecurityOn() || SpecifyUser.isCurrentUserType(UserType.Manager))
+        {
+            if (AppPreferences.getLocalPrefs().getBoolean("SYSSETUP_TOOLBAR", false))
+            {
+                ActionListener al = new ActionListener()
+                {
+                    @Override
+                    public void actionPerformed(ActionEvent arg0)
+                    {
+                        SystemSetupTask.this.requestContext();
+                    }
+                };
+                toolbarItems = new Vector<ToolBarItemDesc>();
+                toolbarItems.add(new ToolBarItemDesc(createToolbarButton("System Setup", iconName, "", null, al)));
+            }
+        }
+        return toolbarItems;
     }
     
     /* (non-Javadoc)
@@ -1328,7 +1568,7 @@ public class SystemSetupTask extends BaseTask implements FormPaneAdjusterIFace, 
      */
     public void doDeleteDataObj(final Object dataObj, final DataProviderSessionIFace session, final boolean doDelete)
     {
-        UIRegistry.getStatusBar().setProgressDone(SYSTEMSETUPTASK);
+        getStatusBar().setProgressDone(SYSTEMSETUPTASK);
         
         if (dataObj instanceof PickList)
         {
@@ -1350,12 +1590,12 @@ public class SystemSetupTask extends BaseTask implements FormPaneAdjusterIFace, 
                         }
                     } else
                     {
-                        UIRegistry.getStatusBar().setErrorMessage(getResourceString("PL_NO_DEL_SYSPL"));
+                        getStatusBar().setErrorMessage(getResourceString("PL_NO_DEL_SYSPL"));
                     }
                 }
             } else
             {
-                UIRegistry.getStatusBar().setErrorMessage(getResourceString("PL_NO_DEL_PL_INUSE"));
+                getStatusBar().setErrorMessage(getResourceString("PL_NO_DEL_PL_INUSE"));
             }
         }
     }

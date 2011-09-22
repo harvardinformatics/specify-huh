@@ -65,23 +65,38 @@ public class DataObjDataField implements Cloneable
 			                final String uiFieldFormatterName) {
 		super();
 
-		this.name = name;
-		this.type = type;
-		this.format = format;
-		this.sep = sep;
+		this.name                 = name;
+		this.type                 = type;
+		this.format               = format;
+		this.sep                  = sep;
 		this.dataObjFormatterName = dataObjFormatterName;
 		this.uiFieldFormatterName = uiFieldFormatterName;
 
 		// table info is set during parent (DataObjDataFieldFormat) construction
 	}
 
-	public void setDbInfo(DBTableInfo tableInfo, DBFieldInfo fieldInfo, DBRelationshipInfo relInfo)
-	{
-		this.tableInfo = tableInfo;
-		this.fieldInfo = fieldInfo;
-		this.relInfo   = relInfo;
-	}
+    public void setDbInfo(DBTableInfo tableInfo, DBFieldInfo fieldInfo, DBRelationshipInfo relInfo, boolean isInitial)
+    {
+        this.tableInfo = tableInfo;
+        this.fieldInfo = fieldInfo;
+        this.relInfo   = relInfo;
+        
+        if (!isInitial && fieldInfo == null && relInfo == null)
+        {
+            setTableAndFieldInfo(tableInfo);
+        }
+    }
 
+    public void setDbInfo(DBTableInfo tableInfo, DBFieldInfo fieldInfo, DBRelationshipInfo relInfo)
+    {
+        setDbInfo(tableInfo, fieldInfo, relInfo, false);
+    }
+
+	public DataObjSwitchFormatter getObjFormatter()
+	{
+		return objFormatter;
+	}
+	
 	public void setObjFormatter(DataObjSwitchFormatter objFormatter)
     {
         this.objFormatter = objFormatter;
@@ -155,58 +170,71 @@ public class DataObjDataField implements Cloneable
 		return prefix + "[" + tableInfo.getTitle() + "." + fieldInfo.getTitle() + "]";
 	}
 
-	public String getFormat() {
-		return format;
-	}
+	public String getFormat()
+    {
+        return format;
+    }
 
-	public String getName() {
-		return name;
-	}
+    public String getName()
+    {
+        return name;
+    }
 
-	public String getSep() {
+	public String getSep() 
+	{
 		return sep;
 	}
 
-	public Class<?> getType() {
+	public Class<?> getType() 
+	{
 		return type;
 	}
 
-	public String getDataObjFormatterName() {
+	public String getDataObjFormatterName() 
+	{
 		return dataObjFormatterName;
 	}
 
 	/**
 	 * @return the uiFieldFormatter
 	 */
-	public String getUiFieldFormatterName() {
+	public String getUiFieldFormatterName() 
+	{
 		return uiFieldFormatterName;
 	}
 
-	public void setUiFieldFormatterName(String uiFieldFormatterName) {
+	public void setUiFieldFormatterName(String uiFieldFormatterName) 
+	{
 		this.uiFieldFormatterName = uiFieldFormatterName;
 	}
 
-	public DBTableInfo getTableInfo() {
+	public DBTableInfo getTableInfo() 
+	{
 		return tableInfo;
 	}
 
-	public void setTableInfo(DBTableInfo tableInfo) {
+	public void setTableInfo(DBTableInfo tableInfo) 
+	{
 		this.tableInfo = tableInfo;
 	}
 
-	public DBRelationshipInfo getRelInfo() {
+	public DBRelationshipInfo getRelInfo() 
+	{
 		return relInfo;
 	}
 
-	public void setRelInfo(DBRelationshipInfo relInfo) {
+	public void setRelInfo(DBRelationshipInfo relInfo) 
+	{
 		this.relInfo = relInfo;
 	}
 
-	public DBFieldInfo getFieldInfo() {
+	public DBFieldInfo getFieldInfo() 
+	{
 		return fieldInfo;
 	}
 
-	public void setFieldInfo(DBFieldInfo fieldInfo) {
+	public void setFieldInfo(DBFieldInfo fieldInfo) 
+	{
 		this.fieldInfo = fieldInfo;
 	}
 	
