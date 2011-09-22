@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- 
 
-  Last Id for ExpressSearch 54
-  Last Id for Other Search  125
+  Last Id for ExpressSearch 59
+  Last Id for Other Search  129
 
  -->
 <searches>
@@ -16,7 +16,6 @@
                 <join tableid="5" primary="true">agent.AgentID</join>
                 <join tableid="1">collectionobject.CollectionObjectID</join>
                 <join tableid="9">determination.DeterminerID</join>
-                <!--<join tableid="9">determination.DeterminationStatusID</join>-->
                 <join tableid="4">taxon.TaxonID</join>
             </joins>
             <detailView icon="Agent">
@@ -34,7 +33,7 @@
  INNER JOIN determination ON determination.CollectionObjectID = collectionobject.CollectionObjectID
  INNER JOIN agent ON determination.DeterminerID = agent.AgentID
  INNER JOIN taxon ON determination.TaxonID = taxon.TaxonID
- WHERE determination.CollectionMemberID = COLMEMID AND determination.IsCurrent = true AND %s]]>
+ WHERE (determination.CollectionMemberID = COLMEMID) AND determination.IsCurrent = true AND %s]]>
                 </sql>
                 <captions>
                     <caption tableid="4" col="taxon.TaxonID" visible="false"/>
@@ -68,8 +67,8 @@
  %s 
  From 
  collectingevent
- Inner Join locality ON collectingevent.LocalityID = locality.LocalityID
- WHERE collectingevent.DisciplineID = DSPLNID AND %s order by StartDate]]>
+ INNER JOIN locality ON collectingevent.LocalityID = locality.LocalityID
+ WHERE (collectingevent.DisciplineID = DSPLNID) AND %s ORDER BY StartDate]]>
                 </sql>
                 <captions>
                     <caption tableid="10" col="CollectingEventID" visible="false"/>
@@ -101,9 +100,9 @@
  taxon.FullName, 
  %s 
  From collectionobject 
- Inner Join determination ON determination.CollectionObjectID = collectionobject.CollectionObjectID
- Inner Join taxon ON taxon.TaxonID = determination.TaxonID
- WHERE collectionobject.CollectionMemberID = COLMEMID AND %s order by CatalogNumber asc]]>
+ INNER JOIN determination ON determination.CollectionObjectID = collectionobject.CollectionObjectID
+ INNER JOIN taxon ON taxon.TaxonID = determination.TaxonID
+ WHERE (collectionobject.CollectionMemberID = COLMEMID) AND %s ORDER BY CatalogNumber ASC]]>
                 </sql>
                 <captions>
                     <caption tableid="1" col="collectionobject.CollectionObjectID" visible="false"/>
@@ -137,12 +136,12 @@
  StartDatePrecision,
  taxon.FullName,
  %s
- FROM geography   INNER JOIN locality ON locality.geographyid = geography.geographyid 
+ FROM geography   INNER JOIN locality ON locality.GeographyID = geography.GeographyID 
  INNER JOIN collectingevent ON locality.LocalityID = collectingevent.LocalityID
  INNER JOIN collectionobject ON collectingevent.CollectingEventID = collectionobject.CollectingEventID
  INNER JOIN determination ON collectionobject.CollectionObjectID = determination.CollectionObjectID
- Inner Join taxon ON taxon.TaxonID = determination.TaxonID
- WHERE collectionobject.CollectionMemberID = COLMEMID AND determination.IsCurrent = true AND %s]]>
+ INNER JOIN taxon ON taxon.TaxonID = determination.TaxonID
+ WHERE (collectionobject.CollectionMemberID = COLMEMID) AND determination.IsCurrent = true AND %s]]>
                 </sql>
                 <captions>
                     <caption tableid="4" col="taxon.TaxonID"         visible="false"/>
@@ -174,12 +173,12 @@
  taxon.FullName,
  geography.FullName,
  %s
- FROM geography   INNER JOIN locality ON locality.geographyid = geography.geographyid 
+ FROM geography   INNER JOIN locality ON locality.GeographyID = geography.GeographyID 
  INNER JOIN collectingevent ON locality.LocalityID = collectingevent.LocalityID
  INNER JOIN collectionobject ON collectingevent.CollectingEventID = collectionobject.CollectingEventID
  INNER JOIN determination ON collectionobject.CollectionObjectID = determination.CollectionObjectID
- Inner Join taxon ON taxon.TaxonID = determination.TaxonID
- WHERE collectionobject.CollectionMemberID = COLMEMID AND determination.IsCurrent = true AND %s]]>
+ INNER JOIN taxon ON taxon.TaxonID = determination.TaxonID
+ WHERE (collectionobject.CollectionMemberID = COLMEMID) AND determination.IsCurrent = true AND %s]]>
                 </sql>
                 <captions>
                     <caption tableid="4" col="taxon.TaxonID"         visible="false"/>
@@ -214,12 +213,12 @@
  INNER JOIN collectingevent ON collectionobject.CollectingEventID = collectingevent.CollectingEventID
  INNER JOIN collector ON collectingevent.CollectingEventID = collector.CollectingEventID
  INNER JOIN agent ON collector.AgentID = agent.AgentID
- WHERE collectionobject.CollectionMemberID = COLMEMID AND collectionobject.CollectionObjectID 
+ WHERE (collectionobject.CollectionMemberID = COLMEMID) AND collectionobject.CollectionObjectID 
  in (SELECT collectionobject.CollectionObjectID FROM collectionobject 
  INNER JOIN collectingevent ON collectionobject.CollectingEventID = collectingevent.CollectingEventID 
  INNER JOIN collector ON collectingevent.CollectingEventID = collector.CollectingEventID 
  INNER JOIN agent ON collector.AgentID = agent.AgentID 
- WHERE collectionobject.CollectionMemberID = COLMEMID AND %s 
+ WHERE (collectionobject.CollectionMemberID = COLMEMID) AND %s 
  ORDER BY collectionobject.CollectionObjectID, collector.OrderNumber) ORDER BY 
  collectionobject.CollectionObjectID, collector.OrderNumber]]>
                 </sql>
@@ -275,7 +274,7 @@
  collectionobject co INNER JOIN determination d ON d.CollectionObjectID = co.CollectionObjectID 
  INNER JOIN taxon t ON d.TaxonID = t.TaxonID 
  INNER JOIN taxon t2 ON t2.TaxonID = d.PreferredTaxonID 
- WHERE d.TaxonId <> d.PreferredTaxonId AND t.TaxonTreeDefID = TAXTREEDEFID AND co.CollectionMemberID = COLMEMID AND %s]]>
+ WHERE d.TaxonId <> d.PreferredTaxonId AND t.TaxonTreeDefID = TAXTREEDEFID AND (co.CollectionMemberID = COLMEMID) AND %s]]>
                 </sql>
                 <captions>
                     <caption tableid="1" col="co.CollectionObjectID" visible="false"/>
@@ -300,7 +299,7 @@
  FROM collectionobject co INNER JOIN determination d ON d.CollectionObjectID = co.CollectionObjectID 
  INNER JOIN taxon t ON d.TaxonID = t.TaxonID 
  INNER JOIN taxon t2 ON t.TaxonID = t2.AcceptedID 
- WHERE co.CollectionMemberID = COLMEMID AND %s]]>
+ WHERE (co.CollectionMemberID = COLMEMID) AND %s]]>
                 </sql>
                 <captions>
                     <caption tableid="1" col="co.CollectionObjectID" visible="false"/>
@@ -327,7 +326,7 @@
  INNER JOIN taxon deterTax ON d.TaxonID = deterTax.TaxonID
  INNER JOIN taxon acceptTax ON d.PreferredTaxonID = acceptTax.TaxonID 
  INNER JOIN taxon oldTax ON oldTax.AcceptedID = acceptTax.TaxonID AND oldTax.TaxonID != d.TaxonID 
- WHERE co.CollectionMemberID = COLMEMID AND %s]]>
+ WHERE (co.CollectionMemberID = COLMEMID) AND %s]]>
                 </sql>
                 <captions>
                     <caption tableid="1" col="co.CollectionObjectID" visible="false"/>
@@ -356,13 +355,12 @@
  FullName, 
  %s 
  From collectionobject 
- Inner Join determination AS DT ON DT.CollectionObjectID = collectionobject.CollectionObjectID
- Inner Join taxon ON taxon.TaxonID = DT.TaxonID 
- WHERE DT.CollectionMemberID = COLMEMID AND 
- collectionobject.CollectionMemberID = COLMEMID AND 
+ INNER JOIN determination AS DT ON DT.CollectionObjectID = collectionobject.CollectionObjectID
+ INNER JOIN taxon ON taxon.TaxonID = DT.TaxonID 
+ WHERE (collectionobject.CollectionMemberID = COLMEMID) AND 
  taxon.TaxonTreeDefID = TAXTREEDEFID AND 
  DT.IsCurrent = true AND
- %s order by CatalogNumber asc]]>
+ %s ORDER BY CatalogNumber ASC]]>
                 </sql>
                 <captions>
                     <caption tableid="1" col="collectionobject.CollectionObjectID" visible="false"/>
@@ -390,9 +388,9 @@
  agent.FirstName,
  agent.AgentType,
  %s
- FROM agent INNER JOIN agent_discipline ON agent.AgentID = agent_discipline.AgentID
+ FROM agent 
  INNER JOIN agentvariant ON agent.AgentID = agentvariant.AgentID
- WHERE agent_discipline.DisciplineID = DSPLNID AND %s order by agentvariant.Name asc]]>
+ WHERE (agent.DivisionID = DIVID) AND %s ORDER BY agentvariant.Name ASC]]>
                 </sql>
                 <captions>
                     <caption tableid="5" col="agent.AgentID" visible="false"/>
@@ -418,7 +416,7 @@
  localitynamealias.Name, 
  %s
  FROM locality INNER JOIN localitynamealias ON locality.LocalityID = localitynamealias.LocalityID
- WHERE locality.DisciplineID = DSPLNID AND %s]]>
+ WHERE (locality.DisciplineID = DSPLNID) AND %s]]>
                 </sql>
                 <captions>
                     <caption tableid="2" col="locality.LocalityID" visible="false"/>
@@ -445,8 +443,8 @@
  %s 
  From 
  collectingevent
- Inner Join collectionobject ON collectingevent.CollectingEventID = collectionobject.CollectingEventID
- WHERE collectingevent.DisciplineID = DSPLNID AND %s order by StartDate]]>
+ INNER JOIN collectionobject ON collectingevent.CollectingEventID = collectionobject.CollectingEventID
+ WHERE (collectingevent.DisciplineID = DSPLNID) AND %s ORDER BY StartDate]]>
                 </sql>
                 <captions>
                     <caption tableid="1" col="CollectionObjectID" visible="false"/>
@@ -484,7 +482,7 @@
  locality
  INNER JOIN collectingevent ON locality.LocalityID = collectingevent.LocalityID
  INNER JOIN collectionobject ON collectingevent.CollectingEventID = collectionobject.CollectingEventID
- WHERE locality.DisciplineID = DSPLNID AND collectionobject.collectionmemberid = COLMEMID 
+ WHERE (locality.DisciplineID = DSPLNID) AND (collectionobject.CollectionMemberID = COLMEMID) 
  AND %s ORDER BY StartDate]]>
                 </sql>
                 <captions>
@@ -516,10 +514,10 @@
   %s 
  FROM 
  collectionobject
- INNER JOIN accession ON accession.accessionid = collectionobject.accessionid
- INNER JOIN determination ON determination.collectionobjectid = collectionobject.collectionobjectid
+ INNER JOIN accession ON accession.AccessionID = collectionobject.AccessionID
+ INNER JOIN determination ON determination.CollectionObjectID = collectionobject.CollectionObjectID
  INNER JOIN taxon ON taxon.taxonid = determination.taxonid
- WHERE determination.isCurrent AND collectionobject.collectionmemberid = COLMEMID AND %s ORDER BY AccessionNumber, CatalogNumber]]>
+ WHERE determination.isCurrent AND (collectionobject.CollectionMemberID = COLMEMID) AND %s ORDER BY AccessionNumber, CatalogNumber]]>
                 </sql>
                 <captions>
                     <caption tableid="1" col="CollectionObjectID" visible="false"/>
@@ -546,10 +544,9 @@
   %s 
  FROM 
  accession
- INNER JOIN accessionagent ON accessionagent.accessionid = accession.accessionid
- INNER JOIN agent ON agent.agentid = accessionagent.agentid
- INNER JOIN agent_discipline ON agent.AgentID = agent_discipline.AgentID
- WHERE agent_discipline.disciplineid = DSPLNID AND %s ORDER BY AccessionNumber, LastName, FirstName]]>
+ INNER JOIN accessionagent ON accessionagent.AccessionID = accession.AccessionID
+ INNER JOIN agent ON agent.AgentID = accessionagent.AgentID
+ WHERE (agent.DivisionID = DIVID) AND %s ORDER BY AccessionNumber, LastName, FirstName]]>
                 </sql>
                 <captions>
                     <caption tableid="5" col="AgentID" visible="false"/>
@@ -577,10 +574,9 @@
   %s 
  FROM 
  borrow
- INNER JOIN borrowagent ON borrowagent.borrowid = borrow.borrowid
- INNER JOIN agent ON agent.agentid = borrowagent.agentid
- INNER JOIN agent_discipline ON agent.AgentID = agent_discipline.AgentID
- WHERE agent_discipline.disciplineid = DSPLNID AND %s ORDER BY InvoiceNumber, LastName, FirstName]]>
+ INNER JOIN borrowagent ON borrowagent.BorrowID = borrow.BorrowID
+ INNER JOIN agent ON agent.AgentID = borrowagent.AgentID
+ WHERE (agent.DivisionID = DIVID) AND %s ORDER BY InvoiceNumber, LastName, FirstName]]>
                 </sql>
                 <captions>
                     <caption tableid="5" col="AgentID" visible="false"/>
@@ -607,9 +603,8 @@
   %s 
  FROM 
  appraisal
-  INNER JOIN agent ON agent.agentid = appraisal.agentid
-  INNER JOIN agent_discipline ON agent.AgentID = agent_discipline.AgentID
- WHERE agent_discipline.disciplineid = DSPLNID AND %s ORDER BY AppraisalNumber, LastName, FirstName]]>
+  INNER JOIN agent ON agent.AgentID = appraisal.AgentID
+ WHERE (agent.DivisionID = DIVID) AND %s ORDER BY AppraisalNumber, LastName, FirstName]]>
                 </sql>
                 <captions>
                     <caption tableid="5" col="AgentID" visible="false"/>
@@ -636,8 +631,8 @@
  FROM 
  geologictimeperiod
   INNER JOIN paleocontext ON paleocontext.chronosstratid = geologictimeperiod.geologictimeperiodid
-  INNER JOIN collectionobject ON collectionobject.paleocontextid = paleocontext.paleocontextid
- WHERE collectionobject.collectionmemberid = COLMEMID AND %s ORDER BY FullName, CatalogNumber]]>
+  INNER JOIN collectionobject ON collectionobject.PaleoContextID = paleocontext.PaleoContextID
+ WHERE (collectionobject.CollectionMemberID = COLMEMID) AND %s ORDER BY FullName, CatalogNumber]]>
                 </sql>
                 <captions>
                     <caption tableid="46" col="GeologicTimePeriodID" visible="false"/>
@@ -665,8 +660,8 @@
   %s 
  FROM 
  collectingevent
-  INNER JOIN collector ON collector.collectingeventid = collectingevent.collectingeventid
-  INNER JOIN agent ON agent.agentid = collector.agentid
+  INNER JOIN collector ON collector.CollectingEventID = collectingevent.CollectingEventID
+  INNER JOIN agent ON agent.AgentID = collector.AgentID
  WHERE %s ORDER BY LastName, FirstName, StartDate, StationFieldNumber]]>
                 </sql>
                 <captions>
@@ -693,10 +688,10 @@
                 <sql>
                     <![CDATA[SELECT 
  collectingevent.CollectingEventID, 
- collectingevent.StartDate,
- collectingevent.StartDatePrecision,
  collectingevent.StationFieldNumber,
  collectingtrip.CollectingTripName,
+ collectingevent.StartDate,
+ collectingevent.StartDatePrecision,
    %s 
  FROM 
  collectingevent
@@ -705,12 +700,12 @@
                 </sql>
                 <captions>
                     <caption tableid="10" col="CollectingEventID" visible="false"/>
+                    <caption tableid="10" col="StationFieldNumber"/>
+                    <caption tableid="87" col="CollectingTripName" />
                     <caption tableid="10" formatter="PartialDate">
                         <col name="StartDate"          field="startDate"/>
                         <col name="StartDatePrecision" field="startDatePrecision"/>
                     </caption>
-                    <caption tableid="10" col="StationFieldNumber"/>
-                    <caption tableid="87" col="CollectingTripName" />
                  </captions>
             </detailView>
         </table>
@@ -730,7 +725,7 @@
     %s 
  FROM 
  exchangein
-  INNER JOIN agent ON agent.agentid = exchangein.ReceivedFromOrganizationId
+  INNER JOIN agent ON agent.AgentID = exchangein.ReceivedFromOrganizationId
  WHERE %s ORDER BY ExchangeDate, DescriptionOfMaterial]]>
                 </sql>
                 <captions>
@@ -757,7 +752,7 @@
     %s 
  FROM 
  exchangeout
-  INNER JOIN agent ON agent.agentid = exchangeout.SentToOrganizationId
+  INNER JOIN agent ON agent.AgentID = exchangeout.SentToOrganizationId
  WHERE %s ORDER BY ExchangeDate, DescriptionOfMaterial]]>
                 </sql>
                 <captions>
@@ -777,7 +772,7 @@
             <detailView icon="CollectingEvent">
                 <sql>
                     <![CDATA[SELECT DISTINCT 
- collectingevent.collectingeventid,                   
+ collectingevent.CollectingEventID,                   
  collectingevent.StartDate,
  collectingevent.StartDatePrecision,
  collectingevent.StationFieldNumber,
@@ -785,9 +780,9 @@
  %s 
  FROM 
  geography 
-  INNER JOIN locality ON locality.geographyid = geography.geographyid 
-  INNER JOIN collectingevent on collectingevent.localityid = locality.localityid
- WHERE collectingevent.DisciplineID = DSPLNID AND %s ORDER BY FullName,StartDate]]>
+  INNER JOIN locality ON locality.GeographyID = geography.GeographyID 
+  INNER JOIN collectingevent on collectingevent.LocalityID = locality.LocalityID
+ WHERE (collectingevent.DisciplineID = DSPLNID) AND %s ORDER BY FullName,StartDate]]>
                 </sql>
                 <captions>
                     <caption tableid="10" col="CollectingEventID" visible="false"/>
@@ -809,16 +804,16 @@
             <detailView icon="CollectionObject">
                 <sql>
                     <![CDATA[SELECT DISTINCT
- collectionobject.collectionobjectid,                   
+ collectionobject.CollectionObjectID,                   
  collectionobject.CatalogNumber,
  geography.FullName,
  %s 
  FROM 
  geography 
-  INNER JOIN locality ON locality.geographyid = geography.geographyid 
-  INNER JOIN collectingevent on collectingevent.localityid = locality.localityid
-  INNER JOIN collectionobject on collectionobject.collectingeventid = collectingevent.collectingeventid
- WHERE %s AND collectionobject.collectionmemberid = COLMEMID ORDER BY FullName,CatalogNumber]]>
+  INNER JOIN locality ON locality.GeographyID = geography.GeographyID 
+  INNER JOIN collectingevent on collectingevent.LocalityID = locality.LocalityID
+  INNER JOIN collectionobject on collectionobject.CollectingEventID = collectingevent.CollectingEventID
+ WHERE %s AND (collectionobject.CollectionMemberID = COLMEMID) ORDER BY FullName,CatalogNumber]]>
                 </sql>
                 <captions>
                     <caption tableid="1" col="CollectionObjectID" visible="false"/>
@@ -836,18 +831,18 @@
             <detailView icon="CollectionObject">
                 <sql>
                     <![CDATA[SELECT 
- collectionobject.collectionobjectid,                   
+ collectionobject.CollectionObjectID,                   
  collectionobject.CatalogNumber,
  preptype.Name,
  gift.GiftNumber, 
      %s 
  FROM 
  gift
-  INNER JOIN giftpreparation ON giftpreparation.giftid = gift.giftid 
-  INNER JOIN preparation on preparation.preparationid = giftpreparation.preparationid
+  INNER JOIN giftpreparation ON giftpreparation.GiftID = gift.GiftID 
+  INNER JOIN preparation on preparation.PreparationID = giftpreparation.PreparationID
   INNER JOIN preptype on preptype.preptypeid = preparation.preptypeid
-  INNER JOIN collectionobject on collectionobject.collectionobjectid = preparation.collectionobjectid
- WHERE collectionobject.CollectionMemberID = COLMEMID AND %s ORDER BY GiftNumber,CatalogNumber,Name]]>
+  INNER JOIN collectionobject on collectionobject.CollectionObjectID = preparation.CollectionObjectID
+ WHERE (collectionobject.CollectionMemberID = COLMEMID) AND %s ORDER BY GiftNumber,CatalogNumber,Name]]>
                 </sql>
                 <captions>
                     <caption tableid="1" col="CollectionObjectID" visible="false"/>
@@ -874,8 +869,8 @@
      %s 
  FROM 
  gift
-  INNER JOIN giftagent ON giftagent.giftid = gift.giftid 
-  INNER JOIN agent on agent.agentid = giftagent.agentid
+  INNER JOIN giftagent ON giftagent.GiftID = gift.GiftID 
+  INNER JOIN agent on agent.AgentID = giftagent.AgentID
  WHERE %s ORDER BY GiftNumber,Role,LastName,FirstName]]>
                 </sql>
                 <captions>
@@ -896,17 +891,17 @@
             <detailView icon="CollectionObject">
                 <sql>
                     <![CDATA[SELECT 
- collectionobject.collectionobjectid,                   
+ collectionobject.CollectionObjectID,                   
  collectionobject.CatalogNumber,
  preptype.Name,
  loan.LoanNumber, 
      %s 
  FROM 
  loan
-  INNER JOIN loanpreparation ON loanpreparation.loanid = loan.loanid 
-  INNER JOIN preparation on preparation.preparationid = loanpreparation.preparationid
+  INNER JOIN loanpreparation ON loanpreparation.LoanID = loan.LoanID 
+  INNER JOIN preparation on preparation.PreparationID = loanpreparation.PreparationID
   INNER JOIN preptype on preptype.preptypeid = preparation.preptypeid
-  INNER JOIN collectionobject on collectionobject.collectionobjectid = preparation.collectionobjectid
+  INNER JOIN collectionobject on collectionobject.CollectionObjectID = preparation.CollectionObjectID
  WHERE %s ORDER BY LoanNumber,CatalogNumber,Name]]>
                 </sql>
                 <captions>
@@ -934,8 +929,8 @@
      %s 
  FROM 
  loan
-  INNER JOIN loanagent ON loanagent.loanid = loan.loanid 
-  INNER JOIN agent on agent.agentid = loanagent.agentid
+  INNER JOIN loanagent ON loanagent.LoanID = loan.LoanID 
+  INNER JOIN agent on agent.AgentID = loanagent.AgentID
  WHERE %s ORDER BY LoanNumber,Role,LastName,FirstName]]>
                 </sql>
                 <captions>
@@ -964,8 +959,8 @@
  FROM 
  lithostrat
   INNER JOIN paleocontext ON paleocontext.LithoStratID = lithostrat.LithoStratID
-  INNER JOIN collectionobject ON collectionobject.paleocontextid = paleocontext.paleocontextid
- WHERE collectionobject.CollectionMemberID = COLMEMID AND %s ORDER BY FullName, CatalogNumber]]>
+  INNER JOIN collectionobject ON collectionobject.PaleoContextID = paleocontext.PaleoContextID
+ WHERE (collectionobject.CollectionMemberID = COLMEMID) AND %s ORDER BY FullName, CatalogNumber]]>
                 </sql>
                 <captions>
                     <caption tableid="1" col="CollectionObjectID" visible="false"/>
@@ -991,9 +986,9 @@
  FROM 
  permit
   INNER JOIN accessionauthorization ON accessionauthorization.PermitID = permit.PermitID
-  INNER JOIN accession ON accession.accessionid = accessionauthorization.accessionid
-  INNER JOIN collectionobject ON collectionobject.accessionid = accession.accessionid
- WHERE collectionobject.CollectionMemberID = COLMEMID AND %s ORDER BY PermitNumber, CatalogNumber]]>
+  INNER JOIN accession ON accession.AccessionID = accessionauthorization.AccessionID
+  INNER JOIN collectionobject ON collectionobject.AccessionID = accession.AccessionID
+ WHERE (collectionobject.CollectionMemberID = COLMEMID) AND %s ORDER BY PermitNumber, CatalogNumber]]>
                 </sql>
                 <captions>
                     <caption tableid="1" col="CollectionObjectID" visible="false"/>
@@ -1019,8 +1014,7 @@
  FROM 
  permit
   INNER JOIN agent ON agent.AgentID = permit.IssuedToID
-  INNER JOIN agent_discipline ON agent.AgentID = agent_discipline.AgentID
- WHERE agent_discipline.disciplineid = DSPLNID AND %s ORDER BY PermitNumber, LastName, FirstName]]>
+ WHERE (agent.DivisionID = DIVID) AND %s ORDER BY PermitNumber, LastName, FirstName]]>
                 </sql>
                 <captions>
                     <caption tableid="5" col="AgentID" visible="false"/>
@@ -1047,8 +1041,7 @@
  FROM 
  permit
   INNER JOIN agent ON agent.AgentID = permit.IssuedByID
-  INNER JOIN agent_discipline ON agent.AgentID = agent_discipline.AgentID
- WHERE agent_discipline.disciplineid = DSPLNID AND %s ORDER BY PermitNumber, LastName, FirstName]]>
+ WHERE (agent.DivisionID = DIVID) AND %s ORDER BY PermitNumber, LastName, FirstName]]>
                 </sql>
                 <captions>
                     <caption tableid="5" col="AgentID" visible="false"/>
@@ -1076,8 +1069,8 @@
  FROM 
  project
   INNER JOIN project_colobj ON project_colobj.projectid = project.projectid
-  INNER JOIN collectionobject ON collectionobject.collectionobjectid = project_colobj.collectionobjectid
- WHERE collectionobject.CollectionmemberID = COLMEMID AND %s ORDER BY ProjectName, ProjectNumber, CatalogNumber]]>
+  INNER JOIN collectionobject ON collectionobject.CollectionObjectID = project_colobj.CollectionObjectID
+ WHERE (collectionobject.CollectionMemberID = COLMEMID) AND %s ORDER BY ProjectName, ProjectNumber, CatalogNumber]]>
                 </sql>
                 <captions>
                     <caption tableid="1" col="CollectionObjectID" visible="false"/>
@@ -1102,11 +1095,9 @@
  project.ProjectName,
  project.ProjectNumber,
   %s 
- FROM 
- project
-  INNER JOIN agent ON agent.agentid = project.projectagentid
-  INNER JOIN agent_discipline on agent_discipline.agentid = agent.agentid
- WHERE agent_discipline.disciplineid = DSPLNID AND %s ORDER BY ProjectName, ProjectNumber, LastName, FirstName]]>
+ FROM project
+ INNER JOIN agent ON agent.AgentID = project.ProjectAgentID
+ WHERE (agent.DivisionID = DIVID) AND %s ORDER BY ProjectName, ProjectNumber, LastName, FirstName]]>
                 </sql>
                 <captions>
                     <caption tableid="5" col="AgentID" visible="false"/>
@@ -1133,9 +1124,8 @@ repositoryagreement.RepositoryAgreementNumber,
   %s 
  FROM 
  repositoryagreement
-  INNER JOIN agent ON agent.agentid = repositoryagreement.agentid
-  INNER JOIN agent_discipline on agent_discipline.agentid = agent.agentid
- WHERE agent_discipline.disciplineid = DSPLNID AND %s ORDER BY RepositoryAgreementNumber, LastName, FirstName]]>
+  INNER JOIN agent ON agent.AgentID = repositoryagreement.AgentID
+ WHERE (agent.DivisionID = DIVID) AND %s ORDER BY RepositoryAgreementNumber, LastName, FirstName]]>
                 </sql>
                 <captions>
                     <caption tableid="5" col="AgentID" visible="false"/>
@@ -1153,20 +1143,22 @@ repositoryagreement.RepositoryAgreementNumber,
             </joins>
             <detailView icon="CollectionObject">
                 <sql>
-                    <![CDATA[SELECT Distinct
+                    <![CDATA[SELECT DISTINCT
  collectionobject.CollectionObjectID, 
-  collectionobject.CatalogNumber,
+ collectionobject.CatalogNumber,
+ storage.Name,
  storage.FullName,
   %s 
  FROM 
  storage
-  INNER JOIN preparation ON preparation.storageid = storage.storageid
-  INNER JOIN collectionobject ON collectionobject.collectionobjectid = preparation.collectionobjectid
- WHERE collectionobject.CollectionMemberID = COLMEMID AND %s ORDER BY FullName, CatalogNumber]]>
+  INNER JOIN preparation ON preparation.StorageID = storage.StorageID
+  INNER JOIN collectionobject ON collectionobject.CollectionObjectID = preparation.CollectionObjectID
+ WHERE (collectionobject.CollectionMemberID = COLMEMID) AND %s ORDER BY FullName, CatalogNumber]]>
                 </sql>
                 <captions>
                     <caption tableid="1" col="CollectionObjectID" visible="false"/>
                     <caption tableid="1" col="CatalogNumber" formatter="CatalogNumber" />
+                    <caption tableid="58" col="Name" />
                     <caption tableid="58" col="FullName" />
                  </captions>
             </detailView>
@@ -1189,12 +1181,11 @@ repositoryagreement.RepositoryAgreementNumber,
  FullName, 
  %s 
  From collectionobject 
- Inner Join determination AS DT ON DT.CollectionObjectID = collectionobject.CollectionObjectID
- Inner Join taxon ON taxon.TaxonID = DT.TaxonID 
- WHERE DT.CollectionMemberID = COLMEMID AND 
- collectionobject.CollectionMemberID = COLMEMID AND 
+ INNER JOIN determination AS DT ON DT.CollectionObjectID = collectionobject.CollectionObjectID
+ INNER JOIN taxon ON taxon.TaxonID = DT.TaxonID 
+ WHERE (collectionobject.CollectionMemberID = COLMEMID) AND 
  taxon.TaxonTreeDefID = TAXTREEDEFID AND 
- %s order by FullName, CatalogNumber]]>
+ %s ORDER BY FullName, CatalogNumber]]>
                 </sql>
                 <captions>
                     <caption tableid="1" col="collectionobject.CollectionObjectID" visible="false"/>
@@ -1208,18 +1199,141 @@ repositoryagreement.RepositoryAgreementNumber,
                 </captions>
             </detailView>
         </table>
-
-
-
-
         
-        
+        <table id="55" tableid="31" indexed="false" name="ColObjToContainer" priority="1" color="30, 144, 144">
+            <joins>
+                <join tableid="1">co.CollectionObjectID</join>
+                <join tableid="31" primary="true">cn.ContainerID</join>
+            </joins>
+            <detailView icon="Container">
+                <sql>
+                    <![CDATA[
+SELECT cn.ContainerID, 
+ cn.Type, 
+ cn.Name, 
+ co.CatalogNumber,
+  %s
+ FROM collectionobject co INNER JOIN container cn ON co.ContainerID = cn.ContainerID
+ WHERE (co.CollectionMemberID = COLMEMID) AND %s]]>
+                </sql>
+                <captions>
+                    <caption tableid="31" col="cn.ContainerID" visible="false"/>
+                    <caption tableid="31" col="cn.Type"/>
+                    <caption tableid="31" col="cn.Name"/>
+                    <caption tableid="1" col="co.CatalogNumber" formatter="CatalogNumber" key="CatalogNumber"/>
+                </captions>
+            </detailView>
+        </table>
 
+        <table id="56" tableid="1" indexed="false" name="ContainerToKids" priority="1" color="30, 144, 144">
+            <joins>
+                <join tableid="1" primary="true">co.CollectionObjectID</join>
+                <join tableid="1">co.ContainerOwnerID</join>
+                <join tableid="31">cn.ContainerID</join>
+            </joins>
+            <detailView icon="CollectionObject">
+                <sql>
+                    <![CDATA[
+SELECT co.CollectionObjectID,
+ co.CatalogNumber, 
+ co.CatalogedDate,
+  cn.Name,
+  %s
+ FROM collectionobject co INNER JOIN container cn ON co.ContainerOwnerID = cn.ContainerID
+ WHERE (cn.CollectionMemberID = COLMEMID) AND %s]]>
+                </sql>
+                <captions>
+                    <caption tableid="1" col="co.CollectionObjectID" visible="false"/>
+                    <caption tableid="1" col="co.CatalogNumber" formatter="CatalogNumber" />
+                    <caption tableid="1" col="co.CatalogedDate"/>
+                    <caption tableid="31" col="cn.Name" key="Name"/>
+                </captions>
+            </detailView>
+        </table>
         
+        <table id="57" tableid="31" indexed="false" name="ContainerToContainerKids" priority="1" color="30, 144, 144">
+            <joins>
+                <join tableid="31" primary="true">cn.ContainerID</join>
+                <join tableid="31">cn.ParentID</join>
+                <join tableid="31">p.ContainerID</join>
+            </joins>
+            <detailView icon="Container">
+                <sql>
+                    <![CDATA[
+SELECT cn.ContainerID,
+ p.Name, 
+ cn.Name,
+  %s
+ FROM container p INNER JOIN container cn ON p.ContainerID = cn.ParentID
+ WHERE (cn.CollectionMemberID = COLMEMID) AND %s]]>
+                </sql>
+                <captions>
+                    <caption tableid="31" col="cn.ContainerID" visible="false"/>
+                    <caption tableid="31" col="p.Name"  key="Name"/>
+                    <caption tableid="31" col="cn.Name"/>
+                </captions>
+            </detailView>
+        </table>
         
-
-        
-        
+        <table id="58" tableid="1" indexed="false" name="ExchangeInCO" priority="1" color="30, 144, 144">
+            <joins>
+                <join tableid="1" primary="true">collectionobject.CollectionObjectID</join>
+                <join tableid="39">exchangein.ExchangeInID</join>
+            </joins>
+            <detailView icon="CollectionObject">
+                <sql>
+                    <![CDATA[SELECT 
+ collectionobject.CollectionObjectID,                   
+ collectionobject.CatalogNumber,
+ preptype.Name,
+ exchangein.ExchangeDate, 
+     %s 
+ FROM 
+ exchangein
+  INNER JOIN exchangeinprep ON exchangeinprep.ExchangeInID = exchangein.ExchangeInID 
+  INNER JOIN preparation on preparation.PreparationID = exchangeinprep.PreparationID
+  INNER JOIN preptype on preptype.preptypeid = preparation.preptypeid
+  INNER JOIN collectionobject on collectionobject.CollectionObjectID = preparation.CollectionObjectID
+ WHERE (collectionobject.CollectionMemberID = COLMEMID) AND %s ORDER BY ExchangeDate,CatalogNumber,Name]]>
+                </sql>
+                <captions>
+                    <caption tableid="1" col="CollectionObjectID" visible="false"/>
+                    <caption tableid="1" col="CatalogNumber" formatter="CatalogNumber"/>
+                    <caption tableid="65" col="Name" />
+                    <caption tableid="39" col="ExchangeDate" />
+                 </captions>
+            </detailView>
+        </table>
+       
+        <table id="59" tableid="1" indexed="false" name="ExchangeOutCO" priority="1" color="30, 144, 144">
+            <joins>
+                <join tableid="1" primary="true">collectionobject.CollectionObjectID</join>
+                <join tableid="39">echangeout.ExchangeOutID</join>
+            </joins>
+            <detailView icon="CollectionObject">
+                <sql>
+                    <![CDATA[SELECT 
+ collectionobject.CollectionObjectID,                   
+ collectionobject.CatalogNumber,
+ preptype.Name,
+ exchangeout.ExchangeDate, 
+     %s 
+ FROM 
+ exchangeout
+  INNER JOIN exchangeoutprep ON exchangeoutprep.ExchangeOutID = exchangeout.ExchangeOutID 
+  INNER JOIN preparation on preparation.PreparationID = exchangeoutprep.PreparationID
+  INNER JOIN preptype on preptype.preptypeid = preparation.preptypeid
+  INNER JOIN collectionobject on collectionobject.CollectionObjectID = preparation.CollectionObjectID
+ WHERE (collectionobject.CollectionMemberID = COLMEMID) AND %s ORDER BY ExchangeDate,CatalogNumber,Name]]>
+                </sql>
+                <captions>
+                    <caption tableid="1" col="CollectionObjectID" visible="false"/>
+                    <caption tableid="1" col="CatalogNumber" formatter="CatalogNumber"/>
+                    <caption tableid="65" col="Name" />
+                    <caption tableid="39" col="ExchangeDate" />
+                 </captions>
+            </detailView>
+        </table>
         
         
         <!-- ============================ -->
@@ -1439,7 +1553,6 @@ repositoryagreement.RepositoryAgreementNumber,
                     <caption tableid="85" col="FieldNotebookPageID" visible="false"/>
                     <caption tableid="85" col="PageNumber"/>
                     <caption tableid="85" col="ScanDate"/>
-                    <caption tableid="41" col="Title"/>
                 </captions>
             </detailView>
         </table>
@@ -1595,6 +1708,8 @@ repositoryagreement.RepositoryAgreementNumber,
                 </captions>
             </detailView>
         </table>
+
+      
         
     </express>
     
@@ -1614,9 +1729,9 @@ repositoryagreement.RepositoryAgreementNumber,
  address.State, 
  address.Postalcode, 
  address.Country
- FROM agent INNER JOIN agent_discipline ON agent.AgentID = agent_discipline.AgentID
+ FROM agent 
  LEFT JOIN address ON agent.AgentID = address.AgentID
- WHERE agent_discipline.DisciplineID = DSPLNID AND (%s)]]>
+ WHERE (agent.DivisionID = DIVID) AND (%s) GROUP BY agent.AgentID]]>
                 </sql>
                 <captions>
                     <caption tableid="5" col="AgentID" visible="false"/>
@@ -1692,7 +1807,7 @@ repositoryagreement.RepositoryAgreementNumber,
         <table id="104" tableid="65" name="PrepTypeSearch" priority="1" color="30, 144, 255">
             <detailView icon="">
                 <sql>
-                    <![CDATA[select PrepTypeID, Name from preptype where CollectionMemberID = COLMEMID AND (%s)]]>
+                    <![CDATA[select PrepTypeID, Name FROM preptype where (CollectionMemberID = COLMEMID) AND (%s)]]>
                 </sql>
                 <captions>
                     <caption tableid="65" col="PrepTypeID" visible="false"/>
@@ -1743,7 +1858,7 @@ repositoryagreement.RepositoryAgreementNumber,
         <table id="108" tableid="5" name="AgentNameSearch" priority="1" color="30, 144, 255">
             <detailView icon="">
                 <sql>
-                    <![CDATA[SELECT AgentID, FirstName, LastName, MiddleInitial FROM agent WHERE CollectionMemberID = COLMEMID AND (%s)]]>
+                    <![CDATA[SELECT AgentID, FirstName, LastName, MiddleInitial FROM agent WHERE (CollectionMemberID = COLMEMID) AND (%s)]]>
                 </sql>
                 <captions>
                     <caption tableid="5" col="AgentID" visible="false"/>
@@ -1757,11 +1872,12 @@ repositoryagreement.RepositoryAgreementNumber,
         <table id="109" tableid="58" name="StorageSearch" priority="1" color="30, 144, 255">
             <detailView icon="">
                 <sql>
-                    <![CDATA[SELECT StorageID, FullName FROM location WHERE StorageTreeDefID = STORTREEDEFID AND (%s)]]>
+                    <![CDATA[SELECT StorageID, Name, FullName FROM storage WHERE StorageTreeDefID = STORTREEDEFID AND (%s)]]>
                 </sql>
                 <captions>
                     <caption tableid="58" col="StorageID" visible="false"/>
-                    <caption tableid="58" col="FullName" key="StorageName"/>
+                    <caption tableid="58" col="Name"/>
+                    <caption tableid="58" col="FullName"/>
                 </captions>
             </detailView>
         </table>
@@ -1773,7 +1889,7 @@ repositoryagreement.RepositoryAgreementNumber,
                 </sql>
                 <captions>
                     <caption tableid="46" col="GeologicTimePeriodID" visible="false"/>
-                    <caption tableid="46" col="FullName" key="Name"/>
+                    <caption tableid="46" col="FullName"/>
                 </captions>
             </detailView>
         </table>
@@ -1785,7 +1901,7 @@ repositoryagreement.RepositoryAgreementNumber,
                 </sql>
                 <captions>
                     <caption tableid="100" col="LithoStratID" visible="false"/>
-                    <caption tableid="100" col="FullName" key="Name"/>
+                    <caption tableid="100" col="FullName"/>
                 </captions>
             </detailView>
         </table>
@@ -1793,7 +1909,7 @@ repositoryagreement.RepositoryAgreementNumber,
         <table id="112" tableid="32" name="PaleoContextSearch" priority="1" color="30, 144, 255">
             <detailView icon="">
                 <sql>
-                    <![CDATA[SELECT PaleoContextID, TopDistance, DistanceUnits FROM paleocontext WHERE CollectionMemberID = COLMEMID AND (%s)]]>
+                    <![CDATA[SELECT PaleoContextID, TopDistance, DistanceUnits FROM paleocontext WHERE (CollectionMemberID = COLMEMID) AND (%s)]]>
                 </sql>
                 <captions>
                     <caption tableid="32" col="PaleoContextID" visible="false"/>
@@ -1812,7 +1928,7 @@ repositoryagreement.RepositoryAgreementNumber,
  INNER JOIN collection ON collectionobject.CollectingEventID = collection.CollectionID
  INNER JOIN collectiontype ON collection.DisciplineID = collectiontype.DisciplineID
  INNER JOIN specifyuser ON collectiontype.SpecifyUserID = specifyuser.SpecifyUserID 
- WHERE specifyuser.SpecifyUserID = SPECIFYUSERID AND loan.DisciplineID = DSPLNID AND 
+ WHERE specifyuser.SpecifyUserID = SPECIFYUSERID AND (loan.DisciplineID = DSPLNID) AND 
  (not (currentduedate is null)) AND (IsClosed = false or IsClosed is null) AND 
                     datediff(CURDATE(), currentduedate) > 0]]>
                 </sql>
@@ -1829,7 +1945,7 @@ repositoryagreement.RepositoryAgreementNumber,
         <table id="114" tableid="2" name="LocalitySearch" priority="1" color="30, 144, 255">
             <detailView icon="Locality">
                 <sql>
-                    <![CDATA[SELECT LocalityID, LocalityName,Latitude1,Longitude1 FROM locality WHERE DisciplineID = DSPLNID AND (%s)]]>
+                    <![CDATA[SELECT LocalityID, LocalityName,Latitude1,Longitude1 FROM locality WHERE (DisciplineID = DSPLNID) AND (%s)]]>
                 </sql>
                 <captions>
                     <caption tableid="2" col="LocalityID" visible="false"/>
@@ -1855,7 +1971,7 @@ repositoryagreement.RepositoryAgreementNumber,
         <table id="116" tableid="1" name="CollectionObjectSearch" priority="1" color="30, 144, 255">
             <detailView icon="CollectionObject">
                 <sql>
-                    <![CDATA[SELECT CollectionObjectID, CatalogNumber FROM collectionobject WHERE CollectionMemberID = COLMEMID AND (%s)]]>
+                    <![CDATA[SELECT CollectionObjectID, CatalogNumber FROM collectionobject WHERE (CollectionMemberID = COLMEMID) AND (%s)]]>
                 </sql>
                 <captions>
                     <caption tableid="1" col="CollectionObjectID" visible="false"/>
@@ -1867,7 +1983,7 @@ repositoryagreement.RepositoryAgreementNumber,
         <table id="117" tableid="10" name="CollectingEventSearch" priority="1" color="30, 144, 255">
             <detailView icon="CollectionObject">
                 <sql>
-                    <![CDATA[SELECT CollectingEventID, StationFieldNumber, StartDate, StartDatePrecision FROM collectingevent WHERE DisciplineID = DSPLNID AND (%s)]]>
+                    <![CDATA[SELECT CollectingEventID, StationFieldNumber, StartDate, StartDatePrecision FROM collectingevent WHERE (DisciplineID = DSPLNID) AND (%s)]]>
                 </sql>
                 <captions>
                     <caption tableid="10" col="CollectingEventID" visible="false"/>
@@ -1887,7 +2003,7 @@ repositoryagreement.RepositoryAgreementNumber,
                 </sql>
                 <captions>
                     <caption tableid="46" col="GeologicTimePeriodID" visible="false"/>
-                    <caption tableid="46" col="FullName" key="Name"/>
+                    <caption tableid="46" col="FullName"/>
                 </captions>
             </detailView>
         </table>
@@ -1935,7 +2051,7 @@ repositoryagreement.RepositoryAgreementNumber,
         <table id="122" tableid="87" name="CollectingTripSearch" priority="1" color="30, 144, 255">
             <detailView icon="CollectingTrip">
                 <sql>
-                    <![CDATA[SELECT CollectingTripID, CollectingTripName, StartDate FROM collectingtrip WHERE DisciplineID = DSPLNID AND (%s)]]>
+                    <![CDATA[SELECT CollectingTripID, CollectingTripName, StartDate FROM collectingtrip WHERE (DisciplineID = DSPLNID) AND (%s)]]>
                 </sql>
                 <captions>
                     <caption tableid="87" col="CollectingTripID" visible="false"/>
@@ -1948,7 +2064,7 @@ repositoryagreement.RepositoryAgreementNumber,
         <table id="123" tableid="96" name="DivisionSearch" priority="1" color="30, 144, 255">
             <detailView icon="Division">
                 <sql>
-                    <![CDATA[SELECT DivisionID, Name FROM division WHERE DisciplineID = DSPLNID AND (%s)]]>
+                    <![CDATA[SELECT DivisionID, Name FROM division WHERE (DisciplineID = DSPLNID) AND (%s)]]>
                 </sql>
                 <captions>
                     <caption tableid="96" col="DivisionID" visible="false"/>
@@ -1960,7 +2076,7 @@ repositoryagreement.RepositoryAgreementNumber,
         <table id="124" tableid="66" name="ProjectSearch" priority="1" color="30, 144, 255">
             <detailView icon="Project">
                 <sql>
-                    <![CDATA[SELECT ProjectID, ProjectName, ProjectNumber FROM project WHERE CollectionMemberID = COLMEMID AND (%s)]]>
+                    <![CDATA[SELECT ProjectID, ProjectName, ProjectNumber FROM project WHERE (CollectionMemberID = COLMEMID) AND (%s)]]>
                 </sql>
                 <captions>
                     <caption tableid="66" col="ProjectID" visible="false"/>
@@ -1973,12 +2089,106 @@ repositoryagreement.RepositoryAgreementNumber,
         <table id="125" tableid="70" name="RepositoryAgreementSearch" priority="1" color="30, 144, 255">
             <detailView icon="RepositoryAgreement">
                 <sql>
-                    <![CDATA[SELECT RepositoryAgreementID, RepositoryAgreementNumber, StartDate FROM repositoryagreement WHERE DisciplineID = DSPLNID AND (%s)]]>
+                    <![CDATA[SELECT RepositoryAgreementID, RepositoryAgreementNumber, StartDate FROM repositoryagreement WHERE (DisciplineID = DSPLNID) AND (%s)]]>
                 </sql>
                 <captions>
                     <caption tableid="70" col="ProjectID" visible="false"/>
                     <caption tableid="70" col="RepositoryAgreementNumber"/>
                     <caption tableid="70" col="StartDate"/>
+                </captions>
+            </detailView>
+        </table>
+        
+                
+        <table id="126" tableid="85" indexed="false" name="FieldNotebookPageSearch" priority="1" color="30, 144, 144">
+            <detailView icon="FieldNotebookPage">
+                <sql>
+                    <![CDATA[SELECT fnbp.FieldNotebookPageID, PageNumber, ScanDate, fnps.StartDate, fnps.EndDate, fn.Name, fn.StartDate FROM fieldnotebookpage AS fnbp
+ INNER JOIN fieldnotebookpageset AS fnps ON fnbp.FieldNotebookPageSetID = fnps.FieldNotebookPageSetID
+ INNER JOIN fieldnotebook AS fn ON fnps.FieldNotebookID = fn.FieldNotebookID WHERE (fnbp.DisciplineID = DSPLNID) AND (%s)]]>
+                </sql>
+                <captions>
+                    <caption tableid="85" col="fnbp.FieldNotebookPageID" visible="false"/>
+                    <caption tableid="85" col="PageNumber"/>
+                    <caption tableid="85" col="ScanDate"/>
+                    <caption tableid="84" col="fnps.StartDate"/>
+                    <caption tableid="84" col="fnps.EndDate"/>
+                    <caption tableid="83" col="fn.Name"/>
+                    <caption tableid="83" col="fn.StartDate"/>
+                </captions>
+            </detailView>
+        </table>
+
+        <table id="127" tableid="138" indexed="false" name="MorphBankViewSearch" priority="1" color="30, 144, 144">
+            <detailView icon="MorphBankView">
+                <sql>
+                    <![CDATA[SELECT MorphBankViewID, ViewName, SpecimenPart, ViewAngle, MorphBankExternalViewID FROM morphbankview 
+ WHERE (fnbp.DisciplineID = DSPLNID) AND (%s)]]>
+                </sql>
+                <captions>
+                    <caption tableid="138" col="MorphBankViewID" visible="false"/>
+                    <caption tableid="138" col="ViewName"/>
+                    <caption tableid="138" col="SpecimenPart"/>
+                    <caption tableid="138" col="ViewAngle"/>
+                    <caption tableid="138" col="MorphBankExternalViewID"/>
+                </captions>
+            </detailView>
+        </table>
+        
+        <table id="128" tableid="5" name="UserAgentSearch" priority="1" color="30, 144, 255">
+            <detailView icon="">
+                <sql>
+                    <![CDATA[SELECT DISTINCT agent.AgentID,
+ division.Name,                    
+ agent.FirstName, 
+ agent.LastName, 
+ agent.EMail, 
+ address.Address, 
+ address.City, 
+ address.State, 
+ address.Postalcode, 
+ address.Country 
+ FROM agent 
+ INNER JOIN division ON agent.DivisionID = division.DivisionID
+ LEFT JOIN address ON agent.AgentID = address.AgentID
+ WHERE (%s) GROUP BY agent.AgentID]]>
+                </sql>
+                <captions>
+                    <caption tableid="5" col="AgentID" visible="false"/>
+                    <caption tableid="96" col="Name"/>
+                    <caption tableid="5" col="FirstName"/>
+                    <caption tableid="5" col="LastName"/>
+                    <caption tableid="5" col="EMail"/>
+                    <caption tableid="8" col="Address"/>
+                    <caption tableid="8" col="City"/>
+                    <caption tableid="8" col="State"/>
+                    <caption tableid="8" col="Postalcode"/>
+                    <caption tableid="8" col="Country"/>
+                </captions>
+            </detailView>
+        </table>
+        
+        <table id="129" tableid="31" name="ContainerSearch" priority="1" color="30, 144, 255">
+            <detailView icon="Container">
+                <sql>
+                    <![CDATA[SELECT c.ContainerID, c.Name FROM container c WHERE (c.CollectionMemberID = COLMEMID) AND (%s)]]>
+                </sql>
+                <captions>
+                    <caption tableid="31" col="ContainerID" visible="false"/>
+                    <caption tableid="31" col="Name"/>
+                </captions>
+            </detailView>
+        </table>
+        
+        <table id="130" tableid="31" name="ContainerOwnerSearch" priority="1" color="30, 144, 255">
+            <detailView icon="Container">
+                <sql>
+                    <![CDATA[SELECT c.ContainerID, c.Name, co.CatalogNumber FROM container AS c Left Join collectionobject AS co ON c.ContainerID = co.ContainerOwnerID WHERE co.CollectionObjectID IS NULL AND (c.CollectionMemberID = COLMEMID) AND (%s)]]>
+                </sql>
+                <captions>
+                    <caption tableid="31" col="ContainerID" visible="false"/>
+                    <caption tableid="31" col="Name"/>
+                    <caption tableid="1"  col="CatalogNumber"/>
                 </captions>
             </detailView>
         </table>

@@ -7,15 +7,35 @@
     -->
     
     <icon name="AppIcon"          file="specify32.png" sizes="all"/>
-    <icon name="Specify16"        file="specify16.png" sizes="16"/>
+    <icon name="AppIconE"         file="specify32E.png" sizes="all"/>
+    <icon name="AppIconM"         file="specify32M.png" sizes="all"/>
+
     <icon name="SpecifyLargeIcon" file="specify128.png" sizes="NonStd"/>
+    <icon name="SpecifyLargeIconE" file="specify128E.png" sizes="NonStd"/>
+    <icon name="SpecifyLargeIconM" file="specify128M.png" sizes="NonStd"/>
+    <icon name="SpecifyConv"       file="specify128Conv.png" sizes="NonStd"/>
+    <icon name="SpecifySecWiz"     file="spsecwizard128.png" sizes="NonStd"/>
+    <icon name="SpecifySecWiz32"    file="spsecwizard32.png" sizes="all"/>
+    
+    
+    <icon name="Specify16"        file="specify16.png" sizes="16"/>   <!-- Not Needed anymore -->
     <icon name="SpecifySplash"    file="SpecifyBigSplash.png" sizes="NonStd"/>
     <icon name="SpecifySplashCache" file="SpecifyBigSplash.png" sizes="NonStd"/>
+    
     <icon name="WizardIcon"       file="spwizard128.png" sizes="NonStd"/>
+    <icon name="WizardIconE"      file="spwizard128E.png" sizes="NonStd"/>
+    <icon name="WizardIconM"      file="spwizard128M.png" sizes="NonStd"/>
+    
     <icon name="DatabaseIcon"     file="spbackup128.png" sizes="NonStd"/>
+    <icon name="DatabaseIconE"    file="spbackup128E.png" sizes="NonStd"/>
+    <icon name="DatabaseIconM"    file="spbackup128M.png" sizes="NonStd"/>
+    
     <icon name="SPIReports"       file="spireport128.png" sizes="NonStd"/>
     <icon name="SpBuilder"        file="spbuilder.png" sizes="NonStd"/>
+    
     <icon name="SpecifyWhite32"   file="specify32White.png" sizes="32"/>
+    <icon name="SpecifyEWhite32"   file="specify32EWhite.png" sizes="32"/>
+    <icon name="SpecifyMWhite32"   file="specify32MWhite.png" sizes="32"/>
     
     <icon name="Help"             file="win_help.png" sizes="16"/>
     <icon name="Save"             file="Save32x32.png" sizes="all"/>
@@ -35,6 +55,8 @@
     <icon name="MoreTables"       file="more_tables.png" sizes="all"/>
     <icon name="MoreForms"        file="more_forms.png" sizes="all"/>
     <icon name="Search"           file="Search32x32.png" sizes="all"/>
+    <icon name="SearchAdd"        file="SearchAdd32x32.png" sizes="all"/>
+    <icon name="GlobalSearch"     file="global_search16x16.png" sizes="16"/>
     <icon name="SystemSetup"      file="System32x32.png" sizes="all"/>
     <icon name="PlaceHolder"      file="specify32faded.png" sizes="32"/>
     
@@ -67,20 +89,32 @@
     <icon name="Configure"     file="Configure20x20.png" sizes="NonStd"/>
     <icon name="AddRec"        file="AddNewRecord20x20.png" sizes="NonStd"/>
     <icon name="DelRec"        file="RemoveRecord20x20.png" sizes="NonStd"/>
+    <icon name="AddRecord"     file="AddNewRecord32x32.png" sizes="all"/>
+    <icon name="DelRecord"     file="RemoveRecord16x16.png" sizes="16"/>
     <icon name="Spreadsheet20" file="Grid20x20.png" sizes="NonStd"/>
     <icon name="Spreadsheet16" file="Grid16x16.png" sizes="16"/>
     <icon name="Spreadsheet"   file="Grid32x32.png" sizes="all"/>
     <icon name="SpreadsheetEdit" file="GridEdit32x32.png" sizes="all"/>
     <icon name="Export"        file="ExportDataSet20x20.png" sizes="NonStd"/>
-    <icon name="Upload"        file="upload_data.gif" sizes="NonStd"/>    
+    <icon name="Upload"        file="upload_workbench20x20.png" sizes="NonStd"/>    
+    <icon name="ValidateWB"    file="validate_workbench20x20.png" sizes="NonStd"/>    
     <icon name="Eraser"        file="Clear20x20.png"   sizes="NonStd"/>
+    <icon name="Eraser16"      file="Clear16x16.png"   sizes="NonStd"/>
     <icon name="CardImage"     file="ImageWindow20x20.png" sizes="NonStd"/>
     <icon name="LocalityMapper" file="map20x20.png" sizes="NonStd"/>
+    <icon name="MapIcon"        file="map.png" sizes="32"/>
     <icon name="ControlEdit"    file="EditProperties20x20.png" sizes="NonStd"/>
+    <icon name="EditProps"      file="EditProperties32x32.png" sizes="all"/>
     <icon name="Plugins"        file="plug_in.png" sizes="32"/>
     <icon name="DropIndicator"  file="dropindicator.png" sizes="NonStd"/>
     <icon name="Formatting"     file="formatting.png" sizes="32"/>
     <icon name="WebLink"        file="weblink.png" sizes="32"/>
+    
+    <icon name="VisualQuery"    file="Search32x32.png" sizes="32"/>
+    
+    <icon name="ImageWindow"    file="ImageWindow20x20.png" sizes="NonStd"/>
+    <icon name="ZoomIn20"       file="ZoomIn20x20.png" sizes="NonStd"/>
+    <icon name="ZoomOut20"      file="ZoomOut20x20.png" sizes="NonStd"/>
     
 
     <!-- Aliases -->
@@ -117,6 +151,7 @@
     
     
     <icon name="CreateObj" alias="PlusSign"/>
+    <icon name="CloneObj"  file="clone.png"          sizes="all"/>
     <icon name="RelatedTable" file="related_table.png"  sizes="32"/>
     <icon name="TableField" file="field.png"  sizes="all"/>
     
@@ -138,6 +173,9 @@
     
     <!-- <icon name="BGImage"  file="frogs_bg.gif" sizes="NonStd"/> -->
     
+    <icon name="ClipboardCopy"   file="clipboardCopy.png"  sizes="all"/>
+    <icon name="ClipboardPaste"  file="clipboardPaste.png" sizes="all"/>
+    
     <icon name="ValidationValid"   file="validation-valid.gif"    sizes="all"/>
     <icon name="ValidationWarning" file="FeedbackYellow32x32.png" sizes="all"/>
     <icon name="ValidationError"   file="FeedbackRed32x32.png"    sizes="all"/>
@@ -154,6 +192,13 @@
     <icon name="Down"             file="Down16x16.png" sizes="16"/>
     <icon name="Forward"          file="Forward16x16.png" sizes="16"/>
     
+    <icon name="WBValidatorDown"  file="down_32.png" sizes="all"/>
+    <icon name="WBValidatorUp"    file="up_32.png" sizes="all"/>
+    
+    <icon name="ExclaimGreen"     file="exclaim_green.gif" sizes="NonStd"/>
+    <icon name="ExclaimYellow"    file="exclaim_yellow.gif" sizes="NonStd"/>
+    <icon name="ExclaimRed"       file="exclaim.gif" sizes="NonStd"/>
+    
     <icon name="MultiKid"         file="MultiKid.png" sizes="16"/>
     <icon name="SingleKid"        file="SingleKid.png" sizes="16"/>
     
@@ -169,7 +214,7 @@
     <icon name="Attach16"         file="attachicon16.png" sizes="16"/>
     
     <!-- Preferences -->
-
+    <icon name="Preferences"      file="preferences.png"    sizes="all"/>
     
     <!-- TreeTableViewer icons -->
     <icon name="TTV_Subtree"        file="ExpandChildren32x32.png"    sizes="all"/>
@@ -232,12 +277,21 @@
     <icon name="Login"                 file="login.png" sizes="all"/>
     <icon name="MySQL"                 file="mysql_logo.png" sizes="all"/>
     
+    <!-- For Containers -->
+    <icon name="Folder"                file="folder32x32.png" sizes="all"/>
+    <icon name="Sheet"                 file="sheet32x32.png" sizes="all"/>
+    <icon name="PlantSpecimen"         file="plantspec32x32.png" sizes="all"/>
+    
     <!-- ImportFileSlicer -->
-    <icon name="Splicer"              file="data_split.png" sizes="all"/>
+    <icon name="Splicer"               file="data_split.png" sizes="all"/>
+    
+    <!-- ViewMorphBankPage -->
+    <icon name="MorphBankLogo"		  file="mbLogoHeader.png" sizes="all"/>
     
 
-    <!-- FP MMK -->
+    <!-- added by HUH for FP -->
     <icon name="FpOn"                  file="fp_on_mk.gif" sizes="all"/>
     <icon name="FpOff"                 file="fp_off_mk.gif" sizes="all"/>
     <icon name="FpMsg"                 file="fp_msg_mk.gif" sizes="all"/>
+    <!-- end HUH addition -->
 </icons>

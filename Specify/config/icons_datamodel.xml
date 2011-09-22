@@ -22,6 +22,8 @@
     <icon name="borrowmaterial"       file="borrow_material.png" sizes="all"/>
     <icon name="borrowreturnmaterial" file="borrow_return_material.png" sizes="all"/>
     <icon name="collectingevent"      file="collecting_event.png" sizes="all"/>
+    <icon name="ce_restore"           file="collecting_event.png" sizes="all"/>
+    <icon name="collectinginformation" file="collecting_information.png" sizes="all"/>
     <icon name="collectingtrip"       file="collection_trip.png" sizes="all"/>
     <icon name="collection"           file="collection.png" sizes="all"/>
     <icon name="collectionrelationship" file="collection_relationship.png" sizes="all"/>
@@ -44,7 +46,9 @@
     <icon name="exsiccata"            file="exsiccata.png" sizes="all"/>
     <icon name="exsiccataitem"        file="exsiccata_item.png" sizes="all"/>
     <icon name="exchangein"           file="exchange_in.png" sizes="all"/>
+    <icon name="exchangeinprep"       file="exchange_in.png" sizes="all"/>
     <icon name="exchangeout"          file="exchange_out.png" sizes="all"/>
+    <icon name="exchangeoutprep"      file="exchange_out.png" sizes="all"/>
     <icon name="fieldnotebook"        file="field_notebook.png" sizes="all"/>
     <icon name="fieldnotebookpage"    file="field_notebook_page.png" sizes="all"/>
     <icon name="fieldnotebookpageset" file="field_notebook_page_set.png" sizes="all"/>
@@ -74,6 +78,11 @@
     <icon name="storage"              file="storage.png" sizes="all"/>
     <icon name="taxon"                file="taxon.png" sizes="all"/>
     <icon name="treatmentevent"       file="treatment_event.png" sizes="all"/>
+
+    <!--  Attribute Icons -->
+    <icon name="CollectionObjectAttribute"      file="collection_object_attr.png" sizes="NonStd"/>
+    <icon name="CollectingEventAttribute"       file="collecting_event_attr.png" sizes="NonStd"/>
+    <icon name="PreparationAttribute"           file="preparation_attr.png" sizes="NonStd"/>
     
     <!--  Attachment Icons -->
     <icon name="AccessionAttachment"             file="accession_attachment.png" sizes="NonStd"/>
@@ -167,19 +176,19 @@
     <icon name="LocalityCitation"       alias="citation"/>
     <icon name="TaxonCitation"          alias="citation"/>
     
-    <icon name="collectingeventattribute"  alias="attribute"/>
-    <icon name="collectingeventattr"       alias="attribute"/>
-    <icon name="preparationattribute"      alias="attribute"/>
-    <icon name="preparationattr"           alias="attribute"/>
-  	<icon name="collectionobjectattribute" alias="attribute"/>
-  	<icon name="collectionobjectattr"      alias="attribute"/>
+    <icon name="collectingeventattribute"  alias="CollectingEventAttribute"/>
+    <icon name="collectingeventattr"       alias="CollectingEventAttribute"/>
+    <icon name="preparationattribute"      alias="PreparationAttribute"/>
+    <icon name="preparationattr"           alias="PreparationAttribute"/>
+  	<icon name="collectionobjectattribute" alias="CollectionObjectAttribute"/>
+  	<icon name="collectionobjectattr"      alias="CollectionObjectAttribute"/>
     
-    <icon name="CollectingEventAttribute"  alias="attribute"/>
-    <icon name="CollectingEventAttr"       alias="attribute"/>
-    <icon name="PreparationAttribute"      alias="attribute"/>
-    <icon name="PreparationAttr"           alias="attribute"/>
-  	<icon name="CollectionObjectAttribute" alias="attribute"/>
-  	<icon name="CollectionObjectAttr"      alias="attribute"/>
+    <icon name="CollectingEventAttribute"  alias="CollectingEventAttribute"/>
+    <icon name="CollectingEventAttr"       alias="CollectingEventAttribute"/>
+    <icon name="PreparationAttribute"      alias="PreparationAttribute"/>
+    <icon name="PreparationAttr"           alias="PreparationAttribute"/>
+  	<icon name="CollectionObjectAttribute" alias="CollectionObjectAttribute"/>
+  	<icon name="CollectionObjectAttr"      alias="CollectionObjectAttribute"/>
     
     
     <icon name="Accession Agent"        alias="accessionagent"/>

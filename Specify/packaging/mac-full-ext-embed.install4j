@@ -1,10 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <install4j version="4.2.3" transformSequenceNumber="2">
   <directoryPresets config="../InstallerFiles" />
-  <application name="Specify" distributionSourceDir="" applicationId="5397-6897-2502-8965" mediaDir="../ExtMacMedia" mediaFilePattern="${compiler:sys.shortName}_${compiler:sys.platform}" compression="6" lzmaCompression="false" pack200Compression="false" excludeSignedFromPacking="true" keepModificationTimes="false" missingFilesStrategy="warn" shortName="Specify" publisher="Biodiversity Research Center, University of Kansas" publisherWeb="http://www.specifysoftware.org" version="6.0.09" allPathsRelative="true" backupOnSave="true" autoSave="true" convertDotsToUnderscores="true" macSignature="????" installerName="" javaMinVersion="1.6" javaMaxVersion="1.7" allowBetaVM="false" jdkMode="runtimeJre" jdkName="">
+  <application name="Specify" distributionSourceDir="" applicationId="5397-6897-2502-8965" mediaDir="../ExtMacMedia" mediaFilePattern="${compiler:sys.shortName}_${compiler:sys.platform}_EZDB" compression="6" lzmaCompression="false" pack200Compression="false" excludeSignedFromPacking="true" keepModificationTimes="false" missingFilesStrategy="warn" shortName="Specify" publisher="Biodiversity Research Center, University of Kansas" publisherWeb="http://www.specifysoftware.org" version="6.0.05" allPathsRelative="true" backupOnSave="true" autoSave="true" convertDotsToUnderscores="true" macSignature="????" installerName="" javaMinVersion="1.6" javaMaxVersion="1.7" allowBetaVM="false" jdkMode="runtimeJre" jdkName="">
     <languages skipLanguageSelection="false" languageSelectionInPrincipalLanguage="false">
-      <principalLanguage id="en" customLocalizationFile="" />
-      <additionalLanguages />
+      <principalLanguage id="en" customLocalizationFile="./localization_en.utf8" />
+      <additionalLanguages>
+        <!-- <language id="pt_BR" customLocalizationFile="./localization_pt_BR.utf8" /> -->
+        <language id="pt" customLocalizationFile="./localization_pt.utf8" />
+</additionalLanguages>
     </languages>
     <searchSequence>
       <registry />
@@ -23,7 +26,7 @@
       <dirEntry mountPoint="18" file="../InstallerFiles" overwrite="4" shared="false" mode="644" uninstallMode="0" excludeSuffixes=".DS_Store, .svn" dirMode="755">
         <exclude>
           <entry location="non-mac-application-adapter.jar" fileType="regular" />
-          <entry location="specify.icns" fileType="regular" />
+          <entry location="specifyE.icns" fileType="regular" />
           <entry location="SpecifyBigSplash.png" fileType="regular" />
         </exclude>
       </dirEntry>
@@ -31,26 +34,29 @@
     <components />
   </files>
   <launchers>
-    <launcher name="Specify" id="19" external="false" excludeFromMenu="false" menuName="" icnsFile="../InstallerFiles/images/specify.icns" pngIcon16File="../InstallerFiles/images/specify16.png" pngIcon32File="../InstallerFiles/images/specify32.png" macServiceDependencies="" swtApp="false" fileset="">
-      <executable name="Specify" type="1" iconSet="true" iconFile="" executableDir="bin" redirectStderr="true" stderrFile="error.log" redirectStdout="false" stdoutFile="output.log" failOnStderrOutput="true" executableMode="1" changeWorkingDirectory="true" workingDirectory="." singleInstance="true" serviceStartType="2" serviceDependencies="" serviceDescription="" jreLocation="" executionLevel="asInvoker" checkConsoleParameter="false">
+    <launcher name="SpecifyEZDB" id="19" external="false" excludeFromMenu="false" menuName="" icnsFile="icns/specifyE.icns" pngIcon16File="../src/edu/ku/brc/specify/images/specify16E.png" pngIcon32File="../src/edu/ku/brc/specify/images/specify32E.png" macServiceDependencies="" swtApp="false" fileset="">
+      <executable name="SpecifyEZDB" type="1" iconSet="true" iconFile="" executableDir="bin" redirectStderr="true" stderrFile="error.log" redirectStdout="false" stdoutFile="output.log" failOnStderrOutput="true" executableMode="1" changeWorkingDirectory="true" workingDirectory="." singleInstance="true" serviceStartType="2" serviceDependencies="" serviceDescription="" jreLocation="" executionLevel="asInvoker" checkConsoleParameter="false">
         <versionInfo include="false" fileVersion="" fileDescription="" legalCopyright="" internalName="" />
       </executable>
       <splashScreen show="true" autoOff="true" alwaysOnTop="false" width="700" height="357" bitmapFile="../InstallerFiles/SpecifyBigSplash.png" java6SplashScreen="false">
         <text>
-          <statusLine x="95" y="326" text="Copyright (C) 2009 Kansas University Center for Research. FOSS licensed under GNU GPL2." font="Arial" fontSize="10" fontColor="0,0,0" fontWeight="500" />
+          <statusLine x="95" y="326" text="Copyright (C) 2010 Kansas University Center for Research. FOSS licensed under GNU GPL2." font="Arial" fontSize="10" fontColor="0,0,0" fontWeight="500" />
           <versionLine x="330" y="260" text="Version: ${compiler:sys.version}" font="Arial" fontSize="12" fontColor="0,0,0" fontWeight="500" />
         </text>
       </splashScreen>
-      <java mainClass="edu.ku.brc.specify.Specify" vmParameters="-Xmx768m" arguments="-Dappdir=.. -Dcom.apple.macos.useSmallTabs=true -Dapple.laf.useScreenMenuBar=true -Xdock:icon=&quot;src/edu/ku/brc/specify/images/specify128.png&quot; -Dcom.apple.mrj.application.apple.menu.about.name=Specify" allowVMPassthroughParameters="true" preferredVM="" bundleRuntime="true">
+      <java mainClass="edu.ku.brc.specify.Specify" vmParameters="-Xmx768m" arguments="-Dappdir=.. -Dembedded -Dcom.apple.macos.useSmallTabs=true -Dapple.laf.useScreenMenuBar=true -Xdock:icon=&quot;src/edu/ku/brc/specify/images/specify128.png&quot; -Dcom.apple.mrj.application.apple.menu.about.name=Specify" allowVMPassthroughParameters="true" preferredVM="" bundleRuntime="true">
         <classPath>
           <archive location="specify.jar" failOnError="true" />
-          <scanDirectory location="embedded_libs" failOnError="true" />
           <scanDirectory location="libs" failOnError="true" />
           <scanDirectory location="hibernate_libs" failOnError="true" />
           <scanDirectory location="iReportLibs" failOnError="true" />
+          <scanDirectory location="wwlib" failOnError="true" />
           <directory location="help" failOnError="false" />
+          <scanDirectory location="embedded_libs" failOnError="true" />
         </classPath>
-        <nativeLibraryDirectories />
+        <nativeLibraryDirectories>
+          <directory name="wwlib" />
+        </nativeLibraryDirectories>
       </java>
       <includedFiles />
       <unextractableFiles />
@@ -58,25 +64,29 @@
         <scriptLines />
       </customScript>
     </launcher>
-    <launcher name="SpiReport" id="286" external="false" excludeFromMenu="false" menuName="" icnsFile="../InstallerFiles/images/spireports.icns" pngIcon16File="../InstallerFiles/images/specify16.png" pngIcon32File="../InstallerFiles/images/specify32.png" macServiceDependencies="" swtApp="false" fileset="">
-      <executable name="SpiReport" type="1" iconSet="true" iconFile="" executableDir="bin" redirectStderr="true" stderrFile="error.log" redirectStdout="false" stdoutFile="output.log" failOnStderrOutput="true" executableMode="1" changeWorkingDirectory="true" workingDirectory="." singleInstance="true" serviceStartType="2" serviceDependencies="" serviceDescription="" jreLocation="" executionLevel="asInvoker" checkConsoleParameter="false">
+    <launcher name="SpiReportEZDB" id="286" external="false" excludeFromMenu="false" menuName="" icnsFile="icns/spireportsE.icns" pngIcon16File="../src/edu/ku/brc/specify/images/spireport16E.png" pngIcon32File="../src/edu/ku/brc/specify/images/spireport32E.png" macServiceDependencies="" swtApp="false" fileset="">
+      <executable name="SpiReportEZDB" type="1" iconSet="true" iconFile="" executableDir="bin" redirectStderr="true" stderrFile="error.log" redirectStdout="false" stdoutFile="output.log" failOnStderrOutput="true" executableMode="1" changeWorkingDirectory="true" workingDirectory="." singleInstance="true" serviceStartType="2" serviceDependencies="" serviceDescription="" jreLocation="" executionLevel="asInvoker" checkConsoleParameter="false">
         <versionInfo include="false" fileVersion="" fileDescription="" legalCopyright="" internalName="" />
       </executable>
       <splashScreen show="true" autoOff="true" alwaysOnTop="false" width="700" height="357" bitmapFile="../InstallerFiles/SpecifyBigSplash.png" java6SplashScreen="false">
         <text>
-          <statusLine x="95" y="326" text="Copyright (C) 2009 Kansas University Center for Research. FOSS licensed under GNU GPL2." font="Arial" fontSize="10" fontColor="0,0,0" fontWeight="500" />
+          <statusLine x="95" y="326" text="Copyright (C) 2010 Kansas University Center for Research. FOSS licensed under GNU GPL2." font="Arial" fontSize="10" fontColor="0,0,0" fontWeight="500" />
           <versionLine x="330" y="260" text="Version: ${compiler:sys.version}" font="Arial" fontSize="12" fontColor="0,0,0" fontWeight="500" />
         </text>
       </splashScreen>
-      <java mainClass="edu.ku.brc.specify.tools.ireportspecify.MainFrameSpecify" vmParameters="-Xmx512m" arguments="-Dappdir=.. -Dcom.apple.macos.useSmallTabs=true -Dapple.laf.useScreenMenuBar=true -Xdock:icon=&quot;src/edu/ku/brc/specify/images/specify128.png&quot; -Dcom.apple.mrj.application.apple.menu.about.name=SpiReport" allowVMPassthroughParameters="true" preferredVM="" bundleRuntime="true">
+      <java mainClass="edu.ku.brc.specify.tools.ireportspecify.MainFrameSpecify" vmParameters="-Xmx512m" arguments="-Dappdir=.. -Dembedded -Dcom.apple.macos.useSmallTabs=true -Dapple.laf.useScreenMenuBar=true -Xdock:icon=&quot;src/edu/ku/brc/specify/images/specify128.png&quot; -Dcom.apple.mrj.application.apple.menu.about.name=SpiReport" allowVMPassthroughParameters="true" preferredVM="" bundleRuntime="true">
         <classPath>
           <archive location="specify.jar" failOnError="true" />
-          <scanDirectory location="embedded_libs" failOnError="true" />
           <scanDirectory location="libs" failOnError="true" />
           <scanDirectory location="hibernate_libs" failOnError="true" />
           <scanDirectory location="iReportLibs" failOnError="true" />
+          <scanDirectory location="wwlib" failOnError="true" />
+          <directory location="help" failOnError="false" />
+          <scanDirectory location="embedded_libs" failOnError="true" />
         </classPath>
-        <nativeLibraryDirectories />
+        <nativeLibraryDirectories>
+          <directory name="wwlib" />
+        </nativeLibraryDirectories>
       </java>
       <includedFiles />
       <unextractableFiles />
@@ -84,26 +94,29 @@
         <scriptLines />
       </customScript>
     </launcher>
-    <launcher name="SpWizard" id="724" external="false" excludeFromMenu="false" menuName="" icnsFile="../InstallerFiles/images/spwizard.icns" pngIcon16File="../InstallerFiles/images/specify16.png" pngIcon32File="../InstallerFiles/images/specify32.png" macServiceDependencies="" swtApp="false" fileset="">
-      <executable name="SpWizard" type="1" iconSet="true" iconFile="" executableDir="bin" redirectStderr="true" stderrFile="error.log" redirectStdout="false" stdoutFile="output.log" failOnStderrOutput="true" executableMode="1" changeWorkingDirectory="true" workingDirectory="../" singleInstance="true" serviceStartType="2" serviceDependencies="" serviceDescription="" jreLocation="" executionLevel="asInvoker" checkConsoleParameter="false">
+    <launcher name="SpWizardEZDB" id="724" external="false" excludeFromMenu="false" menuName="" icnsFile="icns/spwizardE.icns" pngIcon16File="../src/edu/ku/brc/specify/images/spwizard16E.png" pngIcon32File="../src/edu/ku/brc/specify/images/spwizard32E.png" macServiceDependencies="" swtApp="false" fileset="">
+      <executable name="SpWizardEZDB" type="1" iconSet="true" iconFile="" executableDir="bin" redirectStderr="true" stderrFile="error.log" redirectStdout="false" stdoutFile="output.log" failOnStderrOutput="true" executableMode="1" changeWorkingDirectory="true" workingDirectory="." singleInstance="true" serviceStartType="2" serviceDependencies="" serviceDescription="" jreLocation="" executionLevel="asInvoker" checkConsoleParameter="false">
         <versionInfo include="false" fileVersion="" fileDescription="" legalCopyright="" internalName="" />
       </executable>
       <splashScreen show="true" autoOff="true" alwaysOnTop="false" width="700" height="357" bitmapFile="../InstallerFiles/SpecifyBigSplash.png" java6SplashScreen="false">
         <text>
-          <statusLine x="95" y="326" text="Copyright (C) 2009 Kansas University Center for Research. FOSS licensed under GNU GPL2." font="Arial" fontSize="10" fontColor="0,0,0" fontWeight="500" />
+          <statusLine x="95" y="326" text="Copyright (C) 2010 Kansas University Center for Research. FOSS licensed under GNU GPL2." font="Arial" fontSize="10" fontColor="0,0,0" fontWeight="500" />
           <versionLine x="330" y="260" text="Version: ${compiler:sys.version}" font="Arial" fontSize="12" fontColor="0,0,0" fontWeight="500" />
         </text>
       </splashScreen>
-      <java mainClass="edu.ku.brc.specify.config.init.SpecifyDBSetupWizardFrame" vmParameters="-Xmx1024m" arguments="-Dappdir=.. -Dcom.apple.macos.useSmallTabs=true -Dapple.laf.useScreenMenuBar=true -Xdock:icon=&quot;src/edu/ku/brc/specify/images/specify128.png&quot; -Dcom.apple.mrj.application.apple.menu.about.name=SpWizard" allowVMPassthroughParameters="true" preferredVM="" bundleRuntime="true">
+      <java mainClass="edu.ku.brc.specify.config.init.SpecifyDBSetupWizardFrame" vmParameters="-Xmx1024m" arguments="-Dappdir=.. -Dembedded -Dcom.apple.macos.useSmallTabs=true -Dapple.laf.useScreenMenuBar=true -Xdock:icon=&quot;src/edu/ku/brc/specify/images/specify128.png&quot; -Dcom.apple.mrj.application.apple.menu.about.name=SpWizard" allowVMPassthroughParameters="true" preferredVM="" bundleRuntime="true">
         <classPath>
           <archive location="specify.jar" failOnError="true" />
-          <scanDirectory location="embedded_libs" failOnError="true" />
           <scanDirectory location="libs" failOnError="true" />
           <scanDirectory location="hibernate_libs" failOnError="true" />
           <scanDirectory location="iReportLibs" failOnError="true" />
+          <scanDirectory location="wwlib" failOnError="true" />
           <directory location="help" failOnError="false" />
+          <scanDirectory location="embedded_libs" failOnError="true" />
         </classPath>
-        <nativeLibraryDirectories />
+        <nativeLibraryDirectories>
+          <directory name="wwlib" />
+        </nativeLibraryDirectories>
       </java>
       <includedFiles />
       <unextractableFiles />
@@ -111,26 +124,29 @@
         <scriptLines />
       </customScript>
     </launcher>
-    <launcher name="SpBackupRestore" id="804" external="false" excludeFromMenu="false" menuName="" icnsFile="../InstallerFiles/images/backuprestore.icns" pngIcon16File="../InstallerFiles/images/specify16.png" pngIcon32File="../InstallerFiles/images/specify32.png" macServiceDependencies="" swtApp="false" fileset="">
-      <executable name="SpBackupRestore" type="1" iconSet="true" iconFile="" executableDir="bin" redirectStderr="true" stderrFile="error.log" redirectStdout="false" stdoutFile="output.log" failOnStderrOutput="true" executableMode="1" changeWorkingDirectory="true" workingDirectory="." singleInstance="true" serviceStartType="2" serviceDependencies="" serviceDescription="" jreLocation="" executionLevel="asInvoker" checkConsoleParameter="false">
+    <launcher name="Specify1GBEZDB" id="1209" external="false" excludeFromMenu="false" menuName="" icnsFile="icns/specifyE.icns" pngIcon16File="../src/edu/ku/brc/specify/images/specify16E.png" pngIcon32File="../src/edu/ku/brc/specify/images/specify32E.png" macServiceDependencies="" swtApp="false" fileset="">
+      <executable name="Specify1GBEZDB" type="1" iconSet="true" iconFile="" executableDir="bin" redirectStderr="true" stderrFile="error.log" redirectStdout="false" stdoutFile="output.log" failOnStderrOutput="true" executableMode="1" changeWorkingDirectory="true" workingDirectory="." singleInstance="true" serviceStartType="2" serviceDependencies="" serviceDescription="" jreLocation="" executionLevel="asInvoker" checkConsoleParameter="false">
         <versionInfo include="false" fileVersion="" fileDescription="" legalCopyright="" internalName="" />
       </executable>
       <splashScreen show="true" autoOff="true" alwaysOnTop="false" width="700" height="357" bitmapFile="../InstallerFiles/SpecifyBigSplash.png" java6SplashScreen="false">
         <text>
-          <statusLine x="95" y="326" text="Copyright (C) 2009 Kansas University Center for Research. FOSS licensed under GNU GPL2." font="Arial" fontSize="10" fontColor="0,0,0" fontWeight="500" />
+          <statusLine x="95" y="326" text="Copyright (C) 2010 Kansas University Center for Research. FOSS licensed under GNU GPL2." font="Arial" fontSize="10" fontColor="0,0,0" fontWeight="500" />
           <versionLine x="330" y="260" text="Version: ${compiler:sys.version}" font="Arial" fontSize="12" fontColor="0,0,0" fontWeight="500" />
         </text>
       </splashScreen>
-      <java mainClass="edu.ku.brc.specify.BackupAndRestoreApp" vmParameters="-Xmx768m" arguments="-Dappdir=.. -Dcom.apple.macos.useSmallTabs=true -Dapple.laf.useScreenMenuBar=true -Xdock:icon=&quot;src/edu/ku/brc/specify/images/specify128.png&quot; -Dcom.apple.mrj.application.apple.menu.about.name=SpBackupRestore" allowVMPassthroughParameters="true" preferredVM="" bundleRuntime="true">
+      <java mainClass="edu.ku.brc.specify.Specify" vmParameters="-Xmx768m" arguments="-Dappdir=.. -Dembedded -Dcom.apple.macos.useSmallTabs=true -Dapple.laf.useScreenMenuBar=true -Xdock:icon=&quot;src/edu/ku/brc/specify/images/specify128.png&quot; -Dcom.apple.mrj.application.apple.menu.about.name=Specify1GB" allowVMPassthroughParameters="true" preferredVM="" bundleRuntime="true">
         <classPath>
           <archive location="specify.jar" failOnError="true" />
-          <scanDirectory location="embedded_libs" failOnError="true" />
           <scanDirectory location="libs" failOnError="true" />
           <scanDirectory location="hibernate_libs" failOnError="true" />
           <scanDirectory location="iReportLibs" failOnError="true" />
+          <scanDirectory location="wwlib" failOnError="true" />
           <directory location="help" failOnError="false" />
+          <scanDirectory location="embedded_libs" failOnError="true" />
         </classPath>
-        <nativeLibraryDirectories />
+        <nativeLibraryDirectories>
+          <directory name="wwlib" />
+        </nativeLibraryDirectories>
       </java>
       <includedFiles />
       <unextractableFiles />
@@ -138,26 +154,29 @@
         <scriptLines />
       </customScript>
     </launcher>
-    <launcher name="Specify1GB" id="1209" external="false" excludeFromMenu="false" menuName="" icnsFile="../InstallerFiles/images/specify.icns" pngIcon16File="../InstallerFiles/images/specify16.png" pngIcon32File="../InstallerFiles/images/specify32.png" macServiceDependencies="" swtApp="false" fileset="">
-      <executable name="Specify1GB" type="1" iconSet="true" iconFile="" executableDir="bin" redirectStderr="true" stderrFile="error.log" redirectStdout="false" stdoutFile="output.log" failOnStderrOutput="true" executableMode="1" changeWorkingDirectory="true" workingDirectory="." singleInstance="true" serviceStartType="2" serviceDependencies="" serviceDescription="" jreLocation="" executionLevel="asInvoker" checkConsoleParameter="false">
+    <launcher name="ImportFileSplitterEZDB" id="1238" external="false" excludeFromMenu="false" menuName="" icnsFile="icns/data_split.icns" pngIcon16File="../src/edu/ku/brc/specify/images/data_split16.png" pngIcon32File="../src/edu/ku/brc/specify/images/data_split32.png" macServiceDependencies="" swtApp="false" fileset="">
+      <executable name="ImportFileSplitterEZDB" type="1" iconSet="true" iconFile="" executableDir="bin" redirectStderr="true" stderrFile="error.log" redirectStdout="false" stdoutFile="output.log" failOnStderrOutput="true" executableMode="1" changeWorkingDirectory="true" workingDirectory="." singleInstance="true" serviceStartType="2" serviceDependencies="" serviceDescription="" jreLocation="" executionLevel="asInvoker" checkConsoleParameter="false">
         <versionInfo include="false" fileVersion="" fileDescription="" legalCopyright="" internalName="" />
       </executable>
       <splashScreen show="true" autoOff="true" alwaysOnTop="false" width="700" height="357" bitmapFile="../InstallerFiles/SpecifyBigSplash.png" java6SplashScreen="false">
         <text>
-          <statusLine x="95" y="326" text="Copyright (C) 2009 Kansas University Center for Research. FOSS licensed under GNU GPL2." font="Arial" fontSize="10" fontColor="0,0,0" fontWeight="500" />
+          <statusLine x="95" y="326" text="Copyright (C) 2010 Kansas University Center for Research. FOSS licensed under GNU GPL2." font="Arial" fontSize="10" fontColor="0,0,0" fontWeight="500" />
           <versionLine x="330" y="260" text="Version: ${compiler:sys.version}" font="Arial" fontSize="12" fontColor="0,0,0" fontWeight="500" />
         </text>
       </splashScreen>
-      <java mainClass="edu.ku.brc.specify.Specify" vmParameters="-Xmx768m" arguments="-Dappdir=.. -Dcom.apple.macos.useSmallTabs=true -Dapple.laf.useScreenMenuBar=true -Xdock:icon=&quot;src/edu/ku/brc/specify/images/specify128.png&quot; -Dcom.apple.mrj.application.apple.menu.about.name=Specify1GB" allowVMPassthroughParameters="true" preferredVM="" bundleRuntime="true">
+      <java mainClass="edu.ku.brc.specify.utilapps.ImportFileSplitter" vmParameters="-Xmx768m" arguments="-Dappdir=.. -Dembedded -Dcom.apple.macos.useSmallTabs=true -Dapple.laf.useScreenMenuBar=true -Xdock:icon=&quot;src/edu/ku/brc/specify/images/specify128.png&quot; -Dcom.apple.mrj.application.apple.menu.about.name=ImportFileSplitter" allowVMPassthroughParameters="true" preferredVM="" bundleRuntime="true">
         <classPath>
           <archive location="specify.jar" failOnError="true" />
-          <scanDirectory location="embedded_libs" failOnError="true" />
           <scanDirectory location="libs" failOnError="true" />
           <scanDirectory location="hibernate_libs" failOnError="true" />
           <scanDirectory location="iReportLibs" failOnError="true" />
+          <scanDirectory location="wwlib" failOnError="true" />
           <directory location="help" failOnError="false" />
+          <scanDirectory location="embedded_libs" failOnError="true" />
         </classPath>
-        <nativeLibraryDirectories />
+        <nativeLibraryDirectories>
+          <directory name="wwlib" />
+        </nativeLibraryDirectories>
       </java>
       <includedFiles />
       <unextractableFiles />
@@ -165,26 +184,59 @@
         <scriptLines />
       </customScript>
     </launcher>
-    <launcher name="ImportFileSplitter" id="1238" external="false" excludeFromMenu="false" menuName="" icnsFile="../InstallerFiles/images/data_split.icns" pngIcon16File="../InstallerFiles/images/specify16.png" pngIcon32File="../InstallerFiles/images/specify32.png" macServiceDependencies="" swtApp="false" fileset="">
-      <executable name="ImportFileSplitter" type="1" iconSet="true" iconFile="" executableDir="bin" redirectStderr="true" stderrFile="error.log" redirectStdout="false" stdoutFile="output.log" failOnStderrOutput="true" executableMode="1" changeWorkingDirectory="true" workingDirectory="../" singleInstance="true" serviceStartType="2" serviceDependencies="" serviceDescription="" jreLocation="" executionLevel="asInvoker" checkConsoleParameter="false">
+    <launcher name="SchemaExporterEZDB" id="1319" external="false" excludeFromMenu="false" menuName="" icnsFile="icns/specifyE.icns" pngIcon16File="../src/edu/ku/brc/specify/images/specify16E.png" pngIcon32File="../src/edu/ku/brc/specify/images/specify32E.png" macServiceDependencies="" swtApp="false" fileset="">
+      <executable name="SchemaExporterEZDB" type="1" iconSet="true" iconFile="" executableDir="bin" redirectStderr="true" stderrFile="error.log" redirectStdout="false" stdoutFile="output.log" failOnStderrOutput="true" executableMode="1" changeWorkingDirectory="true" workingDirectory="." singleInstance="true" serviceStartType="2" serviceDependencies="" serviceDescription="" jreLocation="" executionLevel="asInvoker" checkConsoleParameter="false">
         <versionInfo include="false" fileVersion="" fileDescription="" legalCopyright="" internalName="" />
       </executable>
       <splashScreen show="true" autoOff="true" alwaysOnTop="false" width="700" height="357" bitmapFile="../InstallerFiles/SpecifyBigSplash.png" java6SplashScreen="false">
         <text>
-          <statusLine x="95" y="326" text="Copyright (C) 2009 Kansas University Center for Research. FOSS licensed under GNU GPL2." font="Arial" fontSize="10" fontColor="0,0,0" fontWeight="500" />
+          <statusLine x="95" y="326" text="Copyright (C) 2010 Kansas University Center for Research. FOSS licensed under GNU GPL2." font="Arial" fontSize="10" fontColor="0,0,0" fontWeight="500" />
           <versionLine x="330" y="260" text="Version: ${compiler:sys.version}" font="Arial" fontSize="12" fontColor="0,0,0" fontWeight="500" />
         </text>
       </splashScreen>
-      <java mainClass="edu.ku.brc.specify.utilapps.ImportFileSplitter" vmParameters="-Xmx768m" arguments="-Dappdir=.. -Dcom.apple.macos.useSmallTabs=true -Dapple.laf.useScreenMenuBar=true -Xdock:icon=&quot;src/edu/ku/brc/specify/images/specify128.png&quot; -Dcom.apple.mrj.application.apple.menu.about.name=ImportFileSplitter" allowVMPassthroughParameters="true" preferredVM="" bundleRuntime="true">
+      <java mainClass="edu.ku.brc.specify.tools.export.ExportPanel" vmParameters="-Xmx768m" arguments="-Dappdir=.. -Dembedded -Dcom.apple.macos.useSmallTabs=true -Dapple.laf.useScreenMenuBar=true -Xdock:icon=&quot;src/edu/ku/brc/specify/images/specify128.png&quot; -Dcom.apple.mrj.application.apple.menu.about.name=SchemaExporter" allowVMPassthroughParameters="true" preferredVM="" bundleRuntime="true">
         <classPath>
           <archive location="specify.jar" failOnError="true" />
-          <scanDirectory location="embedded_libs" failOnError="true" />
           <scanDirectory location="libs" failOnError="true" />
           <scanDirectory location="hibernate_libs" failOnError="true" />
           <scanDirectory location="iReportLibs" failOnError="true" />
+          <scanDirectory location="wwlib" failOnError="true" />
           <directory location="help" failOnError="false" />
+          <scanDirectory location="embedded_libs" failOnError="true" />
         </classPath>
-        <nativeLibraryDirectories />
+        <nativeLibraryDirectories>
+          <directory name="wwlib" />
+        </nativeLibraryDirectories>
+      </java>
+      <includedFiles />
+      <unextractableFiles />
+      <customScript mode="1" file="">
+        <scriptLines />
+      </customScript>
+    </launcher>
+    <launcher name="SpecifyL10NEZDB" id="1400" external="false" excludeFromMenu="false" menuName="" icnsFile="icns/specifyE.icns" pngIcon16File="../src/edu/ku/brc/specify/images/specify16E.png" pngIcon32File="../src/edu/ku/brc/specify/images/specify32E.png" macServiceDependencies="" swtApp="false" fileset="">
+      <executable name="SpecifyL10NEZDB" type="1" iconSet="true" iconFile="" executableDir="bin" redirectStderr="true" stderrFile="error.log" redirectStdout="false" stdoutFile="output.log" failOnStderrOutput="true" executableMode="1" changeWorkingDirectory="true" workingDirectory="." singleInstance="true" serviceStartType="2" serviceDependencies="" serviceDescription="" jreLocation="" executionLevel="asInvoker" checkConsoleParameter="false">
+        <versionInfo include="false" fileVersion="" fileDescription="" legalCopyright="" internalName="" />
+      </executable>
+      <splashScreen show="true" autoOff="true" alwaysOnTop="false" width="700" height="357" bitmapFile="../InstallerFiles/SpecifyBigSplash.png" java6SplashScreen="false">
+        <text>
+          <statusLine x="95" y="326" text="Copyright (C) 2010 Kansas University Center for Research. FOSS licensed under GNU GPL2." font="Arial" fontSize="10" fontColor="0,0,0" fontWeight="500" />
+          <versionLine x="330" y="260" text="Version: ${compiler:sys.version}" font="Arial" fontSize="12" fontColor="0,0,0" fontWeight="500" />
+        </text>
+      </splashScreen>
+      <java mainClass="edu.ku.brc.specify.tools.StrLocalizerApp" vmParameters="-Xmx512m" arguments="-Dappdir=.. -Dembedded -Dcom.apple.macos.useSmallTabs=true -Dapple.laf.useScreenMenuBar=true -Xdock:icon=&quot;src/edu/ku/brc/specify/images/specify128.png&quot; -Dcom.apple.mrj.application.apple.menu.about.name=SpecifyL10N" allowVMPassthroughParameters="true" preferredVM="" bundleRuntime="true">
+        <classPath>
+          <archive location="specify.jar" failOnError="true" />
+          <scanDirectory location="libs" failOnError="true" />
+          <scanDirectory location="hibernate_libs" failOnError="true" />
+          <scanDirectory location="iReportLibs" failOnError="true" />
+          <scanDirectory location="wwlib" failOnError="true" />
+          <directory location="help" failOnError="false" />
+          <scanDirectory location="embedded_libs" failOnError="true" />
+        </classPath>
+        <nativeLibraryDirectories>
+          <directory name="wwlib" />
+        </nativeLibraryDirectories>
       </java>
       <includedFiles />
       <unextractableFiles />
@@ -193,10 +245,10 @@
       </customScript>
     </launcher>
   </launchers>
-  <installerGui installerType="1" suggestPreviousProgramGroup="false" addOnAppId="" suggestPreviousLocations="true">
+  <installerGui installerType="1" suggestPreviousProgramGroup="false" addOnAppId="" suggestPreviousLocations="false">
     <customCode useInstalledFiles="false" />
     <applications>
-      <application name="" id="installer" beanClass="com.install4j.runtime.beans.applications.InstallerApplication" enabled="true" commentSet="false" comment="" customIcnsFile="../InstallerFiles/images/specify.icns" customIcoFile="">
+      <application name="" id="installer" beanClass="com.install4j.runtime.beans.applications.InstallerApplication" enabled="true" commentSet="false" comment="" customIcnsFile="icns/specifyE.icns" customIcoFile="">
         <serializedBean>
           <java class="java.beans.XMLDecoder">
             <object class="com.install4j.runtime.beans.applications.InstallerApplication">
@@ -207,12 +259,12 @@
               </void>
               <void property="customPngIcon16File">
                 <object class="com.install4j.api.beans.ExternalFile">
-                  <string>../InstallerFiles/images/specify16.png</string>
+                  <string>../src/edu/ku/brc/specify/images/specify16.png</string>
                 </object>
               </void>
               <void property="customPngIcon32File">
                 <object class="com.install4j.api.beans.ExternalFile">
-                  <string>../InstallerFiles/images/specify32.png</string>
+                  <string>../src/edu/ku/brc/specify/images/specify32.png</string>
                 </object>
               </void>
               <void property="frameHeight">
@@ -394,7 +446,7 @@
                   <java class="java.beans.XMLDecoder">
                     <object class="com.install4j.runtime.beans.actions.desktop.CreateProgramGroupAction">
                       <void property="programGroupName">
-                        <string>${compiler:sys.fullName}</string>
+                        <string>${compiler:sys.fullName}EZDB</string>
                       </void>
                     </object>
                   </java>
@@ -416,10 +468,10 @@
             </actions>
             <formComponents />
           </screen>
-          <screen name="" id="361" beanClass="com.install4j.runtime.beans.screens.FinishedScreen" enabled="true" commentSet="false" comment="" rollbackBarrier="false" backButton="2" finishScreen="true">
+          <screen name="" id="1777" beanClass="com.install4j.runtime.beans.screens.BannerFormScreen" enabled="true" commentSet="false" comment="" rollbackBarrier="false" backButton="2" finishScreen="true">
             <serializedBean>
               <java class="java.beans.XMLDecoder">
-                <object class="com.install4j.runtime.beans.screens.FinishedScreen">
+                <object class="com.install4j.runtime.beans.screens.BannerFormScreen">
                   <void property="bannerBackground">
                     <object class="java.awt.Color">
                       <int>255</int>
@@ -433,6 +485,9 @@
                       <string>../src/edu/ku/brc/specify/images/specify128.png</string>
                     </object>
                   </void>
+                  <void property="title">
+                    <string>Specify is now installed on your computer.</string>
+                  </void>
                 </object>
               </java>
             </serializedBean>
@@ -441,7 +496,7 @@
             <preActivation />
             <postActivation />
             <actions>
-              <action name="" id="364" beanClass="com.install4j.runtime.beans.actions.finish.ExecuteLauncherAction" enabled="true" commentSet="false" comment="" rollbackBarrier="false" multiExec="false" failureStrategy="1" errorMessage="">
+              <action name="" id="1778" beanClass="com.install4j.runtime.beans.actions.finish.ExecuteLauncherAction" enabled="true" commentSet="false" comment="" rollbackBarrier="false" multiExec="false" failureStrategy="1" errorMessage="">
                 <serializedBean>
                   <java class="java.beans.XMLDecoder">
                     <object class="com.install4j.runtime.beans.actions.finish.ExecuteLauncherAction">
@@ -451,22 +506,101 @@
                     </object>
                   </java>
                 </serializedBean>
-                <condition>context.getBooleanVariable("executeLauncherAction") &amp;&amp; (!context.isUnattended()) &amp;&amp; (!context.getBooleanVariable("executeBuilder"))</condition>
+                <condition>String condit = (String)context.getVariable("executeLauncherAction");
+
+if (condit.equals("Specify")) {
+    return true;
+} else {
+    return false;
+}
+</condition>
+              </action>
+              <action name="" id="1779" beanClass="com.install4j.runtime.beans.actions.finish.ExecuteLauncherAction" enabled="true" commentSet="false" comment="" rollbackBarrier="false" multiExec="false" failureStrategy="1" errorMessage="">
+                <serializedBean>
+                  <java class="java.beans.XMLDecoder">
+                    <object class="com.install4j.runtime.beans.actions.finish.ExecuteLauncherAction">
+                      <void property="launcherId">
+                        <string>724</string>
+                      </void>
+                    </object>
+                  </java>
+                </serializedBean>
+                <condition>String condit = (String)context.getVariable("executeLauncherAction");
+
+if (condit.equals("SpWizard")) {
+    return true;
+} else {
+    return false;
+}</condition>
               </action>
             </actions>
             <formComponents>
-              <formComponent name="Execute launcher" id="365" beanClass="com.install4j.runtime.beans.formcomponents.CheckboxComponent" enabled="true" commentSet="false" comment="" insetTop="" insetLeft="" insetBottom="" insetRight="" resetInitOnPrevious="false">
+              <formComponent name="" id="1780" beanClass="com.install4j.runtime.beans.formcomponents.MultilineLabelComponent" enabled="true" commentSet="false" comment="" insetTop="" insetLeft="" insetBottom="" insetRight="" resetInitOnPrevious="false">
                 <serializedBean>
                   <java class="java.beans.XMLDecoder">
-                    <object class="com.install4j.runtime.beans.formcomponents.CheckboxComponent">
-                      <void property="checkboxText">
-                        <string>${i18n:RunEntryExec("${compiler:sys.fullName}")}</string>
+                    <object class="com.install4j.runtime.beans.formcomponents.MultilineLabelComponent">
+                      <void property="labelText">
+                        <string>${i18n:explanationStartWizard}</string>
                       </void>
+                    </object>
+                  </java>
+                </serializedBean>
+                <initScript />
+                <visibiltyScript />
+              </formComponent>
+              <formComponent name="" id="1783" beanClass="com.install4j.runtime.beans.formcomponents.SingleRadiobuttonComponent" enabled="true" commentSet="false" comment="" insetTop="" insetLeft="" insetBottom="" insetRight="" resetInitOnPrevious="false">
+                <serializedBean>
+                  <java class="java.beans.XMLDecoder">
+                    <object class="com.install4j.runtime.beans.formcomponents.SingleRadiobuttonComponent">
                       <void property="initiallySelected">
                         <boolean>true</boolean>
                       </void>
+                      <void property="radioButtonLabel">
+                        <string>${i18n:justFinish}</string>
+                      </void>
                       <void property="variableName">
                         <string>executeLauncherAction</string>
+                      </void>
+                      <void property="variableValue">
+                        <string>none</string>
+                      </void>
+                    </object>
+                  </java>
+                </serializedBean>
+                <initScript />
+                <visibiltyScript />
+              </formComponent>
+              <formComponent name="" id="1782" beanClass="com.install4j.runtime.beans.formcomponents.SingleRadiobuttonComponent" enabled="true" commentSet="false" comment="" insetTop="" insetLeft="" insetBottom="" insetRight="" resetInitOnPrevious="false">
+                <serializedBean>
+                  <java class="java.beans.XMLDecoder">
+                    <object class="com.install4j.runtime.beans.formcomponents.SingleRadiobuttonComponent">
+                      <void property="radioButtonLabel">
+                        <string>${i18n:runSpWizard}</string>
+                      </void>
+                      <void property="variableName">
+                        <string>executeLauncherAction</string>
+                      </void>
+                      <void property="variableValue">
+                        <string>SpWizard</string>
+                      </void>
+                    </object>
+                  </java>
+                </serializedBean>
+                <initScript />
+                <visibiltyScript />
+              </formComponent>
+              <formComponent name="" id="1781" beanClass="com.install4j.runtime.beans.formcomponents.SingleRadiobuttonComponent" enabled="true" commentSet="false" comment="" insetTop="" insetLeft="" insetBottom="" insetRight="" resetInitOnPrevious="false">
+                <serializedBean>
+                  <java class="java.beans.XMLDecoder">
+                    <object class="com.install4j.runtime.beans.formcomponents.SingleRadiobuttonComponent">
+                      <void property="radioButtonLabel">
+                        <string>${i18n:runSpecify}</string>
+                      </void>
+                      <void property="variableName">
+                        <string>executeLauncherAction</string>
+                      </void>
+                      <void property="variableValue">
+                        <string>Specify</string>
                       </void>
                     </object>
                   </java>
@@ -632,7 +766,7 @@
                         <boolean>false</boolean>
                       </void>
                       <void property="updateDescriptorUrl">
-                        <string>http://update.specifysoftware.org/updates.xml</string>
+                        <string>http://update.specifysoftware.org/updates-embed.xml</string>
                       </void>
                       <void property="variable">
                         <string>updateDescriptor</string>
@@ -1276,15 +1410,24 @@ if (wizardContext != null) {
     </applications>
   </installerGui>
   <mediaSets>
-    <macosFolder name="Mac OS X Folder" id="24" mediaFileName="" installDir="Specify6" overridePrincipalLanguage="false" requires64bit="false" runPostProcessor="false" postProcessor="" failOnPostProcessorError="false" customInstallBaseDir="" createUninstallIcon="true" contentFilesType="1" downloadURL="">
+    <macosFolder name="Mac OS X Folder" id="24" mediaFileName="" installDir="SpecifyEZDB" overridePrincipalLanguage="false" requires64bit="false" runPostProcessor="false" postProcessor="" failOnPostProcessorError="false" customInstallBaseDir="" createUninstallIcon="true" contentFilesType="1" downloadURL="">
       <excludedLaunchers />
       <excludedComponents />
       <excludedBeans />
       <overriddenPrincipalLanguage id="en" customLocalizationFile="" />
-      <exclude />
+      <exclude>
+        <entry location="wwlib/libjogl.so" fileType="regular" />
+        <entry location="wwlib/jogl_awt.dll" fileType="regular" />
+        <entry location="wwlib/libgluegen-rt.so" fileType="regular" />
+        <entry location="wwlib/libjogl_cg.so" fileType="regular" />
+        <entry location="wwlib/gluegen-rt.dll" fileType="regular" />
+        <entry location="wwlib/jogl_cg.dll" fileType="regular" />
+        <entry location="wwlib/libjogl_awt.so" fileType="regular" />
+        <entry location="wwlib/jogl.dll" fileType="regular" />
+      </exclude>
       <variables />
     </macosFolder>
-    <win32 name="Windows" id="176" mediaFileName="" installDir="Specify" overridePrincipalLanguage="false" requires64bit="false" runPostProcessor="false" postProcessor="" failOnPostProcessorError="false" includedJRE="" manualJREEntry="false" bundleType="1" jreURL="" jreFtpURL="" jreShared="false" customInstallBaseDir="" createUninstallIcon="true" contentFilesType="1" downloadURL="" runAsAdmin="false">
+    <win32 name="Windows" id="176" mediaFileName="" installDir="SpecifyEZDB" overridePrincipalLanguage="false" requires64bit="false" runPostProcessor="false" postProcessor="" failOnPostProcessorError="false" includedJRE="" manualJREEntry="false" bundleType="1" jreURL="" jreFtpURL="" jreShared="false" customInstallBaseDir="" createUninstallIcon="true" contentFilesType="1" downloadURL="" runAsAdmin="false">
       <excludedLaunchers />
       <excludedComponents />
       <excludedBeans />
@@ -1294,7 +1437,7 @@ if (wizardContext != null) {
       </exclude>
       <variables />
     </win32>
-    <unixInstaller name="Unix Installer" id="179" mediaFileName="" installDir="Specify" overridePrincipalLanguage="false" requires64bit="false" runPostProcessor="false" postProcessor="" failOnPostProcessorError="false" includedJRE="" manualJREEntry="false" bundleType="1" jreURL="" jreFtpURL="" jreShared="false" customInstallBaseDir="" createUninstallIcon="true" contentFilesType="1" downloadURL="">
+    <unixInstaller name="Unix Installer" id="179" mediaFileName="" installDir="SpecifyEZDB" overridePrincipalLanguage="false" requires64bit="false" runPostProcessor="false" postProcessor="" failOnPostProcessorError="false" includedJRE="" manualJREEntry="false" bundleType="1" jreURL="" jreFtpURL="" jreShared="false" customInstallBaseDir="" createUninstallIcon="true" contentFilesType="1" downloadURL="">
       <excludedLaunchers />
       <excludedComponents />
       <excludedBeans />

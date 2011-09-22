@@ -39,6 +39,15 @@
         </view>
 
         <view
+            name="Morphbank"
+            class="java.util.prefs.Preferences">
+            <desc><![CDATA[Morphbank Preference Form.]]></desc>
+            <altviews>
+                <altview name="Morphbank" viewdef="Morphbank" label="V_Morphbank" mode="edit" validated="true"/>
+            </altviews>
+        </view>
+
+        <view
             name="GoogleEarth"
             class="java.util.prefs.Preferences">
             <desc><![CDATA[GoogleEarth Preference Form.]]></desc>
@@ -82,7 +91,25 @@
                 <altview name="LoansPrefs" viewdef="LoansPrefs" label="LOANS_PREF" mode="edit" validated="true"/>
             </altviews>
         </view>
-        <!-- MMK -->
+        
+        <view
+            name="GEOLocatePrefs"
+            class="java.util.prefs.Preferences">
+            <desc><![CDATA[GEOLocate Preference Form.]]></desc>
+            <altviews>
+                <altview name="GEOLocatePrefs" viewdef="GEOLocatePrefs" label="GEOLocate" mode="edit" validated="true"/>
+            </altviews>
+        </view>
+                
+        <view
+            name="NetworkProxy"
+            class="java.util.prefs.Preferences">
+            <desc><![CDATA[Network Proxy Form.]]></desc>
+            <altviews>
+                <altview name="NetworkProxy" viewdef="NetworkProxy" label="NETWORK_PROXY" mode="edit" validated="true"/>
+            </altviews>
+        </view>
+        <!-- added by HUH for FP -->
         <view
         	name="FpPrefs"
         	class="java.util.prefs.Preferences">
@@ -91,8 +118,8 @@
         		<altview name="FpPref" viewdef="FpPrefs" label="FP_PREFS" mode="edit" validated="true"/>
         	</altviews>
         </view>
+        <!-- end HUH addition -->
     </views>
-        
 
     <!-- ***************************************************************************************** -->
 
@@ -342,6 +369,7 @@
             
         </viewdef>
 
+
         <viewdef
             type="form"
             name="System"
@@ -353,7 +381,7 @@
             <desc><![CDATA[System Preference Form.]]></desc>
             
             <columnDef>p,4px,p,f:p:g</columnDef>
-            <rowDef>p,2px,p,10px, p,2px,p,10px, p,2px,p,10px, p,2px,p,10px, p,2px,p,10px, p,2px,p,10px, p,2px,p,10px, p,2px,p,10px, p,2px,p,10px</rowDef>
+            <rowDef>p,2px,p,10px, p,2px,p,10px, p,2px,p,10px, p,2px,p,10px, p,2px,p,10px, p,2px,p,10px, p,2px,p,10px, p,2px,p,10px, p,2px,p,10px, p,2px,p,10px</rowDef>
                
             <rows>
                 <row>
@@ -443,6 +471,80 @@
                             </row>
                         </rows>
                     </cell>
+                </row>
+                <row>
+                    <cell type="separator" label="OPENGL_WW" colspan="4"/>
+                </row>
+                <row>
+                    <cell type="panel" id="p1" name="ip1" coldef="p,10px,p,f:p:g" rowdef="p" colspan="4">
+                        <rows>
+                            <row>
+                                <cell type="field" id="USE.WORLDWIND" name="USE.WORLDWIND" uitype="checkbox" label="USE_WORLDWIND"/>
+                                <cell type="field" id="SYSTEM.HasOpenGL" name="SYSTEM.HasOpenGL" uitype="checkbox" label="HAS_OPENGL"/>
+                                <!-- <cell type="field" uitype="button" ignore="true" id="checkForOpenGLBtn" name="checkForOpenGLBtn" initialize="title=CHECK_FOR_OPENGL;"/>  -->
+                            </row>
+                        </rows>
+                    </cell>
+                </row>
+                <row>
+                    <cell type="separator" label="COLLECTION_SEL" colspan="4"/>
+                </row>
+                <row>
+                    <cell type="panel" id="csp" name="csp" coldef="p,10px,p,f:p:g" rowdef="p" colspan="4">
+                        <rows>
+                            <row>
+                                <cell type="field" id="ALWAYS.ASK.COLL" name="ALWAYS.ASK.COLL" uitype="checkbox" label="ALWAYS_ASK_COLL"/>
+                            </row>
+                        </rows>
+                    </cell>
+                </row>
+                
+            </rows>
+        </viewdef>
+
+        <viewdef
+            type="form"
+            name="Morphbank"
+            class="java.util.prefs.Preferences"
+            gettable="edu.ku.brc.af.prefs.PrefsGettableImpl"
+            settable="edu.ku.brc.af.prefs.PrefsSettableImpl"
+            useresourcelabels="true">
+            
+            <desc><![CDATA[Morphbank Preference Form.]]></desc>
+            
+            <columnDef>p,4px,p,f:p:g</columnDef>
+            <rowDef>p,2px,p,10px, p,2px,p,10px, p,2px,p,10px, p,2px,p,10px, p,2px,p,10px, p,2px,p,10px, p,2px,p,10px, p,2px,p,10px, p,2px,p,10px, p,2px,p,10px</rowDef>
+               
+            <rows>
+                <row>
+                    <cell type="separator" label="MORPHBANK_BASE_URL" colspan="4"/>
+                </row>
+                <row>
+                    <cell type="field" id="10" name="morphbank.baseurl" cols="100" uitype="text" colspan="4"/>
+                </row>
+                <row>
+                    <cell type="separator" label="MORPHBANK_IMAGEPOST_URL" colspan="4"/>
+                </row>
+                <row>
+                    <cell type="field" id="11" name="morphbank.imageposturl" cols="100" uitype="text" colspan="4"/>
+                </row>
+                <row>
+                    <cell type="separator" label="MORPHBANK_DWC_MAPPING" colspan="4"/>
+                </row>
+                <row>
+                    <cell type="field" id="7" name="morphbank.dwcmapping" cols="30" uitype="combobox" colspan="4"/>
+                </row>
+                <row>
+                    <cell type="separator" label="MORPHBANK_USERID" colspan="4"/>
+                </row>
+                <row>
+                    <cell type="field" id="8" name="morphbank.userid" cols="30" uitype="text" colspan="4"/>
+                </row>
+                <row>
+                    <cell type="separator" label="MORPHBANK_GROUPID" colspan="4"/>
+                </row>
+                <row>
+                    <cell type="field" id="9" name="morphbank.groupid" cols="30" uitype="text" colspan="4"/>
                 </row>
             </rows>
         </viewdef>
@@ -763,7 +865,72 @@
             </rows>
         </viewdef>
         
-        <!-- FP MMK -->
+        <viewdef
+            type="form"
+            name="GEOLocatePrefs"
+            class="java.util.prefs.Preferences"
+            gettable="edu.ku.brc.af.prefs.PrefsGettableImpl"
+            settable="edu.ku.brc.af.prefs.PrefsSettableImpl"
+            useresourcelabels="true">
+            
+            <desc><![CDATA[GEOLocatePrefs Preference Form.]]></desc>
+            
+            <columnDef>p,f:p:g</columnDef>
+            <rowDef auto="true" cell="p" sep="2dlu"/>
+            
+            <rows>
+                <row>
+                    <cell type="separator" label="GEOLocate" colspan="2"/>
+                </row>
+                <row>
+                    <cell type="field" id="GEOLocate.HYWX" name="GEOLocate.HYWX" uitype="checkbox" label="GL_HYWX" colspan="2"/>
+                </row>
+                <row>
+                    <cell type="field" id="GEOLocate.WATERBODY" name="GEOLocate.WATERBODY" uitype="checkbox" label="GL_WATERBODY" colspan="2"/>
+                </row>
+            </rows>
+        </viewdef>
+                
+        <viewdef
+            type="form"
+            name="NetworkProxy"
+            class="java.util.prefs.Preferences"
+            gettable="edu.ku.brc.af.prefs.PrefsGettableImpl"
+            settable="edu.ku.brc.af.prefs.PrefsSettableImpl"
+            useresourcelabels="true">
+            
+            <desc><![CDATA[Network Proxy Preference Form.]]></desc>
+            
+            <columnDef>p,4px,p,p:g,f:p:g</columnDef>
+            <rowDef auto="true" cell="p" sep="2dlu"/>
+               
+            <rows>
+                <row>
+                    <cell type="separator" label="NETWORK_PROXY_SET" colspan="5"/>
+                </row>
+                <row>
+                    <cell type="label" labelfor="PROXY_HOST" label="PROXY_HOST"/>
+                    <cell type="field" id="PROXY_HOST" name="PROXY_HOST" uitype="text" cols="30" colspan="2"/>
+                </row>
+                <row>
+                    <cell type="label" labelfor="PROXY_PORT" label="PROXY_PORT"/>
+                    <cell type="field" id="PROXY_PORT" name="PROXY_PORT" uitype="text" cols="8"/>
+                </row>
+             <!-- <row>
+                    <cell type="label" labelfor="PROXY_HOST_HTTPS" label="PROXY_HOST_HTTPS"/>
+                    <cell type="field" id="PROXY_HOST_HTTPS" name="PROXY_HOST_HTTPS" uitype="text" colspan="3"/>
+                </row>
+                <row>
+                    <cell type="label" labelfor="PROXY_PORT_HTTPS" label="PROXY_PORT_HTTPS"/>
+                    <cell type="field" id="PROXY_PORT_HTTPS" name="PROXY_PORT_HTTPS" uitype="text" cols="8"/>
+                </row> -->
+           <!--      <row>
+                    <cell type="label" labelfor="PROXY_TYPE"/>
+                    <cell type="field" id="PROXY_TYPE" name="PROXY_TYPE" uitype="text" colspan="4"/>
+                </row>  -->
+            </rows>
+        </viewdef>
+        <!-- added by HUH for FP -->
         <viewdef
         	type="form"
         	name="FpPrefs"
@@ -799,6 +966,7 @@
 				</row>
             </rows>
         </viewdef>
+        <!-- end HUH addition -->
         
     </viewdefs>
 </viewset>

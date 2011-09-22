@@ -15,6 +15,17 @@
         </view>
         
         <view 
+            name="UserAgentSearch"
+            class="edu.ku.brc.specify.datamodel.Agent"
+            usedefbusrule="false"
+            resourcelabels="false">
+            <desc><![CDATA[The Agent Search Form]]></desc>
+            <altviews>
+                <altview name="AgentSearch" viewdef="AgentSearch" mode="edit" validated="true" default="true"/>
+            </altviews>
+        </view>
+        
+        <view 
             name="AgentNameSearch"
             class="edu.ku.brc.specify.datamodel.Agent"
             usedefbusrule="false"
@@ -103,6 +114,18 @@
         </view>
         
         <view 
+            name="ContainerSearch"
+            class="edu.ku.brc.specify.datamodel.Container"
+            usedefbusrule="false"
+            resourcelabels="false">
+            <desc><![CDATA[The Container Search Form]]></desc>
+            <altviews>
+                <altview name="ContainerSearch" viewdef="ContainerSearch" mode="edit" validated="true" default="true"/>
+            </altviews>
+        </view>
+        
+        
+        <view 
             name="DivisionSearch"
             class="edu.ku.brc.specify.datamodel.Division"
             usedefbusrule="false"
@@ -112,13 +135,24 @@
                 <altview name="DivisionSearch" viewdef="DivisionSearch" mode="edit" validated="true" default="true"/>
             </altviews>
         </view>
+
+        <view 
+            name="FieldNotebookPageSearch"
+            class="edu.ku.brc.specify.datamodel.FieldNotebookPage"
+            usedefbusrule="false"
+            resourcelabels="false">
+            <desc><![CDATA[The FieldNotebookPage Search Form]]></desc>
+            <altviews>
+                <altview name="FieldNotebookPageSearch" viewdef="FieldNotebookPageSearch" label="Edit" mode="edit" validated="true" default="true"/>
+            </altviews>
+        </view>
         
         <view 
             name="JournalSearch"
             class="edu.ku.brc.specify.datamodel.Journal"
             usedefbusrule="false"
             resourcelabels="false">
-            <desc><![CDATA[The FieldNotebookPage Search Form]]></desc>
+            <desc><![CDATA[The Journal Search Form]]></desc>
             <altviews>
                 <altview name="JournalSearch" viewdef="JournalSearch" mode="edit" validated="true" default="true"/>
             </altviews>
@@ -132,6 +166,17 @@
             <desc><![CDATA[The Locality Search Form]]></desc>
             <altviews>
                 <altview name="LocalitySearch" viewdef="LocalitySearch" mode="edit" validated="true" default="true"/>
+            </altviews>
+        </view>
+
+        <view 
+            name="MorphBankViewSearch"
+            class="edu.ku.brc.specify.datamodel.MorphBankView"
+            usedefbusrule="false"
+            resourcelabels="false">
+            <desc><![CDATA[The MorphBankView Search Form]]></desc>
+            <altviews>
+                <altview name="MorphBankViewSearch" viewdef="MorphBankViewSearch" mode="edit" validated="true" default="true"/>
             </altviews>
         </view>
         
@@ -234,13 +279,13 @@
         </view>
         
         <view 
-            name="GeologicTimePeriodSearch"
+            name="ChronosStratSearch"
             class="edu.ku.brc.specify.datamodel.GeologicTimePeriod"
             usedefbusrule="false"
             resourcelabels="false">
             <desc><![CDATA[The GeologicTimePeriod Search Form]]></desc>
             <altviews>
-                <altview name="GeologicTimePeriodSearch" viewdef="GeologicTimePeriodSearch" mode="edit" validated="true" default="true"/>
+                <altview name="ChronosStratSearch" viewdef="ChronosStratSearch" mode="edit" validated="true" default="true"/>
             </altviews>
         </view>
         
@@ -428,7 +473,7 @@ Good: <cell type="field" name="FieldNum" ...>
                 </row>
                 <row>
                     <cell type="label" labelfor="1"/>
-                    <cell type="field" id="1" name="StartDate" uitype="text" formatter="Date"/>
+                    <cell type="field" id="1" name="StartDate" uitype="formattedtext" uifieldformatter="SearchDate" initialize="ispartial=true;"/>
                 </row>
                <row>
                     <cell type="label" labelfor="2"/>
@@ -459,11 +504,34 @@ Good: <cell type="field" name="FieldNum" ...>
                 </row>
                 <row>
                     <cell type="label" labelfor="2"/>
-                    <cell type="field" id="2" name="StartDate" uitype="text" formatter="Date"/>
+                    <cell type="field" id="2" name="StartDate" uitype="formattedtext" uifieldformatter="SearchDate" initialize="ispartial=true;"/>
                 </row>
                 
             </rows>
         </viewdef> 
+        
+        <viewdef type="form"
+            name="ContainerSearch"
+            class="edu.ku.brc.specify.datamodel.Container"
+            gettable="edu.ku.brc.af.ui.forms.DataGetterForHashMap"
+            settable="edu.ku.brc.af.ui.forms.DataSetterForHashMap">
+            
+            <desc><![CDATA[The Container Search Form]]></desc>
+            <enableRules/>
+            
+            <columnDef>p,3dlu,p,3dlu,p,3dlu,p,3dlu,p</columnDef>
+            <rowDef>p,2dlu,p,2dlu,p</rowDef>
+            
+            <rows>
+                <row>
+                    <cell type="separator" label="Container" colspan="7"/>
+                </row>
+                <row>
+                    <cell type="label" labelfor="1" />
+                    <cell type="field" id="1" name="Name" uitype="text" initialize="ispartial=true"/>
+                </row>
+            </rows>
+        </viewdef>        
         
         <viewdef type="form"
             name="DivisionSearch"
@@ -488,6 +556,32 @@ Good: <cell type="field" name="FieldNum" ...>
             </rows>
         </viewdef> 
 
+        <viewdef type="form"
+            name="FieldNotebookPageSearch"
+            class="edu.ku.brc.specify.datamodel.FieldNotebookPage"
+            gettable="edu.ku.brc.af.ui.forms.DataGetterForHashMap"
+            settable="edu.ku.brc.af.ui.forms.DataSetterForHashMap">
+            
+            <desc><![CDATA[The CollectingEvent Search Form]]></desc>
+            <enableRules/>
+            
+            <columnDef>p,3dlu,p</columnDef>
+            <rowDef>p,2dlu,p,2dlu,p</rowDef>
+            
+            <rows>
+                <row>
+                    <cell type="separator" label="Field Notebook Page" colspan="3"/>
+                </row>
+                <row>
+                    <cell type="label" labelfor="2"/>
+                    <cell type="field" id="2" name="PageNumber" uitype="text"/>
+                </row>
+                <row>
+                    <cell type="label" labelfor="3"/>
+                    <cell type="field" id="3" name="ScanDate" uitype="formattedtext" uifieldformatter="Date" initialize="ispartial=true;"/>
+                </row>
+            </rows>
+        </viewdef>
        
         <viewdef type="form"
             name="JournalSearch"
@@ -642,6 +736,26 @@ Good: <cell type="field" name="FieldNum" ...>
                 <row>
                     <cell type="label" labelfor="1" label="Name"/>
                     <cell type="field" id="1" name="LocalityName" isrequired="true" uitype="text"/>
+                </row>
+            </rows>
+        </viewdef>
+
+        <viewdef type="form"
+            name="MorphBankViewSearch"
+            class="edu.ku.brc.specify.datamodel.MorphBankView"
+            gettable="edu.ku.brc.af.ui.forms.DataGetterForHashMap"
+            settable="edu.ku.brc.af.ui.forms.DataSetterForHashMap">
+            
+            <desc><![CDATA[The MorphBankView Search Form]]></desc>
+            <!--<enableRules/>-->
+            
+            <columnDef>p,3dlu,p</columnDef>
+            <rowDef>p,2dlu,p,2dlu,p</rowDef>
+            
+            <rows>
+                <row>
+                    <cell type="label" labelfor="1" label="ViewName"/>
+                    <cell type="field" id="1" name="ViewName" isrequired="true" uitype="text"/>
                 </row>
             </rows>
         </viewdef>
@@ -816,14 +930,14 @@ Good: <cell type="field" name="FieldNum" ...>
             
             <rows>
                 <row>
-                    <cell type="label" labelfor="FullName" label="Full Name"/>
-                    <cell type="field" id="FullName" name="storage.FullName" isrequired="true" uitype="text"/>
+                    <cell type="label" labelfor="Name"/>
+                    <cell type="field" id="Name" name="Name" isrequired="true" uitype="text"/>
                 </row>
             </rows>
         </viewdef>
         
         <viewdef type="form"
-            name="GeologicTimePeriodSearch"
+            name="ChronosStratSearch"
             class="edu.ku.brc.specify.datamodel.GeologicTimePeriod"
             gettable="edu.ku.brc.af.ui.forms.DataGetterForHashMap"
             settable="edu.ku.brc.af.ui.forms.DataSetterForHashMap">

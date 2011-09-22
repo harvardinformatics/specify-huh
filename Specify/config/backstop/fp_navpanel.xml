@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!-- added by HUH for FP -->
 <boxes>
 	<box name="fp_subscrips_title" title="fp_subscrips_title">
 		<item name="fp_new_subscrip" title="fp_new_subscrip_title" icon="EMail"/>

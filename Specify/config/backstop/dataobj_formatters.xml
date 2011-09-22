@@ -205,6 +205,19 @@
     </format>
 
     <format
+        name="Container"
+        title="Container"
+        class="edu.ku.brc.specify.datamodel.Container"
+        default="true"
+        >
+        <switch single="true">
+            <fields>
+                <field>name</field>
+            </fields>
+        </switch>
+    </format>
+
+    <format
         name="DataType"
         title="DataType"
         class="edu.ku.brc.specify.datamodel.DataType"
@@ -272,6 +285,21 @@
             </fields>
         </switch>
     </format>
+    
+    <format
+        name="FieldNotebookPage"
+        title="FieldNotebookPage"
+        class="edu.ku.brc.specify.datamodel.FieldNotebookPage"
+        default="true"
+        >
+        <switch single="true">
+            <fields>
+                <field>pageNumber</field>
+                <field sep=" - ">pageSet.fieldNotebook.name</field>
+            </fields>
+        </switch>
+    </format>
+
 
     <format
         name="Geography"
@@ -316,6 +344,19 @@
         name="GeologicTimePeriodTreeDef"
         title="GeologicTimePeriodTreeDef"
         class="edu.ku.brc.specify.datamodel.GeologicTimePeriodTreeDef"
+        default="true"
+        >
+        <switch single="true">
+            <fields>
+                <field>name</field>
+            </fields>
+        </switch>
+    </format>
+
+    <format
+        name="GeologicTimePeriod"
+        title="GeologicTimePeriod"
+        class="edu.ku.brc.specify.datamodel.GeologicTimePeriod"
         default="true"
         >
         <switch single="true">

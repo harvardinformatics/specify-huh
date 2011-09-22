@@ -48,9 +48,20 @@
             <defperm name="Guest"         perm="false,false,false,false"/>
         </pref>
     </section>
-   
+
+    <!-- not ready for release -->
+    <section title="MORPHBANK">
+        <pref name="MORPHBANK" title="MORPHBANK" icon="Morphbank" panelClass="edu.ku.brc.specify.prefs.MorphbankPrefsPanel" viewsetname="Preferences" viewname="Morphbank" help="PrefsMorphbank">
+            <defperm name="Manager"       perm="true,true,true,true"/>
+            <defperm name="FullAccess"    perm="true,true,true,true"/>
+            <defperm name="LimitedAccess" perm="false,false,false,false"/>
+            <defperm name="Guest"         perm="false,false,false,false"/>
+        </pref>
+    </section>
+    <!-- -->
+    
     <section title="MySQL">
-        <pref name="MYSQL" title="MYSQL" icon="MySQL" panelClass="edu.ku.brc.specify.prefs.MySQLPrefs" viewsetname="Preferences" viewname="MySQLBckRstrOptions" help="PrefsMySQLBkRs">
+        <pref name="MYSQL" title="MYSQL" icon="MySQL" panelClass="edu.ku.brc.specify.prefs.MySQLPrefs" viewsetname="Preferences" viewname="MySQLBckRstrOptions" help="PrefsMySQL">
             <defperm name="Manager"       perm="true,true,true,true"/>
             <defperm name="FullAccess"    perm="false,false,false,false"/>
             <defperm name="LimitedAccess" perm="false,false,false,false"/>
@@ -68,11 +79,38 @@
     </section>
     
     <section title="Loans">
-        <pref name="LOANS" title="LOANS" icon="Loan" panelClass="edu.ku.brc.specify.prefs.LoansPrefsPanel" viewsetname="Preferences" viewname="LoansPrefs" help="PrefsLogin">
+        <pref name="LOANS" title="LOANS" icon="Loan" panelClass="edu.ku.brc.specify.prefs.LoansPrefsPanel" viewsetname="Preferences" viewname="LoansPrefs" help="PrefsLoan">
             <defperm name="Manager"       perm="true,true,true,true"/>
             <defperm name="FullAccess"    perm="true,true,true,true"/>
             <defperm name="LimitedAccess" perm="true,true,true,true"/>
             <defperm name="Guest"         perm="false,false,false,false"/>
+        </pref>
+    </section>
+    
+    <section title="LSIDs">
+        <pref name="LSIDs" title="LSIDS" icon="SpecifyLargeIcon" panelClass="edu.ku.brc.specify.prefs.LSIDPrefsPanel" help="PrefsLSID">
+            <defperm name="Manager"       perm="true,true,true,true"/>
+            <defperm name="FullAccess"    perm="false,false,false,false"/>
+            <defperm name="LimitedAccess" perm="false,false,false,false"/>
+            <defperm name="Guest"         perm="false,false,false,false"/>
+        </pref>
+    </section>
+    
+    <section title="GEOLocate">
+        <pref name="GEOLocate" title="GEOLocate" icon="GEOLocate" panelClass="edu.ku.brc.specify.prefs.GEOLocatePrefsPanel" help="PrefsGeolocate">
+            <defperm name="Manager"       perm="true,true,true,true"/>
+            <defperm name="FullAccess"    perm="true,true,true,true"/>
+            <defperm name="LimitedAccess" perm="true,true,true,true"/>
+            <defperm name="Guest"         perm="true,true,true,true"/>
+        </pref>
+    </section>
+    
+    <section title="NETWORK_PROXY">
+        <pref name="NetworkProxy" title="NETWORK_PROXY" icon="WorldWind" panelClass="edu.ku.brc.specify.prefs.NetworkProxyPanel" help="PrefsNetwork">
+            <defperm name="Manager"       perm="true,true,true,true"/>
+            <defperm name="FullAccess"    perm="true,true,true,true"/>
+            <defperm name="LimitedAccess" perm="true,true,true,true"/>
+            <defperm name="Guest"         perm="true,true,true,true"/>
         </pref>
     </section>
     
@@ -85,4 +123,5 @@
             <defperm name="Guest"         perm="false,false,false,false"/>
         </pref>
     </section>
+    
 </prefs>
