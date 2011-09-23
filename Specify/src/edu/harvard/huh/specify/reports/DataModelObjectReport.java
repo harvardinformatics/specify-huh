@@ -40,13 +40,16 @@ import org.apache.fop.apps.Fop;
 import org.apache.fop.apps.FopFactory;
 import org.apache.fop.apps.MimeConstants;
 
+import edu.ku.brc.ui.UIRegistry;
+
 /** Class that takes XSL-FO, generates PDF and displays it to the user.
  *  
  * @author lowery
  *
  */
 public class DataModelObjectReport {
-	StreamSource stream;
+	private StreamSource stream;
+	private static File reportsDir = new File(UIRegistry.getDefaultWorkingPath() + File.separator + ReportXslFiles.REPORTS_DIR);
 
 	/** The constructor takes XSL-FO as a StreamSource argument
 	 * 
@@ -64,8 +67,7 @@ public class DataModelObjectReport {
 		OutputStream out = null;
 
 		try {
-			out = new BufferedOutputStream(new FileOutputStream(new File(
-					ReportXslFiles.REPORTS_DIR + "out.pdf")));
+			out = new BufferedOutputStream(new FileOutputStream(new File(reportsDir.getAbsoluteFile() + File.separator + "out.pdf")));
 			Fop fop = fopFactory.newFop(MimeConstants.MIME_PDF, out);
 
 			TransformerFactory factory = TransformerFactory.newInstance();
@@ -93,7 +95,7 @@ public class DataModelObjectReport {
 
 		PDFReader viewer = new PDFReader();
 		try {
-			PDFReader.display(ReportXslFiles.REPORTS_DIR + "out.pdf");
+			PDFReader.display(reportsDir.getAbsoluteFile() + File.separator + "out.pdf");
 		} catch (Exception e) {
 			e.printStackTrace();
 			displayErrorDlg();
@@ -101,7 +103,7 @@ public class DataModelObjectReport {
 
 		//set on close operation to delete file
 		try {
-			new File(ReportXslFiles.REPORTS_DIR + "out.pdf").delete();
+			new File(reportsDir.getAbsoluteFile() + File.separator + "out.pdf").delete();
 		} catch (Exception e) {
 			e.printStackTrace();
 			displayErrorDlg();

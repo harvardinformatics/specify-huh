@@ -1283,24 +1283,24 @@ public class InteractionsTask extends BaseTask
 			} catch (Exception e) {
 				e.printStackTrace();
 			} */
-            
+        	File reportsDir = new File(UIRegistry.getDefaultWorkingPath() + File.separator + ReportXslFiles.REPORTS_DIR);
             Integer option = JOptionPane.showConfirmDialog(null, "Would you like to generate an invoice for loan " + loan.getLoanNumber() + "?", "Generate Invoice", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
             
             if (option == JOptionPane.YES_OPTION) {
 	            try {
 	                ReportLoan rp = new ReportLoan(loan);
-	                File file = new File(ReportXslFiles.REPORTS_DIR + "out.fo");
+	                File file = new File(reportsDir.getAbsoluteFile() + File.separator + "out.fo");
 	        		ByteArrayOutputStream out = new ByteArrayOutputStream();
 	                
 	    			DataModelObjectMarshaller<ReportLoan> marshaller = new DataModelObjectMarshaller<ReportLoan>(rp);
-	            	marshaller.transform(new StreamSource(ReportXslFiles.LOAN_REPORT), out);
+	            	marshaller.transform(new StreamSource(reportsDir.getAbsoluteFile() + File.separator + ReportXslFiles.LOAN_REPORT), out);
 	                DataModelObjectReport report = new DataModelObjectReport(new StreamSource(new ByteArrayInputStream(out.toByteArray())));
 	                report.generatePDF();
 	
 	                //delete later
-	    			File reportxml = new File(ReportXslFiles.REPORTS_DIR + "LoanReport.xml");
-	    			File fo = new File(ReportXslFiles.REPORTS_DIR + "LoanReport.fo");
-	    			marshaller.transform(new StreamSource(ReportXslFiles.LOAN_REPORT), new FileOutputStream(fo));
+	    			File reportxml = new File(reportsDir.getAbsoluteFile() + File.separator + "LoanReport.xml");
+	    			File fo = new File(reportsDir.getAbsoluteFile() + File.separator + "LoanReport.fo");
+	    			marshaller.transform(new StreamSource(reportsDir.getAbsoluteFile() + File.separator + ReportXslFiles.LOAN_REPORT), new FileOutputStream(fo));
 	                marshaller.marshal(new FileOutputStream(reportxml));
 	                
 				} catch (Exception e) {

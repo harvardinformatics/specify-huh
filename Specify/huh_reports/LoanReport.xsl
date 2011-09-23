@@ -84,7 +84,7 @@
 							<fo:table-row>
 								<fo:table-cell column-number="2">
 									<fo:block>
-										<fo:external-graphic src="huh_reports/logo.png"
+										<fo:external-graphic src="../huh_reports/logo.png"
 											content-width="36pt" />
                         			</fo:block>
 								</fo:table-cell>
