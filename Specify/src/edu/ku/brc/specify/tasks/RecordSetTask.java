@@ -109,6 +109,7 @@ public class RecordSetTask extends BaseTask implements PropertyChangeListener
     // Static Data Members
     public static final String RECORD_SET     = "Record_Set";
     public static final String SAVE_RECORDSET = "Save";
+    public static final String ADD_TO_NAV_BOX = "AddToNavBox";
     public static final String FP_PUB_RECORDSET = "FpPublish"; // added by HUH for FP
     
     public static final DataFlavor RECORDSET_FLAVOR = new DataFlavor(RecordSetTask.class, RECORD_SET);
