@@ -95,6 +95,7 @@ public class WorkbenchTemplateMappingItem extends DataModelObjBase implements ja
     // Transient
     protected Class<?>          dataFieldClass = null;
     protected DBFieldInfo       fieldInfo      = null;
+    protected boolean           isFpMagic; // added by HUH for FP
     
     // Constructors
 
@@ -135,6 +136,7 @@ public class WorkbenchTemplateMappingItem extends DataModelObjBase implements ja
         isIncludedInTitle     = false;
         isRequired            = false;
         isEditable            = false;
+        isFpMagic             = false; // added by HUH for FP
         
         workbenchDataItems = new HashSet<WorkbenchDataItem>();
         
@@ -419,6 +421,19 @@ public class WorkbenchTemplateMappingItem extends DataModelObjBase implements ja
         this.isRequired = isRequired;
     }
 
+    // added by HUH for FP
+    @Transient
+    public boolean getIsFpMagic()
+    {
+        return this.isFpMagic;
+    }
+    
+    public void setIsFpMagic(boolean isFpMagic)
+    {
+        this.isFpMagic = isFpMagic;
+    }
+    // end HUH addition
+    
     /**
      * 
      */
@@ -539,6 +554,8 @@ public class WorkbenchTemplateMappingItem extends DataModelObjBase implements ja
         wbtmi.timestampModified     = null;
         wbtmi.modifiedByAgent       = null;
 
+        wbtmi.isFpMagic = isFpMagic; // added by HUH for FP
+        
         return wbtmi;
     }
 
@@ -566,6 +583,7 @@ public class WorkbenchTemplateMappingItem extends DataModelObjBase implements ja
         addAttr(sb, "isExportableToContent", isExportableToContent);
         addAttr(sb, "isIncludedInTitle", isIncludedInTitle);
         addAttr(sb, "isRequired", isRequired);
+        addAttr(sb, "isFpMagic", isFpMagic); // added by HUH for FP
         sb.append(" />");
     }
 
@@ -592,6 +610,7 @@ public class WorkbenchTemplateMappingItem extends DataModelObjBase implements ja
     	isExportableToContent = XMLHelper.getAttr(element, "isExportableToContent", false);
     	isIncludedInTitle = XMLHelper.getAttr(element, "isIncludedInTitle", false);
     	isRequired = XMLHelper.getAttr(element, "isRequired", false);
+    	isFpMagic = XMLHelper.getAttr(element, "isFpMagic", false); // added by HUH for FP
     }
     
     /**

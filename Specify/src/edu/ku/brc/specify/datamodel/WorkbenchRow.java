@@ -90,6 +90,7 @@ public class WorkbenchRow implements java.io.Serializable, Comparable<WorkbenchR
     protected String                 bioGeomancerResults;
     protected Set<WorkbenchDataItem> workbenchDataItems;
     protected Set<WorkbenchRowImage> workbenchRowImages;
+    protected Set<WorkbenchRowFpMsg> workbenchRowFpMsgs; // added by HUH for FP
     protected Workbench              workbench;
     protected Byte                   uploadStatus;
     protected Byte                   sgrStatus;
@@ -143,6 +144,7 @@ public class WorkbenchRow implements java.io.Serializable, Comparable<WorkbenchR
         rowNumber          					= null;
         workbenchDataItems 					= new HashSet<WorkbenchDataItem>();
         workbenchRowImages 					= new HashSet<WorkbenchRowImage>();
+        workbenchRowFpMsgs                  = new HashSet<WorkbenchRowFpMsg>(); // added by HUH for FP
         uploadStatus       					= UPLD_NONE;
         lat1Text           					= null;
         lat2Text           					= null;
@@ -645,6 +647,20 @@ public class WorkbenchRow implements java.io.Serializable, Comparable<WorkbenchR
         this.workbenchRowImages = workbenchRowImages;
     }
 
+    // added by HUH for FP
+    @OneToMany(mappedBy = "workbenchRow")
+    @Cascade( {CascadeType.ALL, CascadeType.DELETE_ORPHAN} )
+    public Set<WorkbenchRowFpMsg> getWorkbenchRowFpMsgs()
+    {
+        return workbenchRowFpMsgs;
+    }
+
+    public void setWorkbenchRowFpMsgs(Set<WorkbenchRowFpMsg> workbenchRowFpMsgs)
+    {
+        this.workbenchRowFpMsgs = workbenchRowFpMsgs;
+    }
+    // end HUH addition
+    
     /**
      * @return the workbenchRowExportedRelationships
      */
