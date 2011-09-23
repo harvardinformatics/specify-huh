@@ -21,7 +21,6 @@ import java.awt.Frame;
 import java.lang.reflect.Method;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.List;
 import java.util.Vector;
 
 import javax.swing.SwingUtilities;
@@ -29,7 +28,6 @@ import javax.swing.SwingUtilities;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 
-import edu.ku.brc.af.core.AppContextMgr;
 import edu.ku.brc.af.core.db.DBFieldInfo;
 import edu.ku.brc.af.core.db.DBInfoBase;
 import edu.ku.brc.af.core.db.DBRelationshipInfo;
@@ -39,15 +37,10 @@ import edu.ku.brc.af.ui.forms.FormViewObj;
 import edu.ku.brc.af.ui.forms.MultiView;
 import edu.ku.brc.af.ui.forms.TableViewObj;
 import edu.ku.brc.af.ui.forms.Viewable;
-import edu.ku.brc.af.ui.forms.FormViewObj.FVOFieldInfo;
 import edu.ku.brc.af.ui.forms.persist.AltViewIFace;
 import edu.ku.brc.af.ui.forms.persist.FormCellFieldIFace;
-import edu.ku.brc.af.ui.forms.persist.FormCellIFace;
 import edu.ku.brc.af.ui.forms.persist.FormCellLabel;
-import edu.ku.brc.af.ui.forms.persist.FormCellSubView;
 import edu.ku.brc.af.ui.forms.persist.FormCellSubViewIFace;
-import edu.ku.brc.af.ui.forms.persist.FormRowIFace;
-import edu.ku.brc.af.ui.forms.persist.FormViewDefIFace;
 import edu.ku.brc.af.ui.forms.persist.ViewIFace;
 import edu.ku.brc.af.ui.forms.validation.AutoNumberableIFace;
 import edu.ku.brc.af.ui.forms.validation.FormValidator;
@@ -64,16 +57,9 @@ public class FpFormViewObj extends FormViewObj implements FilteredPushListenerIF
     private FilteredPushInfo fpInfo;
     
     public FpFormViewObj(ViewIFace view, AltViewIFace altView, MultiView mvParent,
-            FormValidator formValidator, int options, Color bgColor)
+            FormValidator formValidator, int options, String cellName, Class<?> classToCreate, Color bgColor)
     {
-        super(view, altView, mvParent, formValidator, options, bgColor);
-        // TODO Auto-generated constructor stub
-    }
-
-    public FpFormViewObj(ViewIFace view, AltViewIFace altView, MultiView mvParent,
-            FormValidator formValidator, int options, String cellName, Color bgColor)
-    {
-        super(view, altView, mvParent, formValidator, options, cellName, bgColor);
+        super(view, altView, mvParent, formValidator, options, cellName, classToCreate, bgColor);
         // TODO Auto-generated constructor stub
     }
 
