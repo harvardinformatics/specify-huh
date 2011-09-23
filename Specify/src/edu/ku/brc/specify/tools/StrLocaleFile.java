@@ -123,7 +123,7 @@ public class StrLocaleFile
                         if (debug)
                         {
                             //System.out.println((byte)value.charAt(12)+"="+value.charAt(12));
-                            char spec = '�';
+                            char spec = 0;//'�'; TODO: figure out what character this is supposed to be 
                             int fInx = value.indexOf(spec);
                             if (fInx > -1)
                             {
