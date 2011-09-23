@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res/com.example.android.apis"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:orientation="vertical"
+    android:padding="4px">
+
+    <!-- <TextView
+        android:id="@+id/tripmaintitle"
+        android:layout_height="wrap_content"
+        android:layout_width="fill_parent"
+        android:textStyle="bold"
+        android:background="@drawable/trip_banner"
+        android:padding="4px"/>  -->
+    <!-- <View android:layout_width="fill_parent" android:layout_height="2dip" android:background="#FF444444"/>  -->
+    <GridView
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        android:id="@+id/tripgridview"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:numColumns="auto_fit"
+        android:verticalSpacing="10dp"
+        android:horizontalSpacing="10dp"
+        android:columnWidth="90dp"
+        android:stretchMode="columnWidth"
+        android:gravity="center"/>
+</LinearLayout>

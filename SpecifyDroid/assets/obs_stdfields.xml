@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--  intType, doubleType, floatType, strType, dateType -->
+<fields>
+    <field title="Collector Number" name="FieldNumber" type="strType"/>
+    <field title="Locality Name" name="LocalityName" type="strType"/>
+    <field title="Notes" name="Remarks" type="strType"/>
+    <field title="Count" name="Count" type="intType"/>
+    <field title="Collected Date" name="Date" type="dateType"/>
+    <field title="Latitude" name="Latitude1" type="doubleType"/>
+    <field title="Longitude" name="Longitude1" type="doubleType"/>
+    <field title="Genus" name="Genus1" type="strType"/>
+    <field title="Species" name="Species1" type="strType"/>
+    <field title="Family" name="Family1" type="strType"/>
+</fields>

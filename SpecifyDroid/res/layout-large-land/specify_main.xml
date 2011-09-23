@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" 
+               android:id="@+id/spmaingridview" 
+               android:layout_width="fill_parent" 
+               android:layout_height="fill_parent"
+               android:orientation="horizontal"
+               android:layout_weight="1"
+               >
+        <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" 
+               android:id="@+id/spmaingridview" 
+               android:layout_width="wrap_content" 
+               android:layout_height="fill_parent"
+               android:orientation="vertical"
+               android:layout_weight="1"
+               >
+                <View android:layout_width="wrap_content" 
+                      android:layout_height="25px" 
+                      android:layout_weight="0.5"
+                />
+                  
+                <ImageView android:id="@+id/tripsbtn"
+                       android:layout_width="48dp"
+                       android:layout_height="48dp" 
+                       android:src="@drawable/trip128"
+                       android:clickable="true" 
+                       android:layout_gravity="center_vertical|center_horizontal" android:scaleType="fitXY"/>
+                       
+                <TextView android:id="@+id/tripslbl" 
+                          android:text="@string/trips"
+                          android:layout_height="wrap_content" 
+                          android:textAppearance="@style/MainTextAppearance"
+                          android:layout_gravity="center|center_horizontal"
+                          android:layout_width="wrap_content" 
+                />
+                <View android:layout_width="wrap_content" 
+                      android:layout_height="25px" 
+                      android:layout_weight="0.5"
+                />
+    </LinearLayout>
+    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" 
+               android:id="@+id/spmaingridview" 
+               android:layout_width="wrap_content" 
+               android:layout_height="fill_parent"
+               android:orientation="vertical"
+               android:layout_weight="1"
+               >
+                <View android:layout_width="wrap_content" 
+                      android:layout_height="25px" 
+                      android:layout_weight="0.5"
+                />
+                <ImageView android:id="@+id/collectingbtn"
+                       android:layout_width="48dp"
+                       android:layout_height="48dp" 
+                       android:src="@drawable/collect128"
+                       android:clickable="true" 
+                       android:layout_gravity="center_vertical|center_horizontal" android:scaleType="fitXY"/>
+                       
+                <TextView android:id="@+id/collectinglbl" 
+                          android:text="@string/collecting"
+                          android:layout_height="wrap_content" 
+                          android:textAppearance="@style/MainTextAppearance"
+                          android:layout_gravity="center|center_horizontal"
+                          android:layout_width="wrap_content" 
+                />
+                <View android:layout_width="wrap_content" 
+                      android:layout_height="25px" 
+                      android:layout_weight="0.5"
+                />
+    </LinearLayout>
+    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" 
+               android:id="@+id/spmaingridview" 
+               android:layout_width="wrap_content" 
+               android:layout_height="fill_parent"
+               android:orientation="vertical"
+               android:layout_weight="1"
+               >
+                <View android:layout_width="wrap_content" 
+                      android:layout_height="25px" 
+                      android:layout_weight="0.5"
+                />
+                <ImageView android:id="@+id/observationsbtn"
+                       android:layout_width="48dp"
+                       android:layout_height="48dp" 
+                       android:src="@drawable/look128"
+                       android:clickable="true" 
+                       android:layout_gravity="center_vertical|center_horizontal" android:scaleType="fitXY"/>
+                       
+                <TextView android:id="@+id/observationslbl" 
+                          android:text="@string/observations"
+                          android:layout_height="wrap_content" 
+                          android:textAppearance="@style/MainTextAppearance"
+                          android:layout_gravity="center|center_horizontal"
+                          android:layout_width="wrap_content" 
+                />
+                <View android:layout_width="wrap_content" 
+                      android:layout_height="25px" 
+                      android:layout_weight="0.5"
+                />
+    </LinearLayout>
+    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" 
+               android:id="@+id/spmaingridview" 
+               android:layout_width="wrap_content" 
+               android:layout_height="fill_parent"
+               android:orientation="vertical"
+               android:layout_weight="1"
+               android:layout_gravity="center_vertical|center" 
+               >
+                <View android:layout_width="wrap_content" 
+                      android:layout_height="25px" 
+                      android:layout_weight="0.5"
+                />
+                <ImageView android:id="@+id/satellitebtn"
+                       android:layout_width="48dp"
+                       android:layout_height="48dp" 
+                       android:src="@drawable/satellite128"
+                       android:clickable="true" 
+                       android:layout_gravity="center_vertical|center_horizontal" 
+                       android:scaleType="fitXY"/>
+                       
+                <TextView android:id="@+id/satellitelbl" 
+                          android:text="@string/satellites"
+                          android:layout_height="wrap_content" 
+                          android:textAppearance="@style/MainTextAppearance"
+                          android:layout_gravity="center|center_horizontal"
+                          android:layout_width="wrap_content" 
+                />
+                <View android:layout_width="wrap_content" 
+                      android:layout_height="25px" 
+                      android:layout_weight="0.5"
+                />
+    </LinearLayout>
+
+</LinearLayout>

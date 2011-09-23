@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- Generic Terms -->
+    <string name="yes">Yes</string>
+    <string name="no">No</string>
+    <string name="edit">Edit</string>
+    <string name="delete">Delete</string>
+    <string name="close">Close</string>
+    <string name="loading">Loading...</string>
+    <string name="exporting">Exporting...</string>
+    <string name="notimpl">Not Implemented yet.</string>
+    <string name="donelbl">Done</string>
+    <string name="about">About</string>
+    <string name="add">Add</string>
+    <string name="settings">Settings</string>
+    <string name="preferences">Preferences</string>
+    <string name="save">Save</string>
+    <string name="saved">Saved record.</string>
+    
+    <string name="alert_dialog_ok">OK</string>
+    <string name="alert_dialog_cancel">Cancel</string>
+
+    <!--  Application -->
+    
+    <string name="app_name">SpecifyDroid</string>
+    <string name="app_desc">Assists in collecting biological data.</string>
+    <string name="about_title">About SpecifyDroid</string>
+    
+    <!--  Preferences -->
+    
+    <string name="startup_sound_pref">Startup Sound</string>
+    <string name="ss_summary_pref">Plays opening sound</string>
+    
+    <string name="gps_notuse_pref">Ignore GPS</string>
+    <string name="gps_notuse_sum_pref">SpecifyDroid will not consult the GPS when marking a location.</string>
+
+    <!--  App Main Grid -->
+    <string name="satellites">Satellites</string>
+    <string name="compass">Compass</string>
+    <string name="observations">Observations</string>
+    <string name="collecting">Collecting</string>
+    <string name="trips">Sorties</string>
+    <string name="trip">Sortie</string>
+    <string name="new_trip">New Sortie</string>
+    
+    <!--  Trip Detail -->
+    <string name="trpnamelbl">Name:</string>
+    <string name="trptypelbl">Type:</string>
+    <string name="trpdatelbl">Date:</string>
+    <string name="trpnoteslbl">Notes:</string>
+    <string name="chooseflds">Choose Fields</string>
+    <string name="trpclcknew">Click on the menu to add a new trip</string>
+    <string name="observing">Observing</string>
+    <string name="newcollsortie">New Collecting Sortie</string>
+    <string name="newobssortie">New Observation Sortie</string>
+    <string name="newsortie">New Sortie</string>
+    
+    
+    <!--  Trip Detail Menus -->
+    <string name="tripconfig">Config</string>
+    
+    <!--  Trip Data Def Detail Form -->
+    <string name="tddname">Name</string>
+    <string name="tddtitle">Title</string>
+    <string name="tdddatatype">Data Type</string>
+    
+    <!-- Trip Main Grid -->
+    <string name="tmgconfig">Config Sortie</string>
+    <string name="tmgconfigstd">Config Std</string>
+    <string name="tmgaddpnt">Add Location</string>
+    <string name="tmgdeltrip">Delete</string>
+    <string name="tmgcamera">Take Photo</string>
+    <string name="tmgbrowsedb">Browse</string>
+    <string name="tmgexportdataset">Export</string>
+    <string name="tmgemail">EMail</string>
+    <string name="tmggooglemaps">Map</string>
+    <string name="tmgtitleitems">- %d items.</string>
+    <string name="sendingemail">Sending email...</string>
+    <string name="tmgobserve">Observe</string>
+    <string name="tmgcollect">Collect</string>
+    
+    <string name="deletetrip">Delete \'%s\'?</string>
+    <string name="changedisp">Change</string>
+    <string name="trpfieldslbl">Fields</string>
+    <string name="editfieldsbtn">Configure Fields</string>
+    
+    <!-- Mapping -->
+    <string name="map">Map</string>
+    <string name="satellite">Satellite</string>
+    
+    <!-- Exporting -->
+    <string name="extstrgnotavail">External Storage is not available.</string>
+    <string name="extstrgnotwrt">External Storage is not writable.</string>
+    <string name="no_wrt_file">Cannot write to file %s.</string>
+    <string name="err_load_trp">Cannot load Sortie with Id: %s</string>
+    <string name="file_wrt">%s was saved.</string>
+    <string name="file_exp">File: %s</string>
+
+    <!-- GPS -->
+    <string name="no_gps">Your GPS seems to be disabled, do you want to enable it?</string>
+    <string name="srch_gps">Searching for satellites...</string>
+
+    <!-- Download New Version -->
+    <string name="askdownloadapk">There is a newer version, do you wish to download it?</string>
+    
+    <!-- Disciplines -->
+    <string name="choosedisp">Choose a Discipline</string>
+    <string name="fish">Ichthyology</string>
+    <string name="herpetology">Herpetology</string>
+    <string name="paleobotany">Paleobotany</string>
+    <string name="invertpaleo">Invertebrate Paleontology</string>
+    <string name="vertpaleo">Vertebrate Paleontology</string>
+    <string name="bird">Ornithology</string>
+    <string name="mammal">Mammalogy</string>
+    <string name="insect">Entomology</string>
+    <string name="botany">Botany</string>
+    <string name="invertebrate">Invertebrate Zoology</string>
+    
+    <!-- Taxonomy -->
+    <string name="Kingdom">Kingdom</string>
+    <string name="Subkingdom">Subkingdom</string>
+    <string name="Division">Division</string>
+    <string name="Phylum">Phylum</string>
+    <string name="Subdivision">Subdivision</string>
+    <string name="Subphylum">Subphylum</string>
+    <string name="Superclass">Superclass</string>
+    <string name="Class">Class</string>
+    <string name="Subclass">Subclass</string>
+    <string name="Infraclass">Infraclass</string>
+    <string name="Superorder">Superorder</string>
+    <string name="Order">Order</string>
+    <string name="Suborder">Suborder</string>
+    <string name="Infraorder">Infraorder</string>
+    <string name="Parvorder">Parvorder</string>
+    <string name="Superfamily">Superfamily</string>
+    <string name="Family">Family</string>
+    <string name="Subfamily">Subfamily</string>
+    <string name="Tribe">Tribe</string>
+    <string name="Subtribe">Subtribe</string>
+    <string name="Genus">Genus</string>
+    <string name="Subgenus">Subgenus</string>
+    <string name="Section">Section</string>
+    <string name="Subsection">Subsection</string>
+    <string name="Species">Species</string>
+    <string name="Subspecies">Subspecies</string>
+    <string name="Variety">Variety</string>
+    <string name="Subvariety">Subvariety</string>
+    <string name="Forma">Forma</string>
+    <string name="Subforma">Subforma</string>
+</resources>

@@ -1,0 +1,15 @@
+<PreferenceScreen
+	xmlns:android="http://schemas.android.com/apk/res/android">
+	<PreferenceCategory android:title="@string/preferences">
+        <CheckBoxPreference
+          android:title="@string/startup_sound_pref"
+          android:defaultValue="false"
+          android:summary="@string/ss_summary_pref" 
+          android:key="useStartupSound"/>
+        <CheckBoxPreference
+          android:title="@string/gps_notuse_pref"
+          android:defaultValue="false"
+          android:summary="@string/gps_notuse_sum_pref" 
+          android:key="NotUseGPS"/>
+    </PreferenceCategory>
+</PreferenceScreen>

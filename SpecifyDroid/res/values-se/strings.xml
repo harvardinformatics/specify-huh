@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- Generic Terms -->
+    <string name="yes">Ja</string>
+    <string name="no">Nr</string>
+    <string name="edit">Redigera</string>
+    <string name="delete">Radera</string>
+    <string name="close">Stäng</string>
+    <string name="loading">Laddar ...</string>
+    <string name="exporting">Exportera ...</string>
+    <string name="notimpl">Inte implementerat än.</string>
+    <string name="donelbl">Klar</string>
+    <string name="about">Om</string>
+    <string name="add">Lägg till</string>
+    <string name="settings">Inställningar</string>
+    <string name="preferences">Inställningar</string>
+    <string name="save">Spara</string>
+    <string name="saved">Sparade post.</string>
+    
+    <string name="alert_dialog_ok">OK</string>
+    <string name="alert_dialog_cancel">Avbryt</string>
+
+    <!--  Application -->
+    
+    <string name="app_name">SpecifyDroid</string>
+    <string name="app_desc">Hjälper vid insamling av biologiska data.</string>
+    <string name="about_title">Om SpecifyDroid</string>
+    
+    <!--  Preferences -->
+    
+    <string name="startup_sound_pref">Startljudet</string>
+    <string name="ss_summary_pref">Spelar öppning ljud</string>
+    
+    <string name="gps_off_pref">Använd GPS</string>
+    <string name="gps_off_sum_pref">SpecifyDroid kommer inte att samråda med GPS när märkningen en plats.</string>
+
+    <!--  App Main Grid -->
+    <string name="satellites">Satelliter</string>
+    <string name="compass">Compass</string>
+    <string name="observations">Observationer</string>
+    <string name="collecting">Samla</string>
+    <string name="trips">Resor</string>
+    <string name="trip">Sortie</string>
+    <string name="new_trip">Nya Sortie</string>
+    
+    <!--  Trip Detail -->
+    <string name="trpnamelbl">Namn:</string>
+    <string name="trptypelbl">Typ:</string>
+    <string name="trpdatelbl">Datum:</string>
+    <string name="trpnoteslbl">Anteckningar:</string>
+    <string name="chooseflds">Välj fält</string>
+    <string name="trpclcknew">Klicka på menyn för att lägga till en ny resa</string>
+    <string name="observing">Observation</string>
+    <string name="newcollsortie">Nya Samla Sortie</string>
+    <string name="newobssortie">Ny observation Sortie</string>
+    <string name="newsortie">Nya Sortie</string>
+    
+    
+    <!--  Trip Detail Menus -->
+    <string name="tripconfig">Config</string>
+    
+    <!--  Trip Data Def Detail Form -->
+    <string name="tddname">Namn</string>
+    <string name="tddtitle">Titel</string>
+    <string name="tdddatatype">Datatyp</string>
+    
+    <!-- Trip Main Grid -->
+    <string name="tmgconfig">Config Trip</string>
+    <string name="tmgconfigstd">Config Std</string>
+    <string name="tmgaddpnt">Lägg till plats</string>
+    <string name="tmgdeltrip">Radera</string>
+    <string name="tmgcamera">Ta Photo</string>
+    <string name="tmgbrowsedb">Bläddra</string>
+    <string name="tmgexportdataset">Export</string>
+    <string name="tmgemail">EMail</string>
+    <string name="tmggooglemaps">Karta</string>
+    <string name="tmgtitleitems">- %d poster.</string>
+    <string name="sendingemail">Skicka e-post ...</string>
+    <string name="tmgobserve">Observera</string>
+    <string name="tmgcollect">Samla</string>
+    
+    <string name="deletetrip">Ta bort \'%s\'?</string>
+    <string name="changedisp">Ändra</string>
+    <string name="trpfieldslbl">Fält</string>
+    <string name="editfieldsbtn">Konfigurera Fält</string>
+    
+    <!-- Mapping -->
+    <string name="map">Karta</string>
+    <string name="satellite">Satellit</string>
+    
+    <!-- Exporting -->
+    <string name="extstrgnotavail">Extern Lagring Känner jag mig sminkad integ tillgänglig.</string>
+    <string name="extstrgnotwrt">Extern Lagring Känner jag mig sminkad integ skrivbart.</string>
+    <string name="no_wrt_file">Kan integreras skriva till fil %s.</string>
+    <string name="err_load_trp">Kan integreras Lasa Trip MED id: %s</string>
+    <string name="file_wrt">%s var räddad.</string>
+    <string name="file_exp">Fil: %s</string>
+
+    <!-- GPS -->
+    <string name="no_gps">Din GPS verkar vara avaktiverat, vill du aktivera det?</string>
+    <string name="srch_gps">Söker efter satelliter ...</string>
+
+    <!-- Download New Version -->
+    <string name="askdownloadapk">Det finns en nyare version, vill du hämta den?</string>
+    
+    <!-- Disciplines -->
+    <string name="choosedisp">Välj en disciplin</string>
+    <string name="fish">IKTYOLOGI</string>
+    <string name="herpetology">Herpetologi</string>
+    <string name="paleobotany">Paleobotany</string>
+    <string name="invertpaleo">Ryggradslösa paleontologi</string>
+    <string name="vertpaleo">Ryggradsdjur paleontologi</string>
+    <string name="bird">Ornitologi</string>
+    <string name="mammal">Mammalogy</string>
+    <string name="insect">Entomologi</string>
+    <string name="botany">Botanik</string>
+    <string name="invertebrate">Ryggradslösa Zoologi</string>
+    
+    <!-- Taxonomy -->
+    <string name="Kingdom">Sverige</string>
+    <string name="Subkingdom">Subkingdom</string>
+    <string name="Division">Division</string>
+    <string name="Phylum">Stam</string>
+    <string name="Subdivision">Indelning</string>
+    <string name="Subphylum">Subphylum</string>
+    <string name="Superclass">Superklass</string>
+    <string name="Class">Klass</string>
+    <string name="Subclass">Underklass</string>
+    <string name="Infraclass">Infraclass</string>
+    <string name="Superorder">Superorder</string>
+    <string name="Order">Beställ</string>
+    <string name="Suborder">Avrop</string>
+    <string name="Infraorder">Infraordning</string>
+    <string name="Parvorder">Parvorder</string>
+    <string name="Superfamily">Superfamily</string>
+    <string name="Family">Familj</string>
+    <string name="Subfamily">Släkte</string>
+    <string name="Tribe">Tribe</string>
+    <string name="Subtribe">Subtribe</string>
+    <string name="Genus">Genus</string>
+    <string name="Subgenus">Undersläktet</string>
+    <string name="Section">Avsnitt</string>
+    <string name="Subsection">Underavsnitt</string>
+    <string name="Species">Arter</string>
+    <string name="Subspecies">Underart</string>
+    <string name="Variety">Variety</string>
+    <string name="Subvariety">Subvariety</string>
+    <string name="Forma">Forma</string>
+    <string name="Subforma">Subforma</string>
+</resources>

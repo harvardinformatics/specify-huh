@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+        <!--  android:xlargeScreens="true" -->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="edu.ku.brc.specifydroid"
+    android:versionCode="7" android:versionName="1.7.3">
+    <supports-screens
+        android:smallScreens="false"
+        android:normalScreens="true"
+        android:largeScreens="true"
+        android:anyDensity="false" 
+    />
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/> 
+    <uses-permission android:name="android.permission.READ_CONTACTS"/> 
+    <application android:allowBackup="true" 
+                 android:name="SpecifyDroidApp" 
+                 android:icon="@drawable/specifydroid128" 
+                 android:label="SpecifyDroid" 
+                 android:description="@string/app_desc" 
+                 android:theme="@style/CustomTheme" android:debuggable="true">
+        <uses-library android:name="com.google.android.maps" />
+        <activity android:name=".SpecifyActivity"
+            android:label="@string/app_name">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <activity android:name=".EditPreferences">
+        </activity>
+        <activity android:name=".SatelliteActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
+        <activity android:name=".TripListActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
+        <activity android:name=".TripMainActivity"/>
+        <activity android:name=".TripDetailActivity"/>
+        <activity android:name=".TripDataDefActivity"/>
+        <activity android:name=".TripDataDefDetailActivity"/>
+        <activity android:name=".TripDataEntryDetailActivity"/>
+        <activity android:name=".TripMapLocationActivity"/>
+        <activity android:name=".TripFieldsActivity"/>
+    </application>
+    <uses-sdk android:targetSdkVersion="8" android:minSdkVersion="8"/>
+</manifest> 

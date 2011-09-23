@@ -1,0 +1,119 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" 
+               android:id="@+id/LinearLayout00" 
+               android:layout_width="fill_parent" 
+               android:layout_height="fill_parent"
+               android:orientation="vertical"
+               android:layout_weight="1"
+               >
+               
+	<TableLayout 
+		android:layout_width="fill_parent"
+		android:stretchColumns="1"
+		android:layout_height="wrap_content"
+		android:layout_weight="1"
+		
+		>
+		<TableRow android:layout_width="fill_parent" 
+		          android:layout_gravity="bottom|fill_vertical">
+		        <ImageView android:id="@+id/trpdispicon"
+	                       android:layout_width="48px"
+	                       android:layout_height="48px" 
+	        />
+	        <TableLayout android:layout_width="fill_parent"
+	                     android:layout_height="wrap_content"
+	                     android:stretchColumns="2"
+	                     android:layout_span="2"
+	            >
+	            <TableRow>
+	                <View android:layout_width="fill_parent" 
+	                      android:layout_height="2dip" 
+	                      android:layout_span="3" /> 
+	                <Button android:id="@+id/changedisp"
+	                        android:layout_width="wrap_content"
+	                        android:layout_height="wrap_content"
+	                        android:text="@string/changedisp" 
+	                        android:gravity="center_vertical|right"/>
+	            </TableRow>
+	        </TableLayout>
+	     </TableRow>    
+	    <TableRow>
+	        <TextView android:text="@string/trpnamelbl" />
+	        <EditText android:id="@+id/name" />
+	    </TableRow>
+		<TableRow>
+			<TextView android:text="@string/trptypelbl" 
+			          android:layout_height="fill_parent" 
+			          android:gravity="center_vertical"/>
+			<RadioGroup android:id="@+id/types"
+			    android:orientation="horizontal">
+				<RadioButton android:text="@string/collecting" 
+				             android:id="@+id/collecting"/>
+				<RadioButton android:text="@string/observing" 
+				             android:id="@+id/observing"/>
+				
+			</RadioGroup>
+		</TableRow>
+	    <TableRow>
+	        <TextView android:text="@string/trpdatelbl" 
+				      android:layout_height="fill_parent"/>
+	
+	        <LinearLayout android:id="@+id/LinearLayout01" 
+	                      android:layout_width="wrap_content" 
+	                      android:layout_height="fill_parent"
+	                      >
+	                      
+	            <TextView android:id="@+id/date" 
+	                      android:layout_height="fill_parent" 
+	                      android:layout_weight="2" android:layout_width="wrap_content"/>
+	                
+	            <ImageView android:id="@+id/calendarbtn"
+			               android:src="@drawable/calendar"
+			               android:layout_height="wrap_content" 
+			               android:layout_width="wrap_content" 
+			               android:layout_weight="1" 
+			               android:layout_gravity="right" 
+			               android:clickable="true"/>
+	        </LinearLayout>
+	    </TableRow>
+	    <TableRow>
+	        <TextView android:text="@string/trpnoteslbl" />
+	        <EditText android:id="@+id/notes"
+			          android:singleLine="false"
+			          android:gravity="top"
+			          android:lines="2"
+			          android:scrollHorizontally="false"
+	                  android:maxLines="2"
+		              android:maxWidth="200sp"
+	        />
+	    </TableRow> 
+	     <TableRow>   
+		     <TableLayout xmlns:android="http://schemas.android.com/apk/res/android"
+		        android:layout_width="fill_parent"
+		        android:layout_height="wrap_content"
+		        android:stretchColumns="0"
+		        android:layout_span="2"
+		        >
+			        <TableRow>
+			            <View android:layout_width="fill_parent" android:layout_height="2dip" android:layout_span="1" /> 
+				        <Button android:id="@+id/editfieldsbtn"
+				                android:layout_width="wrap_content"
+				                android:layout_height="wrap_content"
+				                android:text="@string/editfieldsbtn"/>
+			        </TableRow>
+		    </TableLayout>
+	    </TableRow>
+	</TableLayout>
+
+    <TextView  
+	    android:id="@+id/spacer"  
+	    android:layout_height="wrap_content"
+	    android:layout_width="fill_parent" 
+	    android:layout_weight="1"
+	    android:layout_gravity="right"/>
+    
+    <Button android:text="@string/donelbl" android:id="@+id/donebtn"  
+	    android:layout_height="wrap_content"
+	    android:layout_width="wrap_content" 
+	    android:layout_gravity="right"/>
+    
+</LinearLayout>
