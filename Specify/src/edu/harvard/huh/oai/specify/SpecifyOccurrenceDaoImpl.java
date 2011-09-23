@@ -16,7 +16,6 @@
 
 package edu.harvard.huh.oai.specify;
 
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -24,21 +23,18 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 
+import org.apache.tools.ant.types.Mapper;
 import org.hibernate.Session;
 import org.hibernate.cfg.Configuration;
 import org.hibernate.criterion.Restrictions;
 
-import edu.ku.brc.af.auth.UserAndMasterPasswordMgr;
 import edu.ku.brc.af.core.db.DBTableIdMgr;
-import edu.ku.brc.af.ui.forms.FormHelper;
+import edu.ku.brc.af.ui.forms.formatters.DataObjFieldFormatMgr;
+import edu.ku.brc.af.ui.forms.formatters.UIFieldFormatterMgr;
 import edu.ku.brc.dbsupport.DBConnection;
-import edu.ku.brc.dbsupport.DataProviderFactory;
-import edu.ku.brc.dbsupport.DataProviderSessionIFace;
 import edu.ku.brc.dbsupport.HibernateUtil;
-import edu.ku.brc.exceptions.ConfigurationException;
 import edu.ku.brc.specify.datamodel.CollectionObject;
-import edu.ku.brc.ui.UIHelper;
-import edu.ku.brc.util.Pair;
+import edu.ku.brc.specify.datamodel.Collector;
 
 /**
  * This example simply serves up newly created objects. Obviously a real implementation will 
@@ -49,7 +45,7 @@ import edu.ku.brc.util.Pair;
  */
 public class SpecifyOccurrenceDaoImpl implements SpecifyOccurrenceDao {
 
-	private HashMap<String, SpecifyFieldMappingDesc> dwcMappings = null;
+	private List<SpecifyMapItem> dwcMappings = null;
 	private List<String> dwcConcepts = null;
 	private Session session = null;
 	private List<SpecifyOccurrence> occurrences = null;
@@ -75,23 +71,9 @@ public class SpecifyOccurrenceDaoImpl implements SpecifyOccurrenceDao {
 			List<CollectionObject> collObjs = getSession().createCriteria(rootClass).add( Restrictions.between("timestampModified", from, until)).list();
 			
 			// for each object, we need to populate the dwc occurrence object according to the mapping
+			SpecifyMapper mapper = new SpecifyMapper();
 			for (CollectionObject collObj : collObjs) {
-				SpecifyOccurrence occurrence = new SpecifyOccurrence();
-				occurrence.setId((long) collObj.getId());
-
-				// Just for now
-				MapperTester mt = new MapperTester();
-				
-				for (String dwcConcept : getDwcConcepts()) {
-					SpecifyFieldMappingDesc mapItem = getDwcMappings().get(dwcConcept);
-					if (!mapItem.getIsActive()) continue;
-
-					Object value = mt.getMappedValue(collObj, mapItem);
-					if (mapItem.getName().equals(dwcConcept)) {
-						// use reflection to set the value on the SpecifyOccurrence?
-						
-					}
-				}
+				SpecifyOccurrence occurrence = mapper.map(collObj, getDwcMappings());
 				occurrences.add(occurrence);
 			}
 		}
@@ -100,15 +82,15 @@ public class SpecifyOccurrenceDaoImpl implements SpecifyOccurrenceDao {
 	}
 	
 	// we need a particular schema mapping.  which one? read this in from a bean?
-	private HashMap<String, SpecifyFieldMappingDesc> getDwcMappings() {
-		if (dwcMappings == null) dwcMappings = SpecifyFieldMappingDesc.getDefaultMappings();
+	private List<SpecifyMapItem> getDwcMappings() {
+		if (dwcMappings == null) dwcMappings = SpecifyMapper.getDefaultMappings();
 		return dwcMappings;
 	}
 
 	private List<String> getDwcConcepts() {
 		if (dwcConcepts == null) {
 			dwcConcepts = new ArrayList<String>();
-			dwcConcepts.addAll(getDwcMappings().keySet());
+			for (SpecifyMapItem mapItem : getDwcMappings()) dwcConcepts.add(mapItem.getName());
 			Collections.sort(dwcConcepts);
 		}
 		return dwcConcepts;
