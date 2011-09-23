@@ -995,6 +995,29 @@ public class FormPane extends JPanel implements FormPaneWrapper
            log.error("Can't get data from control["+p.getLabelText()+"]");
         }
     }
+    /**
+     * Copies the data from the form into the row.
+     * @param index the index of the row
+     */
+    protected void copyDataFromForm(final int index)
+    {
+        if (!changesInForm)
+        {
+            return;
+        }
+        
+        ignoreChanges = true;
+        
+        changesInForm = false;
+        
+        int modelIndex = workbenchPane.getSpreadSheet().convertRowIndexToModel(index);
+        WorkbenchRow wbRow = workbench.getWorkbenchRowsAsList().get(modelIndex);
+        for (InputPanel p : uiComps)
+        {
+        	copyDataFromForm(p, wbRow);
+        }
+        ignoreChanges = false;
+    }
     
     // added by HUH for FP
     /**

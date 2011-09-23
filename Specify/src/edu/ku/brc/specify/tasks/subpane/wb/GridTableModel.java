@@ -19,6 +19,7 @@
 */
 package edu.ku.brc.specify.tasks.subpane.wb;
 
+import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collections;
@@ -32,6 +33,7 @@ import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 
+import edu.ku.brc.af.ui.forms.formatters.UIFieldFormatterIFace;
 import edu.ku.brc.specify.datamodel.FilteredPushMessage;
 import edu.ku.brc.specify.datamodel.Workbench;
 import edu.ku.brc.specify.datamodel.WorkbenchRow;
@@ -61,9 +63,9 @@ public class GridTableModel extends SpreadSheetModel
             
     protected WorkbenchPaneSS	 workbenchPaneSS;
     protected boolean            batchMode        = false;
-    protected boolean            isInImageMode        = false;
-    protected boolean            isInFilteredPushMode = false;
-    protected boolean            isUserEdit           = true;
+    protected boolean            isInImageMode    = false;
+    protected boolean            isInFpMode       = false; // added by HUH for FP
+    protected boolean            isUserEdit       = true;
     protected ImageIcon          blankIcon = IconManager.getIcon("Blank", IconManager.IconSize.Std16);
     protected ImageIcon          imageIcon = IconManager.getIcon("CardImage", IconManager.IconSize.Std16);
     
@@ -135,14 +137,16 @@ public class GridTableModel extends SpreadSheetModel
         return isInImageMode;
     }
 
+    // added by HUH for FP
     /**
      * @return whether it is connected to the fp network or not.
      */
     boolean isInFilteredPushMode()
     {
-        return isInFilteredPushMode;
+        return isInFpMode;
     }
-
+    // end HUH addition
+    
     /**
      * Sets the model into image mode so it can add a the image column to the spreadsheet.
      * @param isInImageMode
@@ -176,25 +180,27 @@ public class GridTableModel extends SpreadSheetModel
         fireTableStructureChanged();
     }
 
+    // added by HUH for FP
     /**
      * Sets the model into filtered push mode so it can add a query progress column to the spreadsheet.
      * @param isInImageMode
      */
     void setInFilteredPushMode(boolean isInFilteredPushMode)
     {
-        if (!this.isInFilteredPushMode && isInFilteredPushMode)
+        if (!this.isInFpMode && isInFilteredPushMode)
         {
-            addHiddenColumn(queryProgressItem);
+            // addHiddenColumn(queryProgressItem);  TODO: queryProgressItem was removed in latest vendor drop
             
-        } else if (this.isInFilteredPushMode && !isInFilteredPushMode)
+        } else if (this.isInFpMode && !isInFilteredPushMode)
         {
-            removeHiddenColumn(queryProgressItem);
+            // removeHiddenColumn(queryProgressItem); TODO: queryProgressItem was removed in latest vendor drop
         }
         
-        this.isInFilteredPushMode = isInFilteredPushMode;
+        this.isInFpMode = isInFilteredPushMode;
         fireTableStructureChanged();
     }
-
+    // end HUH addition
+    
     /* (non-Javadoc)
      * @see javax.swing.table.TableModel#getColumnCount()
      */
@@ -252,6 +258,7 @@ public class GridTableModel extends SpreadSheetModel
             // else
             return "";
         }
+        
         if (headers.get(column) == sgrHeading)
         {
             SGRPluginImpl sgr = (SGRPluginImpl) workbenchPaneSS.getPlugin(SGRPluginImpl.class);
@@ -260,12 +267,13 @@ public class GridTableModel extends SpreadSheetModel
             return score != null ? "" + Math.round(100*score) : "";
         }
         
+        // added by HUH for FP
         // if this is the fp query progress column...
-        if (isInFilteredPushMode && column == getQueryProgIndex())
+        if (isInFpMode /*&& column == getQueryProgIndex()TODO: queryProgressItem was removed in latest vendor drop*/)
         {
             Calendar date = null;
             
-            WorkbenchRow rowObj = workbench.getRow(row);
+            WorkbenchRow rowObj = this.getWorkbench().getRow(row);
             Set<WorkbenchRowFpMsg> rowMsgs = rowObj.getWorkbenchRowFpMsgs();
             if (rowMsgs != null && rowMsgs.size() > 0)
             {
@@ -285,7 +293,8 @@ public class GridTableModel extends SpreadSheetModel
                 return "";
             }
         }
-
+        // end HUH addition
+        
         // otherwise...
         if (getRowCount() > row)
         {
@@ -302,12 +311,14 @@ public class GridTableModel extends SpreadSheetModel
     {
         if (isInImageMode)
         {
-            if (column == getImageColumnIndex()) return false;
+            return column != headers.size() - 1;
         }
-        if (isInFilteredPushMode)
+        // added by HUH for FP
+        if (isInFpMode)
         {
-            if (column == getQueryProgIndex()) return false;
+            // if (column == getQueryProgIndex()) return false; TODO: queryProgressItem was removed in latest vendor drop
         }
+        // end HUH addition
         return true;
     }
 
@@ -338,20 +349,37 @@ public class GridTableModel extends SpreadSheetModel
     @Override
     public void setValueAt(final Object value, final int row, final int column)
     {
-        if (isInImageMode && column == getImageColumnIndex())
+        if (isInImageMode && column == headers.size() - 1)
         {
             return;
         }
         
-        if (isInFilteredPushMode && column == getQueryProgIndex())
+        // added by HUH for FP
+        if (isInFpMode /*&& column == getQueryProgIndex() TODO: getQueryProgIndex was removed in latest vendor drop*/)
         {
             return;
         }
+        // end HUH addition
         
         if (getRowCount() >= 0)
         {
-            workbench.getWorkbenchRowsAsList().get(row).setData(value.toString(), (short)column, isUserEdit);
-            fireDataChanged();
+            String currentValue = getWorkbench().getWorkbenchRowsAsList().get(row).getData(column);
+            boolean changed = !StringUtils.equals(currentValue, value.toString());
+            if (changed)
+            {
+            	getWorkbench().getWorkbenchRowsAsList().get(row).setData(value.toString(), (short)column, isUserEdit);
+            	if (!batchMode)
+            	{
+            	    SwingUtilities.invokeLater(new Runnable()
+                    {
+                        @Override
+                        public void run()
+                        {
+                            fireTableCellUpdated(row, column);
+                        }
+                    });
+            	}
+            }
         }
     }
 
@@ -405,8 +433,8 @@ public class GridTableModel extends SpreadSheetModel
                 wbRow.setData("", (short)col, true);
             }
         }
+        workbenchPaneSS.validateRows(rows);
         fireDataChanged();
-        
     }
 
     /* (non-Javadoc)
@@ -419,7 +447,7 @@ public class GridTableModel extends SpreadSheetModel
         for (int i=rows.length-1;i>-1;i--)
         {
             log.info("Deleting Row Index "+rows[i]+" Row Count["+getRowCount()+"]");
-            workbench.deleteRow(rows[i]);
+            getWorkbench().deleteRow(rows[i]);
             if (spreadSheet != null)
             {
                 spreadSheet.removeRow(rows[i], rows.length == 1);
@@ -436,13 +464,56 @@ public class GridTableModel extends SpreadSheetModel
     public void fill(int colInx, int valueRowInx, int[] rowInxs)
     {
         Object value = getValueAt(valueRowInx, colInx);
-        for (int rowInx : rowInxs)
+        try
         {
-            setValueAt(value, rowInx, colInx);
-        }
-        
+        	setBatchMode(rowInxs.length > 50); 
+        	for (int rowInx : rowInxs)
+        	{
+        		setValueAt(value, rowInx, colInx);
+        	}
+        	if (!workbenchPaneSS.validateRows(rowInxs) && isBatchMode())
+        	{
+        		fireDataChanged();
+        	}
+        } finally
+        {
+        	if (isBatchMode())
+        	{
+        		setBatchMode(false);
+        	}
+        }        
     }
 
+    /**
+     * @param colInx
+     * @param valueRowInx
+     * @param rowInxs
+     * @param incrementer
+     */
+    public void fillAndIncrement(int colInx, int valueRowInx, int[] rowInxs, final UIFieldFormatterIFace incrementer)
+    {
+        Object value = getValueAt(valueRowInx, colInx);
+        try
+        {
+        	setBatchMode(rowInxs.length > 50); 
+        	for (int rowInx : rowInxs)
+        	{
+        		setValueAt(value, rowInx, colInx);
+        		value = incrementer.formatToUI(incrementer.getNextNumber(incrementer.formatFromUI(value).toString(), true).toString());
+        	}
+        	if (!workbenchPaneSS.validateRows(rowInxs) && isBatchMode())
+        	{
+        		fireDataChanged();
+        	}
+        } finally
+        {
+        	if (isBatchMode())
+        	{
+        		setBatchMode(false);
+        	}
+        }        
+    }
+    
     /* (non-Javadoc)
      * @see edu.ku.brc.ui.tmanfe.SpreadSheetModel#insertRow(int)
      */
@@ -497,23 +568,23 @@ public class GridTableModel extends SpreadSheetModel
         WorkbenchRow wbRow  = null;
         if (oldRowIndex > -1 && getRowCount() > 0)
         {
-            wbRow  = workbench.getWorkbenchRowsAsList().get(oldRowIndex);
+            wbRow  = getWorkbench().getWorkbenchRowsAsList().get(oldRowIndex);
         }
         
         WorkbenchRow newRow;
         if (rowIndex == -1 || rowIndex == getRowCount())
         {
-            newRow = workbench.addRow();
+            newRow = getWorkbench().addRow();
             
         } else
         {
-            newRow = workbench.insertRow((short)rowIndex);
+            newRow = getWorkbench().insertRow((short)rowIndex);
         }
         
         // Do Carry Forward
         if (wbRow != null)
         {
-            for (WorkbenchTemplateMappingItem wbdmi : workbench.getWorkbenchTemplate().getWorkbenchTemplateMappingItems())
+            for (WorkbenchTemplateMappingItem wbdmi : getWorkbench().getWorkbenchTemplate().getWorkbenchTemplateMappingItems())
             {
                 if (wbdmi.getCarryForward())
                 {
@@ -552,68 +623,40 @@ public class GridTableModel extends SpreadSheetModel
             headers.clear();
         }
         
-        workbench         = null;
-        headers           = null;
-        imageMappingItem  = null;
-        queryProgressItem = null;
+        workbenchPaneSS  = null;
+        headers          = null;
+        imageMappingItem = null;
     }
     
-    private void addHiddenColumn(WorkbenchTemplateMappingItem wbtmi)
-    {
-        wbtmi.setViewOrder((short) headers.size());
-        headers.add(wbtmi);
-        hiddenColumnCount++;
-    }
-
-    private void removeHiddenColumn(WorkbenchTemplateMappingItem wbtmi)
-    {
-        headers.remove(wbtmi);
-        hiddenColumnCount--;
-    }
-
-    public int getHiddenColumnCount()
-    {
-        return hiddenColumnCount;
-    }
-    
-    int getImageColumnIndex()
-    {
-        return headers.indexOf(imageMappingItem);
-    }
-    
-    int getQueryProgIndex()
-    {
-        return headers.indexOf(queryProgressItem);
-    }
-     /**
+    /**
      * @param column
      * @return mapping for column
      */
-    public WorkbenchTemplateMappingItem getColMapping(int column)
+    public GridTableHeader getColMapping(int column)
     {
     	return headers.get(column);
     }
 
-	/* (non-Javadoc)
-	 * @see edu.ku.brc.ui.tmanfe.SpreadSheetModel#isBatchMode()
-	 */
-	@Override
-	public boolean isBatchMode()
-	{
-		return batchMode;
-	}
-
-	/* (non-Javadoc)
-	 * @see edu.ku.brc.ui.tmanfe.SpreadSheetModel#setBatchMode(boolean)
-	 */
+    /* (non-Javadoc)
+     * @see edu.ku.brc.ui.tmanfe.SpreadSheetModel#isBatchMode()
+     */
+    @Override
+    public boolean isBatchMode()
+    {
+        return batchMode;
+    }
+    
+    /* (non-Javadoc)
+     * @see edu.ku.brc.ui.tmanfe.SpreadSheetModel#setBatchMode(boolean)
+     */
     /**
      * Caller must take responsibility clearing this flag and
      * calling fireTableChanged or other necessary methods
      * when batch operation is completed.
      */
-	@Override
-	public void setBatchMode(boolean value)
-	{
-		batchMode = value;
-	}
+    @Override
+    public void setBatchMode(boolean value)
+    {
+        batchMode = value;
+    }
 }
