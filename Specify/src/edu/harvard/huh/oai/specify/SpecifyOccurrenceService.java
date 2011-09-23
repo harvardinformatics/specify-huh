@@ -20,7 +20,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import au.org.tern.ecoinformatics.oai.provider.service.NativeObjectService;
+//import au.org.tern.ecoinformatics.oai.provider.service.NativeObjectService;
 
 public class SpecifyOccurrenceService implements NativeObjectService {
 
