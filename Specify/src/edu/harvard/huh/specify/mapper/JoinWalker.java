@@ -1,10 +1,12 @@
-package edu.harvard.huh.oai.specify;
+package edu.harvard.huh.specify.mapper;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+
+import edu.harvard.huh.specify.mapper.SpecifyFieldMappingDesc.PathSegment;
 
 import edu.ku.brc.af.core.db.DBRelationshipInfo;
 import edu.ku.brc.af.core.db.DBRelationshipInfo.RelationshipType;
@@ -246,21 +248,6 @@ public class JoinWalker {
 		}
 		
 		return pathSegments;
-	}
-	
-	public static class PathSegment {
-		private Integer tableId;
-		private String relationshipName;
-		
-		public PathSegment(Integer tableId, String relationshipName) {
-			this.tableId = tableId;
-			this.relationshipName = relationshipName;
-		}
-		public Integer getTableId() { return this.tableId; }
-		public void setTableId(Integer tableId) { this.tableId = tableId; }
-
-		public String getRelationshipName() { return this.relationshipName; }
-		public void setRelationshipName(String relationshipName) { this.relationshipName = relationshipName; }
 	}
 	
 	private Treeable<?,?,?> getParent(Treeable<?,?,?> treeable, int rankId) {

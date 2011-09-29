@@ -1,4 +1,4 @@
-package edu.harvard.huh.oai.specify;
+package edu.harvard.huh.specify.mapper;
 
 import java.io.IOException;
 import java.math.BigDecimal;

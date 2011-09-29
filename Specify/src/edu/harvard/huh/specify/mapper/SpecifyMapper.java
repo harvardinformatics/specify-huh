@@ -1,18 +1,23 @@
-package edu.harvard.huh.oai.specify;
+package edu.harvard.huh.specify.mapper;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import org.dom4j.Element;
 
-import edu.harvard.huh.oai.specify.JoinWalker.PathSegment;
+import edu.harvard.huh.dwc.model.Occurrence;
+import edu.harvard.huh.specify.mapper.SpecifyFieldMappingDesc.PathSegment;
 import edu.ku.brc.exceptions.ConfigurationException;
 import edu.ku.brc.helpers.XMLHelper;
 import edu.ku.brc.specify.datamodel.CollectionObject;
 
 public class SpecifyMapper {
 
-	public SpecifyOccurrence map(CollectionObject collObj, List<SpecifyMapItem> mapItems) {
+	public Occurrence map(CollectionObject collObj) {
+		return map(collObj, getDefaultMappings());
+	}
+
+	public Occurrence map(CollectionObject collObj, List<SpecifyMapItem> mapItems) {
 /*
  * private Long   id;
 	private String catalogNumber;

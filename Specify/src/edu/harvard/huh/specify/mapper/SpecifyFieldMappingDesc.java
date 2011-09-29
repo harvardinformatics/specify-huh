@@ -1,4 +1,4 @@
-package edu.harvard.huh.oai.specify;
+package edu.harvard.huh.specify.mapper;
 
 import java.util.ArrayList;
 import java.util.HashMap;

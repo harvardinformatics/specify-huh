@@ -1,8 +1,8 @@
-package edu.harvard.huh.oai.specify;
+package edu.harvard.huh.specify.mapper;
 
 import java.util.List;
 
-import edu.harvard.huh.oai.specify.JoinWalker.PathSegment;
+import edu.harvard.huh.specify.mapper.SpecifyFieldMappingDesc.PathSegment;
 
 public class SpecifyMapItem {
 
