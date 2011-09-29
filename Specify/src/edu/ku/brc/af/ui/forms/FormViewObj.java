@@ -328,6 +328,7 @@ public class FormViewObj implements Viewable,
         this.cellName    = cellName;
         this.dataClass   = dataClass;
         this.bgColor     = bgColor;
+        
 
         businessRules    = view.createBusinessRule();
         isEditing        = altView.getMode() == AltViewIFace.CreationMode.EDIT;
@@ -1710,7 +1711,9 @@ public class FormViewObj implements Viewable,
             {
                 title = "data"; // I18N, not really sure what to put here.
             }
-            
+            // TODO: lowery: Find a better way to determine wether or not a form has been saved
+            if (saveControl.isEnabled() || (!saveControl.isEnabled() && formValidator != null && !formValidator.isFormValid())) {
+            	
             // For the DISCARD
             // Since JOptionPane doesn't have a YES_CANCEL_OPTION 
             // I have to use YES_NO_OPTION and since this is a Discard question
@@ -1784,6 +1787,7 @@ public class FormViewObj implements Viewable,
         } else
         {
             return true;
+        }
         }
         return isNewAndComplete;
     }
