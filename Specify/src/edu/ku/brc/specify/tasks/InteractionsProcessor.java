@@ -169,6 +169,13 @@ public class InteractionsProcessor<T extends PreparationsProviderIFace>
         createOrAdd(currPrepProvider, null, null);
     }
     
+    public void createOrAdd(final T              currPrepProvider, 
+            final InfoRequest    infoRequest, 
+            final RecordSetIFace recordSetArg, final Viewable viewable) {
+    	this.viewable = viewable;
+    	createOrAdd(currPrepProvider, infoRequest, recordSetArg);
+    }
+    
     /**
      * Creates a new loan from a RecordSet.
      * dl: this is used when you create a new loan and is also used by the batchaddpreps plugin.
@@ -221,9 +228,9 @@ public class InteractionsProcessor<T extends PreparationsProviderIFace>
         // dl: get current multiview object from the subpane and setHasNewData in the formviewobj as true.
         if (currPrepProvider != null) {
         	SubPaneIFace subPane = SubPaneMgr.getInstance().getCurrentSubPane();
-        	MultiView mv = subPane.getMultiView();
+        	//MultiView mv = subPane.getMultiView();
         	
- 			viewable = mv.getCurrentViewAsFormViewObj();
+ 			//viewable = mv.getCurrentViewAsFormViewObj();
             viewable.setHasNewData(true);
         }
         
@@ -318,10 +325,10 @@ public class InteractionsProcessor<T extends PreparationsProviderIFace>
      * @param infoRequest
      * @param session
      */
-    protected void prepsLoaded(final Hashtable<Integer, ColObjInfo> frToPrepHash,
+    protected void prepsLoaded (final Hashtable<Integer, ColObjInfo> frToPrepHash,
                                final Hashtable<Integer, String>     prepTypeHash,
                                final T                              prepProvider,
-                               final InfoRequest                    infoRequest)
+                               final InfoRequest                    infoRequest) throws Exception
     {
         
         if (frToPrepHash.size() == 0 || prepTypeHash.size() == 0)
@@ -350,7 +357,7 @@ public class InteractionsProcessor<T extends PreparationsProviderIFace>
         final Hashtable<Integer, Integer> prepsHash = getPreparationCounts(frToPrepHash); //loanSelectPrepsDlg.getPreparationCounts();
         if (prepsHash.size() > 0)
         {
-            final SwingWorker worker = new SwingWorker()
+            final SwingWorker worker = new SwingWorker() 
             {
                 @Override
                 public Object construct()
@@ -358,7 +365,7 @@ public class InteractionsProcessor<T extends PreparationsProviderIFace>
                     JStatusBar statusBar = UIRegistry.getStatusBar();
                     statusBar.setIndeterminate("INTERACTIONS", true);
                     statusBar.setText(getLocalizedMessage("CREATING_INTERACTION", ti.getTitle()));
-                    
+
                     if (isLoan)
                     {
                         task.addPrepsToLoan(prepProvider, infoRequest, prepsHash, viewable);
@@ -781,7 +788,11 @@ public class InteractionsProcessor<T extends PreparationsProviderIFace>
                 UIRegistry.clearSimpleGlassPaneMsg();
             }
             
-            prepsLoaded(frToPrepHash, prepTypeHash, prepsProvider, infoRequest);
+            try {
+            	prepsLoaded(frToPrepHash, prepTypeHash, prepsProvider, infoRequest);
+            } catch (Exception e) {
+            	JOptionPane.showMessageDialog(null, "An error has occured trying to load preparations into the loan!", "Error", JOptionPane.ERROR_MESSAGE);
+            }
         }
         
     }

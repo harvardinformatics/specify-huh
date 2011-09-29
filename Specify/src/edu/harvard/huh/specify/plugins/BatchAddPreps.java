@@ -38,6 +38,7 @@ import javax.swing.event.ChangeListener;
 import edu.ku.brc.af.core.SubPaneMgr;
 import edu.ku.brc.af.ui.forms.FormViewObj;
 import edu.ku.brc.af.ui.forms.UIPluginable;
+import edu.ku.brc.af.ui.forms.Viewable;
 import edu.ku.brc.dbsupport.RecordSetIFace;
 import edu.ku.brc.specify.datamodel.Loan;
 import edu.ku.brc.specify.tasks.InteractionsProcessor;
@@ -92,9 +93,11 @@ public class BatchAddPreps extends JButton implements UIPluginable, GetSetValueI
         
     	InteractionsTask task = new InteractionsTask();
     	RecordSetIFace recordSet = task.askForCatNumbersRecordSet();
+
+    	Viewable viewable = SubPaneMgr.getInstance().getCurrentSubPane().getMultiView().getCurrentViewAsFormViewObj();
     	
     	if (recordSet != null)
-    		new InteractionsProcessor<Loan>(task, true, 52).createOrAdd(loan, null, recordSet);
+    		new InteractionsProcessor<Loan>(task, true, 52).createOrAdd(loan, null, recordSet, viewable);
     }
     
     @Override
