@@ -18,6 +18,7 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 package edu.ku.brc.helpers;
+import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 
 /**
@@ -31,6 +32,8 @@ import javax.swing.SwingUtilities;
  * Note that the API changed slightly in the 3rd version:
  * You must now invoke start() on the SwingWorker after
  * creating it.
+ * 
+ * :TODO Replace with JDK 6 SwingWorker See also the wikipedia page on SwingWorker.
  */
 /*
  * @code_status Unknown (auto-generated)
@@ -38,6 +41,7 @@ import javax.swing.SwingUtilities;
  * @author Sun Microsystems
  *
  */
+
 public abstract class SwingWorker 
 {
     private Object value;  // see getValue(), setValue()
@@ -72,8 +76,10 @@ public abstract class SwingWorker
 
     /** 
      * Compute the value to be returned by the <code>get</code> method. 
+     * 
+     * dl: added a throws Exception to catch exceptions that occur during construct.
      */
-    public abstract Object construct();
+    public abstract Object construct() throws Exception;
 
     /**
      * Called on the event dispatching thread (not on the worker thread)
@@ -131,8 +137,10 @@ public abstract class SwingWorker
             public void run() {
                 try {
                     setValue(construct());
-                }
-                finally {
+                } catch (Exception e){
+                	e.printStackTrace();
+                	JOptionPane.showMessageDialog(null, "Specify was unable to populate the form!", "Error", JOptionPane.ERROR_MESSAGE);
+                } finally {
                     threadVar.clear();
                 }
 
