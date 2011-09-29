@@ -953,7 +953,9 @@ public class InteractionsTask extends BaseTask
             prepToLoanPrepHash = new Hashtable<Integer, LoanPreparation>();
             for (LoanPreparation lp : existingLoan.getLoanPreparations())
             {
+            	if (lp.getPreparation() != null) {
             		prepToLoanPrepHash.put(lp.getPreparation().getId(), lp);
+            	}
             }
         }
         
@@ -1297,7 +1299,7 @@ public class InteractionsTask extends BaseTask
 	                DataModelObjectReport report = new DataModelObjectReport(new StreamSource(new ByteArrayInputStream(out.toByteArray())));
 	                report.generatePDF();
 	
-	                //delete later
+	                // TODO: delete later
 	    			File reportxml = new File(reportsDir.getAbsoluteFile() + File.separator + "LoanReport.xml");
 	    			File fo = new File(reportsDir.getAbsoluteFile() + File.separator + "LoanReport.fo");
 	    			marshaller.transform(new StreamSource(reportsDir.getAbsoluteFile() + File.separator + ReportXslFiles.LOAN_REPORT), new FileOutputStream(fo));
@@ -1306,8 +1308,11 @@ public class InteractionsTask extends BaseTask
 				} catch (Exception e) {
 					e.printStackTrace();
 					JOptionPane.showMessageDialog(null, "Failed to generate invoice pdf!", "Error", JOptionPane.ERROR_MESSAGE);
+				} finally {
+	                cmdAction.setConsumed(true);
 				}
             }
+            cmdAction.setConsumed(true);
 			
 			/*
             	/*
@@ -2387,6 +2392,7 @@ public class InteractionsTask extends BaseTask
                 //ignore
             }
         }
+        cmdAction.setConsumed(true);
     }
     
     /* (non-Javadoc)
