@@ -194,32 +194,34 @@ public class ReportLoan {
 				curr = s;
 			}
 		}
-		dateSent = curr.getShipmentDate();
-		numberOfPackages = curr.getNumberOfPackages() != null ? curr.getNumberOfPackages() : 0;
-		
-		if (curr.getShippedTo() != null) {
-			nameOfContact = curr.getShippedTo().getFirstName() + " " + curr.getShippedTo().getLastName();
-			if (curr.getShippedTo().getOrganization() != null) {
-				institution =  curr.getShippedTo().getOrganization().getLastName();
-				acronym = curr.getShippedTo().getOrganization().getAbbreviation();
-			}
+		if (curr != null) {
+			dateSent = curr.getShipmentDate();
+			numberOfPackages = curr.getNumberOfPackages() != null ? curr.getNumberOfPackages() : 0;
 			
-			if (curr.getShippedTo().getAddresses() != null) {
-				for (Address a : curr.getShippedTo().getAddresses()) {
-					if (a.getIsShipping() != null && a.getIsShipping()) {
-						address1 = a.getAddress();
-						address2 = a.getAddress2();
-						city = a.getCity();
-						state = a.getState();
-						zip = a.getPostalCode();
-						country = a.getCountry();
+			if (curr.getShippedTo() != null) {
+				nameOfContact = curr.getShippedTo().getFirstName() + " " + curr.getShippedTo().getLastName();
+				if (curr.getShippedTo().getOrganization() != null) {
+					institution =  curr.getShippedTo().getOrganization().getLastName();
+					acronym = curr.getShippedTo().getOrganization().getAbbreviation();
+				}
+				
+				if (curr.getShippedTo().getAddresses() != null) {
+					for (Address a : curr.getShippedTo().getAddresses()) {
+						if (a.getIsShipping() != null && a.getIsShipping()) {
+							address1 = a.getAddress();
+							address2 = a.getAddress2();
+							city = a.getCity();
+							state = a.getState();
+							zip = a.getPostalCode();
+							country = a.getCountry();
+						}
 					}
 				}
 			}
+			
+			if (curr.getShippedBy() != null)
+				nameOfShippedBy = curr.getShippedBy().getFirstName() + " " + curr.getShippedBy().getLastName();
 		}
-		
-		if (curr.getShippedBy() != null)
-			nameOfShippedBy = curr.getShippedBy().getFirstName() + " " + curr.getShippedBy().getLastName();
 	}
 	
 	/** Inner class that contains a HashSet representation of all the 
@@ -242,7 +244,7 @@ public class ReportLoan {
 		
 		public int compareTo(BarcodedSpecimen specimen) {
 			
-			if (!getSortItem().identifier.equals("") && specimen.getSortItem().identifier.equals("") && Double.parseDouble(getSortItem().identifier) > Double.parseDouble(specimen.getSortItem().identifier)) return 1;
+			if (!getSortItem().identifier.equals("") && !specimen.getSortItem().identifier.equals("") && Double.parseDouble(getSortItem().identifier) > Double.parseDouble(specimen.getSortItem().identifier)) return 1;
 			else return -1;
 		}
 	}
