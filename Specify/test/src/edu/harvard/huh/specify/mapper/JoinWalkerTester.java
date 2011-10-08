@@ -8,14 +8,16 @@ import java.util.Properties;
 
 import junit.framework.TestCase;
 
+import edu.harvard.huh.specify.mapper.SpecifyFieldMappingDesc.PathSegment;
 import edu.ku.brc.af.auth.JaasContext;
 import edu.ku.brc.af.auth.SecurityMgr;
 import edu.ku.brc.af.auth.UserAndMasterPasswordMgr;
 import edu.ku.brc.af.core.AppContextMgr;
 import edu.ku.brc.af.core.db.DBTableIdMgr;
 import edu.ku.brc.af.prefs.AppPreferences;
-import edu.ku.brc.af.ui.forms.formatters.DataObjFieldFormatMgr;
+import edu.ku.brc.af.ui.forms.formatters.UIFieldFormatterMgr;
 import edu.ku.brc.dbsupport.DBConnection;
+import edu.ku.brc.dbsupport.DataProviderFactory;
 import edu.ku.brc.specify.datamodel.Agent;
 import edu.ku.brc.specify.datamodel.CollectingEvent;
 import edu.ku.brc.specify.datamodel.CollectionObject;
@@ -54,8 +56,10 @@ public class JoinWalkerTester extends TestCase {
 		System.setProperty(DBTableIdMgr.factoryName,  "edu.ku.brc.specify.config.SpecifyDBTableIdMgr");
 		System.setProperty(AppContextMgr.factoryName, "edu.ku.brc.specify.config.SpecifyAppContextMgr");
 		System.setProperty(SecurityMgr.factoryName,   "edu.ku.brc.af.auth.specify.SpecifySecurityMgr"); // AppContextMgr needs this one
+        System.setProperty(UIFieldFormatterMgr.factoryName, "edu.ku.brc.specify.ui.SpecifyUIFieldFormatterMgr"); // UIFieldFormatterMgr needs this to look up formatters by table and field
+        System.setProperty(DataProviderFactory.factoryName, "edu.ku.brc.specify.dbsupport.HibernateDataProvider"); // UIFieldFormatterMgr needs this too
         
-		UIRegistry.setDefaultWorkingPath(workingPath); // we need to be able to find specify_tableid_listing.xml from here for DBTableIdMgr
+        UIRegistry.setDefaultWorkingPath(workingPath); // we need to be able to find specify_tableid_listing.xml from here for DBTableIdMgr
 		
 		AppPreferences localPrefs = AppPreferences.getLocalPrefs();
         localPrefs.setDirPath(UIRegistry.getAppDataDir()); // AppPreferences.dirPath needs to be set in order to find formatters
@@ -125,12 +129,13 @@ public class JoinWalkerTester extends TestCase {
 		boolean isRelationship = false;
 
 		// now go find it
-		Object mappedValue = joinWalker.getPathValue(collObj, tablePath, fieldName, isRelationship);
-		assertEquals(lastName, mappedValue.toString().trim());
+		List<PathSegment> joins = JoinWalker.parseTablePath(tablePath);
+		String mappedValue = joinWalker.getPathValue(collObj, joins, fieldName, isRelationship);
+		assertEquals(lastName, mappedValue.trim());
 		
 		// try again without permission
 		DBTableIdMgr.getInstance().getInfoById(2).getPermissions().setCanView(false);
-		Object unviewable = joinWalker.getPathValue(collObj, tablePath, fieldName, isRelationship);
+		Object unviewable = joinWalker.getPathValue(collObj, joins, fieldName, isRelationship);
 		assertNull(unviewable);
 		DBTableIdMgr.getInstance().getInfoById(2).getPermissions().setCanView(true);
 	}
@@ -154,8 +159,9 @@ public class JoinWalkerTester extends TestCase {
 		boolean isRelationship = false;
 
 		// now go find it
-		Object mappedValue = joinWalker.getPathValue(collObj, tablePath, fieldName, isRelationship);
-		assertEquals(longitude, ((BigDecimal) mappedValue).doubleValue(), 0.00001);
+		List<PathSegment> joins = JoinWalker.parseTablePath(tablePath);
+		String mappedValue = joinWalker.getPathValue(collObj, joins, fieldName, isRelationship);
+		assertEquals(String.valueOf(longitude), mappedValue);
 	}
 
 	public void testGetPathValueForOneOfManyDets() {
@@ -192,14 +198,15 @@ public class JoinWalkerTester extends TestCase {
 		boolean isRelationship = false;
 
 		// don't find it when it's not there
-		Object noMappedValue = joinWalker.getPathValue(collObj, tablePath, fieldName, isRelationship);
+		List<PathSegment> joins = JoinWalker.parseTablePath(tablePath);
+		String noMappedValue = joinWalker.getPathValue(collObj, joins, fieldName, isRelationship);
 		assertNull(noMappedValue);
 
 		// do find it when it is.
 		collObj.getDeterminations().add(oldDet);
 		collObj.getDeterminations().add(newDet);
-		Object mappedValue = joinWalker.getPathValue(collObj, tablePath, fieldName, isRelationship);
-		assertEquals(asterSerrataName, mappedValue.toString().trim());
+		String mappedValue = joinWalker.getPathValue(collObj, joins, fieldName, isRelationship);
+		assertEquals(asterSerrataName, mappedValue.trim());
 	}
 
 	public void testGetPathValueForIsRelationship() {
@@ -241,25 +248,10 @@ public class JoinWalkerTester extends TestCase {
 		String tablePath = "1,10,30-collectors";
 		boolean isRelationship = true;
 
-		Object mappedValue = joinWalker.getPathValue(collObj, tablePath, fieldName, isRelationship);
+		List<PathSegment> joins = JoinWalker.parseTablePath(tablePath);
+		String mappedValue = joinWalker.getPathValue(collObj, joins, fieldName, isRelationship);
 
-		assertTrue(mappedValue instanceof List<?>);
-		assertEquals(2, ((List<?>) mappedValue).size());
-
-		Object firstObject = ((List<?>) mappedValue).get(0);
-		assertTrue(firstObject instanceof Collector);
-
-		// Collectors aren't formatted by default by the Collector.toString() method (Agents are)
-		Collector firstCollector = (Collector) firstObject;
-		String firstCollectorName = DataObjFieldFormatMgr.getInstance().format(firstCollector, Collector.class);
-		assertEquals(collectorNames[0], firstCollectorName.trim());
-
-		Object secondObject = ((List<?>) mappedValue).get(1);
-		assertTrue(secondObject instanceof Collector);
-
-		Collector secondCollector = (Collector) secondObject;
-		String secondCollectorName = DataObjFieldFormatMgr.getInstance().format(secondCollector, Collector.class);
-		assertEquals(collectorNames[1], secondCollectorName.trim());
+		assertEquals(mappedValue, "Kelly; Clifton");
 	}
 	
 	public void testGetPathWithTreeLevel() {
@@ -300,7 +292,8 @@ public class JoinWalkerTester extends TestCase {
 		String tablePath = "1,9-determinations,4-preferredTaxon";
 		boolean isRelationship = false;
 
-		Object mappedValue = joinWalker.getPathValue(collObj, tablePath, fieldName, isRelationship);
-		assertEquals(asteraceaeName, mappedValue.toString().trim());
+		List<PathSegment> joins = JoinWalker.parseTablePath(tablePath);
+		String mappedValue = joinWalker.getPathValue(collObj, joins, fieldName, isRelationship);
+		assertEquals(asteraceaeName, mappedValue.trim());
 	}
 }

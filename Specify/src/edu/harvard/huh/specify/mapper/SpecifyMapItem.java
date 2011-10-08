@@ -9,8 +9,8 @@ public class SpecifyMapItem {
 	// see Specify's MappedFieldInfo
 
 	private String stringId        = null;
-	private String name            = null;
-	private String fieldName       = null; 
+	private String name            = null; // all-lowercase version of the dwc term
+	private String fieldName       = null; // the specify table field name
 	private boolean isRelationship = false;
 	private boolean isActive       = true;
 	
