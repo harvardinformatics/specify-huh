@@ -400,13 +400,13 @@ public class WorkbenchPaneSS extends BaseSubPane
         
         Highlighter simpleStriping = HighlighterFactory.createSimpleStriping();
         GridCellHighlighter hl = new GridCellHighlighter(new GridCellPredicate(GridCellPredicate.AnyPredicate, null));
-        Integer[] errs = {WorkbenchDataItem.VAL_ERROR, WorkbenchDataItem.VAL_ERROR_EDIT};
+        Integer[] errs = {(int) WorkbenchDataItem.VAL_ERROR, (int) WorkbenchDataItem.VAL_ERROR_EDIT}; // modified by HUH for FP
         ColorHighlighter errColorHighlighter = new ColorHighlighter(new GridCellPredicate(GridCellPredicate.ValidationPredicate, errs), 
         		cellRenderAtts.errorBackground, null);
-        Integer[] newdata = {WorkbenchDataItem.VAL_NEW_DATA};
+        Integer[] newdata = {(int) WorkbenchDataItem.VAL_NEW_DATA};  // modified by HUH for FP
         ColorHighlighter noDataHighlighter = new ColorHighlighter(new GridCellPredicate(GridCellPredicate.MatchingPredicate, newdata), 
         		cellRenderAtts.newDataBackground, null);
-        Integer[] multimatch = {WorkbenchDataItem.VAL_MULTIPLE_MATCH};
+        Integer[] multimatch = {(int) WorkbenchDataItem.VAL_MULTIPLE_MATCH}; // modified by HUH for FP
         ColorHighlighter multiMatchHighlighter = new ColorHighlighter(new GridCellPredicate(GridCellPredicate.MatchingPredicate, multimatch), 
         		cellRenderAtts.multipleMatchBackground, null);
 
