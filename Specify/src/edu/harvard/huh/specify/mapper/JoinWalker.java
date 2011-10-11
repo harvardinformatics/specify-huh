@@ -126,11 +126,11 @@ public class JoinWalker {
 			Object firstObject = collection.iterator().next();
 
 			if (firstObject instanceof Comparable) {
-				List<Comparable<?>> orderedList = new ArrayList<Comparable<?>>();
+				List<Comparable> orderedList = new ArrayList<Comparable>();
 				for (Object comparableObj : collection) {
-					orderedList.add((Comparable<?>) comparableObj);
+					orderedList.add((Comparable) comparableObj);
 				}
-				Collections.sort((List<? extends Comparable<? super Comparable<?>>>) orderedList);
+				Collections.sort(orderedList);
 				return orderedList;
 			}
 			else if (firstObject instanceof DataModelObjBase) {
