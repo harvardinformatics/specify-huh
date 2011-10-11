@@ -61,7 +61,7 @@ public class NodeNumberVerifier<T extends Treeable<T, D, I>, D extends TreeDefIf
             T root = getTreeRoot();
             LinkedList<Integer> parentIds = new LinkedList<Integer>();
             initProgress();
-            verifyNodes(root.getTreeId(), root.getNodeNumber(), parentIds);
+//            verifyNodes(root.getTreeId(), root.getNodeNumber(), parentIds);
             return true;
         }
         catch (Exception e)

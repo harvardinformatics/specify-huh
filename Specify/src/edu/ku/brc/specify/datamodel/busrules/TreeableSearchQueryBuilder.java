@@ -111,8 +111,8 @@ public class TreeableSearchQueryBuilder implements ViewBasedSearchQueryBuilderIF
             queryStr = String.format(queryFormatStr, tableInfo.getShortClassName(), searchText.toLowerCase() + "%", treeDefId);
             
             Integer nodeId = nodeInForm == null ? null : nodeInForm.getTreeId();
-            Integer nodeNumber = null;
-            Integer highestChildNodeNumber = null;
+//            Integer nodeNumber = null;
+//            Integer highestChildNodeNumber = null;
             if (nodeInForm != null)
             {
             	if (lookupType == ACCEPTED_PARENT && nodeId == null)
@@ -122,13 +122,13 @@ public class TreeableSearchQueryBuilder implements ViewBasedSearchQueryBuilderIF
             		// prevent ancestors being available for accepted parent 
             		//(this restriction is enforced by TreeTableViewer)
             		Treeable<?, ?, ?> parentNode = nodeInForm.getParent();
-            		nodeNumber = parentNode == null ? null : parentNode.getNodeNumber();
-            		highestChildNodeNumber = parentNode == null ? null : parentNode.getHighestChildNodeNumber();
+//            		nodeNumber = parentNode == null ? null : parentNode.getNodeNumber();
+//            		highestChildNodeNumber = parentNode == null ? null : parentNode.getHighestChildNodeNumber();
             	}
             	else
             	{
-            		nodeNumber = nodeInForm.getNodeNumber();
-            		highestChildNodeNumber = nodeInForm.getHighestChildNodeNumber();
+//            		nodeNumber = nodeInForm.getNodeNumber();
+//            		highestChildNodeNumber = nodeInForm.getHighestChildNodeNumber();
             	}
             }
             if (nodeId != null)
@@ -190,20 +190,21 @@ public class TreeableSearchQueryBuilder implements ViewBasedSearchQueryBuilderIF
                     }
                 }
             }
-            if (nodeNumber != null && highestChildNodeNumber != null)
-            {
-                //don't allow children to be used as (for example). hybrid parents
-            	if (lookupType != ACCEPTED_PARENT || nodeId != null)
-            	{
-            		queryStr += " and (n.nodeNumber not between " + nodeNumber + " and " + highestChildNodeNumber + ")";
-            	}
-                if (lookupType == ACCEPTED_PARENT)
-                {
-                	//don't allow ancestors to be accpeted parents. 
-                	//The tree viewer enforces this -- although we are not sure why.
-                	queryStr += " and (" + nodeNumber + " not between n.nodeNumber and n.highestChildNodeNumber)";
-                }
-            }
+            // lchan: TODO: check if this breaks anything
+//            if (nodeNumber != null && highestChildNodeNumber != null)
+//            {
+//                //don't allow children to be used as (for example). hybrid parents
+//            	if (lookupType != ACCEPTED_PARENT || nodeId != null)
+//            	{
+//            		queryStr += " and (n.nodeNumber not between " + nodeNumber + " and " + highestChildNodeNumber + ")";
+//            	}
+//                if (lookupType == ACCEPTED_PARENT)
+//                {
+//                	//don't allow ancestors to be accpeted parents. 
+//                	//The tree viewer enforces this -- although we are not sure why.
+//                	queryStr += " and (" + nodeNumber + " not between n.nodeNumber and n.highestChildNodeNumber)";
+//                }
+//            }
             
             if (accepted)
             {
@@ -334,8 +335,9 @@ public class TreeableSearchQueryBuilder implements ViewBasedSearchQueryBuilderIF
         queryStr += " from " + tableInfo.getShortClassName()+ " n INNER JOIN n.definition d WHERE " + criteria.toString() + " AND d.id = " + treeDefId;
         
         Integer nodeId = nodeInForm == null ? null : nodeInForm.getTreeId();
-        Integer nodeNumber = nodeInForm == null ? null : nodeInForm.getNodeNumber();
-        Integer highestChildNodeNumber = nodeInForm == null ? null : nodeInForm.getHighestChildNodeNumber();
+        // TODO: check later
+//        Integer nodeNumber = nodeInForm == null ? null : nodeInForm.getNodeNumber();
+//        Integer highestChildNodeNumber = nodeInForm == null ? null : nodeInForm.getHighestChildNodeNumber();
         
         if (nodeId != null)
         {
@@ -362,11 +364,12 @@ public class TreeableSearchQueryBuilder implements ViewBasedSearchQueryBuilderIF
                 queryStr += " and n.rankId < " + maxRank;
             }
         }
-        else if (nodeNumber != null && highestChildNodeNumber != null)
-        {
-            //don't allow children to be used as (for example). hybrid parents
-            queryStr += " and (n.nodeNumber not between " + nodeNumber + " and " + highestChildNodeNumber + ")";
-        }
+        // TODO: check later
+//        else if (nodeNumber != null && highestChildNodeNumber != null)
+//        {
+//            //don't allow children to be used as (for example). hybrid parents
+//            queryStr += " and (n.nodeNumber not between " + nodeNumber + " and " + highestChildNodeNumber + ")";
+//        }
         
         if (accepted)
         {

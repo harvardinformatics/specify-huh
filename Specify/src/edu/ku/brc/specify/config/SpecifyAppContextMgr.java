@@ -1286,34 +1286,35 @@ public class SpecifyAppContextMgr extends AppContextMgr
 					}
 				}
 
-				if (noLocks)
-				{
-					// Now force node number updates for trees that are
-					// out-of-date
-					goodTrees = discipline.getTaxonTreeDef()
-							.checkNodeNumbersUpToDate(true);
-					if (goodTrees)
-					{
-						goodTrees = discipline.getGeographyTreeDef()
-								.checkNodeNumbersUpToDate(true);
-					}
-					if (goodTrees)
-					{
-						goodTrees = division.getInstitution()
-								.getStorageTreeDef().checkNodeNumbersUpToDate(true);
-					}
-					if (goodTrees
-							&& discipline.getGeologicTimePeriodTreeDef() != null)
-					{
-						goodTrees = discipline.getGeologicTimePeriodTreeDef()
-								.checkNodeNumbersUpToDate(true);
-					}
-					if (goodTrees && discipline.getLithoStratTreeDef() != null)
-					{
-						goodTrees = discipline.getLithoStratTreeDef()
-								.checkNodeNumbersUpToDate(true);
-					}
-				}
+// lchan: part of the work to disable node numbers
+//				if (noLocks)
+//				{
+//					// Now force node number updates for trees that are
+//					// out-of-date
+//					goodTrees = discipline.getTaxonTreeDef()
+//							.checkNodeNumbersUpToDate(true);
+//					if (goodTrees)
+//					{
+//						goodTrees = discipline.getGeographyTreeDef()
+//								.checkNodeNumbersUpToDate(true);
+//					}
+//					if (goodTrees)
+//					{
+//						goodTrees = division.getInstitution()
+//								.getStorageTreeDef().checkNodeNumbersUpToDate(true);
+//					}
+//					if (goodTrees
+//							&& discipline.getGeologicTimePeriodTreeDef() != null)
+//					{
+//						goodTrees = discipline.getGeologicTimePeriodTreeDef()
+//								.checkNodeNumbersUpToDate(true);
+//					}
+//					if (goodTrees && discipline.getLithoStratTreeDef() != null)
+//					{
+//						goodTrees = discipline.getLithoStratTreeDef()
+//								.checkNodeNumbersUpToDate(true);
+//					}
+//				}
 			}
             
             if (!noLocks || !goodTrees)

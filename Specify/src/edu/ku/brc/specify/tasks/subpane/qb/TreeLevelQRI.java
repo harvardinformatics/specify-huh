@@ -205,83 +205,83 @@ public class TreeLevelQRI extends FieldQRI
         return result;
 	}
 
-	/**
-     * @param criteria
-     * @param ta
-     * @param operStr
-     * @param negate
-     * @return a where clause condition for the given criteria using tree node-numbers.
-     * 
-     * Looks up the matching node (1 node - opearators are restricted for TreeLevels) and creates 
-     * a condition to get it's descendants. 
-     */
-    @SuppressWarnings("unchecked")
-    public String getNodeNumberCriteria(final String criteria, final TableAbbreviator ta, 
-                                        final String operStr, final boolean negate) throws ParseException
-    {
-        if (criteria.equals("'%'") || criteria.equals("'*'"))
-        {
-        	//same as no condition. Almost - Like '%' won't return nulls, but maybe it should.
-        	return null;
-        }
-                
-    	DataProviderSessionIFace session = DataProviderFactory.getInstance()
-        .createSession();
-        try
-        {
-            SpecifyAppContextMgr spMgr = (SpecifyAppContextMgr )AppContextMgr.getInstance();
-            TreeDefIface<?, ?, ?> treeDef = spMgr.getTreeDefForClass((Class<? extends Treeable<?,?,?>> )getTableInfo().getClassObj());
-
-            String className = getTableInfo().getClassObj().getSimpleName();
-            List<?> matches = session.getDataList("from " + className + " where name " + operStr + " " +  criteria + " and " + className + "TreeDefId = " + treeDef.getTreeDefId()
-                    + " and rankId =" + String.valueOf(rankId));
-            List<Pair<Integer, Integer>> nodeInfo = new LinkedList<Pair<Integer, Integer>>();
-            if (matches.size() == 0)
-            {
-                return "2+2=2"; //that'll do the trick. 
-            }
-            
-            if (getMaxNodeConditions() > 0 && matches.size() > getMaxNodeConditions())
-            {
-            	throw new ParseException(UIRegistry.getResourceString("QB_TOO_MANY_TREE_RANK_MATCHES"), -1);
-            }
-            
-            for (Object match : matches)
-            {
-                Treeable<?,?,?> node = (Treeable<?,?,?>)match;
-                nodeInfo.add(new Pair<Integer, Integer>(node.getNodeNumber(), node.getHighestChildNodeNumber()));
-            }
-            StringBuilder result = new StringBuilder();
-            for (Pair<Integer, Integer> node : nodeInfo)
-            {
-                if (result.length() > 0)
-                {
-                    if (negate)
-                    {
-                        result.append(" and ");
-                    }
-                    else
-                    {
-                        result.append(" or ");
-                    }
-                }
-                result.append(ta.getAbbreviation(table.getTableTree()) + ".nodeNumber");
-                if (negate)
-                {
-                    result.append(" not "); 
-                }
-                result.append(" between ");
-                result.append(node.getFirst());
-                result.append(" and ");
-                result.append(node.getSecond());
-            }
-            return "(" + result.toString() + ")";
-        }
-        finally
-        {
-            session.close();
-        }
-    }
+//	/**
+//     * @param criteria
+//     * @param ta
+//     * @param operStr
+//     * @param negate
+//     * @return a where clause condition for the given criteria using tree node-numbers.
+//     * 
+//     * Looks up the matching node (1 node - opearators are restricted for TreeLevels) and creates 
+//     * a condition to get it's descendants. 
+//     */
+//    @SuppressWarnings("unchecked")
+//    public String getNodeNumberCriteria(final String criteria, final TableAbbreviator ta, 
+//                                        final String operStr, final boolean negate) throws ParseException
+//    {
+//        if (criteria.equals("'%'") || criteria.equals("'*'"))
+//        {
+//        	//same as no condition. Almost - Like '%' won't return nulls, but maybe it should.
+//        	return null;
+//        }
+//                
+//    	DataProviderSessionIFace session = DataProviderFactory.getInstance()
+//        .createSession();
+//        try
+//        {
+//            SpecifyAppContextMgr spMgr = (SpecifyAppContextMgr )AppContextMgr.getInstance();
+//            TreeDefIface<?, ?, ?> treeDef = spMgr.getTreeDefForClass((Class<? extends Treeable<?,?,?>> )getTableInfo().getClassObj());
+//
+//            String className = getTableInfo().getClassObj().getSimpleName();
+//            List<?> matches = session.getDataList("from " + className + " where name " + operStr + " " +  criteria + " and " + className + "TreeDefId = " + treeDef.getTreeDefId()
+//                    + " and rankId =" + String.valueOf(rankId));
+//            List<Pair<Integer, Integer>> nodeInfo = new LinkedList<Pair<Integer, Integer>>();
+//            if (matches.size() == 0)
+//            {
+//                return "2+2=2"; //that'll do the trick. 
+//            }
+//            
+//            if (getMaxNodeConditions() > 0 && matches.size() > getMaxNodeConditions())
+//            {
+//            	throw new ParseException(UIRegistry.getResourceString("QB_TOO_MANY_TREE_RANK_MATCHES"), -1);
+//            }
+//            
+//            for (Object match : matches)
+//            {
+//                Treeable<?,?,?> node = (Treeable<?,?,?>)match;
+//                nodeInfo.add(new Pair<Integer, Integer>(node.getNodeNumber(), node.getHighestChildNodeNumber()));
+//            }
+//            StringBuilder result = new StringBuilder();
+//            for (Pair<Integer, Integer> node : nodeInfo)
+//            {
+//                if (result.length() > 0)
+//                {
+//                    if (negate)
+//                    {
+//                        result.append(" and ");
+//                    }
+//                    else
+//                    {
+//                        result.append(" or ");
+//                    }
+//                }
+//                result.append(ta.getAbbreviation(table.getTableTree()) + ".nodeNumber");
+//                if (negate)
+//                {
+//                    result.append(" not "); 
+//                }
+//                result.append(" between ");
+//                result.append(node.getFirst());
+//                result.append(" and ");
+//                result.append(node.getSecond());
+//            }
+//            return "(" + result.toString() + ")";
+//        }
+//        finally
+//        {
+//            session.close();
+//        }
+//    }
 
     @SuppressWarnings("serial")
     public class NoTreeDefItemException extends Exception

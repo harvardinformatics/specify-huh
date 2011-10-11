@@ -7147,8 +7147,8 @@ public class GenericDBConversion implements IdMapperIndexIncrementerIFace
         }
 
         TreeHelper.fixFullnameForNodeAndDescendants(planetEarth);
-        planetEarth.setNodeNumber(1);
-        fixNodeNumbersFromRoot(planetEarth);
+//        planetEarth.setNodeNumber(1);
+//        fixNodeNumbersFromRoot(planetEarth);
 
         localSession.save(planetEarth);
 
@@ -7366,8 +7366,8 @@ public class GenericDBConversion implements IdMapperIndexIncrementerIFace
             }
     
             TreeHelper.fixFullnameForNodeAndDescendants(earth);
-            earth.setNodeNumber(1);
-            fixNodeNumbersFromRoot(earth);
+//            earth.setNodeNumber(1);
+//            fixNodeNumbersFromRoot(earth);
     
             HibernateUtil.commitTransaction();
             log.info("Converted " + counter + " Stratigraphy records");
@@ -7607,8 +7607,8 @@ public class GenericDBConversion implements IdMapperIndexIncrementerIFace
         }
 
         TreeHelper.fixFullnameForNodeAndDescendants(earth);
-        earth.setNodeNumber(1);
-        fixNodeNumbersFromRoot(earth);
+//        earth.setNodeNumber(1);
+//        fixNodeNumbersFromRoot(earth);
 
         if (doSave)
         {
@@ -8073,8 +8073,8 @@ public class GenericDBConversion implements IdMapperIndexIncrementerIFace
         }
         
         // fix node number, child node number stuff
-        allTime.setNodeNumber(1);
-        fixNodeNumbersFromRoot(allTime);
+//        allTime.setNodeNumber(1);
+//        fixNodeNumbersFromRoot(allTime);
         localSession.save(allTime);
 
         HibernateUtil.commitTransaction();
@@ -8142,8 +8142,8 @@ public class GenericDBConversion implements IdMapperIndexIncrementerIFace
             earthNode.initialize();
             earthNode.setName("Earth");
             earthNode.setFullName("Earth");
-            earthNode.setNodeNumber(1);
-            earthNode.setHighestChildNodeNumber(1);
+//            earthNode.setNodeNumber(1);
+//            earthNode.setHighestChildNodeNumber(1);
             earthNode.setRankId(0);
             earthNode.setDefinition(lithoStratTreeDef);
             earthNode.setDefinitionItem(earth);
@@ -8172,17 +8172,18 @@ public class GenericDBConversion implements IdMapperIndexIncrementerIFace
      * @param root the top of the tree to be renumbered
      * @return the highest node number value present in the subtree rooted at <code>root</code>
      */
-    public static <T extends Treeable<T, ?, ?>> int fixNodeNumbersFromRoot(T root)
-    {
-        int nextNodeNumber = root.getNodeNumber();
-        for (T child : root.getChildren())
-        {
-            child.setNodeNumber(++nextNodeNumber);
-            nextNodeNumber = fixNodeNumbersFromRoot(child);
-        }
-        root.setHighestChildNodeNumber(nextNodeNumber);
-        return nextNodeNumber;
-    }
+// lchan: disabling this for speed
+//    public static <T extends Treeable<T, ?, ?>> int fixNodeNumbersFromRoot(T root)
+//    {
+//        int nextNodeNumber = root.getNodeNumber();
+//        for (T child : root.getChildren())
+//        {
+//            child.setNodeNumber(++nextNodeNumber);
+//            nextNodeNumber = fixNodeNumbersFromRoot(child);
+//        }
+//        root.setHighestChildNodeNumber(nextNodeNumber);
+//        return nextNodeNumber;
+//    }
 
     /**
      * @param parent

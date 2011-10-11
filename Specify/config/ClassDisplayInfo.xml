@@ -16,9 +16,9 @@
 	<class name="Taxon" linkfield="name" indexfield="fullName">
 	    <title field="fullName"/>
 		<skip>
-			<field>highestChildNodeNumber</field>
+<!-- 			<field>highestChildNodeNumber</field> -->
 			<field>definition</field>
-			<field>nodeNumber</field>
+<!-- 			<field>nodeNumber</field> -->
 			<field>unitInd1</field>
 			<field>unitName1</field>
 			<field>unitInd2</field>

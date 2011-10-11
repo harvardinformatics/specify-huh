@@ -44,8 +44,8 @@ public class TreeNode
     protected Class<?> dataObjClass;
     protected int      rank;
     protected int      parentRank;
-    protected int      nodeNumber;
-    protected int      highestChildNodeNumber;
+//    protected int      nodeNumber;
+//    protected int      highestChildNodeNumber;
     
     /** This field will hold a number representing the number of associated records for this node.
      *  For example, if this field represents a Taxon record, the <code>associatedRecordCount</code> would

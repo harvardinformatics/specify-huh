@@ -62,8 +62,8 @@ import edu.ku.brc.specify.treeutils.TreeOrderSiblingComparator;
         @Index (name="TaxonFullNameIDX", columnNames={"FullName"}),
         @Index (name="TaxonAuthorIDX", columnNames={"Author"}),
         @Index (name="EnvironmentalProtectionStatusIDX", columnNames={"EnvironmentalProtectionStatus"}),
-        @Index (name="TaxonNodeNumberIDX", columnNames={"NodeNumber"}),
-        @Index (name="TaxonHighChildIDX", columnNames={"HighestChildNodeNumber"})
+//        @Index (name="TaxonNodeNumberIDX", columnNames={"NodeNumber"}),
+//        @Index (name="TaxonHighChildIDX", columnNames={"HighestChildNodeNumber"})
     })
 public class Taxon extends DataModelObjBase implements AttachmentOwnerIFace<TaxonAttachment>, 
                                                        Serializable,
@@ -156,8 +156,8 @@ public class Taxon extends DataModelObjBase implements AttachmentOwnerIFace<Taxo
     protected Set<CommonNameTx>    commonNames;
 
     // non-user fields
-    protected Integer              nodeNumber;
-    protected Integer              highestChildNodeNumber;
+//    protected Integer              nodeNumber;
+//    protected Integer              highestChildNodeNumber;
     protected Integer              rankId;
     protected String               groupNumber;
     protected Byte                 visibility;
@@ -224,8 +224,8 @@ public class Taxon extends DataModelObjBase implements AttachmentOwnerIFace<Taxo
         isisNumber                    = null;
         ncbiTaxonNumber               = null;
         labelFormat                   = null;
-        nodeNumber                    = null;
-        highestChildNodeNumber        = null;
+//        nodeNumber                    = null;
+//        highestChildNodeNumber        = null;
         rankId                        = null;
         groupNumber                   = null;
         visibility                    = null;
@@ -640,27 +640,27 @@ public class Taxon extends DataModelObjBase implements AttachmentOwnerIFace<Taxo
         this.usfwsCode = usfwsCode;
     }
 
-    @Column(name = "NodeNumber")
-	public Integer getNodeNumber()
-	{
-		return this.nodeNumber;
-	}
-
-	public void setNodeNumber(Integer nodeNumber)
-	{
-		this.nodeNumber = nodeNumber;
-	}
-
-    @Column(name = "HighestChildNodeNumber")
-	public Integer getHighestChildNodeNumber()
-	{
-		return this.highestChildNodeNumber;
-	}
-
-	public void setHighestChildNodeNumber(Integer highestChildNodeNumber)
-	{
-		this.highestChildNodeNumber = highestChildNodeNumber;
-	}
+//    @Column(name = "NodeNumber")
+//	public Integer getNodeNumber()
+//	{
+//		return this.nodeNumber;
+//	}
+//
+//	public void setNodeNumber(Integer nodeNumber)
+//	{
+//		this.nodeNumber = nodeNumber;
+//	}
+//
+//    @Column(name = "HighestChildNodeNumber")
+//	public Integer getHighestChildNodeNumber()
+//	{
+//		return this.highestChildNodeNumber;
+//	}
+//
+//	public void setHighestChildNodeNumber(Integer highestChildNodeNumber)
+//	{
+//		this.highestChildNodeNumber = highestChildNodeNumber;
+//	}
 
     @Column(name="IsAccepted")
     public Boolean getIsAccepted()

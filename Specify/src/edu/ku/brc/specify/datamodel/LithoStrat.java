@@ -85,8 +85,8 @@ public class LithoStrat extends DataModelObjBase implements java.io.Serializable
     protected Boolean                       yesNo1;
     protected Boolean                       yesNo2;
     
-    protected Integer                       nodeNumber;
-    protected Integer                       highestChildNodeNumber;
+//    protected Integer                       nodeNumber;
+//    protected Integer                       highestChildNodeNumber;
     protected LithoStratTreeDef             definition;
     protected LithoStratTreeDefItem         definitionItem;
     protected LithoStrat                    parent;
@@ -133,8 +133,8 @@ public class LithoStrat extends DataModelObjBase implements java.io.Serializable
         yesNo1 = null;
         yesNo2 = null;
         
-        nodeNumber = null;
-        highestChildNodeNumber = null;
+//        nodeNumber = null;
+//        highestChildNodeNumber = null;
         definition = null;
         definitionItem = null;
         parent = null;
@@ -346,33 +346,33 @@ public class LithoStrat extends DataModelObjBase implements java.io.Serializable
         this.yesNo2 = yesNo2;
     }
 
-    /**
-     * 
-     */
-    @Column(name = "NodeNumber", unique = false, nullable = true, insertable = true, updatable = true)
-    public Integer getNodeNumber()
-    {
-        return this.nodeNumber;
-    }
-
-    public void setNodeNumber(Integer nodeNumber)
-    {
-        this.nodeNumber = nodeNumber;
-    }
-
-    /**
-     * 
-     */
-    @Column(name = "HighestChildNodeNumber", unique = false, nullable = true, insertable = true, updatable = true)
-    public Integer getHighestChildNodeNumber()
-    {
-        return this.highestChildNodeNumber;
-    }
-
-    public void setHighestChildNodeNumber(Integer highestChildNodeNumber)
-    {
-        this.highestChildNodeNumber = highestChildNodeNumber;
-    }
+//    /**
+//     * 
+//     */
+//    @Column(name = "NodeNumber", unique = false, nullable = true, insertable = true, updatable = true)
+//    public Integer getNodeNumber()
+//    {
+//        return this.nodeNumber;
+//    }
+//
+//    public void setNodeNumber(Integer nodeNumber)
+//    {
+//        this.nodeNumber = nodeNumber;
+//    }
+//
+//    /**
+//     * 
+//     */
+//    @Column(name = "HighestChildNodeNumber", unique = false, nullable = true, insertable = true, updatable = true)
+//    public Integer getHighestChildNodeNumber()
+//    {
+//        return this.highestChildNodeNumber;
+//    }
+//
+//    public void setHighestChildNodeNumber(Integer highestChildNodeNumber)
+//    {
+//        this.highestChildNodeNumber = highestChildNodeNumber;
+//    }
 
     /**
      * 

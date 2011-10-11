@@ -469,7 +469,7 @@ public class UploadTableTree extends UploadTable
         
         if (parent == null && !this.incrementalNodeNumberUpdates)
         {
-        	getTreeDef().setDoNodeNumberUpdates(false);
+//        	getTreeDef().setDoNodeNumberUpdates(false);
             getTreeDef().setUploadInProgress(true);
         }
     }
@@ -703,19 +703,19 @@ public class UploadTableTree extends UploadTable
         super.shutdown();
         if (parent == null  && !this.incrementalNodeNumberUpdates)
         {
-            getTreeDef().setDoNodeNumberUpdates(true);
+//            getTreeDef().setDoNodeNumberUpdates(true);
             getTreeDef().setUploadInProgress(false);
         }
     }
 
-    /* (non-Javadoc)
-     * @see edu.ku.brc.specify.tasks.subpane.wb.wbuploader.UploadTable#needToRefreshAfterWrite()
-     */
-    @Override
-    public boolean needToRefreshAfterWrite()
-    {
-        return incrementalNodeNumberUpdates;
-    }
+//    /* (non-Javadoc)
+//     * @see edu.ku.brc.specify.tasks.subpane.wb.wbuploader.UploadTable#needToRefreshAfterWrite()
+//     */
+//    @Override
+//    public boolean needToRefreshAfterWrite()
+//    {
+//        return incrementalNodeNumberUpdates;
+//    }
 
     /* (non-Javadoc)
      * @see edu.ku.brc.specify.tasks.subpane.wb.wbuploader.UploadTable#findValueForReqRelClass(edu.ku.brc.specify.tasks.subpane.wb.wbuploader.RelatedClassSetter)

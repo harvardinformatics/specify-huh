@@ -124,24 +124,24 @@ public interface Treeable<N extends Treeable<N,D,I>,
 	/**
 	 * @return the node number as determined by a depth-first traversal of the containing tree
 	 */
-	public Integer getNodeNumber();
-	
-	/**
-	 * Sets the depth-first traversal node number of this object
-	 * 
-	 * @param nodeNumber
-	 */
-	public void setNodeNumber(Integer nodeNumber);
-	
-	/**
-	 * @return the node number of the descdendant having the largest node number
-	 */
-	public Integer getHighestChildNodeNumber();
-	
-	/**
-	 * @param nodeNumber the node number of the descdendant having the largest node number
-	 */
-	public void setHighestChildNodeNumber(Integer nodeNumber);
+//	public Integer getNodeNumber();
+//	
+//	/**
+//	 * Sets the depth-first traversal node number of this object
+//	 * 
+//	 * @param nodeNumber
+//	 */
+//	public void setNodeNumber(Integer nodeNumber);
+//	
+//	/**
+//	 * @return the node number of the descdendant having the largest node number
+//	 */
+//	public Integer getHighestChildNodeNumber();
+//	
+//	/**
+//	 * @param nodeNumber the node number of the descdendant having the largest node number
+//	 */
+//	public void setHighestChildNodeNumber(Integer nodeNumber);
 		
 	/**
 	 * @return the remarks of this node

@@ -51,23 +51,23 @@ public class TreeDefStatusMgr
 		return treeDefStatus;
 	}
 	
-	/**
-	 * @param treeDef
-	 * @return isNodeNumbersAreUpToDate for treeDef
-	 */
-	public static boolean isNodeNumbersAreUpToDate(TreeDefIface<?,?,?> treeDef)
-	{
-		return getStatus(treeDef).isNodeNumbersAreUpToDate();
-	}
-	
-	/**
-	 * @param treeDef
-	 * @param nodeNumbersAreUpToDate
-	 */
-	public static void setNodeNumbersAreUpToDate(TreeDefIface<?,?,?> treeDef, boolean nodeNumbersAreUpToDate)
-	{
-		getStatus(treeDef).setNodeNumbersAreUpToDate(nodeNumbersAreUpToDate);
-	}
+//	/**
+//	 * @param treeDef
+//	 * @return isNodeNumbersAreUpToDate for treeDef
+//	 */
+//	public static boolean isNodeNumbersAreUpToDate(TreeDefIface<?,?,?> treeDef)
+//	{
+//		return getStatus(treeDef).isNodeNumbersAreUpToDate();
+//	}
+//	
+//	/**
+//	 * @param treeDef
+//	 * @param nodeNumbersAreUpToDate
+//	 */
+//	public static void setNodeNumbersAreUpToDate(TreeDefIface<?,?,?> treeDef, boolean nodeNumbersAreUpToDate)
+//	{
+//		getStatus(treeDef).setNodeNumbersAreUpToDate(nodeNumbersAreUpToDate);
+//	}
 	
 	/**
 	 * @param treeDef
@@ -87,23 +87,23 @@ public class TreeDefStatusMgr
 		getStatus(treeDef).setRenumberingNodes(renumberingNodes);
 	}
 
-	/**
-	 * @param treeDef
-	 * @return isDoNodeNumberUpdates for treeDef
-	 */
-	public static boolean isDoNodeNumberUpdates(TreeDefIface<?,?,?> treeDef)
-	{
-		return getStatus(treeDef).isDoNodeNumberUpdates();
-	}
-
-	/**
-	 * @param treeDef
-	 * @param doNodeNumberUpdates
-	 */
-	public static void setDoNodeNumberUpdates(TreeDefIface<?,?,?> treeDef, boolean doNodeNumberUpdates)
-	{
-		getStatus(treeDef).setDoNodeNumberUpdates(doNodeNumberUpdates);
-	}
+//	/**
+//	 * @param treeDef
+//	 * @return isDoNodeNumberUpdates for treeDef
+//	 */
+//	public static boolean isDoNodeNumberUpdates(TreeDefIface<?,?,?> treeDef)
+//	{
+//		return getStatus(treeDef).isDoNodeNumberUpdates();
+//	}
+//
+//	/**
+//	 * @param treeDef
+//	 * @param doNodeNumberUpdates
+//	 */
+//	public static void setDoNodeNumberUpdates(TreeDefIface<?,?,?> treeDef, boolean doNodeNumberUpdates)
+//	{
+//		getStatus(treeDef).setDoNodeNumberUpdates(doNodeNumberUpdates);
+//	}
 	
 	/**
 	 * @param treeDef
