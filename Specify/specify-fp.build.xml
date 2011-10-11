@@ -1,0 +1,94 @@
+<?xml version="1.0"?>
+<project name="Specify-FP Build File" basedir="." default="usage">
+
+    <property file="build.properties"/>
+
+    <property name="src.dir" value="src"/>
+    <property name="jaxb.src.dir" value="../jaxb-gen-src"/>
+    <property name="bin.dir" value="bin"/>
+    <property name="lib.dir" value="libs"/>
+    <property name="test.src.dir" value="test/src"/>
+    <property name="test.resource.dir" value="test/resource"/>
+    <property name="test.reports.dir" value="test/reports"/>
+    <property name="dist.dir" value="dist"/>
+	
+    <!-- Specify special library dirs -->
+    <property name="embedded.lib.dir" value="embedded_libs"/>
+    <property name="hibernate.lib.dir" value="hibernate_libs"/>
+    <property name="ireport.lib.dir" value="iReportLibs"/>
+    <property name="system.dep.lib.dir" value="system_dep_libs"/>
+    <property name="worldwind.lib.dir" value="wwlib"/>
+
+    <!-- Specify-FP special library dirs -->
+    <property name="fp.lib.dir" value="filteredpush_libs"/>
+    <property name="oai.lib.dir" value="oai_libs"/>
+
+    <!-- Specify config dir -->
+    <property name="config.dir" value="config"/>
+
+    <path id="build.classpath">
+        <pathelement path="${bin.dir}"/>
+        <fileset dir="${embedded.lib.dir}" includes="*.jar"/>
+        <fileset dir="${hibernate.lib.dir}" includes="*.jar"/>
+        <fileset dir="${ireport.lib.dir}" includes="*.jar"/>
+        <fileset dir="${lib.dir}" includes="*.jar"/>
+        <fileset dir="${sun.java.home}/jre/lib" includes="rt.jar"/>
+        <fileset dir="${system.dep.lib.dir}" includes="non-mac-application-adapter.jar"/>
+        <fileset dir="${worldwind.lib.dir}" includes="*.jar"/>
+
+        <fileset dir="${fp.lib.dir}" includes="*.jar"/>
+        <fileset dir="${oai.lib.dir}" includes="*.jar"/>
+    </path>
+
+    <path id="test.classpath">
+        <pathelement path="${bin.dir}"/>
+        <pathelement path="${test.resource.dir}"/>
+        <fileset dir="${hibernate.lib.dir}" includes="*.jar"/>
+        <fileset dir="${lib.dir}" includes="*.jar" excludes="junit.jar,ant.jar"/>
+        <fileset dir="${oai.lib.dir}" includes="*.jar"/>
+    </path>
+
+    <target name="usage" description="print target names">
+	<echo message="Welcome to the Filtered Push project!"/>
+	<echo message="-------------------------------------"/>
+	<echo message="  usage:    print ant target names"/>
+	<echo message="  build:    compile all java files"/>
+	<echo message="  test:     run all unit tests"/>
+	<echo message="  dist-oai: create war for oai-pmh service"/>
+	<echo message="  clean:    remove all generated files"/>
+    </target>
+
+    <target name="build" description="compiles java class files">
+        <mkdir dir="${bin.dir}"/>
+        <javac srcdir="${jaxb.src.dir}" destdir="${bin.dir}"/>
+        <javac srcdir="${src.dir}" excludes="edu/ku/brc/specify/toycode/**/*.java" destdir="${bin.dir}" classpathref="build.classpath"/>
+    </target>
+
+    <target name="build-tests" depends="build">
+        <javac srcdir="${test.src.dir}" destdir="${bin.dir}" classpathref="build.classpath"/>
+    </target>
+
+    <target name="test" description="runs unit tests" depends="build-tests">
+        <mkdir dir="${test.reports.dir}"/>
+        <junit>
+            <classpath refid="test.classpath"/>
+            <batchtest todir="${test.reports.dir}">
+                <formatter type="plain"/>
+                <fileset dir="${test.src.dir}" includes="**/Test*.java,**/*Test.java,**/*Tester.java"/>
+            </batchtest>
+        </junit>
+    </target>
+	
+    <target name="dist-oai" description="creates war file for oai-pmh provider">
+        <mkdir dir="${dist.dir}"/>
+    </target>
+
+    <target name="clean" description="removes generated build, test, and dist files">
+        <delete includeemptydirs="true" quiet="true">
+            <fileset dir="${bin.dir}" includes="**/*"/>
+        </delete>
+
+        <delete dir="${test.reports.dir}" quiet="true"/>
+        <delete dir="${dist.dir}" quiet="true"/>
+    </target>
+</project>
