@@ -152,6 +152,8 @@ public class TreeHelper
         return fullNameBuilder.toString().trim();
     }
     
+    // modified by HUH: this method was modified in form (not function) and
+    // method signature to enable compilation with non-Eclipse javac
     /**
      * Generates and sets the full name of the given node and all of its
      * descendants.
@@ -166,44 +168,68 @@ public class TreeHelper
      * @param <I> an implementation class of {@link TreeDefItemIface}
      * @param treeNode a tree node
      */
-    public static <T extends Treeable<T,D,I>,
-                   D extends TreeDefIface<T,D,I>,
-                   I extends TreeDefItemIface<T,D,I>>
-                         void fixFullnameForNodeAndDescendants(T treeNode)
+    public static void fixFullnameForNodeAndDescendants(Treeable treeNode)
     {
-        // generics made it difficult to make this generic (that sounds weird)
-        // so I settled for this type of implementation which has to be updated if we
-        // ever add another tree class, which is unlikely
-        
-        if (treeNode instanceof Geography)
-        {
-            fixFullnameForNodeAndDescendants((Geography)treeNode);
-            return;
-        }
-        
-        if (treeNode instanceof GeologicTimePeriod)
-        {
-            fixFullnameForNodeAndDescendants((GeologicTimePeriod)treeNode);
-            return;
-        }
-        
-        if (treeNode instanceof Storage)
-        {
-            fixFullnameForNodeAndDescendants((Storage)treeNode);
-            return;
-        }
-        
-        if (treeNode instanceof LithoStrat)
-        {
-            fixFullnameForNodeAndDescendants((LithoStrat)treeNode);
-            return;
-        }
-        
-        if (treeNode instanceof Taxon)
-        {
-            fixFullnameForNodeAndDescendants((Taxon)treeNode);
-            return;
-        }
+    	if (Geography.class.isInstance(treeNode))
+    	{
+    		Geography g = (Geography) treeNode;
+            String generated = generateFullname(g);
+            treeNode.setFullName(generated);
+            
+            for (Geography child : g.getChildren())
+            {
+            	fixFullnameForNodeAndDescendants(child);
+            }
+    	}
+    	else if (GeologicTimePeriod.class.isInstance(treeNode))
+    	{
+    		GeologicTimePeriod g = (GeologicTimePeriod) treeNode;
+            String generated = generateFullname(g);
+            treeNode.setFullName(generated);
+            
+            for (GeologicTimePeriod child : g.getChildren())
+            {
+            	fixFullnameForNodeAndDescendants(child);
+            }
+    	}
+    	else if (LithoStrat.class.isInstance(treeNode))
+    	{
+    		LithoStrat li = (LithoStrat) treeNode;
+            String generated = generateFullname(li);
+            treeNode.setFullName(generated);
+            
+            for (LithoStrat child : li.getChildren())
+            {
+            	fixFullnameForNodeAndDescendants(child);
+            }
+    	}
+    	else if (Storage.class.isInstance(treeNode))
+    	{
+    		Storage s = (Storage) treeNode;
+            String generated = generateFullname(s);
+            treeNode.setFullName(generated);
+            
+            for (Storage child : s.getChildren())
+            {
+            	fixFullnameForNodeAndDescendants(child);
+            }
+    	}
+    	else if (Taxon.class.isInstance(treeNode))
+    	{
+    		Taxon t = (Taxon) treeNode;
+            String generated = generateFullname(t);
+            treeNode.setFullName(generated);
+            
+            for (Taxon child : t.getChildren())
+            {
+            	fixFullnameForNodeAndDescendants(child);
+            }
+    	}
+    	else
+    	{
+    		throw new IllegalArgumentException("Unimplemented class: " + treeNode.getClass().getSimpleName());
+    	}
+        return;
     }
     
     /**
@@ -281,6 +307,8 @@ public class TreeHelper
         }
     }
     
+    // modified by HUH: this method's signature and "if" conditions were changed
+    // to enable compilation with non-Eclipse javac
     /**
      * Initializes the {@link Set}s or {@link List}s of related objects.
      * 
@@ -294,36 +322,34 @@ public class TreeHelper
      * @param <I> an implementation class of {@link TreeDefItemIface}
      * @param treeNode any tree node
      */
-    public static <T extends Treeable<T,D,I>,
-                   D extends TreeDefIface<T,D,I>,
-                   I extends TreeDefItemIface<T,D,I>>
-                        void initializeRelatedObjects(T treeNode)
+    @SuppressWarnings("unchecked")
+    public static void initializeRelatedObjects(Treeable treeNode)
     {
-        if (treeNode instanceof Geography)
+        if (Geography.class.isInstance(treeNode))
         {
             initializeRelatedObjects((Geography)treeNode);
             return;
         }
         
-        if (treeNode instanceof GeologicTimePeriod)
+        if (GeologicTimePeriod.class.isInstance(treeNode))
         {
             initializeRelatedObjects((GeologicTimePeriod)treeNode);
             return;
         }
         
-        if (treeNode instanceof Storage)
+        if (Storage.class.isInstance(treeNode))
         {
             initializeRelatedObjects((Storage)treeNode);
             return;
         }
         
-        if (treeNode instanceof Taxon)
+        if (Taxon.class.isInstance(treeNode))
         {
             initializeRelatedObjects((Taxon)treeNode);
             return;
         }
         
-        if (treeNode instanceof LithoStrat)
+        if (LithoStrat.class.isInstance(treeNode))
         {
             initializeRelatedObjects((LithoStrat)treeNode);
             return;
