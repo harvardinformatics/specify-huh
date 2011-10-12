@@ -402,7 +402,7 @@
 																</fo:table-cell>
 																<fo:table-cell padding-right="5mm">
 																	<fo:block>
-																		<xsl:value-of select="collectorName" /><xsl:if test="collectorNumber != '' and collectorNumber != null">,
+																		<xsl:value-of select="collectorName" /><xsl:if test="collectorNumber != ''">, 
 																		<xsl:value-of select="collectorNumber" />
 																		</xsl:if>
 																	</fo:block>
@@ -434,10 +434,7 @@
 												</fo:table-cell>
 												<fo:table-cell padding-right="5mm">
 													<fo:block>
-														<xsl:value-of select="collectorName" />
-														<xsl:if test="collectorName != ''">
-														,
-														<xsl:value-of select="collectorNumber" />
+														<xsl:value-of select="collectorName" /><xsl:if test="collectorNumber != ''">, <xsl:value-of select="collectorNumber" />
 														</xsl:if>
 													</fo:block>
 												</fo:table-cell>

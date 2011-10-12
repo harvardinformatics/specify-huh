@@ -154,7 +154,11 @@ public class ReportLoan {
 										item.collectorName = c.getAgent().getCollectorName();
 								}
 							}
-							item.collectorNumber = f.getCollectionObject().getCollectingEvent().getStationFieldNumber();
+							if (f.getCollectionObject().getCollectingEvent().getStationFieldNumber() != null && f.getCollectionObject().getCollectingEvent().getStationFieldNumber() != "") {
+								item.collectorNumber = f.getCollectionObject().getCollectingEvent().getStationFieldNumber();
+							} else {
+								item.collectorNumber = f.getCollectionObject().getFieldNumber();
+							}
 							
 							if (f.getCollectionObject().getCollectingEvent().getLocality() != null &&
 									f.getCollectionObject().getCollectingEvent().getLocality().getGeography() != null) {
