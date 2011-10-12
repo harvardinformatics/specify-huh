@@ -1934,7 +1934,7 @@ public class InteractionsTask extends BaseTask
             }
         }
         
-        if (mv != null && loan != null)
+        if (mv != null && loan != null && loan.getLoanNumber() != null)
         {
             LoanReturnDlg dlg = new LoanReturnDlg(loan);
             if (dlg.createUI())
