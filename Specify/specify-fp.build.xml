@@ -11,7 +11,7 @@
     <property name="test.resource.dir" value="test/resource"/>
     <property name="test.reports.dir" value="test/reports"/>
     <property name="dist.dir" value="dist"/>
-	
+    
     <!-- Specify special library dirs -->
     <property name="embedded.lib.dir" value="embedded_libs"/>
     <property name="hibernate.lib.dir" value="hibernate_libs"/>
@@ -24,8 +24,8 @@
     <property name="oai.lib.dir" value="oai_libs"/>
 
     <!-- Specify config dir -->
-    <property name="config.dir" value="config"/>
-
+    <property name="specify.config.dir" value="config"/>
+    
     <path id="build.classpath">
         <pathelement path="${bin.dir}"/>
         <fileset dir="${embedded.lib.dir}" includes="*.jar"/>
@@ -44,24 +44,29 @@
         <pathelement path="${bin.dir}"/>
         <pathelement path="${test.resource.dir}"/>
         <fileset dir="${hibernate.lib.dir}" includes="*.jar"/>
-        <fileset dir="${lib.dir}" includes="*.jar" excludes="junit.jar,ant.jar"/>
+        <fileset dir="${lib.dir}" includes="*.jar" excludes="ant.jar"/>
         <fileset dir="${oai.lib.dir}" includes="*.jar"/>
     </path>
 
     <target name="usage" description="print target names">
-	<echo message="Welcome to the Filtered Push project!"/>
-	<echo message="-------------------------------------"/>
-	<echo message="  usage:    print ant target names"/>
-	<echo message="  build:    compile all java files"/>
-	<echo message="  test:     run all unit tests"/>
-	<echo message="  dist-oai: create war for oai-pmh service"/>
-	<echo message="  clean:    remove all generated files"/>
+    <echo message="Welcome to the Filtered Push project!"/>
+    <echo message="-------------------------------------"/>
+    <echo message="  usage:    print ant target names"/>
+    <echo message="  build:    compile all java files"/>
+    <echo message="  test:     run all unit tests"/>
+    <echo message="  dist-oai: create war for oai-pmh service"/>
+    <echo message="  clean:    remove all generated files"/>
     </target>
 
     <target name="build" description="compiles java class files">
         <mkdir dir="${bin.dir}"/>
+        
         <javac srcdir="${jaxb.src.dir}" destdir="${bin.dir}"/>
         <javac srcdir="${src.dir}" excludes="edu/ku/brc/specify/toycode/**/*.java" destdir="${bin.dir}" classpathref="build.classpath"/>
+
+        <copy todir="${bin.dir}">
+            <fileset dir="${src.dir}" includes="*.properties,*.xml"/>
+        </copy>
     </target>
 
     <target name="build-tests" depends="build">
@@ -78,9 +83,33 @@
             </batchtest>
         </junit>
     </target>
-	
-    <target name="dist-oai" description="creates war file for oai-pmh provider">
+    
+    <target name="dist-specify" depends="build">
+        <mkdir dir="${dist.dir}/lib"/>
+        <copy todir="${bin.dir}">
+            <fileset dir="${src.dir}" includes="*.properties,*.xml"/>
+            <fileset dir="${specify.config.dir}"/>
+        </copy>
+        <jar destfile="${dist.dir}/lib/specify.jar"
+             basedir="${bin.dir}"
+             excludes="dwc/**/*.class,edu/harvard/huh/oai/**/*.class,edu/ku/brc/specify/toycode/**/*"/>
+        <copy todir="${dist.dir}/lib">
+            <fileset dir="${lib.dir}" includes="*.jar"/>
+        </copy>
+    </target>
+    
+    <target name="dist-dwc-simple" depends="build">
+        <mkdir dir="${dist.dir}/lib"/>
+        <jar destfile="${dist.dir}/lib/dwc-simple.jar" basedir="${bin.dir}" includes="dwc/**/*.class"/>
+    </target>
+    
+    <target name="dist-oai" description="creates war file for oai-pmh provider" depends="dist-specify,dist-dwc-simple">
         <mkdir dir="${dist.dir}"/>
+        <war>
+            <fileset/>
+            <lib dir="${dist.dir}/lib"/>
+            <classes dir="${bin.dir}" includes="edu/harvard/huh/oai/**/*.class"/>
+        </war>
     </target>
 
     <target name="clean" description="removes generated build, test, and dist files">
