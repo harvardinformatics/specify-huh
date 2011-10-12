@@ -36,7 +36,7 @@
 				<fileset dir="${jibx.dir}" includes="*.jar" />
 			</classpath>
 		</taskdef>
-		<bind verbose="true" binding="${binding.dir}/binding.xml">
+		<bind verbose="true" binding="${binding.dir}/report_binding.xml">
 			<classpathset dir="${bin.root}" />
 		</bind>
 	</target>

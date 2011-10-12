@@ -64,6 +64,7 @@ public class ReportLoan {
 	private String forUseBy;
 	private int numberOfPackages;
 	
+	private int fragmentCount;
 	private int generalCollectionCount;
 	private int nonSpecimenCount;
 	private int barcodedSpecimenCount;
@@ -71,6 +72,7 @@ public class ReportLoan {
 	private int totalCount;
 	private String description;
 	private String loanInventory;
+	
 	
 	private List<BarcodedSpecimen> barcodedSpecimens = new ArrayList<BarcodedSpecimen>();
 	private Set<UnbarcodedSpecimen> unbarcodedSpecimens = new HashSet<UnbarcodedSpecimen>();;
@@ -123,11 +125,13 @@ public class ReportLoan {
 					Boolean firstPrepBarcode = false;
 					for (Fragment f : lp.getPreparation().getFragments()) {
 						BarcodedItem item = new BarcodedItem();
-						if (f.getIdentifier() != null)
+						if (f.getIdentifier() != null) {
 							item.identifier = f.getIdentifier();
-						else if (lp.getPreparation().getIdentifier() != null && !firstPrepBarcode) {
+							barcodedSpecimenCount++; // count barcoded items only
+						} else if (lp.getPreparation().getIdentifier() != null && !firstPrepBarcode) {
 							item.identifier = lp.getPreparation().getIdentifier();
 							firstPrepBarcode = true;
+							barcodedSpecimenCount++; // count barcoded items only
 						}
 						if (f.getDeterminations() != null) {
 							for (Determination d : f.getDeterminations()) {
@@ -168,7 +172,7 @@ public class ReportLoan {
 					}
 					barcodedSpecimens.add(barcoded);
 					
-					barcodedSpecimenCount += (lp.getItemCount() != null ? lp.getItemCount() : 0)
+					fragmentCount += (lp.getItemCount() != null ? lp.getItemCount() : 0)
 					                       + (lp.getTypeCount() != null ? lp.getTypeCount() : 0);
 				}
 			}

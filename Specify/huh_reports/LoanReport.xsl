@@ -39,6 +39,7 @@
 
 	<xsl:variable name="description" select="reportLoan/description" />
 	<xsl:variable name="loanInventory" select="reportLoan/loanInventory" />
+	<xsl:variable name="fragmentCount" select="reportLoan/fragmentCount" />
 
 	<xsl:template match="/">
 		<fo:root xmlns:fo="http://www.w3.org/1999/XSL/Format">
@@ -278,7 +279,7 @@
 						</fo:table-cell>
 						<fo:table-cell>
 						<fo:block>
-						total</fo:block>
+						total <xsl:if test="$preparationCount != $fragmentCount"> on/in <xsl:value-of select="$preparationCount" /> sheets/packets</xsl:if></fo:block>
 						</fo:table-cell>
 						</fo:table-row>
 						</fo:table-body>
@@ -448,10 +449,10 @@
 						</fo:table-body>
 					</fo:table>
 					<fo:block space-before="12pt" space-after="12pt">
-						Total barcoded
-						items:
-						<xsl:value-of select="$barcodedSpecimens" />
-						<xsl:if test="$preparationCount != $total"> on/in <xsl:value-of select="$preparationCount" /> sheets/packets</xsl:if>
+						Total items:
+						<xsl:value-of select="$fragmentCount" />
+						<xsl:if test="$preparationCount != $fragmentCount"> (<xsl:value-of select="$barcodedSpecimens" /> barcoded) on/in <xsl:value-of select="$preparationCount" /> sheets/packets
+						<fo:block font-style="italic">Note: a rectanglular border surrounding multiple items indicates that they are on the same preparation.</fo:block></xsl:if>
 					</fo:block>
 					</xsl:if>
 					<xsl:if test="loanInventory != ''">
