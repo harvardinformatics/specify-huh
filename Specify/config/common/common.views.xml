@@ -1121,27 +1121,14 @@
             </altviews>
         </view>
         
-        <view name="HUHDetermination"
-              objtitle="Determination"
-              class="edu.ku.brc.specify.datamodel.Determination"
-              busrules="edu.ku.brc.specify.datamodel.busrules.DeterminationBusRules" 
-              isexternal="true"
-              >
-            <desc><![CDATA[Subform within the Collection Object form.]]></desc>
-            <altviews>
-                <altview name="HUHDetermination View"       viewdef="HUHDetermination" mode="view"/>
-                <altview name="HUHDetermination Edit"       viewdef="HUHDetermination" mode="edit" default="true"/>
-                <altview name="HUHDetermination Table View" viewdef="HUHDetermination Table" mode="view"/>
-                <altview name="HUHDetermination Table Edit" viewdef="HUHDetermination Table" mode="edit"/>
-            </altviews>
-        </view>
-        
         <view name="HUHDeterminationCitation"
             objtitle="Determination Citation"
             class="edu.ku.brc.specify.datamodel.DeterminationCitation"
             >
             <desc><![CDATA[Locality form.]]></desc>
             <altviews>
+                <altview name="HUHDeterminationCitation Table View" viewdef="HUHDeterminationCitation" mode="view"/>
+                <altview name="HUHDeterminationCitation Table Edit" viewdef="HUHDeterminationCitation" mode="edit"/>
                 <altview name="HUHDeterminationCitation View" viewdef="HUHDeterminationCitation" mode="view"/>
                 <altview name="HUHDeterminationCitation Edit" viewdef="HUHDeterminationCitation" mode="edit" default="true"/>
             </altviews>
@@ -1158,21 +1145,9 @@
             </altviews>
         </view>
         
-        <view name="HUHExchangeOutPrep"
-            class="edu.ku.brc.specify.datamodel.ExchangeOutPrep"
-            >
-            <desc><![CDATA[Exchange Out display form]]></desc>
-            <altviews>
-                <altview name="HUHExchangeOutPrep Table View" viewdef="HUHExchangeOutPrep Table" mode="view"/>
-                <altview name="HUHExchangeOutPrep Table Edit" viewdef="ExchangeOutPrep Table" mode="edit"/>
-                <altview name="HUHExchangeOutPrep View" viewdef="ExchangeOutPrep" mode="view" default="true"/>
-                <altview name="HUHExchangeOutPrep Edit" viewdef="ExchangeOutPrep" mode="edit"/>
-            </altviews>
-        </view>
-        
         <view name="HUHExchangeOutItem"
             objtitle="Exchange Out Batch"
-            class="edu.ku.brc.specify.datamodel.ExchangeOutPreparation"
+            class="edu.ku.brc.specify.datamodel.ExchangeOutPrep"
             >
             <desc><![CDATA[Exchange out display form]]></desc>
             <altviews>
@@ -1183,7 +1158,7 @@
         
         <view name="HUHExchangeOutItems"
             objtitle="Exchange Out Items"
-            class="edu.ku.brc.specify.datamodel.ExchangeOutPreparation"
+            class="edu.ku.brc.specify.datamodel.ExchangeOutPrep"
             >
             <desc><![CDATA[Exchange out display form]]></desc>
             <altviews>
@@ -6675,8 +6650,8 @@
                 	<cell type="field" id="etAl" name="etAl" uitype="text"/>
                 </row>
                 <row>
-                	<cell type="label" labelfor="datesType"/>
-                	<cell type="field" id="datesType" name="agent.dateType" uitype="combobox" picklist="HUH Agent Dates Type"/>
+                	<cell type="label" labelfor="dateType"/>
+                	<cell type="field" id="dateType" name="agent.dateType" uitype="combobox" picklist="HUH Agent Dates Type"/>
                 </row>
                 <row>
                 	<cell type="label" labelfor="startDate"/>
@@ -6749,70 +6724,6 @@
             		<cell type="field" id="description" name="description" uitype="textareabrief" rows="2" colspan="5"/>
             	</row>
             </rows>
-        </viewdef>
-
-        <viewdef
-            name="HUHDetermination"
-            type="form"
-            class="edu.ku.brc.specify.datamodel.Determination"
-            gettable="edu.ku.brc.af.ui.forms.DataGetterForObj"
-            settable="edu.ku.brc.af.ui.forms.DataSetterForObj">
-            
-            <desc><![CDATA[Determination subform for Collection Object form.]]></desc>
-            <enableRules/>
-
-            <columnDef>100px,2px,125px,5px,70px,2px,170px,5px,90px,2px,192px,2px,p,2px,p,p:g</columnDef>
-            <!-- <rowDef>p,2dlu,p,2dlu,p,2dlu,p:g,2dlu</rowDef>  -->
-            <rowDef auto="true" cell="p" sep="2px"/>
-            <rows>
-                <row>
-                    <cell type="label" labelfor="13"/>
-                    <cell type="field" id="13" name="preferredTaxon" uitype="text" readonly="true" colspan = "5"/>
-                    <cell type="label" label=" "/>
-                    <cell type="field" id="3" name="isCurrent" uitype="checkbox"/>
-                </row>
-                <row>
-                    <cell type="label" labelfor="1"/>
-                    <cell type="field" id="1" name="taxon" uitype="querycbx" initialize="name=HUHTaxon" colspan="5"/>
-                    <cell type="label" labelfor="8"/>
-                    <cell type="field" id="8" name="qualifier" uitype="text"/>
-                    <cell type="label" labelfor="9"/>
-                    <cell type="field" id="9" name="addendum" uitype="text"/>            
-                    
-                </row>
-                <row>
-                    <cell type="label" labelfor="10"/>
-                    <cell type="field" id="10" name="alternateName" uitype="text" colspan = "5"/>              
-                    <cell type="label" labelfor="11"/>
-                    <cell type="field" id="11" name="nameUsage" uitype="combobox" picklist="NameUsages"/>
-                    
-                </row>
-                <row>
-                    <cell type="label" labelfor="6"/>
-                    <cell type="field" id="6" name="typeStatusName" uitype="combobox" picklist="HUH Type Status"/>
-                    
-                    <cell type="label" labelfor="5"/>
-                    <cell type="field" id="5" name="determiner" uitype="querycbx" initialize="name=HUHCollectorAgentByAgentVar;title=Agent;displaydlg=HUHBotanist;searchdlg=HUHBotanistSearch"/>
-                    
-                    <cell type="label" labelfor="7"/>
-                    <cell type="field" id="7" uitype="plugin" name="this" initialize="name=PartialDateUI;df=determinedDate;tp=determinedDatePrecision" uifieldformatter="Date"/>
-                </row>
-                <row>
-                    <cell type="label" labelfor="12"/>
-                    <cell type="field" id="12" name="remarks" uitype="textareabrief" rows="2" colspan="12" cols="50"/>
-                </row>
-            </rows>
-        </viewdef>
-
-        <viewdef
-            name="HUHDetermination Table"
-            type="formtable"
-            class="edu.ku.brc.specify.datamodel.Determination"
-            gettable="edu.ku.brc.af.ui.forms.DataGetterForObj"
-            settable="edu.ku.brc.af.ui.forms.DataSetterForObj">
-            
-            <desc><![CDATA[Determination subform table for Collection Object form.]]></desc>
-            <definition>HUHDetermination</definition>
         </viewdef>
 
         <viewdef

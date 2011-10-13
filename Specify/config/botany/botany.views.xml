@@ -83,8 +83,8 @@
             >
             <desc><![CDATA[The Collection Object form.]]></desc>
             <altviews>
-                <altview name="HUHCollectionObject Object View" viewdef="HUHCollectionObject View" mode="view"/>
-                <altview name="HUHCollectionObject Object Edit" viewdef="HUHCollectionObject Edit" mode="edit" default="true"/>
+                <altview name="HUHCollectionObject View" viewdef="HUHCollectionObject" mode="view"/>
+                <altview name="HUHCollectionObject Edit" viewdef="HUHCollectionObject" mode="edit" default="true"/>
             </altviews>
         </view>
         
@@ -641,7 +641,7 @@
         </viewdef>
         
         <viewdef
-            name="DeterminationCitation"
+            name="HUHDeterminationCitation"
             type="form"
             class="edu.ku.brc.specify.datamodel.DeterminationCitation"
             gettable="edu.ku.brc.af.ui.forms.DataGetterForObj"
@@ -677,73 +677,14 @@
         </viewdef>
         
         <viewdef
-            name="HUHDeterminationCitation Table"
-            type="formtable"
-            class="edu.ku.brc.specify.datamodel.DeterminationCitation"
-            gettable="edu.ku.brc.af.ui.forms.DataGetterForObj"
-            settable="edu.ku.brc.af.ui.forms.DataSetterForObj">
-            
-            <desc><![CDATA[Determination Citation subform table for Collection Object form.]]></desc>
-            <definition>HUHDeterminationCitation</definition>
-        </viewdef>
-
-        <viewdef
-            name="HUHDeterminations"
-            type="form"
-            class="edu.ku.brc.specify.datamodel.Determination"
-            gettable="edu.ku.brc.af.ui.forms.DataGetterForObj"
-            settable="edu.ku.brc.af.ui.forms.DataSetterForObj">
-            
-            <desc><![CDATA[Determination subform table.]]></desc>
-            <enableRules/>
-
-            <columnDef>p,5dlu,p:g,5dlu,p</columnDef>
-            <rowDef auto="true" cell="p" sep="2px"/>
-            <rows>
-                <row>
-                    <cell type="label" labelfor="date"/>
-                    <cell type="field" id="date" uitype="plugin" name="this" initialize="name=PartialDateUI;df=determinedDate;tp=determinedDatePrecision" uifieldformatter="Date"/>
-                </row>
-                <row>
-                    <cell type="label" labelfor="typeStatusName"/>
-                    <cell type="field" id="typeStatusName" name="typeStatusName" uitype="combobox" picklist="HUH Type Status"/>
-                </row>
-                <row>
-                    <cell type="label" labelfor="taxon"/>
-                    <cell type="field" id="taxon" name="taxon" uitype="querycbx" initialize="name=HUHTaxon"/>
-                </row>
-                <row>
-                    <cell type="label" labelfor="isCurrent"/>
-                    <cell type="field" id="isCurrent" name="isCurrent" uitype="checkbox"/>
-                </row>
-                <row>
-                    <cell type="label" labelfor="isLabel"/>
-                    <cell type="field" id="isLabel" name="yesNo1" uitype="checkbox"/>
-                </row>
-                <row>
-                    <cell type="label" labelfor="isFiledUnder"/>
-                    <cell type="field" id="isFiledUnder" name="yesNo3" uitype="checkbox"/>
-                </row>
-                <row>
-                    <cell type="label" labelfor="determiner"/>
-                    <cell type="field" id="determiner" name="determiner" uitype="querycbx" initialize="name=HUHCollectorAgentByAgentVar;title=Determiner;displaydlg=HUHBotanist;searchdlg=HUHBotanistSearch"/>
-                </row>
-                <row>
-                    <cell type="label" labelfor="text1"/>
-                    <cell type="field" id="text1" uitype="text"/>
-                </row>
-            </rows>
-        </viewdef>
-        
-        <viewdef
-            name="HUHDeterminations Table"
+            name="HUHDetermination Table"
             type="formtable"
             class="edu.ku.brc.specify.datamodel.Determination"
             gettable="edu.ku.brc.af.ui.forms.DataGetterForObj"
             settable="edu.ku.brc.af.ui.forms.DataSetterForObj">
             
             <desc><![CDATA[Determination subform table.]]></desc>
-            <definition>HUHDeterminations</definition>
+            <definition>HUHDetermination</definition>
         </viewdef>
 
         <viewdef
