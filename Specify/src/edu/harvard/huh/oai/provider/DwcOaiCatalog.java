@@ -7,6 +7,8 @@ import ORG.oclc.oai.server.crosswalk.Crosswalk;
 import ORG.oclc.oai.server.crosswalk.CrosswalkItem;
 import ORG.oclc.oai.server.crosswalk.Crosswalks;
 import ORG.oclc.oai.server.verb.CannotDisseminateFormatException;
+import ORG.oclc.oai.server.verb.IdDoesNotExistException;
+import ORG.oclc.oai.server.verb.OAIInternalServerError;
 import au.org.tern.ecoinformatics.oai.provider.BasicOaiCatalog;
 
 public class DwcOaiCatalog extends BasicOaiCatalog {
@@ -42,5 +44,18 @@ public class DwcOaiCatalog extends BasicOaiCatalog {
 			crosswalks = new Crosswalks(crosswalkMap);
 		}
 		return crosswalks;
+	}
+	
+	/**
+	 * Return the appropriate record format for the given OAI identifier.
+	 */
+	@Override
+	public String getRecord(String identifier, String metadataPrefix) throws IdDoesNotExistException, CannotDisseminateFormatException, OAIInternalServerError {
+		try {
+			return super.getRecord(identifier, metadataPrefix);
+		}
+		catch (NullPointerException e) {
+			throw new IdDoesNotExistException(identifier); // TODO: move this check to the parent class
+		}
 	}
 }
