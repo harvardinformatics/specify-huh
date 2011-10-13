@@ -30,4 +30,7 @@ public class CollectionObjectService implements NativeObjectService {
 		return objects; 
 	}
 
+	public void setCollectionObjectDao(CollectionObjectDao collectionObjectDao) {
+		this.collectionObjectDao = collectionObjectDao;
+	}
 }
