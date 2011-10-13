@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" 
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:tx="http://www.springframework.org/schema/tx"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+                           http://www.springframework.org/schema/beans/spring-beans.xsd
+                           http://www.springframework.org/schema/context
+                           http://www.springframework.org/schema/context/spring-context.xsd
+                           http://www.springframework.org/schema/tx
+                           http://www.springframework.org/schema/tx/spring-tx.xsd">
+
+	<!-- This application basically has two bean containers, this Spring context and the OAI Cat context, which loads the 
+         OAI Cat Catalog and RecordFactory implementations. This bean is a mechanism for lookup of Spring beans from the 
+         OAI cat runtime context. -->
+	<bean id="staticApplicationContextHelper" class="au.org.tern.ecoinformatics.oai.provider.util.StaticApplicationContextHelper">
+	</bean>
+
+	
+    <!-- Note: this is NOT an OAI Cat Crosswalk, but a Crosswalk specific to this application. Implementations specify a way of 
+         producing EML from the Native object applicable to the application implementation. -->	
+	<bean id="crosswalk" class="au.org.tern.ecoinformatics.oai.provider.sample.crosswalk.SampleCrosswalk">
+		<property name="identifierPrefix" value="sample." />
+	</bean>
+
+	<bean id="nativeObjectService" class="edu.harvard.huh.oai.provider.dwc.service.impl.CollectionObjectService">
+		<property name="collectionObjectDao" ref="collectionObjectDao" />
+	</bean>	
+	
+	<bean id="oaiCatalog" class="edu.harvard.huh.oai.provider.DwcOaiCatalog">
+		<property name="recordFactory">
+			<bean class="edu.harvard.huh.oai.provider.DwcOaiRecordFactory" />
+		</property>
+		<property name="oaiPmhService">
+			<bean class="edu.harvard.huh.specify.oai.SpecifyOaiPmhService"/>
+		</property>
+	</bean>
+
+</beans>

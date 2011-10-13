@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://java.sun.com/xml/ns/javaee" xmlns:web="http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd" xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd" id="WebApp_ID" version="3.0">
+
+  <display-name>DSpace OAI-PMH 2.0</display-name>
+
+  <context-param>
+    <param-name>contextConfigLocation</param-name>
+    <param-value>classpath:applicationContext*.xml</param-value>
+  </context-param>
+
+  <context-param>
+    <param-name>properties</param-name>
+    <param-value>oaicat.properties</param-value>
+  </context-param>
+
+  <listener>
+    <listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
+  </listener>
+	
+  <servlet>
+    <servlet-name>specify-oai</servlet-name>
+    <servlet-class>au.org.tern.ecoinformatics.oai.provider.web.OaiHandler</servlet-class>
+  </servlet>
+
+  <servlet-mapping>
+    <servlet-name>specify-oai</servlet-name>
+    <url-pattern>/oai-provider</url-pattern>
+  </servlet-mapping>
+
+</web-app>
