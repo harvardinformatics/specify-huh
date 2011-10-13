@@ -35,7 +35,7 @@ public class SpecifyCollectionObjectDaoImpl implements CollectionObjectDao {
 	@Override
 	public CollectionObject get(Long id) {
 		
-		CollectionObject collObj = (CollectionObject) getSession().get(CollectionObject.class, id);		
+		CollectionObject collObj = (CollectionObject) getSession().get(CollectionObject.class, id.intValue());		
 		getSession().close();
 
 		return collObj;
