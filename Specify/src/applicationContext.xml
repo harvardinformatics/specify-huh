@@ -18,22 +18,27 @@
 
 	
     <!-- Note: this is NOT an OAI Cat Crosswalk, but a Crosswalk specific to this application. Implementations specify a way of 
-         producing EML from the Native object applicable to the application implementation. -->	
-	<bean id="crosswalk" class="au.org.tern.ecoinformatics.oai.provider.sample.crosswalk.SampleCrosswalk">
-		<property name="identifierPrefix" value="sample." />
+         producing DWC from the Native object applicable to the application implementation. -->	
+	<bean id="crosswalk" class="edu.harvard.huh.oai.provider.dwc.crosswalk.DwcCrosswalk">
+		<property name="identifierPrefix" value="dwc." />
 	</bean>
+	
+	<bean id="identifierService" class="edu.harvard.huh.oai.provider.dwc.service.impl.SpecifyIdentifierService"/>
 
 	<bean id="nativeObjectService" class="edu.harvard.huh.oai.provider.dwc.service.impl.CollectionObjectService">
 		<property name="collectionObjectDao" ref="collectionObjectDao" />
-	</bean>	
+	</bean>
+		
+	<bean id="oaiPmhService" class="edu.harvard.huh.oai.provider.dwc.service.impl.DwcOaiPmhService">
+		<property name="identifierService" ref="identifierService"/>
+		<property name="nativeObjectService" ref="nativeObjectService"/>
+		<property name="recordFactory" ref="recordFactory"/>
+	</bean>
+
+	<bean id="recordFactory" class="edu.harvard.huh.oai.provider.DwcOaiRecordFactory" />
 	
 	<bean id="oaiCatalog" class="edu.harvard.huh.oai.provider.DwcOaiCatalog">
-		<property name="recordFactory">
-			<bean class="edu.harvard.huh.oai.provider.DwcOaiRecordFactory" />
-		</property>
-		<property name="oaiPmhService">
-			<bean class="edu.harvard.huh.specify.oai.SpecifyOaiPmhService"/>
-		</property>
+		<property name="oaiPmhService" ref="oaiPmhService"/>
 	</bean>
 
 </beans>
