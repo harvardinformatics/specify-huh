@@ -43,7 +43,7 @@
     <path id="test.classpath">
         <pathelement path="${bin.dir}"/>
         <pathelement path="${test.resource.dir}"/>
-        <fileset dir="${hibernate.lib.dir}" includes="*.jar"/>
+        <fileset dir="${hibernate.lib.dir}" includes="asm.jar,c3p0.jar"/>
         <fileset dir="${lib.dir}" includes="*.jar" excludes="ant.jar"/>
         <fileset dir="${oai.lib.dir}" includes="*.jar"/>
     </path>
@@ -85,30 +85,43 @@
     </target>
     
     <target name="dist-specify" depends="build">
+        <mkdir dir="${dist.dir}"/>
         <mkdir dir="${dist.dir}/lib"/>
         <copy todir="${bin.dir}">
             <fileset dir="${src.dir}" includes="*.properties,*.xml"/>
             <fileset dir="${specify.config.dir}"/>
         </copy>
-        <jar destfile="${dist.dir}/lib/specify.jar"
+        <jar destfile="${dist.dir}/specify.jar"
              basedir="${bin.dir}"
              excludes="dwc/**/*.class,edu/harvard/huh/oai/**/*.class,edu/ku/brc/specify/toycode/**/*"/>
         <copy todir="${dist.dir}/lib">
-            <fileset dir="${lib.dir}" includes="*.jar"/>
+            <fileset dir="${hibernate.lib.dir}" includes="asm.jar,c3p0.jar"/>
+        	<fileset dir="${lib.dir}" includes="commons-validator.jar"/>
         </copy>
     </target>
     
     <target name="dist-dwc-simple" depends="build">
-        <mkdir dir="${dist.dir}/lib"/>
-        <jar destfile="${dist.dir}/lib/dwc-simple.jar" basedir="${bin.dir}" includes="dwc/**/*.class"/>
+        <mkdir dir="${dist.dir}"/>
+        <jar destfile="${dist.dir}/dwc-simple.jar" basedir="${bin.dir}" includes="dwc/**/*.class"/>
     </target>
     
-    <target name="dist-oai" description="creates war file for oai-pmh provider" depends="dist-specify,dist-dwc-simple">
+    <target name="dist-tern-oai-provider">
         <mkdir dir="${dist.dir}"/>
-        <war>
-            <fileset/>
+        <mkdir dir="${dist.dir}/lib"/>
+        <copy todir="${dist.dir}" file="${oai.lib.dir}/tern-oai-provider-0.0.2-SNAPSHOT-3.jar"/>
+    	<copy todir="${dist.dir}/lib">
+            <fileset dir="${oai.lib.dir}" includes="*.jar" excludes="servlet-*.jar,tern-*.jar"/>
+    	</copy>
+    </target>
+
+	<target name="dist-oai" description="creates war file for oai-pmh provider" depends="dist-dwc-simple,dist-specify,dist-tern-oai-provider">
+        <mkdir dir="${dist.dir}"/>
+		<copy todir="${dist.dir}/lib">
+			<fileset dir="${dist.dir}" includes="*.jar"/>
+		</copy>
+        <war destfile="${dist.dir}/specify-oai.war" webxml="${src.dir}/web.xml">
             <lib dir="${dist.dir}/lib"/>
-            <classes dir="${bin.dir}" includes="edu/harvard/huh/oai/**/*.class"/>
+            <classes dir="${bin.dir}" includes="edu/harvard/huh/oai/**/*.class,dao.properties,log4j.properties,oaicat.properties,applicationContext*.xml"/>
         </war>
     </target>
 
