@@ -19,9 +19,7 @@
 	
     <!-- Note: this is NOT an OAI Cat Crosswalk, but a Crosswalk specific to this application. Implementations specify a way of 
          producing DWC from the Native object applicable to the application implementation. -->	
-	<bean id="crosswalk" class="edu.harvard.huh.oai.provider.dwc.crosswalk.DwcCrosswalk">
-		<property name="identifierPrefix" value="dwc." />
-	</bean>
+	<bean id="crosswalk" class="edu.harvard.huh.oai.provider.dwc.crosswalk.DwcCrosswalk"/>
 	
 	<bean id="identifierService" class="edu.harvard.huh.oai.provider.dwc.service.impl.SpecifyIdentifierService"/>
 
@@ -30,7 +28,6 @@
 	</bean>
 		
 	<bean id="oaiPmhService" class="edu.harvard.huh.oai.provider.dwc.service.impl.DwcOaiPmhService">
-		<property name="identifierService" ref="identifierService"/>
 		<property name="nativeObjectService" ref="nativeObjectService"/>
 		<property name="recordFactory" ref="recordFactory"/>
 	</bean>
