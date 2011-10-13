@@ -26,11 +26,9 @@ import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
-import java.util.Vector;
 
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JCheckBox;
@@ -70,8 +68,6 @@ import edu.ku.brc.specify.datamodel.Treeable;
 import edu.ku.brc.specify.dbsupport.TaskSemaphoreMgr;
 import edu.ku.brc.specify.dbsupport.TaskSemaphoreMgrCallerIFace;
 import edu.ku.brc.specify.dbsupport.TaskSemaphoreMgr.USER_ACTION;
-import edu.ku.brc.specify.treeutils.TreeDataService;
-import edu.ku.brc.specify.treeutils.TreeDataServiceFactory;
 import edu.ku.brc.specify.treeutils.TreeHelper;
 import edu.ku.brc.ui.GetSetValueIFace;
 import edu.ku.brc.ui.UIRegistry;
@@ -209,126 +205,40 @@ public abstract class BaseTreeBusRules<T extends Treeable<T,D,I>,
 	}
     
 	/**
-	 * Returns the IDs of all of a node's descendants.
+	 * The original method checked there were no references to all of the
+	 * descendants of a node, which was slow, especially when clicking on Life.
+	 * The new method only allows deletion when: 1) A node has no children 2)
+	 * There are no references to the node. Paul says that this is okay because
+	 * the HUH tree is relatively stable and there will not be any major
+	 * changes.
 	 * 
 	 * @author lchan
-	 * @param session
+	 * 
 	 * @param node
 	 * @return
 	 */
-	private List<Integer> getDescendantIds(DataProviderSessionIFace session,
-			String className, Integer parentId) {
-		QueryIFace query = session.createQuery("SELECT e.id from " + className
-				+ " e where e.parent.id = :parentId", false);
-		query.setParameter("parentId", parentId);
-		List<Integer> childrenIds = (List<Integer>) query.list();
-
-		// If we add descendant IDs to childrenIds, we'll get a
-		// ConcurrentModificationException
-		ArrayList<Integer> allGrandChildrenIds = new ArrayList<Integer>();
-
-		for (Integer childId : childrenIds) {
-			List<Integer> grandChildrenIds = getDescendantIds(session,
-					className, childId);
-			allGrandChildrenIds.addAll(grandChildrenIds);
-		}
-
-		childrenIds.addAll(allGrandChildrenIds);
-
-		return childrenIds;
-	}
-
-	/**
-     * @param node
-     * @return
-     */
     @SuppressWarnings("unchecked")
     public boolean okToDeleteNode(T node)
     {
-//        if (node.getDefinition() != null && !node.getDefinition().getNodeNumbersAreUpToDate() && !node.getDefinition().isUploadInProgress())
-//        {
-//            //Scary. If nodes are not up to date, tree rules may not work.
-//            //The application should prevent edits to items/trees whose tree numbers are not up to date except while uploading
-//            //workbenches.
-//            throw new RuntimeException(node.getDefinition().getName() + " has out of date node numbers.");
-//        }
-        
-        if (node.getDefinition() != null && node.getDefinition().isUploadInProgress())
-        {
-            //don't think this will ever get called during an upload/upload-undo, but just in case.
-            return true;
-        }
-        
-        Integer id = node.getTreeId();
-        if (id == null)
-        {
-            return true;
-        }
-        String[] relationships = getRelatedTableAndColumnNames();
+		DataProviderSessionIFace session = DataProviderFactory.getInstance()
+				.createSession();
 
-        // if the given node can't be deleted, return false
-        if (!super.okToDelete(relationships, node.getTreeId()))
-        {
-            return false;
-        }
+		QueryIFace query = session.createQuery("select count(e) from "
+				+ node.getClass().getName() + " e where e.parent = :node",
+				false);
+		query.setParameter("node", node);
+		Integer childrenCount = (Integer) query.uniqueResult();
 
-        // now check the children
+		boolean deletable = false;
+		if (childrenCount == 0) {
+			String[] relationships = getRelatedTableAndColumnNames();
 
-        // get a list of all descendent IDs
-        DataProviderSessionIFace session = null;
-        List<Integer> childIDs = null;
-        try
-        {
-            session = DataProviderFactory.getInstance().createSession();
-//            String queryStr = "SELECT n.id FROM " + node.getClass().getName() + " n WHERE n.nodeNumber <= :highChild AND n.nodeNumber > :nodeNum ORDER BY n.rankId DESC";
-//            QueryIFace query = session.createQuery(queryStr, false);
-//            query.setParameter("highChild", node.getHighestChildNodeNumber());
-//            query.setParameter("nodeNum", node.getNodeNumber());
-//            childIDs = (List<Integer>)query.list();
-        	
-            childIDs = getDescendantIds(session, node.getClass().getCanonicalName(), node.getTreeId());
-        } catch (Exception ex)
-        {
-            edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(BaseTreeBusRules.class, ex);
-            // Error Dialog
-            ex.printStackTrace();
-            
-        } finally
-        {
-            if (session != null)
-            {
-                session.close();
-            }
-        }
+			deletable = super.okToDelete(relationships, node.getTreeId());
+		}
 
-        // if there are no descendent nodes, return true
-        if (childIDs != null && childIDs.size() == 0)
-        {
-            return true;
-        }
+		session.close();
 
-        // break the descendent checks up into chunks or queries
-        
-        // This is an arbitrary number.  Trial and error will determine a good value.  This determines
-        // the number of IDs that wind up in the "IN" clause of the query run inside okToDelete().
-        int chunkSize = 250;
-        int lastRecordChecked = -1;
-
-        boolean childrenDeletable = true;
-        while (lastRecordChecked  + 1 < childIDs.size() && childrenDeletable)
-        {
-            int startOfChunk = lastRecordChecked + 1;
-            int endOfChunk = Math.min(lastRecordChecked+1+chunkSize, childIDs.size());
-
-            // grabs selected subset, exclusive of the last index
-            List<Integer> chunk = childIDs.subList(startOfChunk, endOfChunk);
-            
-            Integer[] idChunk = chunk.toArray(new Integer[1]);
-            childrenDeletable = super.okToDelete(relationships, idChunk);
-            
-            lastRecordChecked = endOfChunk - 1;
-        }
-        return childrenDeletable;
+		return deletable;
     }
     
     
