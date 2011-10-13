@@ -36,10 +36,10 @@ public class DwcCrosswalk implements Crosswalk {
 	public DwcCrosswalk() {
 		mapper = new SpecifyMapper();
 		
-		mapper.setYearMonthDayTimeFormat(new SimpleDateFormat("YYYY-MM-ddTHH:mm:ssZ"));
-		mapper.setYearMonthDayFormat(new SimpleDateFormat("YYYY-MM-dd"));
-		mapper.setYearMonthFormat(new SimpleDateFormat("YYYY-MM"));
-		mapper.setYearFormat(new SimpleDateFormat("YYYY"));
+		mapper.setYearMonthDayTimeFormat(new SimpleDateFormat("yyyy-MM-dd HH:mm:ssZ"));
+		mapper.setYearMonthDayFormat(new SimpleDateFormat("yyyy-MM-dd"));
+		mapper.setYearMonthFormat(new SimpleDateFormat("yyyy-MM"));
+		mapper.setYearFormat(new SimpleDateFormat("yyyy"));
 		mapper.setTimeFormat(new SimpleDateFormat("HH:mm:ss"));
 		
 		try {

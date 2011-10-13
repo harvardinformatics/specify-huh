@@ -5,7 +5,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-
+ 
 import ORG.oclc.oai.server.catalog.RecordFactory;
 import ORG.oclc.oai.server.verb.CannotDisseminateFormatException;
 import au.org.tern.ecoinformatics.oai.provider.model.IdentifierRecord;
@@ -25,7 +25,7 @@ public class DwcOaiPmhService implements OaiPmhService {
 	private NativeObjectService nativeObjectService;
 	
 	public DwcOaiPmhService() {
-		this.dateFormatString = "YYYY-MM-dd";
+		this.dateFormatString = "yyyy-MM-dd";
 		this.dateFormat = new SimpleDateFormat(dateFormatString);
 		this.metadataFormats = new ArrayList<String>();
 		this.sets = new ArrayList<String>();
@@ -57,7 +57,7 @@ public class DwcOaiPmhService implements OaiPmhService {
 
 		Long id = null;
 		try {
-			Long.valueOf(internalIdentifier);
+			id = Long.valueOf(internalIdentifier);
 		}
 		catch (NumberFormatException e) {
 			throw new IllegalArgumentException(identifier); // TODO: handle bad identifier format
