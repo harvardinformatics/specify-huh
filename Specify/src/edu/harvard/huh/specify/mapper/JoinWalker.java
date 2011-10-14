@@ -45,10 +45,9 @@ public class JoinWalker {
 	private HashMap<Class<?>, HashMap<String, TreeDefItemStandardEntry>> treeLevels =
 		new HashMap<Class<?>, HashMap<String, TreeDefItemStandardEntry>>();
 	
-	private SimpleDateFormat yearMonthDayTimeFormat;
-	private SimpleDateFormat yearMonthDayFormat;
-	private SimpleDateFormat yearMonthFormat;
 	private SimpleDateFormat yearFormat;
+	private SimpleDateFormat monthFormat;
+	private SimpleDateFormat dayFormat;
 	private SimpleDateFormat timeFormat;
 	
 	public JoinWalker(DBTableIdMgr tableMgr) {
@@ -75,20 +74,32 @@ public class JoinWalker {
 		}
 	}
 
-	public void setYearMonthDayTimeFormat(SimpleDateFormat yearMonthDayTimeFormat) {
-		this.yearMonthDayTimeFormat = yearMonthDayTimeFormat;
+	public SimpleDateFormat getYearFormat() {
+		return yearFormat;
 	}
-	
-	public void setYearMonthDayFormat(SimpleDateFormat yearMonthDayFormat) {
-		this.yearMonthDayFormat = yearMonthDayFormat;
-	}
-	
-	public void setYearMonthFormat(SimpleDateFormat yearMonthFormat) {
-		this.yearMonthFormat = yearMonthFormat;
-	}
-	
+
 	public void setYearFormat(SimpleDateFormat yearFormat) {
 		this.yearFormat = yearFormat;
+	}
+	
+	public SimpleDateFormat getMonthFormat() {
+		return monthFormat;
+	}
+	
+	public void setMonthFormat(SimpleDateFormat monthFormat) {
+		this.monthFormat = monthFormat;
+	}
+	
+	public SimpleDateFormat getDayFormat() {
+		return dayFormat;
+	}
+	
+	public void setDayFormat(SimpleDateFormat dayFormat) {
+		this.dayFormat = dayFormat;
+	}
+	
+	public SimpleDateFormat getTimeFormat() {
+		return timeFormat;
 	}
 	
 	public void setTimeFormat(SimpleDateFormat timeFormat) {
@@ -178,13 +189,13 @@ public class JoinWalker {
 				PartialDateEnum partialDateType = formatter.getPartialDateType();
 				if (partialDateType == null ||
 						partialDateType.equals(PartialDateEnum.None)) {
-					return applyDateFormat(object, yearMonthDayTimeFormat);
+					return applyDateFormat(object, timeFormat);
 				}
 				else if (partialDateType.equals(PartialDateEnum.Full)) {
-					return applyDateFormat(object, yearMonthDayFormat);
+					return applyDateFormat(object, dayFormat);
 				}
 				else if (partialDateType.equals(PartialDateEnum.Month)) {
-					return applyDateFormat(object, yearMonthFormat);
+					return applyDateFormat(object, monthFormat);
 				}
 				else if (partialDateType.equals(PartialDateEnum.Year)) {
 					return applyDateFormat(object, yearFormat);

@@ -29,8 +29,7 @@ public class SpecifyIdentifierService implements IdentifierService {
 
 	@Override
 	public String getNamespace() {
-		// TODO Auto-generated method stub
-		return null;
+		return "dwc";  // TODO is this right?
 	}
 
 }

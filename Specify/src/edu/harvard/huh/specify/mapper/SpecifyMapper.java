@@ -1,7 +1,9 @@
 package edu.harvard.huh.specify.mapper;
 
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 
@@ -15,13 +17,13 @@ import edu.ku.brc.specify.datamodel.CollectionObject;
 
 public class SpecifyMapper {
 
+	private DBTableIdMgr tableMgr;
 	private JoinWalker joinWalker;
-
-	private SimpleDateFormat yearMonthDayTimeFormat;
-	private SimpleDateFormat yearMonthDayFormat;
-	private SimpleDateFormat yearMonthFormat;
-	private SimpleDateFormat yearFormat;
-	private SimpleDateFormat timeFormat;
+	
+	private SimpleDateFormat yearFormat = new SimpleDateFormat("yyyy");
+	private SimpleDateFormat monthFormat = new SimpleDateFormat("yyyy-MM");
+	private SimpleDateFormat dayFormat = new SimpleDateFormat("yyyy-MM-dd");
+	private SimpleDateFormat timeFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 	
 	/**
 	 * Return a mapping of dwc terms (all lowercase) to String values found by traversing a CollectionObject
@@ -39,16 +41,9 @@ public class SpecifyMapper {
 		
 		HashMap<String, String> dwcTermsToValues = new HashMap<String, String>();
 		
-		joinWalker = new JoinWalker(DBTableIdMgr.getInstance());
-		joinWalker.setYearMonthDayTimeFormat(yearMonthDayTimeFormat);
-		joinWalker.setYearMonthDayFormat(yearMonthDayFormat);
-		joinWalker.setYearMonthFormat(yearMonthFormat);
-		joinWalker.setYearFormat(yearFormat);
-		joinWalker.setTimeFormat(timeFormat);
-		
 		for (SpecifyMapItem mapItem : mapItems) {
 			
-			String mappedValue = joinWalker.getPathValue(collObj, mapItem.getPathSegments(), mapItem.getFieldName(), false);
+			String mappedValue = getJoinWalker().getPathValue(collObj, mapItem.getPathSegments(), mapItem.getFieldName(), false);
 			
 			String dwcTerm = mapItem.getName();
 			
@@ -136,43 +131,62 @@ public class SpecifyMapper {
 		return mapItem;
 	}
 	
-	public SimpleDateFormat getYearMonthDayTimeFormat() {
-		return yearMonthDayTimeFormat;
-	}
-	
-	public void setYearMonthDayTimeFormat(SimpleDateFormat yearMonthDayTimeFormat) {
-		this.yearMonthDayTimeFormat = yearMonthDayTimeFormat;
-	}
-	
-	public SimpleDateFormat getYearMonthDayFormat() {
-		return yearMonthDayFormat;
-	}
-	
-	public void setYearMonthDayFormat(SimpleDateFormat yearMonthDayFormat) {
-		this.yearMonthDayFormat = yearMonthDayFormat;
-	}
-	
-	public SimpleDateFormat getYearMonthFormat() {
-		return yearMonthFormat;
-	}
-	
-	public void setYearMonthFormat(SimpleDateFormat yearMonthFormat) {
-		this.yearMonthFormat = yearMonthFormat;
-	}
-	
-	public SimpleDateFormat getYearFormat() {
+	private SimpleDateFormat getYearFormat() {
 		return yearFormat;
 	}
 	
-	public void setYearFormat(SimpleDateFormat yearFormat) {
-		this.yearFormat = yearFormat;
+	private SimpleDateFormat getMonthFormat() {
+		return monthFormat;
+	}
+
+	private SimpleDateFormat getDayFormat() {
+		return dayFormat;
 	}
 	
-	public SimpleDateFormat getTimeFormat() {
+	private SimpleDateFormat getTimeFormat() {
 		return timeFormat;
 	}
 	
-	public void setTimeFormat(SimpleDateFormat timeFormat) {
-		this.timeFormat = timeFormat;
+	private JoinWalker getJoinWalker() {
+		if (joinWalker == null) {
+			joinWalker = new JoinWalker(getTableMgr());
+
+			joinWalker.setYearFormat(yearFormat);
+			joinWalker.setMonthFormat(monthFormat);
+			joinWalker.setDayFormat(dayFormat);
+			joinWalker.setTimeFormat(timeFormat);
+		}
+		return joinWalker;
+	}
+	
+	private DBTableIdMgr getTableMgr() {
+		if (tableMgr == null) {
+			tableMgr = DBTableIdMgr.getInstance();
+		}
+		return tableMgr;
+	}
+	
+	public void setTableMgr(DBTableIdMgr tableMgr) {
+		this.tableMgr = tableMgr;
+	}
+	
+	public Date parseYear(String year) throws ParseException {
+		return getYearFormat().parse(year);
+	}
+	
+	public Date parseMonth(String month) throws ParseException {
+		return getMonthFormat().parse(month);
+	}
+	
+	public Date parseDay(String day) throws ParseException {
+		return getDayFormat().parse(day);
+	}
+	
+	public Date parseTime(String time) throws ParseException {
+		return getTimeFormat().parse(time);
+	}
+	
+	public Date parseDate(String date) throws ParseException {
+		return parseDay(date);
 	}
 }
