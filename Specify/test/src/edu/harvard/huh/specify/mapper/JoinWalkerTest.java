@@ -29,7 +29,7 @@ import edu.ku.brc.specify.datamodel.Taxon;
 import edu.ku.brc.specify.datamodel.TaxonTreeDef;
 import edu.ku.brc.ui.UIRegistry;
 
-public class JoinWalkerTester extends TestCase {
+public class JoinWalkerTest extends TestCase {
 
 	JoinWalker joinWalker = null;
 
