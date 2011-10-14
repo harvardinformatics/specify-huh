@@ -49,6 +49,8 @@ public class ReportLoan {
 	private static final int REGION_RANK_ID = 150;
 	
 	private String nameOfContact;
+	private String title;
+	private String jobTitle;
 	private String institution;
 	private String acronym;
 	private String address1;
@@ -124,6 +126,7 @@ public class ReportLoan {
 					BarcodedSpecimen barcoded = new BarcodedSpecimen();
 					Boolean firstPrepBarcode = false;
 					for (Fragment f : lp.getPreparation().getFragments()) {
+						fragmentCount++;
 						BarcodedItem item = new BarcodedItem();
 						if (f.getIdentifier() != null) {
 							item.identifier = f.getIdentifier();
@@ -176,8 +179,8 @@ public class ReportLoan {
 					}
 					barcodedSpecimens.add(barcoded);
 					
-					fragmentCount += (lp.getItemCount() != null ? lp.getItemCount() : 0)
-					                       + (lp.getTypeCount() != null ? lp.getTypeCount() : 0);
+					/* fragmentCount += (lp.getItemCount() != null ? lp.getItemCount() : 0)
+					                       + (lp.getTypeCount() != null ? lp.getTypeCount() : 0); */
 				}
 			}
 			nonSpecimenCount += lp.getNonSpecimenCount() != null ? lp.getNonSpecimenCount() : 0;
@@ -208,6 +211,9 @@ public class ReportLoan {
 			
 			if (curr.getShippedTo() != null) {
 				nameOfContact = curr.getShippedTo().getFirstName() + " " + curr.getShippedTo().getLastName();
+				title = curr.getShippedTo().getTitle();
+				title = title.substring(0,1).toUpperCase() + title.substring(1);
+				jobTitle = curr.getShippedTo().getJobTitle(); 
 				if (curr.getShippedTo().getOrganization() != null) {
 					institution =  curr.getShippedTo().getOrganization().getLastName();
 					acronym = curr.getShippedTo().getOrganization().getAbbreviation();

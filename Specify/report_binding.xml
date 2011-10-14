@@ -4,6 +4,8 @@
 		<value name="nameOfContact" field="nameOfContact" usage="optional" />
 		<value name="institution" field="institution" usage="optional" />
 		<value name="acronym" field="acronym" usage="optional" />
+		<value name="title" field="title" usage="optional" />
+		<value name="jobTitle" field="jobTitle" usage="optional" />
 		<value name="address1" field="address1" usage="optional" />
 		<value name="address2" field="address2" usage="optional" />
 		<value name="city" field="city" usage="optional" />
@@ -16,6 +18,8 @@
 		<value name="dateDue" field="dateDue" usage="optional" />
 		<value name="forUseBy" field="forUseBy" usage="optional" />
 		<value name="numberOfPackages" field="numberOfPackages" usage="optional" />
+		<value name="fragmentCount" field="fragmentCount"
+			usage="optional" />
 		<value name="generalCollectionCount" field="generalCollectionCount"
 			usage="optional" />
 		<value name="nonSpecimenCount" field="nonSpecimenCount" usage="optional" />
