@@ -6,7 +6,9 @@
 	xmlns:date="http://exslt.org/dates-and-times" xmlns:huh="http://edu.harvard/huh/specify/reports/datamodel">
 
 	<xsl:variable name="nameOfContact">
+	<xsl:if test="reportLoan/title != ''">
 		<xsl:value-of select ="reportLoan/title" />.&#x20;
+	</xsl:if>
 		<xsl:value-of select="reportLoan/nameOfContact" />,&#x20;
 		<xsl:value-of select="reportLoan/jobTitle" />
 	</xsl:variable>

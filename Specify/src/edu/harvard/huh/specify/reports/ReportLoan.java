@@ -211,9 +211,11 @@ public class ReportLoan {
 			
 			if (curr.getShippedTo() != null) {
 				nameOfContact = curr.getShippedTo().getFirstName() + " " + curr.getShippedTo().getLastName();
-				title = curr.getShippedTo().getTitle();
-				title = title.substring(0,1).toUpperCase() + title.substring(1);
-				jobTitle = curr.getShippedTo().getJobTitle(); 
+				if (curr.getShippedTo().getTitle() != null) {
+					title = curr.getShippedTo().getTitle();
+					title = title.substring(0,1).toUpperCase() + title.substring(1);
+				}
+				jobTitle = curr.getShippedTo().getJobTitle() != null ? curr.getShippedTo().getJobTitle() : "";
 				if (curr.getShippedTo().getOrganization() != null) {
 					institution =  curr.getShippedTo().getOrganization().getLastName();
 					acronym = curr.getShippedTo().getOrganization().getAbbreviation();
