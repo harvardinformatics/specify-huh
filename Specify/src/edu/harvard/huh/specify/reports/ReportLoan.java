@@ -114,7 +114,11 @@ public class ReportLoan {
 					lot.sheetCount = (lp.getItemCount() != null ? lp.getItemCount() : 0) +
 					                 (lp.getTypeCount() != null ? lp.getTypeCount() : 0) +
 					                 (lp.getNonSpecimenCount() != null ? lp.getNonSpecimenCount() : 0);
-					lot.taxon = lp.getPreparation().getTaxon().getFullName();
+					if (lot.taxon != null) {
+						lot.taxon = lp.getPreparation().getTaxon().getFullName();
+					}
+					
+					
 					lot.description = lp.getDescriptionOfMaterial();
 				
 					unbarcodedSpecimens.add(lot);
