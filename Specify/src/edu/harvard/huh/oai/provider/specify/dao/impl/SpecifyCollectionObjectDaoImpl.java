@@ -5,6 +5,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.Properties;
 
+import org.apache.log4j.Logger;
+import org.hibernate.HibernateException;
 import org.hibernate.Session;
 import org.hibernate.cfg.Configuration;
 import org.hibernate.criterion.Restrictions;
@@ -26,6 +28,7 @@ import edu.harvard.huh.oai.provider.dwc.dao.CollectionObjectDao;
 
 public class SpecifyCollectionObjectDaoImpl implements CollectionObjectDao {
 
+	private static Logger logger = Logger.getLogger(SpecifyCollectionObjectDaoImpl.class);
 	private Session session;
 	
 	public SpecifyCollectionObjectDaoImpl() {
@@ -37,7 +40,7 @@ public class SpecifyCollectionObjectDaoImpl implements CollectionObjectDao {
 		
 		CollectionObject collObj = (CollectionObject) getSession().get(CollectionObject.class, id.intValue());		
 		getSession().close();
-
+		
 		return collObj;
 	}
 
@@ -45,7 +48,22 @@ public class SpecifyCollectionObjectDaoImpl implements CollectionObjectDao {
 	@Override
 	public List<CollectionObject> getCollectionObjects(Date from, Date until) {
 
-		List<CollectionObject> collectionObjects = (List<CollectionObject>) getSession().createCriteria(CollectionObject.class).add( Restrictions.between("timestampModified", from, until)).list();
+		List<CollectionObject> collectionObjects = null;
+		
+		try {
+		// on the inclusivenes of OAI-PMH date ranges, see
+		// http://www.openarchives.org/OAI/openarchivesprotocol.html#SelectiveHarvestingandDatestamps
+		collectionObjects =
+			(List<CollectionObject>) getSession().createCriteria(CollectionObject.class).
+				add(Restrictions.ge("timestampModified", from)).
+						add(Restrictions.le("timestampModified", until)).list();
+		// TODO: sort results by date?
+		}
+		catch (HibernateException e) {
+			// TODO: find an appropriate exception to convert to
+			logger.debug(e);
+		}
+
 		getSession().close();
 		
 		return collectionObjects;
@@ -55,7 +73,7 @@ public class SpecifyCollectionObjectDaoImpl implements CollectionObjectDao {
 	private Session getSession() {
 		if (session == null) {
 			// TODO: find the appropriate place to store these connection values for non-UI connections, maybe a Spring context
-			
+			// TODO: separate the Hibernate from the Specify so we can deal with their exceptions separately?
 			DBConnection.getInstance();
 			HibernateUtil.setHibernateLogonConfig(new Configuration());
 			session = HibernateUtil.getSessionFactory().openSession();
@@ -73,6 +91,7 @@ public class SpecifyCollectionObjectDaoImpl implements CollectionObjectDao {
 			properties.load(this.getClass().getResourceAsStream("/dao.properties"));
 		}
 		catch (IOException e) {
+			logger.error(e);
 			throw new RuntimeException("Couldn't load properties from dao.properties, is it on the classpath?", e); // TODO: error handling
 		}
 
