@@ -40,17 +40,12 @@ public class DwcCrosswalk implements Crosswalk {
 	public SimpleDarwinRecord crosswalk(Object nativeObject) {
 
 		if (! (nativeObject instanceof CollectionObject)) {
+			logger.debug("not an instance of CollectionObject: " + nativeObject);
 			throw new IllegalArgumentException("Can't apply crosswalk to anything but CollectionObject");
 		}
 
 		HashMap<String, String> map = getMapper().map((CollectionObject) nativeObject);
 
-		return getSimpleDarwinRecord(map);
-	}
-
-	// TODO: Specify lowercases darwin core terms; the options are to match the Specify version to the real
-	// version in SpecifyMapper, or deal with it here. 
-	protected SimpleDarwinRecord getSimpleDarwinRecord(HashMap<String, String> map) {
 		SimpleDarwinRecord dwcRecord = new SimpleDarwinRecord();
 
 		dwcRecord.setType(TypeEnum.OCCURRENCE.toString());
@@ -826,12 +821,14 @@ public class DwcCrosswalk implements Crosswalk {
 		return getDatatypeFactory().newXMLGregorianCalendar(c);
 	}
 
-	// this method is based entirely on the superclass's version.  --mmk
+	// this method is based on the superclass's version.  --mmk
 	@Override
 	public String crosswalkToString(Object nativeObject) {
+
 		SimpleDarwinRecord occurrence = crosswalk(nativeObject);
 		try {
-			JAXBContext jaxbContext = JAXBContext.newInstance("dwc.huh_harvard_edu.tdwg_dwc_simple");
+			//JAXBContext jaxbContext = JAXBContext.newInstance("dwc.huh_harvard_edu.tdwg_dwc_simple");
+			JAXBContext jaxbContext = JAXBContext.newInstance(dwc.huh_harvard_edu.tdwg_dwc_simple.SimpleDarwinRecord.class);
 			Marshaller marshaller = jaxbContext.createMarshaller();
 			marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
 			marshaller.setProperty(Marshaller.JAXB_FRAGMENT, Boolean.TRUE);
@@ -841,7 +838,7 @@ public class DwcCrosswalk implements Crosswalk {
 			return "<metadata>" + writer.toString() + "</metadata>";
 		} 
 		catch (JAXBException je) {
-			
+			logger.error(je);
 			return null;			
 		}
 	}
@@ -849,7 +846,6 @@ public class DwcCrosswalk implements Crosswalk {
 	// this method is based entirely on the superclass's version.  --mmk
 	@Override
 	public String getDatestamp(Object nativeItem) {
-
 		return DateUtils.formatDate(((CollectionObject) nativeItem).getTimestampModified(), false);
 	}
 
