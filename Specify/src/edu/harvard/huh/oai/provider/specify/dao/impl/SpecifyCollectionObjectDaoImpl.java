@@ -29,8 +29,11 @@ import edu.harvard.huh.oai.provider.dwc.dao.CollectionObjectDao;
 public class SpecifyCollectionObjectDaoImpl implements CollectionObjectDao {
 
 	private static Logger logger = Logger.getLogger(SpecifyCollectionObjectDaoImpl.class);
-	private Session session;
 	
+	private Session session; // TODO: create a read-only session, try to figure out how to remove used objects
+	
+	private int MAX_LIST_SIZE = 100; // TODO: move this to somewhere upstream
+
 	public SpecifyCollectionObjectDaoImpl() {
 		initialize();
 	}
@@ -38,8 +41,7 @@ public class SpecifyCollectionObjectDaoImpl implements CollectionObjectDao {
 	@Override
 	public CollectionObject get(Long id) {
 		
-		CollectionObject collObj = (CollectionObject) getSession().get(CollectionObject.class, id.intValue());		
-		getSession().close();
+		CollectionObject collObj = (CollectionObject) getSession().get(CollectionObject.class, id.intValue());
 		
 		return collObj;
 	}
@@ -49,22 +51,57 @@ public class SpecifyCollectionObjectDaoImpl implements CollectionObjectDao {
 	public List<CollectionObject> getCollectionObjects(Date from, Date until) {
 
 		List<CollectionObject> collectionObjects = null;
-		
+
 		try {
-		// on the inclusivenes of OAI-PMH date ranges, see
-		// http://www.openarchives.org/OAI/openarchivesprotocol.html#SelectiveHarvestingandDatestamps
-		collectionObjects =
-			(List<CollectionObject>) getSession().createCriteria(CollectionObject.class).
-				add(Restrictions.ge("timestampModified", from)).
-						add(Restrictions.le("timestampModified", until)).list();
-		// TODO: sort results by date?
+			// on the inclusiveness of OAI-PMH date ranges, see
+			// http://www.openarchives.org/OAI/openarchivesprotocol.html#SelectiveHarvestingandDatestamps
+			
+			if (from == null) {
+				if (until == null) {
+					collectionObjects =
+							(List<CollectionObject>) getSession().createCriteria(CollectionObject.class).list();
+				}
+				else {
+					// include unmodified objects created before "until" and modified objects modified before "until"
+					collectionObjects =
+							(List<CollectionObject>) getSession().createCriteria(CollectionObject.class)
+								.add(Restrictions.or(
+										Restrictions.and(Restrictions.isNull("timestampModified"), Restrictions.le("timestampCreated", until)),
+										Restrictions.and(Restrictions.isNotNull("timestampModified"), Restrictions.le("timestampModified", until))))
+								.setMaxResults(MAX_LIST_SIZE)
+								.list();
+				}
+			}
+			else {
+				if (until == null) {
+					// include unmodified objects created after "from" and modified objects modified after "from"
+					collectionObjects =
+							(List<CollectionObject>) getSession().createCriteria(CollectionObject.class)
+								.add(Restrictions.or(
+										Restrictions.and(Restrictions.isNull("timestampModified"), Restrictions.ge("timestampCreated", from)),
+										Restrictions.and(Restrictions.isNotNull("timestampModified"), Restrictions.ge("timestampModified", from))))
+								.setMaxResults(MAX_LIST_SIZE)
+								.list();
+				}
+				else {
+					// include unmodified objects created between "from" and "until"
+					// include modified objects modified between "from" and "until"
+					collectionObjects =
+							(List<CollectionObject>) getSession().createCriteria(CollectionObject.class)
+								.add(Restrictions.or(
+										Restrictions.and(Restrictions.isNull("timestampModified"), Restrictions.and(Restrictions.ge("timestampCreated", from), Restrictions.le("timestampCreated", until))),
+										Restrictions.and(Restrictions.isNotNull("timestampModified"), Restrictions.and(Restrictions.ge("timestampModified", from), Restrictions.le("timestampModified", until)))))
+								.setMaxResults(MAX_LIST_SIZE)
+								.list();
+				}
+			}
+
+		// TODO: sort results by date?  would probably require going to hql or sql
 		}
 		catch (HibernateException e) {
 			// TODO: find an appropriate exception to convert to
 			logger.debug(e);
 		}
-
-		getSession().close();
 		
 		return collectionObjects;
 	}
