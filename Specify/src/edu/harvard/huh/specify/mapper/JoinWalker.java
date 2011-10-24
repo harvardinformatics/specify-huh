@@ -217,7 +217,9 @@ public class JoinWalker {
 			}
 		}
 		else {
-			return object.toString();
+			if (object instanceof Date) return dayFormat.format((Date) object);
+			else if (object instanceof Calendar) return dayFormat.format(((Calendar) object).getTime());
+			else return object.toString();
 		}
 	}
 	
