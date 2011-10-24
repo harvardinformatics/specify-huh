@@ -8,7 +8,10 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+
+import org.apache.log4j.Logger;
 
 import edu.harvard.huh.specify.mapper.SpecifyMapItem.PathSegment;
 
@@ -39,6 +42,8 @@ import edu.ku.brc.util.Pair;
 
 public class JoinWalker {
 	
+	private static Logger logger = Logger.getLogger(JoinWalker.class);
+
 	private DBTableIdMgr tableMgr = null;
 	private String gettableClassName = "edu.ku.brc.af.ui.forms.DataGetterForObj";
 
@@ -244,7 +249,10 @@ public class JoinWalker {
 			DBTableInfo toTableInfo = getTableInfo(join);
 
 			// check permissions
-			if (! toTableInfo.getPermissions().canView()) return null;
+			if (! toTableInfo.getPermissions().canView()) {
+				logger.debug("View permission denied for " + toTableInfo.getName());
+				return null;
+			}
 
 			// if this is the first in the series, just get the next one
 			if (fromTableInfo == null) {
@@ -362,10 +370,16 @@ public class JoinWalker {
 	}
 	
 	private Treeable<?,?,?> getParent(Treeable<?,?,?> treeable, int rankId) {
+		HashSet<Treeable<?,?,?>> ancestors = new HashSet<Treeable<?,?,?>>();
 		do {
 			if (treeable.getRankId() == rankId) return treeable;
 			Treeable<?,?,?> parent = treeable.getParent();
 			if (parent == null) break;
+			if (ancestors.contains(parent)) {
+				logger.warn("Found loop in parent path for " + treeable);
+				return null;
+			}
+			ancestors.add(treeable);
 			treeable = parent;
 		} while (treeable.getRankId() >= rankId);
 		return null;
