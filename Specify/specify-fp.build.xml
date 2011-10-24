@@ -96,7 +96,7 @@
              excludes="dwc/**/*.class,edu/harvard/huh/oai/**/*.class,edu/ku/brc/specify/toycode/**/*"/>
         <copy todir="${dist.dir}/lib">
             <fileset dir="${hibernate.lib.dir}" includes="asm.jar,c3p0.jar"/>
-        	<fileset dir="${lib.dir}" includes="commons-validator.jar"/>
+        	<fileset dir="${lib.dir}" includes="commons-httpclient.jar,commons-validator.jar,jaxen.jar,xstream.jar"/>
         </copy>
     </target>
     
