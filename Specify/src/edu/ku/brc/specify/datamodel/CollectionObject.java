@@ -1138,7 +1138,7 @@ public class CollectionObject extends CollectionMember implements AttachmentOwne
     @Override
     public String toString()
     {
-        return getIdentityTitle();
+       	return super.toString(); // modified by HUH for FP
     }
 
     /* (non-Javadoc)
