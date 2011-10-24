@@ -220,7 +220,8 @@ public abstract class AppContextMgr
      */
     public Taskable getTaskFromTableId(int tableId) { return null; }
     
-    public static boolean isSecurityOn() { return getInstance().isSecurity(); }
+    // modified by HUH for FP: getInstance() can return null by design
+    public static boolean isSecurityOn() { return getInstance() == null ? false : getInstance().isSecurity(); }
 
     /**
      * Copies all the fields except the data.
