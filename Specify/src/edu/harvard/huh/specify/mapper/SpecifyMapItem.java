@@ -2,8 +2,6 @@ package edu.harvard.huh.specify.mapper;
 
 import java.util.List;
 
-import edu.harvard.huh.specify.mapper.SpecifyFieldMappingDesc.PathSegment;
-
 public class SpecifyMapItem {
 
 	// see Specify's MappedFieldInfo
@@ -20,6 +18,21 @@ public class SpecifyMapItem {
 		;
 	}
 
+	public static class PathSegment {
+		private Integer tableId;
+		private String relationshipName;
+		
+		public PathSegment(Integer tableId, String relationshipName) {
+			this.tableId = tableId;
+			this.relationshipName = relationshipName;
+		}
+		public Integer getTableId() { return this.tableId; }
+		public void setTableId(Integer tableId) { this.tableId = tableId; }
+
+		public String getRelationshipName() { return this.relationshipName; }
+		public void setRelationshipName(String relationshipName) { this.relationshipName = relationshipName; }
+	}
+	
 	public SpecifyMapItem(String fieldName, String tablePath, boolean isRelationship) {
 		this.fieldName = fieldName;
 		this.pathSegments = JoinWalker.parseTablePath(tablePath);

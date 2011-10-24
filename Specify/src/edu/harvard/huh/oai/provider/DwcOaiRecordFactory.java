@@ -1,5 +1,9 @@
 package edu.harvard.huh.oai.provider;
 
+import java.util.Iterator;
+
+import org.apache.log4j.Logger;
+
 import edu.harvard.huh.oai.provider.crosswalk.Crosswalk;
 import ORG.oclc.oai.server.verb.CannotDisseminateFormatException;
 import au.org.tern.ecoinformatics.oai.provider.BasicOaiRecordFactory;
@@ -7,6 +11,8 @@ import au.org.tern.ecoinformatics.oai.provider.util.StaticApplicationContextHelp
 
 public class DwcOaiRecordFactory extends BasicOaiRecordFactory {
 
+	private static Logger logger = Logger.getLogger(DwcOaiRecordFactory.class);
+	
 	@Override
 	public String quickCreate(Object nativeItem, String schemaURL, String metadataPrefix)
 			throws IllegalArgumentException, CannotDisseminateFormatException {
@@ -22,7 +28,6 @@ public class DwcOaiRecordFactory extends BasicOaiRecordFactory {
 	 * @return
 	 */
 	private Crosswalk getCrosswalkFromSpringAppContext() {
-		
 		return (Crosswalk) StaticApplicationContextHelper.getApplicationContext().getBean("crosswalk");
 	}
 	
@@ -30,7 +35,16 @@ public class DwcOaiRecordFactory extends BasicOaiRecordFactory {
 	// I suppose this means TODO: find another way of dealing with the EML vs. DWC object types in Crosswalk  --mmk
 	@Override
 	public String getDatestamp(Object nativeItem) {
-
 		return getCrosswalkFromSpringAppContext().getDatestamp(nativeItem);
+	}
+	
+	@Override
+	public Iterator getSetSpecs(Object nativeItem) throws IllegalArgumentException {
+		// top-level sets: Specimens, Botanists, Taxa
+		// subsets of Specimens: by collection
+		// subsets of Botanists: by division
+		// subsets of Taxa: by discipline; for botany, for major group; and by family
+		// TODO Auto-generated method stub
+		return null;
 	}
 }

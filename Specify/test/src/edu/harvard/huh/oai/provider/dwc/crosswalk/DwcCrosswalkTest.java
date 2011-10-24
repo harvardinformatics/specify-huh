@@ -19,6 +19,7 @@ import org.junit.Test;
 
 import dwc.huh_harvard_edu.tdwg_dwc_simple.SimpleDarwinRecord;
 
+import edu.harvard.huh.specify.mapper.SpecifyMapper;
 import edu.ku.brc.specify.datamodel.CollectionObject;
 
 public class DwcCrosswalkTest {
@@ -27,8 +28,16 @@ public class DwcCrosswalkTest {
 	private String OAI_DATE_FORMAT = "yyyy-MM-dd";
 	private String OAI_TIME_FORMAT = "yyyy-MM-dd'T'HH:mm:ss";
 	
-	DatatypeFactory datatypeFactory = null;
-
+	private DatatypeFactory datatypeFactory = null;
+	private DwcCrosswalk crosswalk = null;
+	
+	HashMap<String, String>  map = null;
+	
+	HashMap<String, Integer> intMap = null;
+	HashMap<String, Double> doubleMap = null;
+	HashMap<String, XMLGregorianCalendar> dateMap = null;
+	HashMap<String, BigInteger> bigIntMap = null;
+	
 	@Before
 	public void setUp() {
 		try {
@@ -37,15 +46,12 @@ public class DwcCrosswalkTest {
 		catch (DatatypeConfigurationException e) {
 			fail(e.getMessage());
 		}
-	}
-
-	@Test
-	public void testMap() {
-		DwcCrosswalk crosswalk = new DwcCrosswalk();
-
+		
+		crosswalk = new DwcCrosswalk();
+		
 		// this map will represent the results returned from calling SpecifyMapper on a CollectionObject;
 		// it has lower-cased dwc term keys mapped to test values
-		HashMap<String, String>  map = new HashMap<String, String>();
+		map = new HashMap<String, String>();
 
 		// these are the dwc terms that have String values
 		String[] stringFields = { "acceptedNameUsage", "acceptedNameUsageID", "accessRights", "associatedMedia", "associatedOccurrences", "associatedReferences", "associatedSequences",
@@ -77,7 +83,7 @@ public class DwcCrosswalkTest {
 		// to look up the test value by term (using the Specify lower-case key convention)
 		String[] intFields = { "endDayOfYear", "startDayOfYear" };
 		int[] intValues = { 1, 2 };
-		HashMap<String, Integer> intMap = new HashMap<String, Integer>();
+		intMap = new HashMap<String, Integer>();
 		
 		for (int j = 0; j < intFields.length; j++ ) {
 			map.put(intFields[j].toLowerCase(), String.valueOf(intValues[j]));
@@ -89,7 +95,7 @@ public class DwcCrosswalkTest {
 		String[] doubleFields = { "coordinateUncertaintyInMeters", "decimalLatitude", "decimalLongitude", "maximumDepthInMeters", "maximumDistanceAboveSurfaceInMeters",
 				"maximumElevationInMeters",  "minimumDepthInMeters", "minimumDistanceAboveSurfaceInMeters", "minimumElevationInMeters" };
 		double[] doubleValues = { 1.1, 2.2, 3.3, 4.4, 5.5, 6.6, 7.7, 8.8, 9.9 };
-		HashMap<String, Double> doubleMap = new HashMap<String, Double>();
+		doubleMap = new HashMap<String, Double>();
 		
 		for (int k = 0; k < doubleFields.length; k++ ) {
 			map.put(doubleFields[k].toLowerCase(), String.valueOf(doubleValues[k]));
@@ -116,7 +122,7 @@ public class DwcCrosswalkTest {
 			fail(e.getMessage());
 		}
 
-		HashMap<String, XMLGregorianCalendar> dateMap = new HashMap<String, XMLGregorianCalendar>();
+		dateMap = new HashMap<String, XMLGregorianCalendar>();
 
 		for (int n = 0; n < dateFields.length; n++) {
 			map.put(dateFields[n].toLowerCase(), dateStringValues[n]);
@@ -127,15 +133,37 @@ public class DwcCrosswalkTest {
 		// to look up the test value by term (using the Specify lower-case key convention)
 		String[] bigIntFields = { "individualCount" };
 		BigInteger[] bigIntValues = { BigInteger.valueOf(1) };
-		HashMap<String, BigInteger> bigIntMap = new HashMap<String, BigInteger>();
+		bigIntMap = new HashMap<String, BigInteger>();
 
 		for (int q = 0; q < bigIntFields.length; q++) {
 			map.put(bigIntFields[q].toLowerCase(), String.valueOf(bigIntValues[q]));
 			bigIntMap.put(bigIntFields[q].toLowerCase(), bigIntValues[q]);
 		}
+		
+		crosswalk.setMapper(new SpecifyMapper() {
+			@Override
+			public HashMap<String, String> map(CollectionObject collObj) {
+				return map;
+			}
+		});
+	}
 
-		// here we begin the test
-		SimpleDarwinRecord dwcRecord = crosswalk.getSimpleDarwinRecord(map);
+	@Test
+	public void testCrosswalk() {
+		
+		// test that invoking crosswalk on non-CollectionObject throws an exception
+		SimpleDarwinRecord dwcRecord = null;
+		try {
+			Object nativeObject = new Integer(0);
+			crosswalk.crosswalk(nativeObject);
+			fail("Should not be able to crosswalk non-CollectionObject");
+		}
+		catch (IllegalArgumentException e) {
+			;
+		}
+
+		dwcRecord = crosswalk.crosswalk(new CollectionObject());
+		assertNotNull(dwcRecord);
 
 		assertEquals(map.get("acceptedNameUsage".toLowerCase()), dwcRecord.getAcceptedNameUsage());
 		assertEquals(map.get("acceptednameUsageID".toLowerCase()), dwcRecord.getAcceptedNameUsageID());
@@ -297,12 +325,27 @@ public class DwcCrosswalkTest {
 		assertEquals(bigIntMap.get("individualCount".toLowerCase()), dwcRecord.getIndividualCount());
 	}
 
+	@Test
+	public void testCrosswalkToString() {
+		// test that invoking crosswalkToString on non-CollectionObject throws an exception
+		try {
+			Object nativeObject = new Integer(0);
+			crosswalk.crosswalk(nativeObject);
+			fail("Should not be able to crosswalk non-CollectionObject");
+		}
+		catch (IllegalArgumentException e) {
+			;
+		}
+
+		String dwcRecord = crosswalk.crosswalkToString(new CollectionObject());
+		assertNotNull(dwcRecord);
+	}
+
 	private XMLGregorianCalendar getXmlGregorianCalendar(Date date) {
 
 		GregorianCalendar c = new GregorianCalendar();
 		c.setTime(date);
 		return datatypeFactory.newXMLGregorianCalendar(c);
-
 	}
 
 	@Test
@@ -326,5 +369,6 @@ public class DwcCrosswalkTest {
 		// test that with a modification timestamp, the modification timestamp is returned.
 		assertEquals(crosswalk.getDatestamp(collectionObject), (new SimpleDateFormat(OAI_DATE_FORMAT)).format(timestamp2));
 	}
+
 
 }

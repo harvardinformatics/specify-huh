@@ -3,12 +3,10 @@ package edu.harvard.huh.specify.mapper;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Properties;
 
 import junit.framework.TestCase;
 
-import edu.harvard.huh.specify.mapper.SpecifyFieldMappingDesc.PathSegment;
 import edu.ku.brc.af.auth.JaasContext;
 import edu.ku.brc.af.auth.SecurityMgr;
 import edu.ku.brc.af.auth.UserAndMasterPasswordMgr;
@@ -124,18 +122,18 @@ public class JoinWalkerTest extends TestCase {
 		agent.setAgentType(Agent.PERSON);  // type needs to be set for formatter to be called in Agent.toString()
 		
 		// set up the info we will have for finding that value
-		String fieldName = "geoRefDetBy";
-		String tablePath = "1,10,2,123-geoCoordDetails,5-geoRefDetBy";
-		boolean isRelationship = false;
+		SpecifyMapItem mapItem = new SpecifyMapItem();
+		mapItem.setFieldName("geoRefDetBy");
+		mapItem.setPathSegments(JoinWalker.parseTablePath("1,10,2,123-geoCoordDetails,5-geoRefDetBy"));
+		mapItem.setIsRelationship(false);
 
 		// now go find it
-		List<PathSegment> joins = JoinWalker.parseTablePath(tablePath);
-		String mappedValue = joinWalker.getPathValue(collObj, joins, fieldName, isRelationship);
+		String mappedValue = joinWalker.getPathValue(collObj, mapItem);
 		assertEquals(lastName, mappedValue.trim());
 		
 		// try again without permission
 		DBTableIdMgr.getInstance().getInfoById(2).getPermissions().setCanView(false);
-		Object unviewable = joinWalker.getPathValue(collObj, joins, fieldName, isRelationship);
+		Object unviewable = joinWalker.getPathValue(collObj, mapItem);
 		assertNull(unviewable);
 		DBTableIdMgr.getInstance().getInfoById(2).getPermissions().setCanView(true);
 	}
@@ -154,13 +152,13 @@ public class JoinWalkerTest extends TestCase {
 		locality.setLongitude1(BigDecimal.valueOf(longitude));
 
 		// set up the info we will have for finding that value
-		String fieldName = "longitude1";
-		String tablePath = "1,10,2";
-		boolean isRelationship = false;
+		SpecifyMapItem mapItem = new SpecifyMapItem();
+		mapItem.setFieldName("longitude1");
+		mapItem.setPathSegments(JoinWalker.parseTablePath("1,10,2"));
+		mapItem.setIsRelationship(false);
 
 		// now go find it
-		List<PathSegment> joins = JoinWalker.parseTablePath(tablePath);
-		String mappedValue = joinWalker.getPathValue(collObj, joins, fieldName, isRelationship);
+		String mappedValue = joinWalker.getPathValue(collObj, mapItem);
 		assertEquals(String.valueOf(longitude), mappedValue);
 	}
 
@@ -193,19 +191,19 @@ public class JoinWalkerTest extends TestCase {
 		collObj.setDeterminations(new HashSet<Determination>());
 
 		// set up the info we will have for finding that value
-		String fieldName = "fullName";
-		String tablePath = "1,9-determinations,4-preferredTaxon";
-		boolean isRelationship = false;
+		SpecifyMapItem mapItem = new SpecifyMapItem();
+		mapItem.setFieldName("fullName");
+		mapItem.setPathSegments(JoinWalker.parseTablePath("1,9-determinations,4-preferredTaxon"));
+		mapItem.setIsRelationship(false);
 
 		// don't find it when it's not there
-		List<PathSegment> joins = JoinWalker.parseTablePath(tablePath);
-		String noMappedValue = joinWalker.getPathValue(collObj, joins, fieldName, isRelationship);
+		String noMappedValue = joinWalker.getPathValue(collObj, mapItem);
 		assertNull(noMappedValue);
 
 		// do find it when it is.
 		collObj.getDeterminations().add(oldDet);
 		collObj.getDeterminations().add(newDet);
-		String mappedValue = joinWalker.getPathValue(collObj, joins, fieldName, isRelationship);
+		String mappedValue = joinWalker.getPathValue(collObj, mapItem);
 		assertEquals(asterSerrataName, mappedValue.trim());
 	}
 
@@ -244,12 +242,12 @@ public class JoinWalkerTest extends TestCase {
 		collObj.setCollectingEvent(collEvent);
 
 		// set up the info we will have for finding that value
-		String fieldName = "collectors";
-		String tablePath = "1,10,30-collectors";
-		boolean isRelationship = true;
-
-		List<PathSegment> joins = JoinWalker.parseTablePath(tablePath);
-		String mappedValue = joinWalker.getPathValue(collObj, joins, fieldName, isRelationship);
+		SpecifyMapItem mapItem = new SpecifyMapItem();
+		mapItem.setFieldName("collectors");
+		mapItem.setPathSegments(JoinWalker.parseTablePath("1,10,30-collectors"));
+		mapItem.setIsRelationship(true);
+		
+		String mappedValue = joinWalker.getPathValue(collObj, mapItem);
 
 		assertEquals(mappedValue, "Kelly; Clifton");
 	}
@@ -288,12 +286,24 @@ public class JoinWalkerTest extends TestCase {
 		collObj.getDeterminations().add(det);
 
 		// set up the info we will have for finding that value
-		String fieldName = "Family";
-		String tablePath = "1,9-determinations,4-preferredTaxon";
-		boolean isRelationship = false;
+		SpecifyMapItem mapItem = new SpecifyMapItem();
+		mapItem.setFieldName("Family");
+		mapItem.setPathSegments(JoinWalker.parseTablePath("1,9-determinations,4-preferredTaxon"));
+		mapItem.setIsRelationship(false);
 
-		List<PathSegment> joins = JoinWalker.parseTablePath(tablePath);
-		String mappedValue = joinWalker.getPathValue(collObj, joins, fieldName, isRelationship);
+		String mappedValue = joinWalker.getPathValue(collObj, mapItem);
 		assertEquals(asteraceaeName, mappedValue.trim());
+	}
+	
+	public void testGetPathWithNullResult() {
+		CollectionObject collObj = new CollectionObject();
+		
+		SpecifyMapItem mapItem = new SpecifyMapItem();
+		mapItem.setFieldName("Family");
+		mapItem.setPathSegments(JoinWalker.parseTablePath("1,9-determinations,4-preferredTaxon"));
+		mapItem.setIsRelationship(false);
+
+		String mappedValue = joinWalker.getPathValue(collObj, mapItem);
+		assertNull(mappedValue);
 	}
 }

@@ -10,7 +10,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 
-import edu.harvard.huh.specify.mapper.SpecifyFieldMappingDesc.PathSegment;
+import edu.harvard.huh.specify.mapper.SpecifyMapItem.PathSegment;
 
 import edu.ku.brc.af.core.db.DBRelationshipInfo;
 import edu.ku.brc.af.core.db.DBTableIdMgr;
@@ -229,7 +229,11 @@ public class JoinWalker {
 		return result != null && result.length() == 0 ? null : result;
 	}
 
-	public String getPathValue(Object object, List<PathSegment> joins, String fieldName, boolean isRelationship) {
+	public String getPathValue(Object object, SpecifyMapItem mapItem) {
+
+		List<PathSegment> joins = mapItem.getPathSegments();
+		String fieldName = mapItem.getFieldName();
+		boolean isRelationship = mapItem.getIsRelationship();
 
 		String relationshipName = null;
 
@@ -323,6 +327,8 @@ public class JoinWalker {
 			}
 		}
 
+		if (object == null) return null;
+		
 		return applyFormatter(object, fieldName);
 	}
 	

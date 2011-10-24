@@ -7,9 +7,10 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 
+import org.apache.log4j.Logger;
 import org.dom4j.Element;
 
-import edu.harvard.huh.specify.mapper.SpecifyFieldMappingDesc.PathSegment;
+import edu.harvard.huh.specify.mapper.SpecifyMapItem.PathSegment;
 import edu.ku.brc.af.core.db.DBTableIdMgr;
 import edu.ku.brc.exceptions.ConfigurationException;
 import edu.ku.brc.helpers.XMLHelper;
@@ -17,6 +18,8 @@ import edu.ku.brc.specify.datamodel.CollectionObject;
 
 public class SpecifyMapper {
 
+	private static Logger logger = Logger.getLogger(SpecifyMapper.class);
+	
 	private DBTableIdMgr tableMgr;
 	private JoinWalker joinWalker;
 	
@@ -38,13 +41,12 @@ public class SpecifyMapper {
 	 * according to the mappings given in the list of SpecifyMapItems.
 	 */
 	public HashMap<String, String> map(CollectionObject collObj, List<SpecifyMapItem> mapItems) {
-		
 		HashMap<String, String> dwcTermsToValues = new HashMap<String, String>();
 		
 		for (SpecifyMapItem mapItem : mapItems) {
-			
-			String mappedValue = getJoinWalker().getPathValue(collObj, mapItem.getPathSegments(), mapItem.getFieldName(), false);
-			
+		
+			String mappedValue = getJoinWalker().getPathValue(collObj, mapItem);
+
 			String dwcTerm = mapItem.getName();
 			
 			dwcTermsToValues.put(dwcTerm, mappedValue);
