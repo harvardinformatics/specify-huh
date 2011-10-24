@@ -2,6 +2,9 @@ package edu.harvard.huh.specify.mapper;
 
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.GregorianCalendar;
 import java.util.HashSet;
 import java.util.Properties;
 
@@ -305,5 +308,27 @@ public class JoinWalkerTest extends TestCase {
 
 		String mappedValue = joinWalker.getPathValue(collObj, mapItem);
 		assertNull(mappedValue);
+	}
+	
+	public void testDayCollectedPath() {
+		// set up the CollectionObject object graph with the target value
+		Calendar startDate = GregorianCalendar.getInstance();
+
+		CollectionObject collObj = new CollectionObject();
+		CollectingEvent collEvent = new CollectingEvent();
+
+		collEvent.setStartDate(startDate);
+		collObj.setCollectingEvent(collEvent);
+
+		// set up the info we will have for finding that value
+		SpecifyMapItem mapItem = new SpecifyMapItem();
+		mapItem.setFieldName("startDate");
+		mapItem.setPathSegments(JoinWalker.parseTablePath("1,10-collectingevent"));
+		mapItem.setIsRelationship(false);
+
+		joinWalker.setDayFormat(new SimpleDateFormat("yyyy-MM-dd"));
+		// now go find it
+		String mappedValue = joinWalker.getPathValue(collObj, mapItem);
+		assertEquals(joinWalker.getDayFormat().format(startDate.getTime()), mappedValue);
 	}
 }
