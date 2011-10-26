@@ -435,7 +435,7 @@ public class ReferenceWork extends DataModelObjBase implements java.io.Serializa
     /**
      *      * User definable
      */
-    @Column(name = "Text1", length=255, unique = false, nullable = true, insertable = true, updatable = true)
+    @Column(name = "Text1", length=900, unique = false, nullable = true, insertable = true, updatable = true)
     public String getText1() {
         return this.text1;
     }

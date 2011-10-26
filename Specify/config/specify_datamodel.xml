@@ -2523,7 +2523,7 @@
       <field column="Publisher" name="publisher" type="java.lang.String" length="64" indexName="RefWrkPublisherIDX" updatable="true" required="false" unique="false" indexed="true" partialDate="false"/>
       <field column="ReferenceWorkType" name="referenceWorkType" type="java.lang.Byte" updatable="true" required="true" unique="false" indexed="false" partialDate="false"/>
       <field column="Remarks" name="remarks" type="text" length="30000" updatable="true" required="false" unique="false" indexed="false" partialDate="false"/>
-      <field column="Text1" name="text1" type="java.lang.String" length="255" indexName="RefWrkText1IDX" updatable="true" required="false" unique="false" indexed="true" partialDate="false"/>
+      <field column="Text1" name="text1" type="java.lang.String" length="900" indexName="RefWrkText1IDX" updatable="true" required="false" unique="false" indexed="true" partialDate="false"/>
       <field column="Text2" name="text2" type="java.lang.String" length="300" updatable="true" required="false" unique="false" indexed="false" partialDate="false"/>
       <field column="TimestampCreated" name="timestampCreated" type="java.sql.Timestamp" updatable="false" required="true" unique="false" indexed="false" partialDate="false"/>
       <field column="TimestampModified" name="timestampModified" type="java.sql.Timestamp" updatable="true" required="false" unique="false" indexed="false" partialDate="false"/>
