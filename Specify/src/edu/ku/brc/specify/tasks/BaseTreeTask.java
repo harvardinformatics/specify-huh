@@ -307,7 +307,7 @@ public abstract class BaseTreeTask <T extends Treeable<T,D,I>,
             final boolean isEditable = perms == null || perms.canModify();
             
             final TaskSemaphoreMgr.USER_ACTION action = isViewOnly ? TaskSemaphoreMgr.USER_ACTION.ViewMode 
-            		: TaskSemaphoreMgr.lock(titleArg, treeDefClass.getSimpleName(), "def", TaskSemaphoreMgr.SCOPE.Discipline, true, null, true);
+            		: TaskSemaphoreMgr.USER_ACTION.OK; // Changed latter part from TaskSemaphoreMgr.lock(...) to this
             final boolean isViewMode = action == TaskSemaphoreMgr.USER_ACTION.ViewMode;
             
             if ((isViewable && (action == TaskSemaphoreMgr.USER_ACTION.ViewMode || action == TaskSemaphoreMgr.USER_ACTION.OK)) || 
@@ -324,9 +324,10 @@ public abstract class BaseTreeTask <T extends Treeable<T,D,I>,
     	                UsageTracker.incrUsageCount("TR.OPEN."+treeDefClass.getSimpleName());
     
     	                treeViewer = createTreeViewer(titleArg, !isViewMode && isEditable);
+    	                treeViewer.setDoUnlock(false); // lchan: we haven't locked any tables
     	                if (isViewMode)
     	                {
-    	                    treeViewer.setDoUnlock(false);
+//    	                    treeViewer.setDoUnlock(false);
     	                }
     	                return treeViewer;
     	            }
@@ -481,9 +482,11 @@ public abstract class BaseTreeTask <T extends Treeable<T,D,I>,
             //@Override
             public void actionPerformed(ActionEvent e)
             {
+            	// lchan: moved this out here, otherwise Specify won't lock TreeDef when one switches from Tree
+            	TaskSemaphoreMgr.USER_ACTION action = TaskSemaphoreMgr.lock(titleArg, treeDefClass.getSimpleName(), "def", TaskSemaphoreMgr.SCOPE.Discipline, false, null, true);
+            	
                 if (!currentDefInUse)
                 {
-                    TaskSemaphoreMgr.USER_ACTION action = TaskSemaphoreMgr.lock(titleArg, treeDefClass.getSimpleName(), "def", TaskSemaphoreMgr.SCOPE.Discipline, false, null, true);
                     if (action == TaskSemaphoreMgr.USER_ACTION.OK)
                     {
                         SwingWorker bgWorker = new SwingWorker()
