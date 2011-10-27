@@ -18,23 +18,27 @@
 package edu.ku.brc.specify.tools;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.PrintWriter;
 import java.util.Collections;
 import java.util.Vector;
 
 import javax.swing.JFileChooser;
 import javax.swing.SwingUtilities;
+import javax.xml.parsers.DocumentBuilderFactory;
 
+import org.dom4j.Document;
 import org.dom4j.Element;
 import org.dom4j.Node;
+import org.dom4j.io.SAXReader;
 
 import edu.ku.brc.helpers.XMLHelper;
-import edu.ku.brc.specify.Specify;
 import edu.ku.brc.ui.UIRegistry;
 
 /**
  * @author rods
  * @author Paul J. Morris
+ * @author David Lowery
  *
  * @code_status Beta
  *
@@ -104,7 +108,7 @@ public class ReadMeBuilder
                     
                     Collections.sort(list);
                     
-                    PrintWriter pw = new PrintWriter(new File("readme.html"));
+                    PrintWriter pw = new PrintWriter(XMLHelper.getConfigDir(".." + File.separator + "packaging" + File.separator + "readme.html"));
                     //TODO: Why start by closing the document?  Is this for install4j? 
                     pw.append("</body>\n</html>\n");
                     pw.append("<html>\n");
@@ -115,7 +119,7 @@ public class ReadMeBuilder
     
                     pw.append("<body>\n");
                     pw.append("<h3>Release Notes</h3>\n");
-                    pw.append("<h3>"+Specify.getTitle()+"</h3>\n");
+                    pw.append("<h3>"+getTitle()+"</h3>\n");
                     pw.append("<br />\n");
                     pw.append("<h3>Resolved Issues</h3>\n");
                     pw.append("<ol>\n");
@@ -153,8 +157,27 @@ public class ReadMeBuilder
             }
         }
     }
-
     /**
+     * Alternative to Specify.getTitle() used before changes. This uses the HUH
+     * install4j configuration to obtain a version number.
+     * 
+     * @return
+     */
+    private String getTitle() {
+    	String title = "";
+	    try {
+	    	SAXReader reader = new SAXReader();
+	        Document document = reader.read(new FileInputStream(XMLHelper.getConfigDir(".." + File.separator + "packaging" + File.separator + "huh-linux.install4j")));
+	        Node node = document.selectSingleNode("/install4j/application");
+	        // TODO: auto-increment version #
+	        title = node.valueOf("@name") + " " + node.valueOf("@version");
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	    }
+			return title;
+	}
+
+	/**
      * @param args
      */
     public static void main(String[] args)
