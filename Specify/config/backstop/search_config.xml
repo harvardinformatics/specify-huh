@@ -1597,7 +1597,7 @@ SELECT cn.ContainerID,
  FROM collectionobject co
  LEFT JOIN collectionobject_collobjbarcode cocobc ON co.CollectionObjectID = cocobc.CollectionObjectID
  LEFT JOIN collobjbarcode cobc ON cocobc.CollObjBarcodeID = cobc.CollObjBarcodeID
- JOIN determination det ON frag.FragmentID = det.FragmentID
+ JOIN determination det ON co.CollectionObjectID = det.CollectionObjectID
  JOIN taxon tx ON det.TaxonID = tx.TaxonID
  LEFT JOIN collectingevent ce ON co.CollectingEventID = ce.CollectingEventID
  LEFT JOIN collector ctr ON ce.CollectingEventID = ctr.CollectingEventID
@@ -1760,11 +1760,11 @@ SELECT cn.ContainerID,
  LEFT JOIN preparation pp ON lpo.PreparationID = pp.PreparationID
  LEFT JOIN preparation_prepbarcode ppbc ON pp.PreparationID = ppbc.PreparationID
  LEFT JOIN prepbarcode pbc ON ppbc.PrepBarcodeID = pbc.PrepBarcodeID
- LEFT JOIN fragment frag ON pp.PreparationID = frag.PreparationID
- LEFT JOIN determination det ON frag.FragmentID = det.FragmentID
+ LEFT JOIN collectionobject co ON pp.CollectionObjectID = co.CollectionObjectID
+ LEFT JOIN determination det ON co.CollectionObjectID = det.CollectionObjectID
  JOIN taxon tx ON (det.TaxonID = tx.TaxonID OR lpo.TaxonID = tx.TaxonID)
  WHERE %s
- ORDER BY tx.FullName, lpo.LoanPreparationID, frag.Identifier]]>
+ ORDER BY tx.FullName, lpo.LoanPreparationID, pbc.Barcode]]>
         		</sql>
         	<captions>
                     <caption tableid="52" col="ln.LoanID" visible="false"/>
