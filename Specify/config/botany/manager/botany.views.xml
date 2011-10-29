@@ -737,16 +737,16 @@
             <rowDef auto="true" cell="p" sep="2px"/>
             <rows>
                 <row>
-                    <cell type="subview" id="barcodes" name="barcodes" viewdef="CollObjBarcode" colspan="9"/>
+                    <cell type="subview" id="barcodes" name="barcodes" viewname="HUHCollObjBarcode" colspan="9"/>
                 </row>
                 <!-- from Fragment -->
                 <row>
                     <cell type="label" labelfor="catalogNumber"/>
                     <cell type="field" id="catalogNumber" name="catalogNumber" uitype="formattedtext" isrequired="true"/>
                     <cell type="label" labelfor="herbarium"/>
-                    <cell type="field" id="herbarium" name="text1" uitype="combobox" picklist="HUH Collection Code" isrequired="true"/>
-                    <cell type="field" id="isMinimal" name="yesNo2" uitype="checkbox"/>
-                    <cell type="field" id="isOnLoan" name="preparation.isOnLoan" uitype="checkbox" label="ISONLOAN" colspan="2" readonly="true"/>
+                    <cell type="field" id="herbarium" name="herbarium" uitype="combobox" picklist="HUH Collection Code" isrequired="true"/>
+                    <!-- <cell type="field" id="isMinimal" name="yesNo2" uitype="checkbox"/> -->
+                    <!-- <cell type="field" id="isOnLoan" name="preparation.isOnLoan" uitype="checkbox" label="ISONLOAN" colspan="2" readonly="true"/> -->
                 </row>
                 <row>
                     <cell type="label" labelfor="prepMethod"/>
@@ -761,7 +761,7 @@
                     <cell type="field" id="accessionNumber" name="accessionNumber" uitype="formattedtext"/>
                     <cell type="label" labelfor="replicates"/>
                     <cell type="field" id="replicates" name="number1" uitype="text"/>
-                    <cell type="subview" id="attachments" viewname="ObjectAttachment" name="fragmentAttachments" initialize="btn=true;icon=FragmentAttachment"/>
+                    <cell type="subview" id="attachments" viewname="ObjectAttachment" name="collectionObjectAttachments" initialize="btn=true;icon=CollectionObjectAttachment"/>
                 </row>
                 <row>
                     <cell type="label" labelfor="distribution"/>
@@ -798,7 +798,7 @@
                     <cell type="label" label=" "/>
                 </row>
                 <row>
-                    <cell type="subview" id="determinations" name="determinations" viewname="DeterminationSub" colspan="12"/>
+                    <cell type="subview" id="determinations" name="determinations" viewname="HUHDeterminationSub" colspan="12"/>
                 </row>
                 <row>
                     <cell type="subview" id="exsiccatae" name="collectionObjectCitations" viewname="HUHExsiccatae" colspan="12"/>
@@ -807,12 +807,10 @@
                 <row>
                     <cell type="label" labelfor="container"/>
                     <cell type="field" id="container" name="container" uitype="querycbx" initialize="name=Container" colspan="5"/>
-                    <cell type="label" label=" "/>
-                    <cell type="subview" id="collattachments" viewname="ObjectAttachment" name="collectionObjectAttachments" initialize="btn=true;icon=CollectionObjectAttachment"/>
                 </row>
                 <row>
                     <cell type="label" label=" "/>
-                    <cell type="subview" viewname="Projects" id="projects" name="projects" rows="2" colspan="9" initialize="name=Project;addsearch=true"/>
+                    <cell type="subview" viewname="Project" id="projects" name="projects" rows="2" colspan="9" initialize="name=Project;addsearch=true"/>
                 </row>
                 <row>
                     <cell type="label" label=" "/>
@@ -846,18 +844,6 @@
                 <row>
                     <cell type="label" labelfor="substrate"/>
                     <cell type="field" id="substrate" name="text2" uitype="text" colspan="9"/>
-                </row>
-                <row>
-                    <cell type="label" labelfor="description"/>
-                    <cell type="field" id="description" name="description" uitype="textareabrief" rows="2" colspan="9"/>
-                </row>
-                <row>
-                    <cell type="label" labelfor="remarks"/>
-                    <cell type="field" id="remarks" name="remarks" uitype="textareabrief" rows="2" colspan="9"/>
-                </row>
-                <row>
-                    <cell type="label" labelfor="internalRemarks"/>
-                    <cell type="field" id="internalRemarks" name="internalRemarks" uitype="textareabrief" rows="2" colspan="9"/>
                 </row>
                 <row>
                     <cell type="separator" label="Cataloger" colspan="11"/>
@@ -913,7 +899,7 @@
         <viewdef
             name="HUHExsiccataItem Table"
             type="formtable"
-            class="edu.ku.brc.specify.datamodel.FragmentCitation"
+            class="edu.ku.brc.specify.datamodel.CollectionObjectCitation"
             gettable="edu.ku.brc.af.ui.forms.DataGetterForObj"
             settable="edu.ku.brc.af.ui.forms.DataSetterForObj">
             <desc><![CDATA[Exsiccata Item]]></desc>

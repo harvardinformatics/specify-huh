@@ -101,6 +101,20 @@
                 <altview name="HUHDetermination Table Edit" viewdef="HUHDetermination Table" mode="edit"/>
             </altviews>
         </view>
+        
+        <view name="HUHDeterminationSub"
+            class="edu.ku.brc.specify.datamodel.Determination"
+            busrules="edu.ku.brc.specify.datamodel.busrules.DeterminationBusRules" 
+            isexternal="true"
+            resourcelabels="false">
+            <desc><![CDATA[Subform within the Collection Object form.]]></desc>
+            <altviews>
+                <altview name="HUHDeterminationSub View"       viewdef="HUHDeterminationSub" mode="view"/>
+                <altview name="HUHDeterminationSub Edit"       viewdef="HUHDeterminationSub" mode="edit" default="true"/>
+                <altview name="HUHDeterminationSub Table View" viewdef="HUHDeterminationSub Table" mode="view"/>
+                <altview name="HUHDeterminationSub Table Edit" viewdef="HUHDeterminationSub Table" mode="edit"/>
+            </altviews>
+        </view>
         <!-- end HUH additions -->
 
     </views>
@@ -412,16 +426,16 @@
             <rowDef auto="true" cell="p" sep="2px"/>
             <rows>
                 <row>
-                    <cell type="subview" id="barcodes" name="barcodes" viewdef="CollObjBarcode" colspan="9"/>
+                    <cell type="subview" id="barcodes" name="barcodes" viewname="HUHCollObjBarcode" colspan="9"/>
                 </row>
                 <!-- from Fragment -->
                 <row>
                     <cell type="label" labelfor="catalogNumber"/>
                     <cell type="field" id="catalogNumber" name="catalogNumber" uitype="formattedtext" isrequired="true"/>
                     <cell type="label" labelfor="herbarium"/>
-                    <cell type="field" id="herbarium" name="text1" uitype="combobox" picklist="HUH Collection Code" isrequired="true"/>
-                    <cell type="field" id="isMinimal" name="yesNo2" uitype="checkbox"/>
-                    <cell type="field" id="isOnLoan" name="preparation.isOnLoan" uitype="checkbox" label="ISONLOAN" colspan="2" readonly="true"/>
+                    <cell type="field" id="herbarium" name="herbarium" uitype="combobox" picklist="HUH Collection Code" isrequired="true"/>
+                    <!-- <cell type="field" id="isMinimal" name="yesNo2" uitype="checkbox"/> -->
+                    <!-- <cell type="field" id="isOnLoan" name="preparation.isOnLoan" uitype="checkbox" label="ISONLOAN" colspan="2" readonly="true"/> -->
                 </row>
                 <row>
                     <cell type="label" labelfor="prepMethod"/>
@@ -436,7 +450,7 @@
                     <cell type="field" id="accessionNumber" name="accessionNumber" uitype="formattedtext"/>
                     <cell type="label" labelfor="replicates"/>
                     <cell type="field" id="replicates" name="number1" uitype="text"/>
-                    <cell type="subview" id="attachments" viewname="ObjectAttachment" name="fragmentAttachments" initialize="btn=true;icon=FragmentAttachment"/>
+                    <cell type="subview" id="attachments" viewname="ObjectAttachment" name="collectionObjectAttachments" initialize="btn=true;icon=CollectionObjectAttachment"/>
                 </row>
                 <row>
                     <cell type="label" labelfor="distribution"/>
@@ -473,18 +487,16 @@
                     <cell type="label" label=" "/>
                 </row>
                 <row>
-                    <cell type="subview" id="determinations" name="determinations" viewname="DeterminationSub" colspan="12"/>
+                    <cell type="subview" id="determinations" name="determinations" viewname="HUHDeterminationSub" colspan="12"/>
                 </row>
                 <!-- end of Fragment -->
                 <row>
                     <cell type="label" labelfor="container"/>
                     <cell type="field" id="container" name="container" uitype="querycbx" initialize="name=Container" colspan="5"/>
-                    <cell type="label" label=" "/>
-                    <cell type="subview" id="collattachments" viewname="ObjectAttachment" name="collectionObjectAttachments" initialize="btn=true;icon=CollectionObjectAttachment"/>
                 </row>
                 <row>
                     <cell type="label" label=" "/>
-                    <cell type="subview" viewname="Projects" id="projects" name="projects" rows="2" colspan="9" initialize="name=Project;addsearch=true"/>
+                    <cell type="subview" viewname="Project" id="projects" name="projects" rows="2" colspan="9" initialize="name=Project;addsearch=true"/>
                 </row>
                 <row>
                     <cell type="label" label=" "/>
@@ -518,18 +530,6 @@
                 <row>
                     <cell type="label" labelfor="substrate"/>
                     <cell type="field" id="substrate" name="text2" uitype="text" colspan="9"/>
-                </row>
-                <row>
-                    <cell type="label" labelfor="description"/>
-                    <cell type="field" id="description" name="description" uitype="textareabrief" rows="2" colspan="9"/>
-                </row>
-                <row>
-                    <cell type="label" labelfor="remarks"/>
-                    <cell type="field" id="remarks" name="remarks" uitype="textareabrief" rows="2" colspan="9"/>
-                </row>
-                <row>
-                    <cell type="label" labelfor="internalRemarks"/>
-                    <cell type="field" id="internalRemarks" name="internalRemarks" uitype="textareabrief" rows="2" colspan="9"/>
                 </row>
                 <row>
                     <cell type="separator" label="Cataloger" colspan="11"/>
@@ -731,17 +731,17 @@
                     <cell type="label" labelfor="10"/>
                     <cell type="field" id="10" name="alternateName" uitype="text" colspan="5"/>
                     <cell type="label" label=" "/>
-                    <cell type="field" id="yesNo1" name="yesNo1" uitype="checkbox"/>
+                    <cell type="field" id="yesNo1" name="yesNo1" uitype="checkbox"/> <!-- is label -->
                 </row>
                 <row>
                     <cell type="label" labelfor="text1"/>
-                    <cell type="field" id="text1" uitype="text" colspan="5"/>
+                    <cell type="field" id="text1" uitype="text" colspan="5"/> <!-- determiner text -->
                     <cell type="label" label=" "/>
-                    <cell type="field" id="yesNo2" name="yesNo2" uitype="checkbox"/> 
+                    <cell type="field" id="yesNo2" name="yesNo2" uitype="checkbox"/> <!-- is fragment -->
                 </row>
                 <row>
                     <cell type="label" labelfor="text2"/>
-                    <cell type="field" id="text2" uitype="textareabrief" rows="2" colspan="5"/>
+                    <cell type="field" id="text2" uitype="textareabrief" rows="2" colspan="5"/> <!-- annotation text -->
                     <cell type="label" label=" "/>
                     <cell type="field" id="yesNo3" name="yesNo3" uitype="checkbox"/> 
                 </row>
@@ -757,6 +757,17 @@
                     <cell type="subview" viewname="HUHDeterminationCitation" id="determinationCitations" name="determinationCitations" class="edu.ku.brc.specify.datamodel.DeterminationCitation" defaulttype="table" rows="1" colspan="10"/>
                 </row>
             </rows>
+        </viewdef>
+        
+        <viewdef
+            name="HUHDeterminationSub Table"
+            type="formtable"
+            class="edu.ku.brc.specify.datamodel.Determination"
+            gettable="edu.ku.brc.af.ui.forms.DataGetterForObj"
+            settable="edu.ku.brc.af.ui.forms.DataSetterForObj">
+            
+            <desc><![CDATA[Determination subform table.]]></desc>
+            <definition>HUHDeterminationSub</definition>
         </viewdef>
         <!-- end HUH additions -->
         

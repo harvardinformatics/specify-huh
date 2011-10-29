@@ -1090,8 +1090,8 @@
             >
             <desc><![CDATA[The Collectors Subform.]]></desc>
             <altviews>
-                <altview name="HUHCollectors Table View" viewdef="HUHCollectors Table"   mode="view"/>
-                <altview name="HUHCollectors Table Edit" viewdef="HUHCollectors Table"   mode="edit"/>
+                <altview name="HUHCollectors View" viewdef="HUHCollectors Table"   mode="view"/>
+                <altview name="HUHCollectors Edit" viewdef="HUHCollectors Table"   mode="edit"/>
                 <altview name="HUHCollectors Table View" viewdef="HUHCollectors Table"   mode="view"/>
                 <altview name="HUHCollectors Table Edit" viewdef="HUHCollectors Table"   mode="edit" default="true"/>
             </altviews>
@@ -1288,6 +1288,16 @@
                 <altview name="HUHOtherIdentifier Table Edit" viewdef="HUHOtherIdentifier Table" mode="edit"/>
                 <altview name="HUHOtherIdentifier View" viewdef="HUHOtherIdentifier" mode="view"/>
                 <altview name="HUHOtherIdentifier Edit" viewdef="HUHOtherIdentifier" mode="edit" default="true"/>
+            </altviews>
+        </view>
+
+        <view name="HUHOtherIdentifiers"
+            class="edu.ku.brc.specify.datamodel.OtherIdentifier"
+            resourcelabels="false">
+            <desc><![CDATA[OtherIdentifier form.]]></desc>
+            <altviews>
+                <altview name="HUHOtherIdentifier Table View" viewdef="HUHOtherIdentifier Table" mode="view"/>
+                <altview name="HUHOtherIdentifier Table Edit" viewdef="HUHOtherIdentifier Table" mode="edit" default="true"/>
             </altviews>
         </view>
 
@@ -6666,6 +6676,7 @@
 
         <viewdef
             name="HUHCollObjBarcode"
+            title="Collection Object Barcode"
             type="form"
             class="edu.ku.brc.specify.datamodel.CollObjBarcode"
             gettable="edu.ku.brc.af.ui.forms.DataGetterForObj"
@@ -6685,7 +6696,7 @@
                 </row>
                 <row>
                     <cell type="label" labelfor="remarks"/>
-                    <cell type="field" id="remarks" name="remarks" uitype="text" colspan="4"/>
+                    <cell type="field" id="remarks" name="remarks" uitype="text" colspan="3"/>
                 </row>
             </rows>
         </viewdef>
@@ -7601,7 +7612,7 @@
 
             <rows>
                 <row>
-                    <cell type="subview" id="barcodes" name="barcodes" viewdef="PrepBarcode" colspan="11"/>
+                    <cell type="subview" id="barcodes" name="barcodes" viewname="HUHPrepBarcode" colspan="11"/>
                 </row>
                 <row>
                     <cell type="label" labelfor="7"/>
@@ -7625,6 +7636,7 @@
 
         <viewdef
             name="HUHPrepBarcode"
+            title="Preparation Barcode"
             type="form"
             class="edu.ku.brc.specify.datamodel.PrepBarcode"
             gettable="edu.ku.brc.af.ui.forms.DataGetterForObj"
@@ -7644,7 +7656,7 @@
                 </row>
                 <row>
                     <cell type="label" labelfor="remarks"/>
-                    <cell type="field" id="remarks" name="remarks" uitype="text" colspan="4"/>
+                    <cell type="field" id="remarks" name="remarks" uitype="text" colspan="3"/>
                 </row>
             </rows>
         </viewdef>
