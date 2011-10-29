@@ -1,17 +1,39 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <views>
 	<std>
-	    
+
+        <!-- modified by HUH -->	    
+        <!--
 	    <view sidebar="true"  title="Collection Object"  view="CollectionObject"   iconname="CollectionObject"   tooltip=""/>    
 	    <view sidebar="false"  title="Collecting Event"   view="CollectingEvent"    iconname="CollectingEvent"    tooltip=""/>    
 	    <view sidebar="true"  title="Taxon"              view="Taxon"              iconname="Taxon"              tooltip=""/> 
 	    <view sidebar="true"  title="Agent"              view="Agent"              iconname="Agent"              tooltip=""/>    
 	    <view sidebar="true"  title="Geography"          view="Geography"          iconname="Geography"          tooltip=""/> 
 		<view sidebar="true"  title="Locality"           view="Locality"           iconname="Locality"           tooltip=""/> 
+        -->
+        <!-- end HUH modification -->
+
+        <!-- added by HUH -->
+        <view sidebar="true"  title="Collection Object"   view="HUHCollectionObject"   iconname="CollectionObject"   tooltip=""/>    
+	    <view sidebar="false" title="Collecting Event"    view="HUHCollectingEvent"    iconname="CollectingEvent"    tooltip=""/>    
+	    <view sidebar="true"  title="Taxon"               view="HUHTaxon"              iconname="Taxon"              tooltip=""/> 
+	    <view sidebar="true"  title="Botanist"            view="HUHBotanist"          iconname="Agent"              tooltip=""/>    
+	    <view sidebar="true"  title="Geography"           view="HUHGeography"          iconname="Geography"          tooltip=""/> 
+		<view sidebar="true"  title="Locality"            view="HUHLocality"           iconname="Locality"           tooltip=""/>
+		<view sidebar="true"  title="Publication"         view="HUHReferenceWork"      iconname="ReferenceWork"      tooltip=""/>
+        <!-- end HUH addition -->		
 	</std>
 	
 	<misc>
         <!-- <view sidebar="true"  title="Deaccession"        viewset="Common"       view="Deaccession"        iconname="Deaccession"        tooltip=""/> --> 
+        <!-- modified by HUH -->	    
+        <!--
 		<view sidebar="true"  title="Storage"            view="Storage"            iconname="Storage"           tooltip=""/>
+        -->
+        <!-- end HUH modification -->
+
+        <!-- added by HUH -->
+        <view sidebar="true"  title="HUHStorage"            view="Storage"            iconname="Storage"           tooltip=""/>
+        <!-- end HUH addition -->
 	</misc>
 </views>
