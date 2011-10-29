@@ -1296,15 +1296,8 @@ Good: <cell type="field" name="FieldNum" ...>
             
             <rows>
                 <row>
-                    <cell type="label" label="Item Barcode:" />
-                    <cell type="field" id="5" name="fragment.Identifier" uitype="text"/>
-                </row>
-                <row>
-                    <cell type="separator" label="Preparation" colspan="7"/>
-                </row>
-                <row>
                     <cell type="label" label="Prep Barcode: "/>
-                    <cell type="field" id="1" name="preparation.Identifier" uitype="text"/>
+                    <cell type="field" id="1" name="prepBarcode.Barcode" uitype="text"/>
                 </row>
                 <row>
                     <cell type="label" label="Prep Type:" />
