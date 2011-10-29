@@ -133,7 +133,7 @@ public class CollectionObject extends CollectionMember implements AttachmentOwne
 	protected String  herbarium;   // herbarium (collection)
 	protected String  reference;   // reference
 	protected String  voucher;
-	protected Integer replicates;  // replicates
+
 	// end HUH additions
 	
     // Relationships
