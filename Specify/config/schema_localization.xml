@@ -10005,7 +10005,7 @@
         </names>
         <descs/>
       </desc>
-      <desc name="number1" type="java.lang.Float" isHidden="true" isUIFormatter="false" isRequired="false">
+      <desc name="number1" type="java.lang.Float" isHidden="false" isUIFormatter="false" isRequired="false">
         <version>0</version>
         <names>
           <str language="pt">
@@ -10014,7 +10014,7 @@
           </str>
           <str language="en">
             <version>0</version>
-            <text>Number1</text>
+            <text>Replicates</text>
           </str>
         </names>
         <descs>
@@ -16173,6 +16173,28 @@
           <str language="en">
             <version>0</version>
             <text>Is Fragment</text>
+          </str>
+        </names>
+        <descs>
+          <str language="en">
+            <version>0</version>
+            <text>User definable.</text>
+          </str>
+          <str language="pt">
+            <version>1</version>
+            <text>Configurável pelo utilizador.</text>
+          </str>
+        </descs>
+      <desc name="yesNo3" type="java.lang.Boolean" isHidden="false" isUIFormatter="false" isRequired="false">
+        <version>0</version>
+        <names>
+          <str language="pt">
+            <version>1</version>
+            <text>Sim Não</text>
+          </str>
+          <str language="en">
+            <version>0</version>
+            <text>Is Filed Under</text>
           </str>
         </names>
         <descs>
@@ -40845,6 +40867,16 @@ Specify provides an extensive array of utilities for curatorial management of sp
           <str language="en">
             <version>0</version>
             <text>Parenthetical Ex Author</text>
+          </str>
+        </names>
+        <descs/>
+      </desc>
+      <desc name="parSanctAuthor" isHidden="false">
+        <version>0</version>
+        <names>
+          <str language="en">
+            <version>0</version>
+            <text>Sanctioned by (par.)</text>
           </str>
         </names>
         <descs/>
