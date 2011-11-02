@@ -111,7 +111,7 @@ public class TreeLevelQRI extends FieldQRI
      */
     protected String getSQLFldName(final TableAbbreviator ta)
     {
-//        tableAlias = ta.getAbbreviation(table.getTableTree());
+        tableAlias = ta.getAbbreviation(table.getTableTree());
 //        return tableAlias + ".nodeNumber";
         
         return "";
@@ -210,11 +210,12 @@ public class TreeLevelQRI extends FieldQRI
 	}
 	
 	/**
+	 * Returns the IDs of all of a Treeable's descendants in the form of id1, id2,...id3
 	 * 
 	 * @param node
 	 * @return
 	 */
-	private String getDescendantsIn(DataProviderSessionIFace session, Class clazz, Integer parentId) {
+	private String getDescendantsIn(DataProviderSessionIFace session, Class<?> clazz, Integer parentId) {
 	    String ids = getDescendantsInRecursive(session, clazz, parentId);
 	    if (ids.length() > 0) {
 	        return ids.substring(0, ids.length() - 2);
@@ -223,15 +224,16 @@ public class TreeLevelQRI extends FieldQRI
 	    }
 	}
 	
-	private String getDescendantsInRecursive(DataProviderSessionIFace session, Class clazz, Integer parentId) {
+	private String getDescendantsInRecursive(DataProviderSessionIFace session, Class<?> clazz, Integer parentId) {
 	    String in = "";
 	    
 	    QueryIFace query = session.createQuery("select e.id from " + clazz.getCanonicalName() + " e where e.parent.id = :parentId", false);
 	    query.setParameter("parentId", parentId);
-	    List<Integer> ids = (List<Integer>) query.list();
+	    @SuppressWarnings("unchecked")
+		List<Integer> ids = (List<Integer>) query.list();
 	    for (Integer id : ids) {
 	        in += id + ", ";
-            in += getDescendantsIn(session, clazz, id);
+            in += getDescendantsInRecursive(session, clazz, id);
 	    }
 	    
 	    return in;
@@ -300,7 +302,7 @@ public class TreeLevelQRI extends FieldQRI
                         result.append(" or ");
                     }
                 }
-                result.append(ta.getAbbreviation(table.getTableTree()) + ".nodeNumber");
+                result.append(ta.getAbbreviation(table.getTableTree()) + ".id");
                 if (negate)
                 {
                     result.append(" not "); 
@@ -309,7 +311,7 @@ public class TreeLevelQRI extends FieldQRI
                 result.append(in);
                 result.append(")");
             }
-            return "(" + result.toString() + ")";
+            return result.toString();
         }
         finally
         {
