@@ -20,6 +20,7 @@
 package edu.ku.brc.specify.tasks.subpane.qb;
 
 import java.text.ParseException;
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -28,6 +29,7 @@ import edu.ku.brc.af.core.db.DBFieldInfo;
 import edu.ku.brc.af.core.db.DBTableInfo;
 import edu.ku.brc.dbsupport.DataProviderFactory;
 import edu.ku.brc.dbsupport.DataProviderSessionIFace;
+import edu.ku.brc.dbsupport.DataProviderSessionIFace.QueryIFace;
 import edu.ku.brc.specify.config.SpecifyAppContextMgr;
 import edu.ku.brc.specify.datamodel.TreeDefIface;
 import edu.ku.brc.specify.datamodel.TreeDefItemIface;
@@ -109,8 +111,10 @@ public class TreeLevelQRI extends FieldQRI
      */
     protected String getSQLFldName(final TableAbbreviator ta)
     {
-        tableAlias = ta.getAbbreviation(table.getTableTree());
-        return tableAlias + ".nodeNumber";
+//        tableAlias = ta.getAbbreviation(table.getTableTree());
+//        return tableAlias + ".nodeNumber";
+        
+        return "";
     }
     
     /**
@@ -204,84 +208,114 @@ public class TreeLevelQRI extends FieldQRI
         }
         return result;
 	}
+	
+	/**
+	 * 
+	 * @param node
+	 * @return
+	 */
+	private String getDescendantsIn(DataProviderSessionIFace session, Class clazz, Integer parentId) {
+	    String ids = getDescendantsInRecursive(session, clazz, parentId);
+	    if (ids.length() > 0) {
+	        return ids.substring(0, ids.length() - 2);
+	    } else {
+	        return "";
+	    }
+	}
+	
+	private String getDescendantsInRecursive(DataProviderSessionIFace session, Class clazz, Integer parentId) {
+	    String in = "";
+	    
+	    QueryIFace query = session.createQuery("select e.id from " + clazz.getCanonicalName() + " e where e.parent.id = :parentId", false);
+	    query.setParameter("parentId", parentId);
+	    List<Integer> ids = (List<Integer>) query.list();
+	    for (Integer id : ids) {
+	        in += id + ", ";
+            in += getDescendantsIn(session, clazz, id);
+	    }
+	    
+	    return in;
+	}
 
-//	/**
-//     * @param criteria
-//     * @param ta
-//     * @param operStr
-//     * @param negate
-//     * @return a where clause condition for the given criteria using tree node-numbers.
-//     * 
-//     * Looks up the matching node (1 node - opearators are restricted for TreeLevels) and creates 
-//     * a condition to get it's descendants. 
-//     */
-//    @SuppressWarnings("unchecked")
-//    public String getNodeNumberCriteria(final String criteria, final TableAbbreviator ta, 
-//                                        final String operStr, final boolean negate) throws ParseException
-//    {
-//        if (criteria.equals("'%'") || criteria.equals("'*'"))
-//        {
-//        	//same as no condition. Almost - Like '%' won't return nulls, but maybe it should.
-//        	return null;
-//        }
-//                
-//    	DataProviderSessionIFace session = DataProviderFactory.getInstance()
-//        .createSession();
-//        try
-//        {
-//            SpecifyAppContextMgr spMgr = (SpecifyAppContextMgr )AppContextMgr.getInstance();
-//            TreeDefIface<?, ?, ?> treeDef = spMgr.getTreeDefForClass((Class<? extends Treeable<?,?,?>> )getTableInfo().getClassObj());
-//
-//            String className = getTableInfo().getClassObj().getSimpleName();
-//            List<?> matches = session.getDataList("from " + className + " where name " + operStr + " " +  criteria + " and " + className + "TreeDefId = " + treeDef.getTreeDefId()
-//                    + " and rankId =" + String.valueOf(rankId));
-//            List<Pair<Integer, Integer>> nodeInfo = new LinkedList<Pair<Integer, Integer>>();
-//            if (matches.size() == 0)
-//            {
-//                return "2+2=2"; //that'll do the trick. 
-//            }
-//            
-//            if (getMaxNodeConditions() > 0 && matches.size() > getMaxNodeConditions())
-//            {
-//            	throw new ParseException(UIRegistry.getResourceString("QB_TOO_MANY_TREE_RANK_MATCHES"), -1);
-//            }
-//            
-//            for (Object match : matches)
-//            {
-//                Treeable<?,?,?> node = (Treeable<?,?,?>)match;
+	/**
+     * @param criteria
+     * @param ta
+     * @param operStr
+     * @param negate
+     * @return a where clause condition for the given criteria using tree node-numbers.
+     * 
+     * Looks up the matching node (1 node - opearators are restricted for TreeLevels) and creates 
+     * a condition to get it's descendants. 
+     */
+    @SuppressWarnings("unchecked")
+    public String getNodeNumberCriteria(final String criteria, final TableAbbreviator ta, 
+                                        final String operStr, final boolean negate) throws ParseException
+    {
+        if (criteria.equals("'%'") || criteria.equals("'*'"))
+        {
+        	//same as no condition. Almost - Like '%' won't return nulls, but maybe it should.
+        	return null;
+        }
+                
+    	DataProviderSessionIFace session = DataProviderFactory.getInstance()
+        .createSession();
+        try
+        {
+            SpecifyAppContextMgr spMgr = (SpecifyAppContextMgr )AppContextMgr.getInstance();
+            TreeDefIface<?, ?, ?> treeDef = spMgr.getTreeDefForClass((Class<? extends Treeable<?,?,?>> )getTableInfo().getClassObj());
+
+            String className = getTableInfo().getClassObj().getSimpleName();
+            List<?> matches = session.getDataList("from " + className + " where name " + operStr + " " +  criteria + " and " + className + "TreeDefId = " + treeDef.getTreeDefId()
+                    + " and rankId =" + String.valueOf(rankId));
+            List<Pair<Integer, Integer>> nodeInfo = new LinkedList<Pair<Integer, Integer>>();
+            if (matches.size() == 0)
+            {
+                return "2+2=2"; //that'll do the trick. 
+            }
+            
+            if (getMaxNodeConditions() > 0 && matches.size() > getMaxNodeConditions())
+            {
+            	throw new ParseException(UIRegistry.getResourceString("QB_TOO_MANY_TREE_RANK_MATCHES"), -1);
+            }
+            
+            ArrayList<String> inStatements = new ArrayList<String>();
+            for (Object match : matches)
+            {
+                Treeable<?,?,?> node = (Treeable<?,?,?>)match;
 //                nodeInfo.add(new Pair<Integer, Integer>(node.getNodeNumber(), node.getHighestChildNodeNumber()));
-//            }
-//            StringBuilder result = new StringBuilder();
-//            for (Pair<Integer, Integer> node : nodeInfo)
-//            {
-//                if (result.length() > 0)
-//                {
-//                    if (negate)
-//                    {
-//                        result.append(" and ");
-//                    }
-//                    else
-//                    {
-//                        result.append(" or ");
-//                    }
-//                }
-//                result.append(ta.getAbbreviation(table.getTableTree()) + ".nodeNumber");
-//                if (negate)
-//                {
-//                    result.append(" not "); 
-//                }
-//                result.append(" between ");
-//                result.append(node.getFirst());
-//                result.append(" and ");
-//                result.append(node.getSecond());
-//            }
-//            return "(" + result.toString() + ")";
-//        }
-//        finally
-//        {
-//            session.close();
-//        }
-//    }
+                String ids = getDescendantsIn(session, node.getClass(), node.getTreeId());
+                inStatements.add(ids);
+            }
+            StringBuilder result = new StringBuilder();
+            for (String in : inStatements)
+            {
+                if (result.length() > 0)
+                {
+                    if (negate)
+                    {
+                        result.append(" and ");
+                    }
+                    else
+                    {
+                        result.append(" or ");
+                    }
+                }
+                result.append(ta.getAbbreviation(table.getTableTree()) + ".nodeNumber");
+                if (negate)
+                {
+                    result.append(" not "); 
+                }
+                result.append(" in (");
+                result.append(in);
+                result.append(")");
+            }
+            return "(" + result.toString() + ")";
+        }
+        finally
+        {
+            session.close();
+        }
+    }
 
     @SuppressWarnings("serial")
     public class NoTreeDefItemException extends Exception

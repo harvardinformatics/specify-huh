@@ -1160,19 +1160,19 @@ public class QueryFieldPanel extends JPanel implements ActionListener
                 if (fieldQRI instanceof TreeLevelQRI)
                 {
                 	// lchan: TODO: check if this breaks anything
-                	return null;
-//                    try
-//                    {
-//                    	return ((TreeLevelQRI)fieldQRI).getNodeNumberCriteria(criteriaFormula, ta, operStr, isNotCheckbox.isSelected());
-//                    }
-//                    catch (ParseException pe)
-//                    {
-//                        throw new ParseException(getLabel()
-//                                + " - "
-//                                + String.format(UIRegistry.getResourceString("QB_PARSE_ERROR"),
-//                                        pe.getLocalizedMessage()), -1);
-//                   	
-//                    }
+//                	return null;
+                    try
+                    {
+                    	return ((TreeLevelQRI)fieldQRI).getNodeNumberCriteria(criteriaFormula, ta, operStr, isNotCheckbox.isSelected());
+                    }
+                    catch (ParseException pe)
+                    {
+                        throw new ParseException(getLabel()
+                                + " - "
+                                + String.format(UIRegistry.getResourceString("QB_PARSE_ERROR"),
+                                        pe.getLocalizedMessage()), -1);
+                   	
+                    }
                 }
                     
                 StringBuilder str = new StringBuilder();
