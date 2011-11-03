@@ -22,9 +22,9 @@
 
 package edu.harvard.huh.specify.reports;
 
-import java.io.BufferedOutputStream;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 
@@ -63,11 +63,10 @@ public class DataModelObjectReport {
 	 * constructor.
 	 */
 	public void generatePDF() {
-		FopFactory fopFactory = FopFactory.newInstance();
-		OutputStream out = null;
+		FopFactory fopFactory = FopFactory.newInstance(); 
+		ByteArrayOutputStream out = new ByteArrayOutputStream();
 
 		try {
-			out = new BufferedOutputStream(new FileOutputStream(new File(reportsDir.getAbsoluteFile() + File.separator + "out.pdf")));
 			Fop fop = fopFactory.newFop(MimeConstants.MIME_PDF, out);
 
 			TransformerFactory factory = TransformerFactory.newInstance();
@@ -95,15 +94,7 @@ public class DataModelObjectReport {
 
 		PDFReader viewer = new PDFReader();
 		try {
-			PDFReader.display(reportsDir.getAbsoluteFile() + File.separator + "out.pdf");
-		} catch (Exception e) {
-			e.printStackTrace();
-			displayErrorDlg();
-		}
-
-		//set on close operation to delete file
-		try {
-			new File(reportsDir.getAbsoluteFile() + File.separator + "out.pdf").delete();
+			viewer.display(new ByteArrayInputStream(out.toByteArray()));
 		} catch (Exception e) {
 			e.printStackTrace();
 			displayErrorDlg();

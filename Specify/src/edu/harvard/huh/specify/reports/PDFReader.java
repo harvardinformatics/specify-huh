@@ -341,6 +341,23 @@ public class PDFReader extends javax.swing.JFrame
             viewer.openPDFFile(filename);
         viewer.setVisible(true);
     }
+    
+    public void display(InputStream input) throws Exception
+    {
+    	if( document != null )
+        {
+            document.close();
+            documentPanel.removeAll();
+        }
+    	document = parseDocument( input );
+        pages = document.getDocumentCatalog().getAllPages();
+        numberOfPages = pages.size();
+        currentFilename = null; // Unsaved document
+        currentPage = 0;
+        updateTitle();
+        showPage(0);
+        setVisible(true);
+    }
 
     private void openPDFFile(String file) throws Exception
     {

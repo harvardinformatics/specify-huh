@@ -1,6 +1,7 @@
 <binding>
 	<include path="datamodel_binding.xml" />
 	<mapping name="reportLoan" class="edu.harvard.huh.specify.reports.ReportLoan">
+		<value name="reportsDir" field="reportsDir" usage="optional" />
 		<value name="nameOfContact" field="nameOfContact" usage="optional" />
 		<value name="institution" field="institution" usage="optional" />
 		<value name="acronym" field="acronym" usage="optional" />

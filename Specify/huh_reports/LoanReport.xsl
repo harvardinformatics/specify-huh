@@ -6,22 +6,35 @@
 	xmlns:date="http://exslt.org/dates-and-times" xmlns:huh="http://edu.harvard/huh/specify/reports/datamodel">
 
 	<xsl:variable name="nameOfContact">
-	<xsl:if test="reportLoan/title != ''">
-		<xsl:value-of select ="reportLoan/title" />.&#x20;
-	</xsl:if>
-		<xsl:value-of select="reportLoan/nameOfContact" />,&#x20;
+		<xsl:if test="reportLoan/title != ''">
+			<xsl:value-of select="reportLoan/title" />
+			.&#x20;
+		</xsl:if>
+		<xsl:value-of select="reportLoan/nameOfContact" />
+		,&#x20;
 		<xsl:value-of select="reportLoan/jobTitle" />
 	</xsl:variable>
 	<xsl:variable name="institution">
 		<xsl:value-of select="reportLoan/institution" />
 		<xsl:if test="reportLoan/acronym != ''">
-		- (<xsl:value-of select="reportLoan/acronym" />)</xsl:if>
+			- (
+			<xsl:value-of select="reportLoan/acronym" />
+			)
+		</xsl:if>
 	</xsl:variable>
 
 	<xsl:variable name="address1" select="reportLoan/address1" />
 	<xsl:variable name="address2" select="reportLoan/address2" />
 	<xsl:variable name="cityStateZip">
-	    <xsl:if test="reportLoan/city != ''"><xsl:value-of select="reportLoan/city" />, </xsl:if><xsl:if test="reportLoan/state != ''"><xsl:value-of select="reportLoan/state" />, </xsl:if><xsl:value-of select="reportLoan/zip" />
+		<xsl:if test="reportLoan/city != ''">
+			<xsl:value-of select="reportLoan/city" />
+			,
+		</xsl:if>
+		<xsl:if test="reportLoan/state != ''">
+			<xsl:value-of select="reportLoan/state" />
+			,
+		</xsl:if>
+		<xsl:value-of select="reportLoan/zip" />
 	</xsl:variable>
 
 	<xsl:variable name="country" select="reportLoan/country" />
@@ -89,14 +102,16 @@
 							<fo:table-row>
 								<fo:table-cell column-number="2">
 									<fo:block>
-										<fo:external-graphic src="../huh_reports/logo.png"
-											content-width="36pt" />
-                        			</fo:block>
+										<fo:external-graphic content-width="36pt">
+											<xsl:attribute name="src">
+												<xsl:value-of select="reportLoan/reportsDir" />/logo.png
+											</xsl:attribute>
+										</fo:external-graphic>
+									</fo:block>
 								</fo:table-cell>
 								<fo:table-cell column-number="3">
 									<fo:block-container>
-										<fo:block font="12pt Times New Roman"
-											font-weight="bold">
+										<fo:block font="12pt Times New Roman" font-weight="bold">
 											The Harvard University Herbaria</fo:block>
 										<fo:block>22 Divinity Avenue, Cambridge, Massachusetts 02138,
 											USA
@@ -115,9 +130,9 @@
 						space-after="12pt" font-weight="bold" text-decoration="underline">LOAN
 						SHIPPING
 						NOTICE</fo:block>
-					<fo:block-container space-before="12pt" height="29mm">	
-					<fo:block>
-						<xsl:value-of select="$nameOfContact" />&#x20;
+					<fo:block-container space-before="12pt" height="29mm">
+						<fo:block>
+							<xsl:value-of select="$nameOfContact" />&#x20;
 					</fo:block>
 					<fo:block>
 						<xsl:value-of select="$institution" />&#x20;
@@ -305,7 +320,7 @@
 							<fo:inline padding-left="78mm">Date</fo:inline>
 						</fo:block>
 					</fo:block-container>
-					<xsl:if test="count(reportLoan/unbarcodedSpecimen) > 0">
+					<xsl:if test="count(reportLoan/unbarcodedSpecimen) &gt; 0">
 					<fo:block space-after="24pt">LOTS OF UNBARCODED SPECIMENS
 					</fo:block>
 					<fo:table border-style="solid">
@@ -353,7 +368,7 @@
 						<xsl:value-of select="$generalCollections" />
 					</fo:block>
 					</xsl:if>
-					<xsl:if test="count(reportLoan/barcodedSpecimen) > 0">
+					<xsl:if test="count(reportLoan/barcodedSpecimen) &gt; 0">
 					<fo:block space-after="24pt">LIST OF BARCODED SPECIMENS
 					</fo:block>
 					<fo:table border-style="solid">
@@ -380,7 +395,7 @@
 						<fo:table-body>
 							<xsl:for-each select="reportLoan/barcodedSpecimen">
 								<xsl:choose>
-									<xsl:when test="count(barcodedItem) > 1">
+									<xsl:when test="count(barcodedItem) &gt; 1">
 										<fo:table-row>
 											<fo:table-cell padding-left="5mm"
 												padding-right="5mm" padding-top="5mm" padding-bottom="5mm"

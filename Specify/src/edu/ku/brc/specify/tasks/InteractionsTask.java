@@ -1291,7 +1291,6 @@ public class InteractionsTask extends BaseTask
             if (option == JOptionPane.YES_OPTION) {
 	            try {
 	                ReportLoan rp = new ReportLoan(loan);
-	                File file = new File(reportsDir.getAbsoluteFile() + File.separator + "out.fo");
 	        		ByteArrayOutputStream out = new ByteArrayOutputStream();
 	                
 	    			DataModelObjectMarshaller<ReportLoan> marshaller = new DataModelObjectMarshaller<ReportLoan>(rp);
@@ -1299,11 +1298,12 @@ public class InteractionsTask extends BaseTask
 	                DataModelObjectReport report = new DataModelObjectReport(new StreamSource(new ByteArrayInputStream(out.toByteArray())));
 	                report.generatePDF();
 	
-	                // TODO: delete later
+	                /* for debugging only
 	    			File reportxml = new File(reportsDir.getAbsoluteFile() + File.separator + "LoanReport.xml");
 	    			File fo = new File(reportsDir.getAbsoluteFile() + File.separator + "LoanReport.fo");
 	    			marshaller.transform(new StreamSource(reportsDir.getAbsoluteFile() + File.separator + ReportXslFiles.LOAN_REPORT), new FileOutputStream(fo));
 	                marshaller.marshal(new FileOutputStream(reportxml));
+	                */
 	                
 				} catch (Exception e) {
 					e.printStackTrace();

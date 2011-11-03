@@ -22,6 +22,7 @@
 
 package edu.harvard.huh.specify.reports;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
@@ -37,6 +38,7 @@ import edu.ku.brc.specify.datamodel.Geography;
 import edu.ku.brc.specify.datamodel.Loan;
 import edu.ku.brc.specify.datamodel.LoanPreparation;
 import edu.ku.brc.specify.datamodel.Shipment;
+import edu.ku.brc.ui.UIRegistry;
 
 /** Java object representation of a Loan Report for use with HUH loans.
  * To be marshaled into xml and then transformed into a report document
@@ -47,7 +49,7 @@ import edu.ku.brc.specify.datamodel.Shipment;
  */
 public class ReportLoan {
 	private static final int REGION_RANK_ID = 150;
-	
+	private String reportsDir = UIRegistry.getDefaultWorkingPath() + File.separator + ReportXslFiles.REPORTS_DIR;
 	private String nameOfContact;
 	private String title;
 	private String jobTitle;
