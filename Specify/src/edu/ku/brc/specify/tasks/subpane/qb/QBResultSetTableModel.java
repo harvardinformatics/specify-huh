@@ -171,6 +171,7 @@ public class QBResultSetTableModel extends ResultSetTableModel
 					Vector<Object> row = null;
 					if (rowObj != null)
 					{
+						// Initialize row vector to the same length as the result set
 						row = new Vector<Object>(rowObj.getClass()
 							.isArray() ? ((Object[]) rowObj).length : 1);
 					}
@@ -317,6 +318,7 @@ public class QBResultSetTableModel extends ResultSetTableModel
 			}
 		} catch (Exception e) 
 		{
+			e.printStackTrace(); // lchan: it's better to display an error
             if (!((QBQueryForIdResultsHQL) results).getCancelled())
             {
             	UsageTracker.incrHandledUsageCount();

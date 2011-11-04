@@ -112,9 +112,7 @@ public class TreeLevelQRI extends FieldQRI
     protected String getSQLFldName(final TableAbbreviator ta)
     {
         tableAlias = ta.getAbbreviation(table.getTableTree());
-//        return tableAlias + ".nodeNumber";
-        
-        return "";
+        return tableAlias + ".id";
     }
     
     /**
@@ -269,7 +267,7 @@ public class TreeLevelQRI extends FieldQRI
             String className = getTableInfo().getClassObj().getSimpleName();
             List<?> matches = session.getDataList("from " + className + " where name " + operStr + " " +  criteria + " and " + className + "TreeDefId = " + treeDef.getTreeDefId()
                     + " and rankId =" + String.valueOf(rankId));
-            List<Pair<Integer, Integer>> nodeInfo = new LinkedList<Pair<Integer, Integer>>();
+//            List<Pair<Integer, Integer>> nodeInfo = new LinkedList<Pair<Integer, Integer>>();
             if (matches.size() == 0)
             {
                 return "2+2=2"; //that'll do the trick. 
@@ -291,25 +289,24 @@ public class TreeLevelQRI extends FieldQRI
             StringBuilder result = new StringBuilder();
             for (String in : inStatements)
             {
-                if (result.length() > 0)
-                {
-                    if (negate)
-                    {
-                        result.append(" and ");
+                // lchan: empty in statements (in()) are invalid
+                if (!in.isEmpty()) { 
+                    if (result.length() > 0) {
+                        if (negate) {
+                            result.append(" and ");
+                        } else {
+                            result.append(" or ");
+                        }
                     }
-                    else
-                    {
-                        result.append(" or ");
+                    result.append(ta.getAbbreviation(table.getTableTree())
+                            + ".id");
+                    if (negate) {
+                        result.append(" not ");
                     }
+                    result.append(" in(");
+                    result.append(in);
+                    result.append(")");
                 }
-                result.append(ta.getAbbreviation(table.getTableTree()) + ".id");
-                if (negate)
-                {
-                    result.append(" not "); 
-                }
-                result.append(" in (");
-                result.append(in);
-                result.append(")");
             }
             return result.toString();
         }

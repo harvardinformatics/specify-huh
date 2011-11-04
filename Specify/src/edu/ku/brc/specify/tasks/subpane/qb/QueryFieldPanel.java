@@ -1159,8 +1159,6 @@ public class QueryFieldPanel extends JPanel implements ActionListener
             {
                 if (fieldQRI instanceof TreeLevelQRI)
                 {
-                	// lchan: TODO: check if this breaks anything
-//                	return null;
                     try
                     {
                     	return ((TreeLevelQRI)fieldQRI).getNodeNumberCriteria(criteriaFormula, ta, operStr, isNotCheckbox.isSelected());
