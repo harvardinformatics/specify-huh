@@ -1,0 +1,5 @@
+driver = com.mysql.jdbc.Driver
+host = localhost
+database = DATABASE
+user = USER
+password = PASSWORD
