@@ -26,10 +26,11 @@
 		
         <plugin name="WorkbenchTask" class="edu.ku.brc.specify.tasks.WorkbenchTask" addui="true"/>
         
-        <plugin name="SGRTask" class="edu.ku.brc.specify.tasks.SGRTask" addui="true"/>
+        <!-- removed by HUH for FP -->
+        <!-- <plugin name="SGRTask" class="edu.ku.brc.specify.tasks.SGRTask" addui="true"/> -->
 
         <!-- added by HUH for FP -->
-		<plugin class="edu.ku.brc.specify.tasks.FilteredPushTask" addui="true"/>
+		<!-- <plugin class="edu.ku.brc.specify.tasks.FilteredPushTask" addui="true"/> -->
         <!-- end HUH addition -->
         
 		<!-- Remove the comments from the line below to see the security administration task on the main toolbar --> 
