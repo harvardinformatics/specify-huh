@@ -30,7 +30,7 @@
 <default_mapping name="eventdate" specify_field="1,10.collectingevent.startDate" fieldname="startDate" table_path="1,10" is_relationship="false" active="true"/>
 <default_mapping name="georeferenceverificationstatus" specify_field="1,10,2,123-geoCoordDetails.geocoorddetail.geoRefVerificationStatus" fieldname="geoRefVerificationStatus" table_path="1,10,2,123-geoCoordDetails" is_relationship="false" active="false"/>
 <default_mapping name="othercatalognumbers" specify_field="1.collectionobject.altCatalogNumber" fieldname="altCatalogNumber" table_path="1" is_relationship="false" active="false"/>
-<default_mapping name="previousidentifications" specify_field="1,9-determinations.determination.determinations" fieldname="determinations" table_path="1,9-determinations" is_relationship="false" active="false"/>
+<default_mapping name="previousidentifications" specify_field="1,9-determinations.determination.determinations" fieldname="determinations" table_path="1,9-determinations" is_relationship="true" active="false"/>
 <default_mapping name="identificationqualifier" specify_field="1,9-determinations.determination.qualifier" fieldname="qualifier" table_path="1,9-determinations" is_relationship="false" active="false"/>
 <default_mapping name="sex" specify_field="1,93.collectionobjectattribute.text1" fieldname="text1" table_path="1,93" is_relationship="false" active="false"/>
 <default_mapping name="specificepithet" specify_field="1,9-determinations,4-preferredTaxon.taxon.Species" fieldname="Species" table_path="1,9-determinations,4-preferredTaxon" is_relationship="false" active="true"/>
