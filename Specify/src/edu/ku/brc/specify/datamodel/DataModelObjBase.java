@@ -149,7 +149,7 @@ public abstract class DataModelObjBase implements FormDataObjIFace,
     public void setTimestampCreated(Timestamp timestampCreated)
     {
         this.timestampCreated = timestampCreated;
-        setTimestampModified(timestampCreated);
+        //setTimestampModified(timestampCreated); modified by HUH for FP: this statement causes problems for Hibernate
     }
 
     /* (non-Javadoc)
