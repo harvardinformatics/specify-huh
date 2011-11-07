@@ -313,7 +313,7 @@
         <names>
           <str language="en">
             <version>0</version>
-            <text>InternalRemarks</text>
+            <text>Internal Remarks</text>
           </str>
           <str language="pt">
             <version>1</version>
@@ -9743,6 +9743,21 @@
         </names>
         <descs/>
       </desc>
+      <desc name="curationDescription" type="text" isHidden="false" isUIFormatter="false" isRequired="false">
+        <version>0</version>
+        <names>
+          <str language="en">
+            <version>0</version>
+            <text>Curation Description</text>
+          </str>
+        </names>
+        <descs>
+          <str language="en">
+            <version>0</version>
+            <text>Curation Description.</text>
+          </str>
+        </descs>
+      </desc>
       <desc name="curationRemarks" type="text" isHidden="false" isUIFormatter="false" isRequired="false">
         <version>0</version>
         <names>
@@ -9803,6 +9818,16 @@
             <text>Imagem, Som, Preparação, Recipiente(Etiqueta Recipiente?).</text>
           </str>
         </descs>
+      </desc>
+      <desc name="distribution" type="java.lang.Integer" isHidden="false" isUIFormatter="false" isRequired="false">
+        <version>0</version>
+        <names>
+          <str language="en">
+            <version>0</version>
+            <text>Distribution</text>
+          </str>
+        </names>
+        <descs/>
       </desc>
       <desc name="determinations" type="OneToMany" isHidden="false" isUIFormatter="false" isRequired="false">
         <version>0</version>
@@ -10235,6 +10260,21 @@
           </str>
         </names>
         <descs/>
+      </desc>
+      <desc name="sex" type="java.lang.String" isHidden="false" isUIFormatter="false" isRequired="false">
+        <version>0</version>
+        <names>
+          <str language="en">
+            <version>0</version>
+            <text>Sex</text>
+          </str>
+        </names>
+        <descs>
+          <str language="en">
+            <version>0</version>
+            <text>Sex.</text>
+          </str>
+        </descs>
       </desc>
       <desc name="text1" type="java.lang.String" isHidden="false" isUIFormatter="false" isRequired="false">
         <version>0</version>
@@ -16185,6 +16225,7 @@
             <text>Configurável pelo utilizador.</text>
           </str>
         </descs>
+      </desc>
       <desc name="yesNo3" type="java.lang.Boolean" isHidden="false" isUIFormatter="false" isRequired="false">
         <version>0</version>
         <names>
@@ -27946,6 +27987,20 @@
           <str language="en">
             <version>0</version>
             <text>Version</text>
+          </str>
+        </names>
+        <descs/>
+      </desc>
+      <desc name="yesNo1" isHidden="false" isRequired="false">
+        <version>0</version>
+        <names>
+          <str language="en">
+            <version>0</version>
+            <text>Is Acknowledged</text>
+          </str>
+          <str language="pt">
+            <version>1</version>
+            <text>Sim Não1</text>
           </str>
         </names>
         <descs/>
@@ -41525,13 +41580,9 @@ Specify provides an extensive array of utilities for curatorial management of sp
       <desc name="text1" type="java.lang.String" isHidden="false" isRequired="false">
         <version>0</version>
         <names>
-          <str language="pt">
+          <str language="en">
             <version>1</version>
             <text>Collation</text>
-          </str>
-          <str language="en">
-            <version>0</version>
-            <text>Text1</text>
           </str>
         </names>
         <descs>
