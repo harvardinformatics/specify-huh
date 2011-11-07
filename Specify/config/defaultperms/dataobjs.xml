@@ -3065,4 +3065,46 @@
       </entry>
     </hashtable>
   </entry>
+  <entry>
+    <string>collobjbarcode</string>
+    <hashtable>
+      <entry>
+        <string>Manager</string>
+        <tp name="collobjbarcode" type="Manager" view="true" modify="true" del="true" add="true"/>
+      </entry>
+      <entry>
+        <string>Guest</string>
+        <tp name="collobjbarcode" type="Guest" view="true" modify="false" del="false" add="false"/>
+      </entry>
+      <entry>
+        <string>LimitedAccess</string>
+        <tp name="collobjbarcode" type="LimitedAccess" view="true" modify="false" del="false" add="false"/>
+      </entry>
+      <entry>
+        <string>FullAccess</string>
+        <tp name="collobjbarcode" type="FullAccess" view="true" modify="true" del="true" add="true"/>
+      </entry>
+    </hashtable>
+  </entry>
+  <entry>
+    <string>prepbarcode</string>
+    <hashtable>
+      <entry>
+        <string>Manager</string>
+        <tp name="prepbarcode" type="Manager" view="true" modify="true" del="true" add="true"/>
+      </entry>
+      <entry>
+        <string>Guest</string>
+        <tp name="prepbarcode" type="Guest" view="true" modify="false" del="false" add="false"/>
+      </entry>
+      <entry>
+        <string>LimitedAccess</string>
+        <tp name="prepbarcode" type="LimitedAccess" view="true" modify="false" del="false" add="false"/>
+      </entry>
+      <entry>
+        <string>FullAccess</string>
+        <tp name="prepbarcode" type="FullAccess" view="true" modify="true" del="true" add="true"/>
+      </entry>
+    </hashtable>
+  </entry>
 </hashtable>
