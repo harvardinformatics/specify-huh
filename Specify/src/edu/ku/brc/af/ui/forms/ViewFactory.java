@@ -1827,6 +1827,7 @@ public class ViewFactory
         {
             FormCellSubView cellSubView = (FormCellSubView)cell;
             String          subViewName = cellSubView.getViewName();
+            if (subViewName == null) log.error("Bad subview attribute value: " + parent.getName() + " " + cellSubView.getName()); // added by HUH
             ViewIFace       subView     = AppContextMgr.getInstance().getView(cellSubView.getViewSetName(), subViewName);
 
             if (subView != null)
