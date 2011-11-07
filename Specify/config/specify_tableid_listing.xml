@@ -13,11 +13,11 @@
 <tableIdMapping>
     <database>
         <table name="edu.ku.brc.specify.datamodel.Accession" abbrev="ac" id="7" workbench="true" searchable="true">
-            <display view="Accession" dataobjformatter="" uiformatter="HUHAccessionNumber" searchdlg="AccessionSearch" newobjdlg="AccessionDisplay"/>
+            <display view="HUHAccession" dataobjformatter="" uiformatter="HUHAccessionNumber" searchdlg="AccessionSearch" newobjdlg="HUHAccession"/>
             <businessrule>edu.ku.brc.specify.datamodel.busrules.AccessionBusRules</businessrule>        
         </table>
         <table name="edu.ku.brc.specify.datamodel.AccessionAgent" abbrev="aa" id="12" searchable="true">
-            <display view="AccessionAgent" dataobjformatter="AccessionAgent" searchdlg="AccessionAgentSearch" newobjdlg="AccessionAgentDisplay"/>
+            <display view="HUHAccessionAgent" dataobjformatter="AccessionAgent" searchdlg="AccessionAgentSearch" newobjdlg="HUHAccessionAgent"/>
             <businessrule>edu.ku.brc.specify.datamodel.busrules.AccessionAgentBusRules</businessrule>
         </table>
         <table name="edu.ku.brc.specify.datamodel.AccessionAttachment" abbrev="acat" id="108" searchable="true">
@@ -29,16 +29,15 @@
             <businessrule>edu.ku.brc.specify.datamodel.busrules.AccessionAuthorizationBusRules</businessrule>
         </table>
         <table name="edu.ku.brc.specify.datamodel.AccessionPreparation" abbrev="ap" id="142" searchable="true">
-            <display view="AccessionItem" dataobjformatter="HUHAccessionPreparation" newobjdlg="AccessionPreparationsDisplay"/>
-            <businessrule>edu.harvard.huh.specify.datamodel.busrules.HUHAccessionPreparationBusRules</businessrule>
+            <display view="HUHAccessionPreparation" dataobjformatter="HUHAccessionPreparation" newobjdlg="HUHAccessionPreparation"/>
         </table>
         <table name="edu.ku.brc.specify.datamodel.Address" abbrev="ad" id="8" workbench="false" searchable="true">
-            <display view="Address" newobjdlg="AddressDisplay"/>
+            <display view="HUHAddress" newobjdlg="HUHAddress"/>
         </table>
         <table name="edu.ku.brc.specify.datamodel.AddressOfRecord" abbrev="aor" id="125" workbench="false" searchable="true"/>
         <table name="edu.ku.brc.specify.datamodel.Agent" abbrev="ag" id="5" workbench="true" searchable="true">
-            <display view="Agent" dataobjformatter="HUHAgent" searchdlg="AgentSearch" newobjdlg="AgentDisplay"/>
-            <businessrule>edu.ku.brc.specify.datamodel.busrules.AgentBusRules</businessrule>
+            <display view="HUHBotanist" dataobjformatter="HUHAgent" searchdlg="HUHBotanist" newobjdlg="HUHBotanist"/>
+            <businessrule>edu.harvard.huh.specify.datamodel.busrules.HUHAgentBusRules</businessrule>
         </table>
         <table name="edu.ku.brc.specify.datamodel.AgentAttachment" abbrev="agat" id="109" searchable="true">
             <display view="AgentAttachment" newobjdlg="AgentAttachmentDisplay"/>
@@ -48,10 +47,10 @@
         	<display view="AgentCitation" newobjdlg="AgentCitation"/>
         </table>
         <table name="edu.ku.brc.specify.datamodel.AgentGeography" abbrev="ageo" id="78" searchable="true">
-			<display view="AgentGeography" newobjdlg="AgentGeography"/>
+			<display view="HUHAgentGeography" newobjdlg="HUHAgentGeography"/>
         </table>
         <table name="edu.ku.brc.specify.datamodel.AgentSpecialty" abbrev="agsp" id="86" searchable="true">
-			<display view="AgentSpecialty" dataobjformatter="HUHAgentSpecialty" newobjdlg="AgentSpecialty"/>
+			<display view="HUHAgentSpecialty" dataobjformatter="HUHAgentSpecialty" newobjdlg="HUHAgentSpecialty"/>
         </table>
         <table name="edu.ku.brc.specify.datamodel.AgentVariant" abbrev="av" id="107" workbench="false" searchable="true">
         	<display view="AgentVariant" dataobjformatter="HUHAgentVariant" newobjdlg="AgentVariant"/>
@@ -71,18 +70,18 @@
         <table name="edu.ku.brc.specify.datamodel.AttachmentTag" abbrev="attag" id="130" searchable="true"/>
         <table name="edu.ku.brc.specify.datamodel.AttributeDef" abbrev="atd" id="16"/>
         <table name="edu.ku.brc.specify.datamodel.Author" abbrev="au" id="17" searchable="true">
-        	<display view="Author" dataobjformatter=""  searchdlg="AuthorSearch" newobjdlg="AuthorDisplay"/>
+        	<display view="HUHAuthor" dataobjformatter=""  searchdlg="AuthorSearch" newobjdlg="HUHAuthor"/>
             <businessrule>edu.ku.brc.specify.datamodel.busrules.AuthorBusRules</businessrule>
         </table>
         <table name="edu.ku.brc.specify.datamodel.AutoNumberingScheme" abbrev="cns" id="97">
         	<display view="AutoNumberingScheme" searchdlg="AutoNumberingScheme" newobjdlg="AutoNumberingScheme"/>
         </table>
         <table name="edu.ku.brc.specify.datamodel.Borrow" abbrev="bo" id="18" searchable="true">
-            <display view="Borrow" dataobjformatter="Borrow" />
+            <display view="HUHBorrow" dataobjformatter="Borrow" />
             <businessrule>edu.ku.brc.specify.datamodel.busrules.BorrowBusRules</businessrule>
         </table>
          <table name="edu.ku.brc.specify.datamodel.BorrowAgent" abbrev="boa" id="19" searchable="true">
-            <display view="BorrowAgent" newobjdlg="BorrowAgentDisplay"/>
+            <display view="HUHBorrowAgent" newobjdlg="HUHBorrowAgent"/>
         </table>
         <table name="edu.ku.brc.specify.datamodel.BorrowMaterial" abbrev="bom" id="20" searchable="true"/>
         <table name="edu.ku.brc.specify.datamodel.BorrowReturnMaterial" abbrev="brm" id="21" searchable="true"/>
@@ -90,7 +89,7 @@
             <display view="Collection" newobjdlg="Collection"/>
         </table>
         <table name="edu.ku.brc.specify.datamodel.CollectingEvent" abbrev="ce" id="10" workbench="true" searchable="true">
-            <display view="CollectingEvent" dataobjformatter="CollectingEvent" searchdlg="CollectingEventSearch" newobjdlg="CollectingEvent"/>
+            <display view="HUHCollectingEvent" dataobjformatter="HUHCollectingEventDetail" searchdlg="CollectingEventSearch" newobjdlg="HUHCollectingEvent"/>
             <businessrule>edu.ku.brc.specify.datamodel.busrules.CollectingEventBusRules</businessrule>
         </table>
         <table name="edu.ku.brc.specify.datamodel.CollectingEventAttachment" abbrev="ceat" id="110" searchable="true">
@@ -100,10 +99,10 @@
         <table name="edu.ku.brc.specify.datamodel.CollectingEventAttr" abbrev="ceatr" id="25" searchable="true"/>
         <table name="edu.ku.brc.specify.datamodel.CollectingEventAttribute" abbrev="cea" id="92" searchable="true"/>
         <table name="edu.ku.brc.specify.datamodel.CollectingTrip" abbrev="clt" id="87" workbench="true" searchable="true">
-            <display view="CollectingTripForm" searchdlg="CollectingTripSearch" newobjdlg="CollectingTripDisplay"/>
+            <display view="HUHCollectingTrip" searchdlg="CollectingTripSearch" newobjdlg="HUHCollectingTrip"/>
         </table>
         <table name="edu.ku.brc.specify.datamodel.CollectionObject" abbrev="co" id="1" workbench="true" searchable="true">
-            <display view="CollectionObject" dataobjformatter="CollectionObject" searchdlg="CollectionObjectSearch" newobjdlg="CollectionObject"/>
+            <display view="HUHCollectionObject" dataobjformatter="HUHCollectionObjectDetail" searchdlg="CollectionObjectSearch" newobjdlg="HUHCollectionObject"/>
             <businessrule>edu.ku.brc.specify.datamodel.busrules.CollectionObjectBusRules</businessrule>          
         </table>
         <table name="edu.ku.brc.specify.datamodel.CollectionObjectAttachment" abbrev="coat" id="111" searchable="true">
@@ -116,11 +115,11 @@
         <table name="edu.ku.brc.specify.datamodel.CollectionRelType" abbrev="crt" id="98"/>
         <table name="edu.ku.brc.specify.datamodel.CollectionRelationship" abbrev="cr" id="99"/>
         <table name="edu.ku.brc.specify.datamodel.Collector" abbrev="ctr" id="30" searchable="true">
-            <display view="Collector" dataobjformatter=""  searchdlg="CollectorSearch" newobjdlg="CollectorDisplay"/>
+            <display view="HUHCollector" dataobjformatter=""  searchdlg="CollectorSearch" newobjdlg="HUHCollector"/>
             <businessrule>edu.ku.brc.specify.datamodel.busrules.CollectorBusRules</businessrule>
         </table>
-        <table name="edu.ku.brc.specify.datamodel.CollObjBarcode" abbrev="bc" id="146">
-        	<display view="CollObjBarcode" searchdlg="CollObjBarcode" newobjdlg="CollObjBarcode"/>
+        <table name="edu.ku.brc.specify.datamodel.CollObjBarcode" abbrev="bc" id="146" searchable="true">
+        	<display view="HUHCollObjBarcode" newobjdlg="HUHCollObjBarcode"/>
         </table>
         <table name="edu.ku.brc.specify.datamodel.CommonNameTx" abbrev="cn" id="106" searchable="true"/>
         <table name="edu.ku.brc.specify.datamodel.CommonNameTxCitation" abbrev="cncit" id="134" searchable="true" />
@@ -139,7 +138,7 @@
         	<businessrule>edu.ku.brc.specify.datamodel.busrules.AttachmentReferenceBaseBusRules</businessrule>
         </table>
         <table name="edu.ku.brc.specify.datamodel.Container" abbrev="con" id="31" searchable="true">
-            <display view="Container" dataobjformatter="Container" searchdlg="ContainerSearch" newobjdlg="ContainerDisplay"/>
+            <display view="HUHContainer" dataobjformatter="Container" searchdlg="ContainerSearch" newobjdlg="HUHContainer"/>
         </table>
         <table name="edu.ku.brc.specify.datamodel.DataType" abbrev="dt" id="33">
             <businessrule>edu.ku.brc.specify.datamodel.busrules.DataTypeBusRules</businessrule>          
@@ -148,7 +147,7 @@
         <table name="edu.ku.brc.specify.datamodel.DeaccessionAgent" abbrev="daa" id="35" searchable="true"/>
         <table name="edu.ku.brc.specify.datamodel.DeaccessionPreparation" abbrev="dap" id="36" searchable="true"/>
         <table name="edu.ku.brc.specify.datamodel.Determination" abbrev="det" id="9" workbench="true" searchable="true">
-            <display view="Determination" dataobjformatter="Determination"  searchdlg="DeterminationSearch" newobjdlg="DeterminationDisplay"/>            
+            <display view="HUHDetermination" dataobjformatter="Determination"  searchdlg="DeterminationSearch" newobjdlg="HUHDetermination"/>            
         </table>
         <table name="edu.ku.brc.specify.datamodel.DeterminationCitation" abbrev="detc" id="38" searchable="true"/>
         <table name="edu.ku.brc.specify.datamodel.Discipline" abbrev="dsp" id="26">
@@ -177,7 +176,7 @@
             <businessrule>edu.ku.brc.specify.datamodel.busrules.ExchangeOutBusRules</businessrule>
         </table>
         <table name="edu.ku.brc.specify.datamodel.ExchangeOutPrep" abbrev="exop" id="141" searchable="true">
-            <display view="ExchangeOutPrep" newobjdlg="ExchangeOutPrepDisplay"/>
+            <display view="HUHExchangeOutItem" newobjdlg="HUHExchangeOutItem"/>
         </table>
         <table name="edu.ku.brc.specify.datamodel.Exsiccata" abbrev="exsic" id="89" searchable="true"/>
         <table name="edu.ku.brc.specify.datamodel.ExsiccataItem" abbrev="exsicit" id="104" searchable="true"/>
@@ -207,7 +206,7 @@
             <businessrule>edu.ku.brc.specify.datamodel.busrules.GeoCoordDetailBusRules</businessrule>
         </table>
         <table name="edu.ku.brc.specify.datamodel.Geography" abbrev="geo" id="3" workbench="true" searchable="true">
-            <display view="Geography" dataobjformatter="Geography" searchdlg="GeographySearch" newobjdlg="GeographyDisplay"/>
+            <display view="HUHGeography" dataobjformatter="HUHGeography" searchdlg="GeographySearch" newobjdlg="HUHGeography"/>
             <businessrule>edu.ku.brc.specify.datamodel.busrules.GeographyBusRules</businessrule>          
             <fieldaliases>
                 <field vname="acceptedParent" aname="acceptedGeography"/>
@@ -229,17 +228,17 @@
             <businessrule>edu.ku.brc.specify.datamodel.busrules.GeologicTimePeriodBusRules</businessrule>          
         </table>
         <table name="edu.ku.brc.specify.datamodel.Gift" abbrev="gf" id="131" searchable="true">
-        	<display view="Gift"/>
+        	<display view="HUHGift"/>
             <businessrule>edu.ku.brc.specify.datamodel.busrules.GiftBusRules</businessrule>          
         </table>
         <table name="edu.ku.brc.specify.datamodel.GiftAgent" abbrev="gfp" id="133" searchable="true">
-            <display view="GiftAgent" newobjdlg="GiftAgentDisplay"/>
+            <display view="HUHGiftAgent" newobjdlg="HUHGiftAgent"/>
         </table>
         <table name="edu.ku.brc.specify.datamodel.GiftPreparation" abbrev="gfa" id="132" searchable="true">
-            <display view="GiftItems" dataobjformatter="GiftPreparation" newobjdlg="GiftItemsDisplay"/>  
+            <display view="HUHGiftItem" dataobjformatter="GiftPreparation" newobjdlg="HUHGiftItem"/>  
         </table>
         <table name="edu.ku.brc.specify.datamodel.GroupPerson" abbrev="gp" id="49" searchable="true">
-        	<display view="GroupPerson" dataobjformatter="GroupPerson" newobjdlg="GroupPersonDisplay"/>
+        	<display view="HUHGroupPerson" dataobjformatter="GroupPerson" newobjdlg="HUHGroupPerson"/>
         </table>
         <table name="edu.ku.brc.specify.datamodel.InfoRequest" abbrev="ir" id="50" searchable="true">
             <display view="InfoRequest"/>
@@ -266,25 +265,25 @@
         <table name="edu.ku.brc.specify.datamodel.LithoStratTreeDef" abbrev="lstd" id="101"/>
         <table name="edu.ku.brc.specify.datamodel.LithoStratTreeDefItem" abbrev="lstdi" id="102"/>
         <table name="edu.ku.brc.specify.datamodel.Loan" abbrev="ln" id="52" searchable="true">
-        	<display view="Loan" uiformatter="HUHLoanNumber"/>
+        	<display view="HUHLoan" uiformatter="HUHLoanNumber"/>
             <businessrule>edu.ku.brc.specify.datamodel.busrules.LoanBusRules</businessrule>          
         </table>
         <table name="edu.ku.brc.specify.datamodel.LoanAgent" abbrev="lna" id="53" searchable="true">
-            <display view="LoanAgent" newobjdlg="LoanAgentDisplay"/>
+            <display view="HUHLoanAgent" newobjdlg="HUHLoanAgent"/>
         </table>
         <table name="edu.ku.brc.specify.datamodel.LoanAttachment" abbrev="lnat" id="114" searchable="true">
         	<display view="ObjectAttachment" newobjdlg="LoanAttachmentDisplay"/>
         	<businessrule>edu.ku.brc.specify.datamodel.busrules.AttachmentReferenceBaseBusRules</businessrule>
         </table>
         <table name="edu.ku.brc.specify.datamodel.LoanPreparation" abbrev="lpo" id="54" searchable="true">
-            <display view="LoanItems" dataobjformatter="LoanPreparation" newobjdlg="LoanItemsDisplay"/>
+            <display view="HUHLoanItems" dataobjformatter="LoanPreparation" newobjdlg="HUHLoanItems"/>
         </table>
         <table name="edu.ku.brc.specify.datamodel.LoanReturnPreparation" abbrev="lrpo" id="55" searchable="true">
             <!-- <businessrule>edu.ku.brc.specify.datamodel.busrules.LoanReturnPreparationBusRules</businessrule>    -->        
         </table>
         <table name="edu.ku.brc.specify.datamodel.Locality" abbrev="loc" id="2" workbench="true" searchable="true">
         	<businessrule>edu.ku.brc.specify.datamodel.busrules.LocalityBusRules</businessrule>
-            <display view="Locality" dataobjformatter="Locality" searchdlg="LocalitySearch" newobjdlg="LocalityDisplay"/>
+            <display view="HUHLocality" dataobjformatter="Locality" searchdlg="LocalitySearch" newobjdlg="HUHLocality"/>
             <relationship relationshipname="localityDetails" likemanytoone="true"/>
             <relationship relationshipname="geoCoordDetails" likemanytoone="true"/>
         </table>
@@ -299,7 +298,7 @@
             <display view="MorphBankView" searchdlg="MorphBankViewSearch" newobjdlg="MorphBankViewDisplay"/>
         </table>
         <table name="edu.ku.brc.specify.datamodel.Storage" abbrev="lcn" id="58" searchable="true">
-            <display view="Storage" dataobjformatter="HUHStorage" searchdlg="StorageSearch" newobjdlg="StorageDisplay"/>
+            <display view="HUHStorage" dataobjformatter="HUHStorage" searchdlg="HUHStorageSearch" newobjdlg="HUHStorage"/>
             <businessrule>edu.ku.brc.specify.datamodel.busrules.StorageBusRules</businessrule>            
             <fieldaliases>
                 <field vname="acceptedParent" aname="acceptedStorage"/>
@@ -310,7 +309,7 @@
             <businessrule>edu.ku.brc.specify.datamodel.busrules.StorageBusRules</businessrule>            
 		</table>
         <table name="edu.ku.brc.specify.datamodel.OtherIdentifier" abbrev="oi" id="61" searchable="true">
-            <display view="OtherIdentifier" newobjdlg="OtherIdentifierDisplay" searchable="true"/>
+            <display view="HUHOtherIdentifier" newobjdlg="HUHOtherIdentifier" searchable="true"/>
         </table>
         <table name="edu.ku.brc.specify.datamodel.PaleoContext" abbrev="pc" id="32" searchable="true">
             <display view="PaleoContext" dataobjformatter="PaleoContext"  searchdlg="PaleoContextSearch" newobjdlg=""/>            
@@ -331,7 +330,7 @@
         </table>
         <table name="edu.ku.brc.specify.datamodel.Preparation" abbrev="pp" id="63" workbench="true" searchable="true">
         	<businessrule>edu.ku.brc.specify.datamodel.busrules.PreparationBusRules</businessrule>
-            <display view="Preparation" newobjdlg="PreparationDisplay"/>
+            <display view="HUHPreparation" newobjdlg="HUHPreparation"/>
 		</table>
         <table name="edu.ku.brc.specify.datamodel.PreparationAttachment" abbrev="ppat" id="117" searchable="true">
         	<display view="ObjectAttachment" newobjdlg="PreparationAttachmentDisplay"/>
@@ -339,27 +338,27 @@
         </table>
         <table name="edu.ku.brc.specify.datamodel.PreparationAttr" abbrev="ppa" id="64" searchable="true"/>
         <table name="edu.ku.brc.specify.datamodel.PreparationAttribute" abbrev="ppas" id="91" searchable="true"/>
-        <table name="edu.ku.brc.specify.datamodel.PrepBarcode" abbrev="pbc" id="147">
-        	<display view="PrepBarcode" searchdlg="PrepBarcode" newobjdlg="PrepBarcode"/>
+        <table name="edu.ku.brc.specify.datamodel.PrepBarcode" abbrev="pbc" id="147" searchable="true">
+        	<display view="HUHPrepBarcode" newobjdlg="HUHPrepBarcode"/>
         </table>
         <table name="edu.ku.brc.specify.datamodel.PrepType" abbrev="ppt" id="65" searchable="true">
             <display view="PrepType" searchdlg="PrepTypeSearch" newobjdlg="PrepTypeDisplay"/>
             <businessrule>edu.ku.brc.specify.datamodel.busrules.PrepTypeBusRules</businessrule>                        
         </table>
         <table name="edu.ku.brc.specify.datamodel.Project" abbrev="prj" id="66" searchable="true">
-            <display view="Project" dataobjformatter="HUHProject" searchdlg="ProjectSearch" newobjdlg="ProjectSubDisplay"/>
+            <display view="Project" dataobjformatter="Project" searchdlg="ProjectSearch" newobjdlg="ProjectSubDisplay"/>
         </table>
         <table name="edu.ku.brc.specify.datamodel.RecordSet" abbrev="rs" id="68"/>
         <table name="edu.ku.brc.specify.datamodel.RecordSetItem" abbrev="rsi" id="502"/>
         <table name="edu.ku.brc.specify.datamodel.ReferenceWork" abbrev="rw" id="69" searchable="true">
-            <display view="ReferenceWork" searchdlg="ReferenceWorkSearch" newobjdlg="ReferenceWorkDisplay"/>
+            <display view="HUHReferenceWork" searchdlg="HUHReferenceWorkSearch" newobjdlg="HUHReferenceWork"/>
             <businessrule>edu.ku.brc.specify.datamodel.busrules.ReferenceWorkBusRules</businessrule>          
         </table>
         <table name="edu.ku.brc.specify.datamodel.ReferenceWorkIdentifier" abbrev="rwi" id="144" searchable="true">
-			<display view="ReferenceworkIdentifier" dataobjformatter="HUHReferenceWorkIdentifier" newobjdlg="ReferenceWorkIdentifierDisplay" searchable="true"/>
+			<display view="HUHReferenceworkIdentifier" dataobjformatter="HUHReferenceWorkIdentifier" newobjdlg="HUHReferenceWorkIdentifier" searchable="true"/>
         </table>
         <table name="edu.ku.brc.specify.datamodel.ReferenceWorkVariant" abbrev="rwv" id="145" searchable="true">
-			<display view="ReferenceWorkVariant" dataobjformatter="HUHReferenceWorkVariant" newobjdlg="ReferenceWorkVariantDisplay" searchable="true"/>
+			<display view="HUHReferenceWorkVariant" dataobjformatter="HUHReferenceWorkVariant" newobjdlg="HUHReferenceWorkVariant" searchable="true"/>
 			<businessrule>edu.ku.brc.specify.datamodel.busrules.ReferenceWorkVariantBusRules</businessrule>
         </table>
         <table name="edu.ku.brc.specify.datamodel.RepositoryAgreement" abbrev="ra" id="70" searchable="true">
@@ -416,8 +415,8 @@
         <!--  Done Internal Specify Tables -->
         
         <table name="edu.ku.brc.specify.datamodel.Taxon" abbrev="tx" id="4" workbench="true" searchable="true">
-            <display view="Taxon" dataobjformatter="HUHTaxon" searchdlg="TaxonSearch" newobjdlg="TaxonDisplay"/>
-            <businessrule>edu.ku.brc.specify.datamodel.busrules.TaxonBusRules</businessrule>
+            <display view="HUHTaxon" dataobjformatter="HUHTaxon" searchdlg="HUHTaxonSearch" newobjdlg="HUHTaxon"/>
+            <businessrule>edu.harvard.huh.specify.datamodel.busrules.HUHTaxonBusRules</businessrule>
             <fieldaliases>
                 <field vname="acceptedParent" aname="acceptedTaxon"/>
             </fieldaliases>                                            
