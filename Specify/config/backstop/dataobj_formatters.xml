@@ -840,6 +840,19 @@
         </switch>
     </format>
 
+    <format
+        name="HUHCollObjBarcode"
+        title="CollObjBarcode"
+        class="edu.ku.brc.specify.datamodel.CollObjBarcode"
+        default="false"
+        >
+        <switch single="true">
+            <fields>
+                <field>barcode</field>
+            </fields>
+        </switch>
+    </format>
+
     <!-- Added by lchan -->
     <format
         name="HUHDeterminationCitationsDesignator"
@@ -855,6 +868,19 @@
         </switch>
     </format>
 
+    <format
+        name="HUHPrepBarcode"
+        title="PrepBarcode"
+        class="edu.ku.brc.specify.datamodel.PrepBarcode"
+        default="false"
+        >
+        <switch single="true">
+            <fields>
+                <field>barcode</field>
+            </fields>
+        </switch>
+    </format>
+    
     <format
         name="HUHProject"
         title="Project"
@@ -1248,6 +1274,17 @@
     <aggregator name="HUHCollObjBarcode"
                 title="Barcode"
                 class="edu.ku.brc.specify.datamodel.CollObjBarcode"
+                default="true"
+                separator="; "
+                ending=""
+                count=""
+                format="HUHBarcode"
+                orderfieldname=""
+               />
+
+    <aggregator name="HUHPrepBarcode"
+                title="Barcode"
+                class="edu.ku.brc.specify.datamodel.PrepBarcode"
                 default="true"
                 separator="; "
                 ending=""
