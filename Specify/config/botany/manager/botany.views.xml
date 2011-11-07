@@ -810,10 +810,6 @@
                 </row>
                 <row>
                     <cell type="label" label=" "/>
-                    <cell type="subview" viewname="Project" id="projects" name="projects" rows="2" colspan="9" initialize="name=Project;addsearch=true"/>
-                </row>
-                <row>
-                    <cell type="label" label=" "/>
                     <cell type="subview" viewname="HUHOtherIdentifiers" id="otherIdentifier" name="otherIdentifiers" defaulttype="table" rows="2" colspan="9"/>
                 </row>
                 <row>
