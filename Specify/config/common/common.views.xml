@@ -6273,7 +6273,7 @@
                		<cell type="label" labelfor="2"/>
                     <cell type="field" id="2" name="role" uitype="combobox" />
                     <cell type="label" labelfor="1"/>
-                    <cell type="field" id="1" name="agent" uitype="querycbx" initialize="name=HUHTransactionAgent;title=Agent;displaydlg=HUHTransactionAgentDisplay;searchdlg=HUHAgentSearch" colspan="3"/>
+                    <cell type="field" id="1" name="agent" uitype="querycbx" initialize="name=HUHTransactionAgent;title=Agent;displaydlg=HUHTransactionAgent;searchdlg=HUHAgentSearch" colspan="3"/>
                     
                 </row>
                 <row>
@@ -6811,7 +6811,7 @@
 					<cell type="label" labelfor="exchangeNumber"/>
                     <cell type="field" id="exchangeNumber" name="exchangeNumber" uitype="formattedtext" isrequired="true"/>
                 	<cell type="label" labelfor="3"/>
-                    <cell type="field" id="3" name="agentSentTo" uitype="querycbx" initialize="name=HUHTransactionAgent;title=Agent;displaydlg=HUHTransactionAgentDisplay;searchdlg=HUHAgentSearch" colspan="3"/>
+                    <cell type="field" id="3" name="agentSentTo" uitype="querycbx" initialize="name=HUHTransactionAgent;title=Agent;displaydlg=HUHTransactionAgent;searchdlg=HUHAgentSearch" colspan="3"/>
                 	<cell type="field" id="acronym" name="agentSentTo.abbreviation" uitype="dsptextfield" readonly="true"/>
 				</row>
                 <row>
@@ -7015,7 +7015,7 @@
             <rows>
                 <row>
                     <cell type="label" labelfor="1"/>
-                    <cell type="field" id="1" name="agent" uitype="querycbx" initialize="name=HUHTransactionAgent;title=Agent;displaydlg=HUHTransactionAgentDisplay;searchdlg=HUHAgentSearch"/>
+                    <cell type="field" id="1" name="agent" uitype="querycbx" initialize="name=HUHTransactionAgent;title=Agent;displaydlg=HUHTransactionAgent;searchdlg=HUHAgentSearch"/>
 					<cell type="label" labelfor="acronym"/>
 					<cell type="field" id="acronym" name="agent.abbreviation" uitype="dsptextfield"/>
                     <cell type="label" labelfor="2"/>
@@ -7238,7 +7238,7 @@
             <rows>
                 <row>
                     <cell type="label" labelfor="1"/>
-                    <cell type="field" id="1" name="agent" uitype="querycbx" initialize="name=HUHTransactionAgent;title=Agent;displaydlg=HUHTransactionAgentDisplay;searchdlg=HUHAgentSearch"/>
+                    <cell type="field" id="1" name="agent" uitype="querycbx" initialize="name=HUHTransactionAgent;title=Agent;displaydlg=HUHTransactionAgent;searchdlg=HUHAgentSearch"/>
 					<cell type="label" labelfor="acronym"/>
 					<cell type="field" id="acronym" name="agent.abbreviation" uitype="dsptextfield"/>
                     <cell type="label" labelfor="2"/>
