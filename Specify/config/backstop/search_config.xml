@@ -1339,6 +1339,7 @@ SELECT cn.ContainerID,
         <!-- Return agent records found by previous search on agentvariant -->
         <table id="60" tableid="5" name="HUHBotanistsByBotanistName" priority="1" color="30, 144, 144">
             <joins>
+                <join tableid="5">ag.AgentID</join>
                 <join tableid="107">av.AgentVariantID</join>
             </joins>
             <detailView icon="Agent">
@@ -1354,7 +1355,7 @@ SELECT cn.ContainerID,
  ag.DateType,
  agsp.SpecialtyName,
  %s 
- FROM agent ag INNER JOIN agent_discipline ON ag.AgentID = agent_discipline.AgentID
+ FROM agent ag
  JOIN agentvariant av ON ag.AgentID = av.AgentID
  LEFT JOIN agentspecialty agsp ON ag.AgentID = agsp.AgentID
  WHERE %s
@@ -1385,6 +1386,7 @@ SELECT cn.ContainerID,
         
         <table id="61" tableid="1" name="HUHCollObjectsByAccession" priority="1" color="30, 144, 144">
         	<joins>
+            	<join tableid="1">co.CollectionObjectID</join>
             	<join tableid="7">ac.AccessionID</join>
             </joins>
             <detailView icon="CollectionObject">
@@ -1415,7 +1417,7 @@ SELECT cn.ContainerID,
                 <captions>
                     <caption tableid="1" col="co.CollectionObjectID" visible="false"/>
                     <caption tableid="7" col="ac.AccessionNumber" field="accessionNumber" formatter="HUHAccessionNumber"/>
-                    <caption tableid="149" key="CollObjBarcodes">
+                    <caption tableid="146" key="CollObjBarcodes">
                     	<agg class="edu.ku.brc.specify.datamodel.CollObjBarcode" aggregator="HUHCollObjBarcode"/>
                         <col name="cobc.Barcode" field="barcode" formatter="HUHCollObjBarcode"/>
                     </caption>
@@ -1434,8 +1436,9 @@ SELECT cn.ContainerID,
         
         <table id="62" tableid="1" name="HUHCollObjectsByBarcode" priority="1" color="30, 144, 144">
             <joins>
-                <join tableid="149">cobc.CollObjBarcodeID</join>
-                <join tableid="63">pbc.PrepBarcodeID</join>
+                <join tableid="1">co.CollectionObjectID</join>
+                <join tableid="147">pbc.PrepBarcodeID</join>
+                <join tableid="146">cobc.CollObjBarcodeID</join>
             </joins>
             <detailView icon="CollectionObject">
                 <sql>
@@ -1443,6 +1446,7 @@ SELECT cn.ContainerID,
  SELECT
  co.CollectionObjectID,
  cobc.Barcode,
+ pbc.Barcode,
  ce.StartDate,
  ce.StartDatePrecision,
  av.Name,
@@ -1463,7 +1467,7 @@ SELECT cn.ContainerID,
                 </sql>
                 <captions>
                     <caption tableid="1"   col="co.CollectionObjectID" visible="false"/>
-                    <caption tableid="149" key="CollObjBarcodes">
+                    <caption tableid="146" key="CollObjBarcodes">
                     	<agg class="edu.ku.brc.specify.datamodel.CollObjBarcode" aggregator="HUHCollObjBarcode"/>
                         <col name="cobc.Barcode" field="barcode" formatter="HUHCollObjBarcode"/>
                     </caption>
@@ -1486,8 +1490,9 @@ SELECT cn.ContainerID,
         
         <table id="63" tableid="1" name="HUHCollObjectsByCitation" priority="1" color="30, 144, 144">
         	<joins>
+                <join tableid="1">co.CollectionObjectID</join>
                 <join tableid="144">rw.ReferenceWorkID</join>
-                <join tableid="145">rwv.ReferenceWorkID</join>
+                <join tableid="145">rwv.ReferenceWorkVariantID</join>
             </joins>
             <detailView icon="CollectionObject">
                 <sql>
@@ -1496,10 +1501,6 @@ SELECT cn.ContainerID,
  co.CollectionObjectID,
  rw.Title,
  cobc.Barcode,
- ce.StartDate,
- ce.StartDatePrecision,
- ce.StationFieldNumber,
- av.Name,
  %s
  FROM collectionobject co
  LEFT JOIN collectionobject_collobjbarcode cocobc ON co.CollectionObjectID = cocobc.CollectionObjectID
@@ -1507,35 +1508,23 @@ SELECT cn.ContainerID,
  JOIN collectionobjectcitation coc ON co.CollectionObjectID = coc.CollectionObjectID
  JOIN referencework rw ON fc.ReferenceWorkID = rw.ReferenceWorkID
  LEFT JOIN referenceworkvariant rvi ON rw.ReferenceWorkID = rvi.ReferenceWorkID
- LEFT JOIN collectingevent ce ON co.CollectingEventID = ce.CollectingEventID
- LEFT JOIN collector ctr ON ce.CollectingEventID = ctr.CollectingEventID
- LEFT JOIN agent ag ON ctr.AgentID = ag.AgentID
- LEFT JOIN agentvariant av ON (ag.AgentID = av.AgentID AND av.VarType="4")
  WHERE %s
- ORDER BY rw.Title, co.CollectionObjectID, ctr.AgentID, av.AgentID, av.Name, cobc.Barcode]]>
+ ORDER BY rw.Title, cobc.Barcode, co.CollectionObjectID]]>
                 </sql>
                 <captions>
                     <caption tableid="1"  col="co.CollectionObjectID" visible="false"/>
                     <caption tableid="69" col="rw.Title"/>
-                    <caption tableid="149" key="CollObjBarcodes">
+                    <caption tableid="146" key="CollObjBarcodes">
                     	<agg class="edu.ku.brc.specify.datamodel.CollObjBarcode" aggregator="HUHCollObjBarcode"/>
                         <col name="cobc.Barcode" field="barcode" formatter="HUHCollObjBarcode"/>
                     </caption>
-                    <caption tableid="10" formatter="PartialDate">
-                        <col name="ce.StartDate"          field="startDate"/>
-                        <col name="ce.StartDatePrecision" field="startDatePrecision"/>
-                    </caption>
-                    <caption tableid="107" key="Collector">
-                    	<agg class="edu.ku.brc.specify.datamodel.AgentVariant" aggregator="HUHAgentVariant"/>
-                    	<col name="av.Name" field="name"/>
-                    </caption>
-                    <caption tableid="10" col="ce.StationFieldNumber" field="stationFieldNumber"/>
                </captions>
             </detailView>
         </table>
         
          <table id="64" tableid="1" name="HUHCollObjectsByCollector" priority="1" color="30, 144, 144">
         	<joins>
+                <join tableid="1">co.CollectionObjectID</join>
                 <join tableid="107">av.AgentID</join>
             </joins>
             <detailView icon="CollectionObject">
@@ -1561,7 +1550,7 @@ SELECT cn.ContainerID,
                 </sql>
                 <captions>
                     <caption tableid="1"  col="co.CollectionObjectID" visible="false"/>
-                    <caption tableid="149" key="CollObjBarcodes">
+                    <caption tableid="146" key="CollObjBarcodes">
                     	<agg class="edu.ku.brc.specify.datamodel.CollObjBarcode" aggregator="HUHCollObjBarcode"/>
                         <col name="cobc.Barcode" field="barcode" formatter="HUHCollObjBarcode"/>
                     </caption>
@@ -1580,6 +1569,7 @@ SELECT cn.ContainerID,
         
         <table id="65" tableid="1" name="HUHCollObjectsByDetermination" priority="1" color="30, 144, 144">
         	<joins>
+                <join tableid="1">co.CollectionObjectID</join>
                 <join tableid="4">tx.TaxonID</join>
             </joins>
             <detailView icon="CollectionObject">
@@ -1609,7 +1599,7 @@ SELECT cn.ContainerID,
                 <captions>
                     <caption tableid="1" col="co.CollectionObjectID" visible="false"/>
                     <caption tableid="4" col="tx.FullName"/>
-                    <caption tableid="149" key="CollObjBarcodes">
+                    <caption tableid="146" key="CollObjBarcodes">
                     	<agg class="edu.ku.brc.specify.datamodel.CollObjBarcode" aggregator="HUHCollObjBarcode"/>
                         <col name="cobc.Barcode" field="barcode" formatter="HUHCollObjBarcode"/>
                     </caption>
@@ -1628,6 +1618,7 @@ SELECT cn.ContainerID,
         
         <table id="66" tableid="1" name="HUHCollObjectsByLoan" priority="1" color="30, 144, 144">
             <joins>
+                <join tableid="1">co.CollectionObjectID</join>
             	<join tableid="52">ln.LoanID</join>
             </joins>
             <detailView icon="CollectionObject">
@@ -1679,6 +1670,7 @@ SELECT cn.ContainerID,
        <table id="67" tableid="52" name="HUHLoansByAgent" priority="1" color="30, 144, 144">
         	<joins>
         		<join tableid="5">ag.AgentID</join>
+            	<join tableid="52">ln.LoanID</join>
         	</joins>
         	<detailView icon="Loan">
         		<sql>
@@ -1712,8 +1704,9 @@ SELECT cn.ContainerID,
        
        <table id="68" tableid="52" name="HUHLoansByBarcode" priority="1" color="30, 144, 144">
        	    <joins>
-        	<join tableid="147">pbc.PrepBarcodeID</join>
+            	<join tableid="52">ln.LoanID</join>
                 <join tableid="63">pp.PreparationID</join>
+                <join tableid="147">pbc.PrepBarcodeID</join>
             </joins>
             <detailView icon="Loan">
         		<sql>
@@ -1745,6 +1738,7 @@ SELECT cn.ContainerID,
        <table id="69" tableid="52" name="HUHLoansByTaxon" priority="1" color="30, 144, 144">
        		<joins>
         		<join tableid="4">tx.TaxonID</join>
+                <join tableid="63">pp.PreparationID</join>
         	</joins>
         	<detailView icon="Loan">
         		<sql>
@@ -1782,6 +1776,7 @@ SELECT cn.ContainerID,
        
        <table id="70" tableid="69" name="HUHRefWorksByRefWorkIdentifier" priority="1" color="30, 144, 144">
             <joins>
+                <join tableid="69">rw.ReferenceWorkID</join>
                 <join tableid="144">rwi.ReferenceWorkIdentifierID</join>
             </joins>
             <detailView icon="ReferenceWork">
@@ -1805,6 +1800,7 @@ SELECT cn.ContainerID,
         
 		<table id="71" tableid="69" name="HUHRefWorksByVariantTitle" priority="1" color="30, 144, 144">
             <joins>
+                <join tableid="69">rw.ReferenceWorkID</join>
                 <join tableid="145">rwv.ReferenceWorkVariantID</join>
             </joins>
             <detailView icon="ReferenceWork">
