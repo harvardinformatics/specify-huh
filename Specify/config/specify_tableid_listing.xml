@@ -30,6 +30,7 @@
         </table>
         <table name="edu.ku.brc.specify.datamodel.AccessionPreparation" abbrev="ap" id="142" searchable="true">
             <display view="HUHAccessionPreparation" dataobjformatter="HUHAccessionPreparation" newobjdlg="HUHAccessionPreparation"/>
+            <businessrule>edu.havard.huh.specify.datamodel.busrules.HUHAccessionPreparationBusRules</businessrule>
         </table>
         <table name="edu.ku.brc.specify.datamodel.Address" abbrev="ad" id="8" workbench="false" searchable="true">
             <display view="HUHAddress" newobjdlg="HUHAddress"/>
