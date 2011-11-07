@@ -933,7 +933,7 @@ public class CollectionObject extends CollectionMember implements AttachmentOwne
     /**
      *      * BiologicalObject (Bird, Fish, etc)
      */
-    @ManyToOne(cascade = {}, fetch = FetchType.LAZY)
+    @ManyToOne(cascade = {}, fetch = FetchType.EAGER) // modified by HUH
     //@Cascade( { CascadeType.MERGE, CascadeType.LOCK })
     @Cascade( { CascadeType.LOCK })
     @JoinColumn(name = "CollectingEventID", unique = false, nullable = true, insertable = true, updatable = true)
