@@ -79,18 +79,56 @@
     <dialog type="display" view="Taxon"              name="TaxonDisplay"             class="edu.ku.brc.specify.datamodel.Taxon" helpcontext="CBXQViewEdit"/>
  
     <!--  added by HUH -->
+    <dialog type="display" view="HUHAccession"       name="HUHAccession"             class="edu.ku.brc.specify.datamodel.Agent" helpcontext="CBXQViewEdit"/>
+    <dialog type="display" view="HUHAccessionAgent"  name="HUHAccessionAgent"        class="edu.ku.brc.specify.datamodel.AccessionAgent" helpcontext="CBXQViewEdit"/>
+    <dialog type="display" view="HUHAccessionPreparation"  name="HUHAccessionPreparation" class="edu.ku.brc.specify.datamodel.AccessionPreparation" helpcontext="CBXQViewEdit"/>
+    <dialog type="display" view="HUHAddress"         name="HUHAddress"               class="edu.ku.brc.specify.datamodel.Address" helpcontext="CBXQViewEdit"/>
     <dialog type="display" view="HUHAffiliateAgent"  name="HUHAffiliateAgent"        class="edu.ku.brc.specify.datamodel.Agent" helpcontext="CBXQViewEdit"/>
     <dialog type="display" view="HUHAgentCitation"   name="HUHAgentCitation"         class="edu.ku.brc.specify.datamodel.AgentCitation" helpcontext="CBXQViewEdit"/>
     <dialog type="display" view="HUHAgentGeography"  name="HUHAgentGeography"        class="edu.ku.brc.specify.datamodel.AgentGeography" helpcontext="CBXQViewEdit"/>
     <dialog type="display" view="HUHAgentSpecialty"  name="HUHAgentSpecialty"        class="edu.ku.brc.specify.datamodel.AgentSpecialty" helpcontext="CBXQViewEdit"/>
+    <dialog type="display" view="HUHAgentVariant"    name="HUHAgentVariant"          class="edu.ku.brc.specify.datamodel.AgentVariant" helpcontext="CBXQViewEdit"/>
+    <dialog type="display" view="HUHAuthor"          name="HUHAuthor"                class="edu.ku.brc.specify.datamodel.Author" helpcontext="CBXQViewEdit"/>
+    <dialog type="display" view="HUHBorrow"          name="HUHBorrow"                class="edu.ku.brc.specify.datamodel.Borrow" helpcontext="CBXQViewEdit"/>
+    <dialog type="display" view="HUHBorrowAgent"     name="HUHBorrowAgent"           class="edu.ku.brc.specify.datamodel.BorrowAgent" helpcontext="CBXQViewEdit"/>
+    <dialog type="display" view="HUHBorrowMaterial"  name="HUHBorrowMaterial"        class="edu.ku.brc.specify.datamodel.BorrowMaterial" helpcontext="CBXQViewEdit"/>
+    <dialog type="display" view="HUHBorrowReturnMaterial"  name="HUHBorrowReturnMaterial" class="edu.ku.brc.specify.datamodel.BorrowReturnMaterial" helpcontext="CBXQViewEdit"/>
     <dialog type="display" view="HUHBotanist"        name="HUHBotanist"              class="edu.ku.brc.specify.datamodel.Agent" helpcontext="CBXQViewEdit"/>
-    <dialog type="display" view="HUHDeterminationCitation" name="HUHDeterminationCitationDisplay" class="edu.ku.brc.specify.datamodel.DeterminationCitation" helpcontext="CBXQViewEdit"/>
-    <dialog type="display" view="HUHOtherIdentifier" name="HUHOtherIdentifierDisplay" class="edu.ku.brc.specify.datamodel.OtherIdentifier" helpcontext="CBXQViewEdit"/>
-    <dialog type="display" view="HUHOrganization"    name="HUHOrganizationDisplay" class="edu.ku.brc.specify.datamodel.Agent" helpcontext="CBXQViewEdit"/>
-    <dialog type="display" view="HUHReferenceWorkIdentifier" name="HUHReferenceWorkIdentifierDisplay" class="edu.ku.brc.specify.datamodel.ReferenceWorkIdentifier" helpcontext="CBXQViewEdit"/>
-	<dialog type="display" view="HUHReferenceWorkVariant" name="HUHReferenceWorkVariantDisplay" class="edu.ku.brc.specify.datamodel.ReferenceWorkVariant" helpcontext="CBXQViewEdit"/>
+    <dialog type="display" view="HUHCollectingEvent" name="HUHCollectingEvent"       class="edu.ku.brc.specify.datamodel.CollectingEvent" helpcontext="CBXQViewEdit"/>
+    <dialog type="display" view="HUHCollectingTrip"  name="HUHCollectingTrip"        class="edu.ku.brc.specify.datamodel.CollectingTrip" helpcontext="CBXQViewEdit"/>
+    <dialog type="display" view="HUHCollectionObject" name="HUHCollectionObject"     class="edu.ku.brc.specify.datamodel.CollectionObject" helpcontext="CBXQViewEdit"/>
+    <dialog type="display" view="HUHCollector"       name="HUHCollector"             class="edu.ku.brc.specify.datamodel.Collector" helpcontext="CBXQViewEdit"/>
+    <dialog type="display" view="HUHCollObjBarcode"  name="HUHCollObjBarcode"        class="edu.ku.brc.specify.datamodel.CollObjBarcode" helpcontext="CBXQViewEdit"/>
+    <dialog type="display" view="HUHContainer"       name="HUHContainer"             class="edu.ku.brc.specify.datamodel.Container" helpcontext="CBXQViewEdit"/>
+    <dialog type="display" view="HUHDetermination"   name="HUHDetermination"         class="edu.ku.brc.specify.datamodel.Determination" helpcontext="CBXQViewEdit"/>
+    <dialog type="display" view="HUHDeterminationCitation" name="HUHDeterminationCitation" class="edu.ku.brc.specify.datamodel.DeterminationCitation" helpcontext="CBXQViewEdit"/>
+    <dialog type="display" view="HUHExchangeOut"     name="HUHExchangeOut"           class="edu.ku.brc.specify.datamodel.ExchangeOut" helpcontext="CBXQViewEdit"/>
+    <dialog type="display" view="HUHExchangeOutItem" name="HUHExchangeOutItem"       class="edu.ku.brc.specify.datamodel.ExchangeOutItem" helpcontext="CBXQViewEdit"/>
+    <dialog type="display" view="HUHExsiccatae"      name="HUHExsiccatae"            class="edu.ku.brc.specify.datamodel.Exsiccatae" helpcontext="CBXQViewEdit"/>
+    <dialog type="display" view="HUHGeography"       name="HUHGeography"             class="edu.ku.brc.specify.datamodel.Geography" helpcontext="CBXQViewEdit"/>
+    <dialog type="display" view="HUHGift"            name="HUHGift"                  class="edu.ku.brc.specify.datamodel.Gift" helpcontext="CBXQViewEdit"/>
+    <dialog type="display" view="HUHGiftAgent"       name="HUHGiftAgent"             class="edu.ku.brc.specify.datamodel.GiftAgent" helpcontext="CBXQViewEdit"/>
+    <dialog type="display" view="HUHGiftItem"        name="HUHGiftItem"              class="edu.ku.brc.specify.datamodel.GiftItem" helpcontext="CBXQViewEdit"/>
+    <dialog type="display" view="HUHGroupPerson"     name="HUHGroupPerson"           class="edu.ku.brc.specify.datamodel.GroupPerson" helpcontext="CBXQViewEdit"/>
+    <dialog type="display" view="HUHLoan"            name="HUHLoan"                  class="edu.ku.brc.specify.datamodel.Loan" helpcontext="CBXQViewEdit"/>
+    <dialog type="display" view="HUHLoanAgent"       name="HUHLoanAgent"             class="edu.ku.brc.specify.datamodel.LoanAgent" helpcontext="CBXQViewEdit"/>
+    <dialog type="display" view="HUHLoanItems"       name="HUHLoanItems"             class="edu.ku.brc.specify.datamodel.LoanItems" helpcontext="CBXQViewEdit"/>
+    <dialog type="display" view="HUHLoanReturnPreparation" name="HUHLoanReturnPreparation" class="edu.ku.brc.specify.datamodel.LoanReturnPreparation" helpcontext="CBXQViewEdit"/>
+    <dialog type="display" view="HUHLocality"        name="HUHLocality"              class="edu.ku.brc.specify.datamodel.Locality" helpcontext="CBXQViewEdit"/>
+    <dialog type="display" view="HUHLocalityDetail"  name="HUHLocalityDetail"        class="edu.ku.brc.specify.datamodel.LocalityDetail" helpcontext="CBXQViewEdit"/>
+    <dialog type="display" view="HUHOtherIdentifier" name="HUHOtherIdentifier"       class="edu.ku.brc.specify.datamodel.OtherIdentifier" helpcontext="CBXQViewEdit"/>
+    <dialog type="display" view="HUHOrganization"    name="HUHOrganization"          class="edu.ku.brc.specify.datamodel.Agent" helpcontext="CBXQViewEdit"/>
+    <dialog type="display" view="HUHPreparation"     name="HUHPreparation"           class="edu.ku.brc.specify.datamodel.Preparation" helpcontext="CBXQViewEdit"/>
+    <dialog type="display" view="HUHPrepBarcode"     name="HUHPrepBarcode"           class="edu.ku.brc.specify.datamodel.PrepBarcode" helpcontext="CBXQViewEdit"/>
+    <dialog type="display" view="HUHReferenceWork"   name="HUHReferenceWork"         class="edu.ku.brc.specify.datamodel.ReferenceWork" helpcontext="CBXQViewEdit"/>
+    <dialog type="display" view="HUHReferenceWorkIdentifier" name="HUHReferenceWorkIdentifier" class="edu.ku.brc.specify.datamodel.ReferenceWorkIdentifier" helpcontext="CBXQViewEdit"/>
+	<dialog type="display" view="HUHReferenceWorkVariant" name="HUHReferenceWorkVariant" class="edu.ku.brc.specify.datamodel.ReferenceWorkVariant" helpcontext="CBXQViewEdit"/>
     <dialog type="display" view="HUHRefWorkTaxCitSub" name="HUHRefWorkTaxCitSub"     class="edu.ku.brc.specify.datamodel.ReferenceWork" helpcontext="CBXQViewEdit"/>
-    <dialog type="display" view="HUHTransactionAgent" name="HUHTransactionAgentDisplay" class="edu.ku.brc.specify.datamodel.Agent" helpcontext="CBXQViewEdit"/>
+    <dialog type="display" view="HUHShipment"        name="HUHShipment"              class="edu.ku.brc.specify.datamodel.Shipment" helpcontext="CBXQViewEdit"/>
+    <dialog type="display" view="HUHStorage"         name="HUHStorage"               class="edu.ku.brc.specify.datamodel.Storage" helpcontext="CBXQViewEdit"/>
+    <dialog type="display" view="HUHTaxon"           name="HUHTaxon"                 class="edu.ku.brc.specify.datamodel.Taxon" helpcontext="CBXQViewEdit"/>
+    <dialog type="display" view="HUHTaxonCitation"   name="HUHTaxonCitation"         class="edu.ku.brc.specify.datamodel.TaxonCitation" helpcontext="CBXQViewEdit"/>
+    <dialog type="display" view="HUHTransactionAgent" name="HUHTransactionAgent"     class="edu.ku.brc.specify.datamodel.Agent" helpcontext="CBXQViewEdit"/>
     <!--  end HUH additions -->
 
 	<!-- Attachment-related displays -->
