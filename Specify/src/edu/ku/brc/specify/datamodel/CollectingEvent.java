@@ -410,7 +410,7 @@ public class CollectingEvent extends DisciplineMember implements AttachmentOwner
     /**
      *      * Locality where collection took place
      */
-    @ManyToOne(cascade = {}, fetch = FetchType.LAZY)
+    @ManyToOne(cascade = {}, fetch = FetchType.EAGER) // modified by HUH
     @JoinColumn(name = "LocalityID")
     public Locality getLocality() 
     {
