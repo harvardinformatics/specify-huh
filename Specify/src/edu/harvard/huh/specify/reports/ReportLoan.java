@@ -169,7 +169,11 @@ public class ReportLoan {
 								item.collectorNumber = f.getCollectionObject().getFieldNumber();
 							}
 							
-							if (f.getCollectionObject().getCollectingEvent().getLocality() != null &&
+							/* Loan report no longer displaying region. This code does not account for a geography with a rank that is 
+							 * initially higher than region. In that case the while loop will attempt to obtain a rankId on the root node 
+							 * which is null
+							  
+								if (f.getCollectionObject().getCollectingEvent().getLocality() != null &&
 									f.getCollectionObject().getCollectingEvent().getLocality().getGeography() != null) {
 								Geography geography = f.getCollectionObject().getCollectingEvent().getLocality().getGeography();
 								
@@ -178,7 +182,7 @@ public class ReportLoan {
 								}
 								
 								item.region = geography.getName();
-							}
+							} */
 							
 							barcoded.items.add(item);
 						}
