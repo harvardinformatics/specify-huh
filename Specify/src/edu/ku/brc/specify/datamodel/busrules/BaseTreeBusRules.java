@@ -223,10 +223,12 @@ public abstract class BaseTreeBusRules<T extends Treeable<T,D,I>,
 		DataProviderSessionIFace session = DataProviderFactory.getInstance()
 				.createSession();
 
+        // Need to search by node ID because Hibernate will throw a fit when
+        // there is an unpersisted node, such as on a new form.
 		QueryIFace query = session.createQuery("select count(e) from "
-				+ node.getClass().getName() + " e where e.parent = :node",
+				+ node.getClass().getName() + " e where e.parent.id = :node",
 				false);
-		query.setParameter("node", node);
+		query.setParameter("node", node.getTreeId());
 		Integer childrenCount = (Integer) query.uniqueResult();
 
 		boolean deletable = false;

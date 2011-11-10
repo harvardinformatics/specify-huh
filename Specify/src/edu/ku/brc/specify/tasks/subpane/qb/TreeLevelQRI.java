@@ -208,13 +208,13 @@ public class TreeLevelQRI extends FieldQRI
 	}
 	
 	/**
-	 * Returns the IDs of all of a Treeable's descendants in the form of id1, id2,...id3
+	 * Returns the IDs of all of a Treeable and its descendants in the form of id1, id2,...id3
 	 * 
 	 * @param node
 	 * @return
 	 */
 	private String getDescendantsIn(DataProviderSessionIFace session, Class<?> clazz, Integer parentId) {
-	    String ids = getDescendantsInRecursive(session, clazz, parentId);
+	    String ids = parentId + ", " + getDescendantsInRecursive(session, clazz, parentId);
 	    if (ids.length() > 0) {
 	        return ids.substring(0, ids.length() - 2);
 	    } else {
@@ -308,7 +308,7 @@ public class TreeLevelQRI extends FieldQRI
                     result.append(")");
                 }
             }
-            return result.toString();
+            return "(" + result.toString() + ")";
         }
         finally
         {

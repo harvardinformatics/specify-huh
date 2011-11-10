@@ -249,7 +249,7 @@ public class ERTICaptionInfoTreeLevelGrp
      */
     protected String setupQuery(Object value)
     {
-        String ancestorsIn = getAncestorsIn(treeClass, (Integer) value);
+        String ancestorsIn = getLineageIn(treeClass, (Integer) value);
         
     	return querySQL.replace(":ancestorsIn", ancestorsIn);
     }
@@ -358,7 +358,7 @@ public class ERTICaptionInfoTreeLevelGrp
      * @param nodeId
      * @return
      */
-    private String getAncestorsIn(Class<?> clazz, Integer nodeId) {
+    private String getLineageIn(Class<?> clazz, Integer nodeId) {
         try {
             session = DataProviderFactory.getInstance().createSession();
 
@@ -376,7 +376,7 @@ public class ERTICaptionInfoTreeLevelGrp
 
             String descendantsIn = getDescendantsInRecursive(clazz, nodeId);
             String in = nodeId + ", " + ancestorsIn + descendantsIn;
-            in = "in(" + ancestorsIn.substring(0, ancestorsIn.length() - 2)
+            in = "in(" + in.substring(0, in.length() - 2)
                     + ")";
 
             return in;
