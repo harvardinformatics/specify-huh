@@ -3598,9 +3598,10 @@ public class TreeTableViewer <T extends Treeable<T,D,I>,
                             //System.out.println("Calc: "+node.getFullName()+" "+node.hashCode());
                             new ChildNodeCounter(TreeTableViewer.this, 1, node,  TreeFactory.getRelatedRecordCountSQLSingleNode(dbRecClass), null, isHQL);
                             
-                            new ChildNodeCounter(TreeTableViewer.this, 2, node, 
-                                    TreeFactory.getNodeNumberQuery(dbRecClass), 
-                                    TreeFactory.getRelatedRecordCountSQLForRange(dbRecClass, node), isHQL);
+// lchan: commenting this out because it slows down the tree editor/viewer to crawl.  Doesn't seem to affect anything.
+//                            new ChildNodeCounter(TreeTableViewer.this, 2, node, 
+//                                    TreeFactory.getNodeNumberQuery(dbRecClass), 
+//                                    TreeFactory.getRelatedRecordCountSQLForRange(dbRecClass, node), isHQL);
                         }
                     }
                     catch (Exception e)

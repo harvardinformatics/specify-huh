@@ -193,7 +193,7 @@ public class HibernateTreeDataServiceImpl <T extends Treeable<T,D,I>,
             treeNodes = new Vector<TreeNode>();
             for (Object[] nodeInfo: nodeInfoList)
             {
-                treeNodes.add(createNode(nodeInfo,parent));
+                treeNodes.add(createNode(session, nodeInfo, parent));
             }
             
         } catch (Exception ex)
@@ -229,7 +229,7 @@ public class HibernateTreeDataServiceImpl <T extends Treeable<T,D,I>,
      * @param parent the parent record
      * @return a {@link TreeNode} object
      */
-    private TreeNode createNode(final Object[] nodeInfo, final T parent)
+    private TreeNode createNode(Session session, final Object[] nodeInfo, final T parent)
     {
         Integer id                     = (Integer) nodeInfo[0];
         String  nodeName               = (String)  nodeInfo[1];
@@ -263,15 +263,14 @@ public class HibernateTreeDataServiceImpl <T extends Treeable<T,D,I>,
         
         Set<Pair<Integer,String>> synIdsAndNames = getSynonymIdsAndNames(parent.getClass(), id);
 
-		Session session = getNewSession();
-		List<Integer> count = session
+		@SuppressWarnings("unchecked")
+        List<Integer> count = session
 				.createQuery( 
 						"SELECT count(n.id) from "
 								+ parent.getClass().getName()
 								+ " n where n.parent.id = :ID")
 				.setParameter("ID", nodeInfo[0]).list();
 		boolean hasChildren = count.get(0) > 0;
-		session.close();
         
         // count.get(0) > 0 is for the hasChildren boolean in the TreeNode constructor
         TreeNode node = new TreeNode(nodeName,fullName,id,parentId,rank,parentRank, hasChildren, acceptedParentId, acceptedParentFullName, synIdsAndNames);
