@@ -995,6 +995,7 @@ public abstract class BaseTreeBusRules<T extends Treeable<T,D,I>,
      * NOTE: If this method is overridden, freeLocks() MUST be called when result is false
      * !!
      * 
+     * lchan: no more locks
      */
 	@Override
 	public boolean beforeDeleteCommit(Object dataObj,
@@ -1004,10 +1005,10 @@ public abstract class BaseTreeBusRules<T extends Treeable<T,D,I>,
 		{
 			return false;
 		}
-		if (BaseTreeBusRules.ALLOW_CONCURRENT_FORM_ACCESS && viewable != null)
-		{
-			return getRequiredLocks();
-		}
+//		if (BaseTreeBusRules.ALLOW_CONCURRENT_FORM_ACCESS && viewable != null)
+//		{
+//			return getRequiredLocks();
+//		}
 		else
 		{
 			return true;
@@ -1376,50 +1377,54 @@ public abstract class BaseTreeBusRules<T extends Treeable<T,D,I>,
 	 * @see edu.ku.brc.af.ui.forms.BaseBusRules#isOkToSave(java.lang.Object, edu.ku.brc.dbsupport.DataProviderSessionIFace)
 	 */
     /*
-     * NOTE: If this method is overridden, freeLocks() MUST be called when result is false
-     * !!
+     * NOTE: If this method is overridden, freeLocks() MUST be called when
+     * result is false !!
      * 
+     * lchan: modified this method to return true all of the time. Otherwise
+     * Specify enforces locks on Treeable saves.
      */
 	@Override
 	public boolean isOkToSave(Object dataObj, DataProviderSessionIFace session)
 	{
-		boolean result = super.isOkToSave(dataObj, session);
-		if (result && BaseTreeBusRules.ALLOW_CONCURRENT_FORM_ACCESS)
-		{
-			if (!getRequiredLocks())
-			{
-				result = false;
-				reasonList.add(getUnableToLockMsg());
-			}
-		}
-		return result;
+	    return true;
+	    
+//		boolean result = super.isOkToSave(dataObj, session);
+//		if (result && BaseTreeBusRules.ALLOW_CONCURRENT_FORM_ACCESS)
+//		{
+//			if (!getRequiredLocks())
+//			{
+//				result = false;
+//				reasonList.add(getUnableToLockMsg());
+//			}
+//		}
+//		return result;
 	}
 
-	/**
-	 * @return true if locks were aquired.
-	 * 
-	 * Locks necessary tables prior to a save.
-	 * Only used when ALLOW_CONCURRENT_FORM_ACCESS is true.
-	 */
-	protected boolean getRequiredLocks()
-	{
-		TaskSemaphoreMgr.USER_ACTION result = TaskSemaphoreMgr.lock(getFormSaveLockTitle(), getFormSaveLockName(), "save", 
-				TaskSemaphoreMgr.SCOPE.Discipline, false, new TaskSemaphoreMgrCallerIFace(){
-
-					/* (non-Javadoc)
-					 * @see edu.ku.brc.specify.dbsupport.TaskSemaphoreMgrCallerIFace#resolveConflict(edu.ku.brc.specify.datamodel.SpTaskSemaphore, boolean, java.lang.String)
-					 */
-					@Override
-					public USER_ACTION resolveConflict(
-							SpTaskSemaphore semaphore,
-							boolean previouslyLocked, String prevLockBy)
-					{
-						return USER_ACTION.Error;
-					}
-			
-		}, false);
-		return result == TaskSemaphoreMgr.USER_ACTION.OK;
-	}
+//	/**
+//	 * @return true if locks were aquired.
+//	 * 
+//	 * Locks necessary tables prior to a save.
+//	 * Only used when ALLOW_CONCURRENT_FORM_ACCESS is true.
+//	 */
+//	protected boolean getRequiredLocks()
+//	{
+//		TaskSemaphoreMgr.USER_ACTION result = TaskSemaphoreMgr.lock(getFormSaveLockTitle(), getFormSaveLockName(), "save", 
+//				TaskSemaphoreMgr.SCOPE.Discipline, false, new TaskSemaphoreMgrCallerIFace(){
+//
+//					/* (non-Javadoc)
+//					 * @see edu.ku.brc.specify.dbsupport.TaskSemaphoreMgrCallerIFace#resolveConflict(edu.ku.brc.specify.datamodel.SpTaskSemaphore, boolean, java.lang.String)
+//					 */
+//					@Override
+//					public USER_ACTION resolveConflict(
+//							SpTaskSemaphore semaphore,
+//							boolean previouslyLocked, String prevLockBy)
+//					{
+//						return USER_ACTION.Error;
+//					}
+//			
+//		}, false);
+//		return result == TaskSemaphoreMgr.USER_ACTION.OK;
+//	}
 	
 	/**
 	 * @return the class for the generic parameter <T>
