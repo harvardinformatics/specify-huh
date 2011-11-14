@@ -62,9 +62,11 @@ import java.util.Set;
 import java.util.Vector;
 import java.util.prefs.BackingStoreException;
 
+import javax.mail.MessagingException;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.ImageIcon;
+import javax.swing.JButton;
 import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JEditorPane;
 import javax.swing.JFileChooser;
@@ -105,6 +107,8 @@ import com.jgoodies.forms.layout.FormLayout;
 import com.jgoodies.looks.plastic.PlasticLookAndFeel;
 import com.jgoodies.looks.plastic.theme.ExperienceBlue;
 
+import edu.harvard.huh.specify.bugzilla.BugMail;
+import edu.harvard.huh.specify.bugzilla.BugReportDlg;
 import edu.ku.brc.af.auth.SecurityMgr;
 import edu.ku.brc.af.auth.UserAndMasterPasswordMgr;
 import edu.ku.brc.af.auth.specify.SpecifySecurityMgr;
@@ -1458,6 +1462,34 @@ public class Specify extends JPanel implements DatabaseLoginListener, CommandLis
                         }
                     });
         }
+        
+        //----------------------------------------------------
+        //-- Bug Reporting Menu
+        //----------------------------------------------------
+        JButton bugButton = new JButton("Report a Problem");
+        bugButton.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				BugReportDlg dlg = new BugReportDlg();
+				dlg.createUI();
+				UIHelper.centerAndShow(dlg);
+				dlg.dispose();
+				if (!dlg.isCancelled()) {
+					BugMail bug =  new BugMail(dlg.getSummary(), dlg.getDescription());
+					try {
+						bug.send();
+					} catch (Exception e1) {
+						e1.printStackTrace();
+					}
+					System.out.println("Summary: " + dlg.getSummary());
+					System.out.println("Description: " + dlg.getDescription());
+				}
+			}
+        	
+        });
+        mb.add(bugButton);
+        
         return mb;
     }
     
