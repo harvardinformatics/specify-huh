@@ -42,6 +42,8 @@ import edu.ku.brc.ui.UIHelper;
 public class BugReportDlg extends JDialog {
     private javax.swing.JLabel descriptionLabel;
     private javax.swing.JTextArea descriptionTextArea;
+    private javax.swing.JLabel identifierLabel;
+    private javax.swing.JTextField identifierTextField;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JButton submitButton;
     private javax.swing.JLabel summaryLabel;
@@ -93,6 +95,8 @@ public class BugReportDlg extends JDialog {
         descriptionTextArea = new javax.swing.JTextArea();
         submitButton = new javax.swing.JButton();
         cancelButton = new javax.swing.JButton();
+        identifierTextField = new javax.swing.JTextField();
+        identifierLabel = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
 
@@ -106,8 +110,8 @@ public class BugReportDlg extends JDialog {
         descriptionTextArea.setLineWrap(true);
         descriptionTextArea.setRows(5);
         descriptionTextArea.getDocument().addDocumentListener(fieldDocumentListener);
-        
         jScrollPane1.setViewportView(descriptionTextArea);
+        
 
         submitButton.setText("Submit");
         submitButton.setEnabled(false);
@@ -124,6 +128,8 @@ public class BugReportDlg extends JDialog {
             }
         });
 
+        identifierLabel.setText("Identifier:");
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -131,18 +137,22 @@ public class BugReportDlg extends JDialog {
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(layout.createSequentialGroup()
-                        .addComponent(summaryLabel)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(summaryTextField, javax.swing.GroupLayout.DEFAULT_SIZE, 294, Short.MAX_VALUE))
-                    .addGroup(layout.createSequentialGroup()
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                        .addComponent(submitButton)
+                        .addGap(4, 4, 4)
+                        .addComponent(cancelButton))
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                         .addComponent(descriptionLabel)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 278, Short.MAX_VALUE))
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                        .addComponent(submitButton)
+                    .addGroup(layout.createSequentialGroup()
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(summaryLabel)
+                            .addComponent(identifierLabel))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(cancelButton)))
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(identifierTextField, javax.swing.GroupLayout.DEFAULT_SIZE, 294, Short.MAX_VALUE)
+                            .addComponent(summaryTextField, javax.swing.GroupLayout.DEFAULT_SIZE, 294, Short.MAX_VALUE))))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
@@ -153,14 +163,19 @@ public class BugReportDlg extends JDialog {
                     .addComponent(summaryLabel)
                     .addComponent(summaryTextField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(descriptionLabel)
-                    .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(cancelButton)
-                    .addComponent(submitButton))
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                    .addComponent(identifierTextField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(identifierLabel))
+                .addGap(9, 9, 9)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 26, Short.MAX_VALUE)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(submitButton)
+                            .addComponent(cancelButton)))
+                    .addComponent(descriptionLabel))
+                .addContainerGap())
         );
 
         pack();
