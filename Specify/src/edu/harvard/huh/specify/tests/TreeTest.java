@@ -1,7 +1,10 @@
 package edu.harvard.huh.specify.tests;
 
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+import java.util.LinkedList;
+import java.util.Queue;
 import java.util.Set;
 
 import javax.swing.UIManager;
@@ -58,24 +61,60 @@ public class TreeTest {
 		root = treeService.getRootNode(currentDef);
 	}
 	
-	@Test public void testRootNode() {
+	@Test public void testRootNode() 		
+	{
 		assertTrue(treeService.getRootNode(currentDef) != null);
 	}
 	@Test public void testRootNodeChildren() {
 		assertTrue(treeService.getChildNodes(root) != null);
 	}
-	@Test public void testSize() {
-		//System.out.println(size(root));
-		System.out.println(treeService.getDescendantCount(root));
-	}
-	
-	private int size(Treeable parent) {
-		int i = 1;
-		for (Treeable t: (Set<Treeable>)treeService.getChildNodes(parent)) {
-			if (t != null) {
-				i += size(t);
+
+	@Test public void checkTreeIntegrity() {	
+		Queue<Treeable> nodes = new LinkedList<Treeable>();
+		int count = 0;
+		boolean[] visited = new boolean[1];
+		boolean error = false;
+		String errStr = "No Errors!";
+		nodes.offer(root);
+		
+		while (!error && !nodes.isEmpty()) {
+			Treeable parent = nodes.poll();
+			for (Treeable node : (Set<Treeable>)treeService.getChildNodes(parent)) {
+				
+				// First, check the parent object reference and parent id
+				if (node.getParent() != null) {
+					if(node.getParent().getTreeId() != parent.getTreeId()) {
+						errStr = node.getTreeId() + ": " + node.getFullName() + "(The child does not point back to the correct parent!)";
+						error = true;
+					}
+				} else {
+					errStr = node.getTreeId() + ": " + node.getFullName() + "(This node has no parent and isn't the root!)";
+					error = true;
+				}
+				
+				// Second, check for cycles by checking if this node has been visited more than once
+				
+				// TODO: implement this using a map
+				int id = node.getTreeId();
+				if (id > visited.length-1) {
+					boolean[] newVisited = new boolean[id+1];
+					for (int i = 0; i < visited.length; i++) {
+						newVisited[i] = visited[i];
+					}
+					visited = newVisited;
+				}
+				if (visited[id]) {
+					errStr = node.getTreeId() + ": " + node.getFullName() + "This node has been visited already!";
+					error = true;
+				}
+				visited[id] = true;
+				
+				// Enqueue current node and increment the count
+				nodes.offer(node);
+				count++;
 			}
 		}
-		return i;
+		assertFalse(error);
+		System.out.println(errStr);
 	}
 }
