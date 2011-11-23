@@ -1152,7 +1152,9 @@ public class TreeTableViewer <T extends Treeable<T,D,I>,
         
         // get the DB record that corresponds to the TreeNode
         T nodeRecord = getRecordForNode(node);
-        int numNodesToDelete = dataService.getDescendantCount(nodeRecord)+1;
+        //int numNodesToDelete = dataService.getDescendantCount(nodeRecord)+1;
+        // lchan: always 1, according to the BaseBusRules modification, which could only delete child-less nodes.
+        int numNodesToDelete = 1;
         int userChoice = JOptionPane.OK_OPTION;
         
         // if this node has children, ask the user if it is okay to delete multiple nodes
