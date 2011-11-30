@@ -23,11 +23,32 @@
 package edu.harvard.huh.specify.tests;
 
 import org.junit.Before;
+import org.junit.Test;
 
 import edu.ku.brc.specify.datamodel.TaxonTreeDef;
 
 public class TaxonTreeTest extends BaseTreeableTest {
 	@Before public void setTreeable() {
 		initialize(new TaxonTreeDef().getClass());
+	}
+	
+	@Test public void testCreateNode() {
+		
+	}
+	
+	@Test public void testFindByName() {
+		
+	}
+	
+	@Test public void testGetNodeById() {
+		
+	}
+	
+	@Test public void testDeleteTreeNode() {
+		
+	}
+	
+	@Test public void testMoveTreeNode() {
+		
 	}
 }
