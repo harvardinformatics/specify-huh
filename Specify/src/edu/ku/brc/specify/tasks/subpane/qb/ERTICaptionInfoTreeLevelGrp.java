@@ -249,7 +249,7 @@ public class ERTICaptionInfoTreeLevelGrp
      */
     protected String setupQuery(Object value)
     {
-        String ancestorsIn = getLineageIn(treeClass, (Integer) value);
+        String ancestorsIn = getAncestorsIn(treeClass, (Integer) value);
         
     	return querySQL.replace(":ancestorsIn", ancestorsIn);
     }
@@ -349,8 +349,8 @@ public class ERTICaptionInfoTreeLevelGrp
     private HashMap<Integer, String> ancestorsCache = new HashMap<Integer, String>();
     
     /**
-     * Returns the ids of a node and its ancestors an descendants in the form of
-     * id1, id2,...id3. It caches the results of the recursive ancestors because
+     * Returns the ids of a node and its ancestors in the form of id1,
+     * id2,...id3. It caches the results of the recursive ancestors because
      * Specify calls it for each result row/column.
      * 
      * @author lchan
@@ -358,7 +358,7 @@ public class ERTICaptionInfoTreeLevelGrp
      * @param nodeId
      * @return
      */
-    private String getLineageIn(Class<?> clazz, Integer nodeId) {
+    private String getAncestorsIn(Class<?> clazz, Integer nodeId) {
         try {
             session = DataProviderFactory.getInstance().createSession();
 
@@ -374,8 +374,7 @@ public class ERTICaptionInfoTreeLevelGrp
                 ancestorsCache.put(parentId, ancestorsIn);
             }
 
-            String descendantsIn = getDescendantsInRecursive(clazz, nodeId);
-            String in = nodeId + ", " + ancestorsIn + descendantsIn;
+            String in = nodeId + ", " + ancestorsIn;
             in = "in(" + in.substring(0, in.length() - 2)
                     + ")";
 
@@ -394,20 +393,6 @@ public class ERTICaptionInfoTreeLevelGrp
         } else {
             return parentId + ", " + getAncestorsInRecursive(clazz, parentId);
         }
-    }
-    
-    private String getDescendantsInRecursive(Class<?> clazz, Integer nodeId) {
-        QueryIFace query = session.createQuery("select e.id from " + clazz.getName() + " e where e.parent.id = :nodeId", false);
-        query.setParameter("nodeId", nodeId);
-        String inIds = "";
-        @SuppressWarnings("unchecked")
-        List<Integer> ids = (List<Integer>) query.list();
-        for (Integer id : ids) {
-            inIds += id + ", ";
-            inIds += getDescendantsInRecursive(clazz, id);
-        }
-        
-        return inIds;
     }
     
     /**

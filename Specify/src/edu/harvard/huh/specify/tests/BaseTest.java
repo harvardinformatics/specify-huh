@@ -28,6 +28,7 @@ import org.hibernate.Session;
 
 import edu.ku.brc.dbsupport.DBConnection;
 import edu.ku.brc.dbsupport.HibernateUtil;
+import edu.ku.brc.specify.Specify;
 
 public class BaseTest {
 	protected Session session = null;
@@ -46,7 +47,9 @@ public class BaseTest {
 			dbConn.setUsernamePassword(props.getProperty("testing.db.username"),
 					props.getProperty("testing.db.password"));
 		
-			session = HibernateUtil.getSessionFactory().openSession();
+			Specify.setUpSystemProperties(); // lchan: need this for a BaseTreeBusRulesTest
+			
+			session = HibernateUtil.getNewSession();
 		} catch (Exception e) {
 			e.printStackTrace();
 
