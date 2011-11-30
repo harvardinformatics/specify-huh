@@ -65,13 +65,21 @@ public class BaseTreeableTest extends BaseTest {
 	{
 		assertTrue(treeService.getRootNode(currentDef) != null);
 	}
+	
 	@Test public void testRootNodeChildren() {
 		assertTrue(treeService.getChildNodes(root) != null);
 	}
+	
+	@Test public void testTreeIntegrity() {
+		assertFalse(checkTreeIntegrity());
+	}
+	
+	@Test public void testGetDescendantCount() {
+		assertTrue(treeService.getDescendantCount(root) == getSize(root)-1);
+	}
 
-	@Test public void checkTreeIntegrity() {	
+	public boolean checkTreeIntegrity() {	
 		Queue<Treeable> nodes = new LinkedList<Treeable>();
-		int count = 0;
 		Set<Integer> visited = new HashSet<Integer>();
 		boolean error = false;
 		String errStr = "No Errors!";
@@ -80,7 +88,7 @@ public class BaseTreeableTest extends BaseTest {
 		while (!error && !nodes.isEmpty()) {
 			Treeable parent = nodes.poll();
 			for (Treeable node : (Set<Treeable>)treeService.getChildNodes(parent)) {
-
+				
 				// First, check the parent object reference and parent id
 				if (node.getParent() != null) {
 					if(node.getParent().getTreeId() != parent.getTreeId()) {
@@ -101,10 +109,17 @@ public class BaseTreeableTest extends BaseTest {
 				// Enqueue current node and increment the count
 				nodes.offer(node);
 				visited.add(id);
-				count++;
 			}
 		}
-		assertFalse(error);
 		System.out.println(errStr);
+		return error;
+	}
+	
+	public int getSize(Treeable parent) {
+		int size = 1;
+		for (Treeable child : (Set<Treeable>)treeService.getChildNodes(parent)) {
+			size += getSize(child);
+		}
+		return size;
 	}
 }
