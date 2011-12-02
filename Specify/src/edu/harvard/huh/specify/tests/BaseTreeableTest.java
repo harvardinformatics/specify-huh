@@ -25,20 +25,20 @@ package edu.harvard.huh.specify.tests;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedList;
-import java.util.Properties;
+import java.util.List;
 import java.util.Queue;
 import java.util.Set;
 
-import javax.swing.UIManager;
-
-import org.hibernate.Session;
-import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
 
-import edu.ku.brc.dbsupport.DBConnection;
-import edu.ku.brc.dbsupport.HibernateUtil;
+import edu.ku.brc.af.core.AppContextMgr;
+import edu.ku.brc.specify.datamodel.Taxon;
 import edu.ku.brc.specify.datamodel.TreeDefIface;
 import edu.ku.brc.specify.datamodel.Treeable;
 import edu.ku.brc.specify.treeutils.HibernateTreeDataServiceImpl;
@@ -46,19 +46,72 @@ import edu.ku.brc.specify.treeutils.TreeDataService;
 
 public class BaseTreeableTest extends BaseTest {
 	protected  Class treeDefClass;
+	protected  Class treeableClass;
 	protected  TreeDefIface currentDef;
 	protected  TreeDataService treeService;
 	protected  Treeable root;
 	protected  final int DEFAULT_TREE_DEF_ID = 1;
+	
+	protected static List<String[]> propsList = new LinkedList<String[]>();
+	
+	protected int lookupId;
+	protected String lookupName;
+	protected int moveFrom;
+	protected int moveTo;
+	protected int deleteId;
+	
+	public BaseTreeableTest(int lookupId, String lookupName, int moveFrom, int moveTo, int deleteId) {
+		this.lookupId = lookupId;
+		this.lookupName = lookupName;
+		this.moveFrom = moveFrom;
+		this.moveTo = moveTo;
+		this.deleteId = deleteId;
+	}
 
-	public void initialize(Class treeDefClass) {
+	public void initialize(Class treeDefClass, Class treeableClass) {
 		getSession();
 		this.treeDefClass = treeDefClass;
+		this.treeableClass = treeableClass;
 		currentDef = (TreeDefIface)session.load(treeDefClass, DEFAULT_TREE_DEF_ID);
+		AppContextMgr.getInstance().setClassObject(treeDefClass, currentDef);
 		treeService = new HibernateTreeDataServiceImpl();
 		session.close();
 
 		root = treeService.getRootNode(currentDef);
+	}
+	
+	protected static Collection<Object[]> getParams(List<String[]> propsList) {
+		Collection<Object[]> params = new LinkedList<Object[]>();
+
+		while (hasNextParam(propsList)) {
+			params.add(getNextParam(propsList)); 	// { lookupId, lookupName, moveFrom, moveTo, deleteId }
+		}
+		
+		return params;
+	}
+
+	@Test public void testFindByName() {
+		assertTrue(treeService.findByName(currentDef, lookupName, true).size() > 0);
+	}
+
+	@Test public void testGetNodeById() {
+		assertTrue(treeService.getNodeById(treeableClass, lookupId) != null);
+	}
+
+	@Test public void testDeleteTreeNode() {
+		assertTrue(treeService.getNodeById(treeableClass, deleteId) != null);
+		Treeable node = treeService.getNodeById(treeableClass, deleteId);
+		treeService.deleteTreeNode(node);
+		assertTrue(treeService.getNodeById(treeableClass, deleteId) == null);
+	}
+
+	@Test public void testMoveTreeNode() {
+		Treeable from = treeService.getNodeById(treeableClass, moveFrom);
+		Treeable to = treeService.getNodeById(treeableClass, moveTo);
+		treeService.moveTreeNode(from, to);
+		
+		Treeable child = treeService.getNodeById(new Taxon().getClass(), moveFrom);
+		assertTrue(child.getParent().getTreeId() == moveTo);
 	}
 
 	@Test public void testRootNode() 		
@@ -121,5 +174,36 @@ public class BaseTreeableTest extends BaseTest {
 			size += getSize(child);
 		}
 		return size;
+	}
+
+	private static String getSingle(List<String[]> list, int i) {
+		String[] s = list.get(i);
+		String single = s[0];
+		list.set(i, Arrays.copyOfRange(s, 1, s.length));
+		return single;
+	}
+	
+	private static String[] getPair(List<String[]> list, int i) {
+		String[] s = list.get(i);
+		String[] pair = new String[] { s[0], s[1] }; 
+		list.set(i, Arrays.copyOfRange(s, 2, s.length));
+		return pair;
+	}
+	
+	protected static boolean hasNextParam(List<String[]> list) {
+		for (String[] a : list) {
+			if (a.length == 0)
+				return false;
+		}
+		return true;
+	}
+	
+	protected static Object[] getNextParam(List<String[]> list) {
+		String[] lookup = getPair(list, 0);
+		String[] move = getPair(list, 1);
+		String delete = getSingle(list, 2);
+		
+		// {lookupId, lookupName, moveFrom, moveTo, deleteId }
+		return new Object[] { Integer.parseInt(lookup[0]), lookup[1], Integer.parseInt(move[0]), Integer.parseInt(move[1]), Integer.parseInt(delete) };
 	}
 }

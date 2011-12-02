@@ -22,33 +22,38 @@
 
 package edu.harvard.huh.specify.tests;
 
-import org.junit.Before;
-import org.junit.Test;
+import java.io.IOException;
+import java.util.Collection;
+import java.util.LinkedList;
+import java.util.Properties;
 
+import org.junit.Before;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
+import org.junit.runners.Parameterized.Parameters;
+
+import edu.ku.brc.specify.datamodel.Taxon;
 import edu.ku.brc.specify.datamodel.TaxonTreeDef;
 
+@RunWith(value = Parameterized.class)
 public class TaxonTreeTest extends BaseTreeableTest {
+	
+	public TaxonTreeTest(int lookupId, String lookupName, int moveFrom, int moveTo, int deleteId) {
+		super(lookupId, lookupName, moveFrom, moveTo, deleteId);
+	}
+
+	@Parameters public static Collection<Object[]> data() throws IOException {
+		Properties props = new Properties();
+		props.load(TaxonTreeTest.class.getResourceAsStream("testing.properties"));
+		
+		propsList.add(props.getProperty("testing.taxon.lookup").split(","));
+		propsList.add(props.getProperty("testing.taxon.move").split(","));
+		propsList.add(props.getProperty("testing.taxon.delete").split(","));
+		
+		return getParams(propsList);
+	}
+	
 	@Before public void setTreeable() {
-		initialize(new TaxonTreeDef().getClass());
-	}
-	
-	@Test public void testCreateNode() {
-		
-	}
-	
-	@Test public void testFindByName() {
-		
-	}
-	
-	@Test public void testGetNodeById() {
-		
-	}
-	
-	@Test public void testDeleteTreeNode() {
-		
-	}
-	
-	@Test public void testMoveTreeNode() {
-		
+		initialize(new TaxonTreeDef().getClass(), new Taxon().getClass());
 	}
 }

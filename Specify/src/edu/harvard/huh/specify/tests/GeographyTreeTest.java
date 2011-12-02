@@ -22,12 +22,39 @@
 
 package edu.harvard.huh.specify.tests;
 
+import java.io.IOException;
+import java.util.Collection;
+import java.util.Properties;
+
 import org.junit.Before;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
+import org.junit.runners.Parameterized.Parameters;
 
+import edu.ku.brc.specify.datamodel.Geography;
 import edu.ku.brc.specify.datamodel.GeographyTreeDef;
+import edu.ku.brc.specify.datamodel.Storage;
+import edu.ku.brc.specify.datamodel.StorageTreeDef;
 
+@RunWith(value = Parameterized.class)
 public class GeographyTreeTest extends BaseTreeableTest {
+	
+	public GeographyTreeTest(int lookupId, String lookupName, int moveFrom, int moveTo, int deleteId) {
+		super(lookupId, lookupName, moveFrom, moveTo, deleteId);
+	}
+
+	@Parameters public static Collection<Object[]> data() throws IOException {
+		Properties props = new Properties();
+		props.load(TaxonTreeTest.class.getResourceAsStream("testing.properties"));
+
+		propsList.add(props.getProperty("testing.geography.lookup").split(","));
+		propsList.add(props.getProperty("testing.geography.move").split(","));
+		propsList.add(props.getProperty("testing.geography.delete").split(","));
+
+		return getParams(propsList);
+	}
+
 	@Before public void setTreeable() {
-		initialize(new GeographyTreeDef().getClass());
+		initialize(new GeographyTreeDef().getClass(), new Geography().getClass());
 	}
 }

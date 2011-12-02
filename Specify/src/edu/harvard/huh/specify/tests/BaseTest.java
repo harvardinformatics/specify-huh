@@ -24,10 +24,16 @@ package edu.harvard.huh.specify.tests;
 
 import java.util.Properties;
 
+import javax.swing.UIManager;
+
 import org.hibernate.Session;
 
+import edu.ku.brc.af.core.AppContextMgr;
+import edu.ku.brc.af.core.expresssearch.QueryAdjusterForDomain;
 import edu.ku.brc.dbsupport.DBConnection;
+import edu.ku.brc.dbsupport.DataProviderFactory;
 import edu.ku.brc.dbsupport.HibernateUtil;
+import edu.ku.brc.specify.datamodel.SpecifyUser;
 import edu.ku.brc.specify.Specify;
 
 public class BaseTest {
@@ -35,6 +41,14 @@ public class BaseTest {
 	
 	protected Session getSession() {
 		try {
+			UIManager.setLookAndFeel(
+		            UIManager.getCrossPlatformLookAndFeelClassName()); // Otherwise HibernateUtil will throw swing exception
+			
+			System.setProperty(DataProviderFactory.factoryName, "edu.ku.brc.specify.dbsupport.HibernateDataProvider");
+			System.setProperty(QueryAdjusterForDomain.factoryName, "edu.ku.brc.specify.dbsupport.SpecifyQueryAdjusterForDomain");
+			System.setProperty(AppContextMgr.factoryName, "edu.ku.brc.specify.config.SpecifyAppContextMgr");
+			AppContextMgr appCtxMgr = AppContextMgr.getInstance();
+			
 			Properties props = new Properties();
 			props.load(getClass().getResourceAsStream("testing.properties"));
 		
@@ -46,7 +60,17 @@ public class BaseTest {
 			dbConn.setConnectionStr(props.getProperty("testing.db.connstr"));
 			dbConn.setUsernamePassword(props.getProperty("testing.db.username"),
 					props.getProperty("testing.db.password"));
-		
+			
+			String prop = props.getProperty("testing.specify.userid");
+			
+			SpecifyUser user = new SpecifyUser();
+			int userId = Integer.parseInt(prop);
+			user.setSpecifyUserId(userId);
+			
+			appCtxMgr.setContext(props.getProperty("testing.db.name"), props.getProperty("testing.db.name"), false, false);
+			appCtxMgr.setHasContext(true);
+			appCtxMgr.setClassObject(SpecifyUser.class, user);
+			
 			Specify.setUpSystemProperties(); // lchan: need this for a BaseTreeBusRulesTest
 			
 			session = HibernateUtil.getNewSession();
