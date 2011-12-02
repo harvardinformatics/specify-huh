@@ -24,10 +24,16 @@ package edu.harvard.huh.specify.tests;
 
 import org.junit.Before;
 
+import edu.ku.brc.specify.datamodel.GeologicTimePeriod;
 import edu.ku.brc.specify.datamodel.GeologicTimePeriodTreeDef;
 
 public class GeologicTimePeriodTreeTest extends BaseTreeableTest {
+	public GeologicTimePeriodTreeTest(int lookupId, String lookupName,
+			int moveFrom, int moveTo, int deleteId) {
+		super(lookupId, lookupName, moveFrom, moveTo, deleteId);
+	}
+
 	@Before public void setTreeable() {
-		initialize(new GeologicTimePeriodTreeDef().getClass());
+		initialize(new GeologicTimePeriodTreeDef().getClass(), new GeologicTimePeriod().getClass());
 	}
 }

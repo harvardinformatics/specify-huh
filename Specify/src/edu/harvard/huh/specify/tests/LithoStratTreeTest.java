@@ -24,10 +24,16 @@ package edu.harvard.huh.specify.tests;
 
 import org.junit.Before;
 
+import edu.ku.brc.specify.datamodel.LithoStrat;
 import edu.ku.brc.specify.datamodel.LithoStratTreeDef;
 
 public class LithoStratTreeTest extends BaseTreeableTest {
+	public LithoStratTreeTest(int lookupId, String lookupName, int moveFrom,
+			int moveTo, int deleteId) {
+		super(lookupId, lookupName, moveFrom, moveTo, deleteId);
+	}
+
 	@Before public void setTreeable() {
-		initialize(new LithoStratTreeDef().getClass());
+		initialize(new LithoStratTreeDef().getClass(), new LithoStrat().getClass());
 	}
 }
