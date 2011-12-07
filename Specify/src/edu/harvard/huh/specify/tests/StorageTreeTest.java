@@ -47,12 +47,12 @@ public class StorageTreeTest extends BaseTreeableTest {
 	@Parameters public static Collection<Object[]> data() throws IOException {
 		Properties props = new Properties();
 		props.load(TaxonTreeTest.class.getResourceAsStream("testing.properties"));
+		
+		String lookupProp = props.getProperty("testing.storage.lookup");
+		String moveProp = props.getProperty("testing.storage.move");
+		String deleteProp = props.getProperty("testing.storage.delete");
 
-		propsList.add(props.getProperty("testing.storage.lookup").split(","));
-		propsList.add(props.getProperty("testing.storage.move").split(","));
-		propsList.add(props.getProperty("testing.storage.delete").split(","));
-
-		return getParams(propsList);
+		return getTreeableParams(lookupProp, moveProp, deleteProp);
 	}
 
 	@Before public void setTreeable() {

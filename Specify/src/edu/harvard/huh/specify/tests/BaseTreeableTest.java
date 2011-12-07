@@ -25,7 +25,6 @@ package edu.harvard.huh.specify.tests;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -34,8 +33,6 @@ import java.util.Queue;
 import java.util.Set;
 
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
 
 import edu.ku.brc.af.core.AppContextMgr;
 import edu.ku.brc.specify.datamodel.Taxon;
@@ -76,15 +73,24 @@ public class BaseTreeableTest extends BaseTest {
 		AppContextMgr.getInstance().setClassObject(treeDefClass, currentDef);
 		treeService = new HibernateTreeDataServiceImpl();
 		session.close();
-
+		
 		root = treeService.getRootNode(currentDef);
 	}
 	
-	protected static Collection<Object[]> getParams(List<String[]> propsList) {
+	protected static Collection<Object[]> getTreeableParams(String lookupProp, String moveProp, String deleteProp) {
+		TestParameter lookupParams = new TestParameter(lookupProp);
+		TestParameter moveParams = new TestParameter(moveProp);
+		TestParameter deleteParams = new TestParameter(deleteProp);
+		
 		Collection<Object[]> params = new LinkedList<Object[]>();
 
-		while (hasNextParam(propsList)) {
-			params.add(getNextParam(propsList)); 	// { lookupId, lookupName, moveFrom, moveTo, deleteId }
+		// {lookupId, lookupName, moveFrom, moveTo, deleteId }
+		while (lookupParams.hasNext() && moveParams.hasNext() && deleteParams.hasNext()) {
+			params.add(new Object[] { Integer.parseInt(lookupParams.getParam()),
+								  lookupParams.getParam(),
+								  Integer.parseInt(moveParams.getParam()),
+								  Integer.parseInt(moveParams.getParam()),
+								  Integer.parseInt(deleteParams.getParam()) });
 		}
 		
 		return params;
@@ -174,36 +180,5 @@ public class BaseTreeableTest extends BaseTest {
 			size += getSize(child);
 		}
 		return size;
-	}
-
-	private static String getSingle(List<String[]> list, int i) {
-		String[] s = list.get(i);
-		String single = s[0];
-		list.set(i, Arrays.copyOfRange(s, 1, s.length));
-		return single;
-	}
-	
-	private static String[] getPair(List<String[]> list, int i) {
-		String[] s = list.get(i);
-		String[] pair = new String[] { s[0], s[1] }; 
-		list.set(i, Arrays.copyOfRange(s, 2, s.length));
-		return pair;
-	}
-	
-	protected static boolean hasNextParam(List<String[]> list) {
-		for (String[] a : list) {
-			if (a.length == 0)
-				return false;
-		}
-		return true;
-	}
-	
-	protected static Object[] getNextParam(List<String[]> list) {
-		String[] lookup = getPair(list, 0);
-		String[] move = getPair(list, 1);
-		String delete = getSingle(list, 2);
-		
-		// {lookupId, lookupName, moveFrom, moveTo, deleteId }
-		return new Object[] { Integer.parseInt(lookup[0]), lookup[1], Integer.parseInt(move[0]), Integer.parseInt(move[1]), Integer.parseInt(delete) };
 	}
 }

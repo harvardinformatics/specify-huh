@@ -46,14 +46,14 @@ public class TaxonTreeTest extends BaseTreeableTest {
 		Properties props = new Properties();
 		props.load(TaxonTreeTest.class.getResourceAsStream("testing.properties"));
 		
-		propsList.add(props.getProperty("testing.taxon.lookup").split(","));
-		propsList.add(props.getProperty("testing.taxon.move").split(","));
-		propsList.add(props.getProperty("testing.taxon.delete").split(","));
-		
-		return getParams(propsList);
+		String lookupProp = props.getProperty("testing.taxon.lookup");
+		String moveProp = props.getProperty("testing.taxon.move");
+		String deleteProp = props.getProperty("testing.taxon.delete");
+
+		return getTreeableParams(lookupProp, moveProp, deleteProp);
 	}
 	
-	@Before public void setTreeable() {
+	@Before public void setTreeable(){
 		initialize(new TaxonTreeDef().getClass(), new Taxon().getClass());
 	}
 }

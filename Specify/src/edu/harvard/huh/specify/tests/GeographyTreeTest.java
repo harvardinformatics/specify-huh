@@ -47,11 +47,11 @@ public class GeographyTreeTest extends BaseTreeableTest {
 		Properties props = new Properties();
 		props.load(TaxonTreeTest.class.getResourceAsStream("testing.properties"));
 
-		propsList.add(props.getProperty("testing.geography.lookup").split(","));
-		propsList.add(props.getProperty("testing.geography.move").split(","));
-		propsList.add(props.getProperty("testing.geography.delete").split(","));
+		String lookupProp = props.getProperty("testing.geography.lookup");
+		String moveProp = props.getProperty("testing.geography.move");
+		String deleteProp = props.getProperty("testing.geography.delete");
 
-		return getParams(propsList);
+		return getTreeableParams(lookupProp, moveProp, deleteProp);
 	}
 
 	@Before public void setTreeable() {
