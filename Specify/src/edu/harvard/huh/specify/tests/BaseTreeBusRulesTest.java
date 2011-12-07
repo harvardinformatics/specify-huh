@@ -5,8 +5,6 @@ import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
 
-import edu.ku.brc.af.core.AppContextMgr;
-import edu.ku.brc.specify.datamodel.SpecifyUser;
 import edu.ku.brc.specify.datamodel.Taxon;
 import edu.ku.brc.specify.datamodel.busrules.TaxonBusRules;
 
@@ -61,10 +59,9 @@ public class BaseTreeBusRulesTest extends BaseTest {
     /**
      * I can't run this test, as the Specify code breaks somewhere and there are
      * no comments in the code to guide me to write the test in a way that will
-     * work.
+     * work.clazz
      */
     @Test
-    @Ignore
     public void testOkToDeleteNodeNoChildren() {
         Session session = null;
         try {
@@ -72,11 +69,6 @@ public class BaseTreeBusRulesTest extends BaseTest {
             Taxon root = (Taxon) session.get(Taxon.class, 108660);
 
             TaxonBusRules rules = new TaxonBusRules();
-            AppContextMgr.getInstance().setHasContext(true);
-            SpecifyUser specifyUser = new SpecifyUser();
-            specifyUser.setSpecifyUserId(1);
-            AppContextMgr.getInstance().setClassObject(SpecifyUser.class,
-                    specifyUser);
             boolean deletable = rules.okToDeleteNode(root);
 
             Assert.assertTrue(deletable);

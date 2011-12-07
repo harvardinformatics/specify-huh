@@ -33,8 +33,10 @@ import edu.ku.brc.af.core.expresssearch.QueryAdjusterForDomain;
 import edu.ku.brc.dbsupport.DBConnection;
 import edu.ku.brc.dbsupport.DataProviderFactory;
 import edu.ku.brc.dbsupport.HibernateUtil;
-import edu.ku.brc.specify.datamodel.SpecifyUser;
 import edu.ku.brc.specify.Specify;
+import edu.ku.brc.specify.datamodel.Collection;
+import edu.ku.brc.specify.datamodel.SpecifyUser;
+import edu.ku.brc.specify.datamodel.TaxonTreeDef;
 
 public class BaseTest {
 	protected Session session = null;
@@ -70,6 +72,15 @@ public class BaseTest {
 			appCtxMgr.setContext(props.getProperty("testing.db.name"), props.getProperty("testing.db.name"), false, false);
 			appCtxMgr.setHasContext(true);
 			appCtxMgr.setClassObject(SpecifyUser.class, user);
+			
+			// Needed for BaseTreeBusRulesTest
+	    	Collection collection = new Collection();
+	    	collection.setCollectionId(4);
+	    	appCtxMgr.setClassObject(Collection.class, collection);
+			
+			TaxonTreeDef taxonTreeDef = new TaxonTreeDef();
+			taxonTreeDef.setTaxonTreeDefId(1);
+			appCtxMgr.setClassObject(TaxonTreeDef.class, taxonTreeDef);
 			
 			Specify.setUpSystemProperties(); // lchan: need this for a BaseTreeBusRulesTest
 			
