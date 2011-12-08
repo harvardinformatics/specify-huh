@@ -19,7 +19,6 @@
  */
 package edu.harvard.huh.specify.tests;
 
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -35,10 +34,8 @@ import org.junit.Test;
  * 
  */
 public class TreeIntegrityTest extends BaseTest {
-    
+
     private Set<Integer> visited = new HashSet<Integer>();
-    
-    private List<String> errors = new ArrayList<String>();
 
     @Test
     public void check() {
@@ -48,21 +45,13 @@ public class TreeIntegrityTest extends BaseTest {
         } finally {
             session.close();
         }
-        
-       if (errors.size() > 0) {
-           System.out.println("Found errors:");
-           
-           for (String error : errors) {
-               System.out.println(error);
-           }
-       }
     }
 
     private void checkRecursive(String entityClass, int treeId) {
         if (treeId % 1000 == 0) {
             System.out.println("Processed record ID " + treeId);
         }
-        
+
         // First, check for cycles by checking if this node has been visited
         // more than once
         if (visited.contains(treeId)) {
@@ -83,10 +72,10 @@ public class TreeIntegrityTest extends BaseTest {
             Integer childId = (Integer) object[1];
 
             // Second, check that the child's rank ID is greater than the
-            // parent's. 
+            // parent's.
             if (childRankId > rankId) {
-                errors.add("Parent ID rankID " + treeId + " is >= child "
-                        + childRankId);
+                System.out.println("Parent ID rankID " + treeId
+                        + " is >= child " + childRankId);
             }
 
             checkRecursive(entityClass, childId);
