@@ -67,15 +67,19 @@ public class TreeIntegrityTest extends BaseTest {
         List<Object[]> children = session.createQuery(
                 "select e.rankId, e.id from " + entityClass
                         + " e where e.parent.id = " + treeId).list();
-        for (Object[] object : children) {
-            Integer childRankId = (Integer) object[0];
-            Integer childId = (Integer) object[1];
+        for (Object[] row : children) {
+            Integer childRankId = (Integer) row[0];
+            Integer childId = (Integer) row[1];
 
             // Second, check that the child's rank ID is greater than the
             // parent's.
-            if (childRankId > rankId) {
-                System.out.println("Parent ID rankID " + treeId
-                        + " is >= child " + childRankId);
+            if (rankId >= childRankId) {
+                String s = "Parent ID :1 rank ID :2 is >= child ID :3 rankId :4";
+                s = s.replaceAll(":1", String.valueOf(treeId))
+                        .replaceAll(":2", String.valueOf(rankId))
+                        .replaceAll(":3", String.valueOf(childId))
+                        .replaceAll(":4", String.valueOf(childRankId));
+                System.out.println(s);
             }
 
             checkRecursive(entityClass, childId);
