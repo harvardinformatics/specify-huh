@@ -12,7 +12,7 @@ import edu.ku.brc.specify.tasks.subpane.qb.TreeLevelQRI;
 
 /**
  * 
- * @author l
+ * @author lchan
  *
  */
 public class TreeLevelQRITest extends BaseTest {
