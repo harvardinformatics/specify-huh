@@ -38,52 +38,65 @@ import edu.ku.brc.specify.datamodel.Collection;
 import edu.ku.brc.specify.datamodel.SpecifyUser;
 import edu.ku.brc.specify.datamodel.TaxonTreeDef;
 
+/**
+ * This is the base for all the huh junit tests.
+ * 
+ * @author lowery
+ * 
+ */
 public class BaseTest {
 	protected Session session = null;
-	
+
+	/**
+	 * 
+	 * This method initializes the database and application context before
+	 * returning a hibernate session variable. 
+	 * 
+	 * @return Session
+	 */
 	protected Session getSession() {
 		try {
 			UIManager.setLookAndFeel(
-		            UIManager.getCrossPlatformLookAndFeelClassName()); // Otherwise HibernateUtil will throw swing exception
-			
+					UIManager.getCrossPlatformLookAndFeelClassName()); // Otherwise HibernateUtil will throw swing exception
+
 			System.setProperty(DataProviderFactory.factoryName, "edu.ku.brc.specify.dbsupport.HibernateDataProvider");
 			System.setProperty(QueryAdjusterForDomain.factoryName, "edu.ku.brc.specify.dbsupport.SpecifyQueryAdjusterForDomain");
 			System.setProperty(AppContextMgr.factoryName, "edu.ku.brc.specify.config.SpecifyAppContextMgr");
 			AppContextMgr appCtxMgr = AppContextMgr.getInstance();
-			
+
 			Properties props = new Properties();
 			props.load(getClass().getResourceAsStream("testing.properties"));
-		
+
 			DBConnection dbConn = DBConnection.getInstance();
-		
+
 			dbConn.setDriver(props.getProperty("testing.db.driver"));
 			dbConn.setDialect(props.getProperty("testing.db.dialect"));
 			dbConn.setDatabaseName(props.getProperty("testing.db.name"));
 			dbConn.setConnectionStr(props.getProperty("testing.db.connstr"));
 			dbConn.setUsernamePassword(props.getProperty("testing.db.username"),
 					props.getProperty("testing.db.password"));
-			
+
 			String prop = props.getProperty("testing.specify.userid");
-			
+
 			SpecifyUser user = new SpecifyUser();
 			int userId = Integer.parseInt(prop);
 			user.setSpecifyUserId(userId);
-			
+
 			appCtxMgr.setContext(props.getProperty("testing.db.name"), props.getProperty("testing.db.name"), false, false);
 			appCtxMgr.setHasContext(true);
 			appCtxMgr.setClassObject(SpecifyUser.class, user);
-			
-			// Needed for BaseTreeBusRulesTest
-	    	Collection collection = new Collection();
-	    	collection.setCollectionId(4);
-	    	appCtxMgr.setClassObject(Collection.class, collection);
-			
+
+			// The rest of this is needed for BaseTreeBusRulesTest
+			Collection collection = new Collection();
+			collection.setCollectionId(4);
+			appCtxMgr.setClassObject(Collection.class, collection);
+
 			TaxonTreeDef taxonTreeDef = new TaxonTreeDef();
 			taxonTreeDef.setTaxonTreeDefId(1);
 			appCtxMgr.setClassObject(TaxonTreeDef.class, taxonTreeDef);
-			
-			Specify.setUpSystemProperties(); // lchan: need this for a BaseTreeBusRulesTest
-			
+
+			Specify.setUpSystemProperties();
+
 			session = HibernateUtil.getNewSession();
 		} catch (Exception e) {
 			e.printStackTrace();

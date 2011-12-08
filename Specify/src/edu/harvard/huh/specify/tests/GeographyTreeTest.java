@@ -33,16 +33,39 @@ import org.junit.runners.Parameterized.Parameters;
 
 import edu.ku.brc.specify.datamodel.Geography;
 import edu.ku.brc.specify.datamodel.GeographyTreeDef;
-import edu.ku.brc.specify.datamodel.Storage;
-import edu.ku.brc.specify.datamodel.StorageTreeDef;
 
+/**
+ * Geography tree test. Runs all tests in BaseTreeableTest with parameters from
+ * the testing properties file for geography.
+ * 
+ * @author lowery
+ *
+ */
 @RunWith(value = Parameterized.class)
 public class GeographyTreeTest extends BaseTreeableTest {
-	
+
+	/**
+	 * Constructor calls superclass with parameters.
+	 * 
+	 * @param lookupId
+	 * @param lookupName
+	 * @param moveFrom
+	 * @param moveTo
+	 * @param deleteId
+	 */
 	public GeographyTreeTest(int lookupId, String lookupName, int moveFrom, int moveTo, int deleteId) {
 		super(lookupId, lookupName, moveFrom, moveTo, deleteId);
 	}
 
+	/**
+	 * Obtains parameters from the testing properties file and calls
+	 * getTreeableParams to obtain a Collection<Object[]> that
+	 * represents a collection of sets of parameters for each
+	 * testing run.
+	 * 
+	 * @return
+	 * @throws IOException
+	 */
 	@Parameters public static Collection<Object[]> data() throws IOException {
 		Properties props = new Properties();
 		props.load(TaxonTreeTest.class.getResourceAsStream("testing.properties"));
@@ -54,6 +77,9 @@ public class GeographyTreeTest extends BaseTreeableTest {
 		return getTreeableParams(lookupProp, moveProp, deleteProp);
 	}
 
+	/**
+	 * Initializes the test with TaxonTreeDef class and the Taxon class.
+	 */
 	@Before public void setTreeable() {
 		initialize(new GeographyTreeDef().getClass(), new Geography().getClass());
 	}

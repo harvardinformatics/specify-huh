@@ -24,7 +24,6 @@ package edu.harvard.huh.specify.tests;
 
 import java.io.IOException;
 import java.util.Collection;
-import java.util.LinkedList;
 import java.util.Properties;
 
 import org.junit.Before;
@@ -35,24 +34,52 @@ import org.junit.runners.Parameterized.Parameters;
 import edu.ku.brc.specify.datamodel.Taxon;
 import edu.ku.brc.specify.datamodel.TaxonTreeDef;
 
+/**
+ * Taxon tree test. Runs all tests in BaseTreeableTest with parameters from
+ * the testing properties file for taxon.
+ * 
+ * @author lowery
+ *
+ */
 @RunWith(value = Parameterized.class)
 public class TaxonTreeTest extends BaseTreeableTest {
-	
+
+	/**
+	 * Constructor calls superclass with parameters.
+	 * 
+	 * @param lookupId
+	 * @param lookupName
+	 * @param moveFrom
+	 * @param moveTo
+	 * @param deleteId
+	 */
 	public TaxonTreeTest(int lookupId, String lookupName, int moveFrom, int moveTo, int deleteId) {
 		super(lookupId, lookupName, moveFrom, moveTo, deleteId);
 	}
 
+	/**
+	 * Obtains parameters from the testing properties file and calls
+	 * getTreeableParams to obtain a Collection<Object[]> that
+	 * represents a collection of sets of parameters for each
+	 * testing run.
+	 * 
+	 * @return
+	 * @throws IOException
+	 */
 	@Parameters public static Collection<Object[]> data() throws IOException {
 		Properties props = new Properties();
 		props.load(TaxonTreeTest.class.getResourceAsStream("testing.properties"));
-		
+
 		String lookupProp = props.getProperty("testing.taxon.lookup");
 		String moveProp = props.getProperty("testing.taxon.move");
 		String deleteProp = props.getProperty("testing.taxon.delete");
 
 		return getTreeableParams(lookupProp, moveProp, deleteProp);
 	}
-	
+
+	/**
+	 * Initializes the test with TaxonTreeDef class and the Taxon class.
+	 */
 	@Before public void setTreeable(){
 		initialize(new TaxonTreeDef().getClass(), new Taxon().getClass());
 	}

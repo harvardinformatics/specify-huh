@@ -26,20 +26,44 @@ package edu.harvard.huh.specify.tests;
 import java.util.LinkedList;
 import java.util.Queue;
 
+/**
+ * 
+ * Wrapper class for queue used to process a string of comma separated
+ * properties from a properties file. This encapsulates any string
+ * processing necessary.
+ * 
+ * @author lowery
+ *
+ */
 public class TestParameter {
 	private Queue<String> paramStrings = new LinkedList<String>();
-	
+
+	/**
+	 * Takes a string separated by commas, splits it and trims the result.
+	 * 
+	 * @param propString
+	 */
 	public TestParameter(String propString) {
 		for (String s : propString.split(",")) {
 			s.trim();
 			paramStrings.offer(s);
 		}
 	}
-	
+
+	/**
+	 * Enqueue a parameter value.
+	 * 
+	 * @return String
+	 */
 	public String getParam() {
 		return paramStrings.poll();
 	}
-	
+
+	/**
+	 * Check if there are more parameters left in the queue
+	 *  
+	 * @return String
+	 */
 	public boolean hasNext() {
 		return !paramStrings.isEmpty();
 	}
