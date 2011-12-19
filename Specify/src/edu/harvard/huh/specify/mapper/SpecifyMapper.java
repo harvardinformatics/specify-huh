@@ -1,5 +1,6 @@
 package edu.harvard.huh.specify.mapper;
 
+import java.io.InputStream;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -8,13 +9,18 @@ import java.util.HashMap;
 import java.util.List;
 
 import org.apache.log4j.Logger;
+
+import org.dom4j.Document;
+import org.dom4j.DocumentException;
 import org.dom4j.Element;
+import org.dom4j.io.SAXReader;
 
 import edu.harvard.huh.specify.mapper.SpecifyMapItem.PathSegment;
 import edu.ku.brc.af.core.db.DBTableIdMgr;
 import edu.ku.brc.exceptions.ConfigurationException;
 import edu.ku.brc.helpers.XMLHelper;
 import edu.ku.brc.specify.datamodel.CollectionObject;
+import edu.ku.brc.specify.datamodel.DataModelObjBase;
 
 public class SpecifyMapper {
 
@@ -30,22 +36,26 @@ public class SpecifyMapper {
 	
 	/**
 	 * Return a mapping of dwc terms (all lowercase) to String values found by traversing a CollectionObject
-	 * according to the mappings given in a default list of SpecifyMapItems.
+	 * according to the mappings given in a default list of SpecifyMapItems in config/dwcdefaultmap.xml.
+	 * The xml file is expected to match the xpath /default_mappings/default_mapping, with each
+	 *  <default_mapping> representing a SpecifyMapItem.
 	 */
 	public HashMap<String, String> map(CollectionObject collObj) {
-		return map(collObj, getDefaultMappings());
+		Element root = XMLHelper.readDOMFromConfigDir("dwcdefaultmap.xml");
+		List<SpecifyMapItem> mappings = getMappings(root);
+		return map(collObj, mappings);
 	}
 
 	/**
-	 * Return a mapping of dwc terms (all lowercase) to String values found by traversing a CollectionObject
-	 * according to the mappings given in the list of SpecifyMapItems.
+	 * Return a mapping of dwc terms (all lowercase) to String values found by traversing a a
+	 * DataModelObjBase object according to the mappings given in the list of SpecifyMapItems.
 	 */
-	public HashMap<String, String> map(CollectionObject collObj, List<SpecifyMapItem> mapItems) {
+	public HashMap<String, String> map(DataModelObjBase object, List<SpecifyMapItem> mapItems) {
 		HashMap<String, String> dwcTermsToValues = new HashMap<String, String>();
 		
 		for (SpecifyMapItem mapItem : mapItems) {
 		
-			String mappedValue = getJoinWalker().getPathValue(collObj, mapItem);
+			String mappedValue = getJoinWalker().getPathValue(object, mapItem);
 
 			String dwcTerm = mapItem.getName();
 			
@@ -53,30 +63,45 @@ public class SpecifyMapper {
 		}
 		return dwcTermsToValues;
 	}
-	
+
 	/**
-	 * Read SpecifyMapItems in from config/dwcdefaultmap.xml and return the list.
-	 * The xml file is expected to match the xpath /default_mappings/default_mapping,
+	 * The xml input stream is expected to match the xpath /default_mappings[default_mapping],
 	 * with each <default_mapping> representing a SpecifyMapItem.
-	 */
-	public static List<SpecifyMapItem> getDefaultMappings() {
+	 */	
+	public static List<SpecifyMapItem> getMappings(InputStream in) {
+		SAXReader saxReader= new SAXReader();
+
+		saxReader.setValidation(false);
+		saxReader.setStripWhitespaceText(true);
+	       
+		Document document = null;
+
+		try {
+			document = saxReader.read(in);
+		}
+		catch (DocumentException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		Element root = document.getRootElement();
+		return getMappings(root);
+	}
+	
+	private static List<SpecifyMapItem> getMappings(Element root) {
 
 		List<SpecifyMapItem> list = new ArrayList<SpecifyMapItem>();
-
-		// this is from ConceptMapUtils and MappedFieldInfo
-		Element root = XMLHelper.readDOMFromConfigDir("dwcdefaultmap.xml");
 		List<?> nodes = root.selectNodes("/default_mappings/default_mapping");
 
 		for (Object obj : nodes) {
 			SpecifyMapItem mapItem = parseMapItem((Element) obj);
 			list.add(mapItem);
 		}
-		
 		return list;
 	}
 	
 	/**
-	 * Marshall an xml element representation of a SpecifyMapItem.  Each element is
+	 * Marshal an xml element representation of a SpecifyMapItem.  Each element is
 	 * expected to have the following attributes:
 	 * 
 	 * "name:" required; all lowercase, the darwin core concept name, e.g. "decimallongitude"
