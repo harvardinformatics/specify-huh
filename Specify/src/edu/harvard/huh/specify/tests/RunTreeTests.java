@@ -26,14 +26,18 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Suite;
 
 /**
- * Run all the tree tests. Add more tests to Suite.SuiteClasses
- * annotation. Cointains no methods.
+ * Run all the tree tests. Add more tests to Suite.SuiteClasses annotation.
+ * Cointains no methods.
+ * 
+ * lchan: BaseTreeBusRulesTest should be run first, before mutative tests
+ * (TaxonTreeTest) run.
  * 
  * @author lowery
- *
+ * 
  */
 @RunWith(Suite.class)
-@Suite.SuiteClasses({ BaseTreeBusRulesTest.class, GeographyTreeTest.class, StorageTreeTest.class, TaxonTreeTest.class, TreeIntegrityTest.class })
+@Suite.SuiteClasses({ BaseTreeBusRulesTest.class, GeographyTreeTest.class,
+        StorageTreeTest.class, TaxonTreeTest.class, TreeIntegrityTest.class })
 public class RunTreeTests {
-	// Empty
+    // Empty
 }

@@ -126,10 +126,6 @@ public class TreeIntegrityTest extends BaseTest {
      * Tests that there are no cycles in a tree and that the rank IDs of
      * children are larger than those of their parents. Executes HQL statements
      * directly and does not use the HibernateTreeServices methods.
-     * 
-     * Tests tree traversal recursively without calls to tree service methods.
-     * Specifically, the rankid is checked and count of nodes traversed is
-     * compared against the count of rows in the database.
      */
     @Test
     public void testVisitationAndRankIds() {
@@ -139,16 +135,6 @@ public class TreeIntegrityTest extends BaseTest {
         StringBuilder sb = new StringBuilder();
         testVisitationAndRankIdsRecursive(treeableClass,
                 root.getTreeId(), sb);
-        Integer dbCount = (Integer) session.createQuery(
-                "select count(e) from " + treeableClass + " e").uniqueResult();
-
-        // Essentially the same as testing the treeService
-        // getDescendantCount() method against count of db rows.
-        if (size != dbCount) {
-            sb.append("Nodes traversed (" + size
-                    + ") is different than database row count (" + dbCount
-                    + ")");
-        }
 
         String errors = sb.toString();
         assertTrue(errors, errors.length() == 0);
