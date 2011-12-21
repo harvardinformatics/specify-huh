@@ -81,6 +81,6 @@ public class StorageTreeTest extends BaseTreeableTest {
 	 * Initializes the test with TaxonTreeDef class and the Taxon class.
 	 */
 	@Before public void setTreeable() {
-		initialize(new StorageTreeDef().getClass(), new Storage().getClass());
+		initialize(StorageTreeDef.class, Storage.class, 1);
 	}
 }

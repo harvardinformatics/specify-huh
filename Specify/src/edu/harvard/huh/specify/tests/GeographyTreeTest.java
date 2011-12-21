@@ -38,7 +38,7 @@ import edu.ku.brc.specify.datamodel.GeographyTreeDef;
  * Geography tree test. Runs all tests in BaseTreeableTest with parameters from
  * the testing properties file for geography.
  * 
- * @author lowery
+ * @author lowery, lchan
  *
  */
 @RunWith(value = Parameterized.class)
@@ -81,6 +81,6 @@ public class GeographyTreeTest extends BaseTreeableTest {
 	 * Initializes the test with TaxonTreeDef class and the Taxon class.
 	 */
 	@Before public void setTreeable() {
-		initialize(new GeographyTreeDef().getClass(), new Geography().getClass());
+		initialize(GeographyTreeDef.class, Geography.class, 1);
 	}
 }

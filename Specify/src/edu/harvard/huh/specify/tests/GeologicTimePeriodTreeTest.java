@@ -34,6 +34,6 @@ public class GeologicTimePeriodTreeTest extends BaseTreeableTest {
 	}
 
 	@Before public void setTreeable() {
-		initialize(new GeologicTimePeriodTreeDef().getClass(), new GeologicTimePeriod().getClass());
+		initialize(GeologicTimePeriodTreeDef.class, GeologicTimePeriod.class, 1);
 	}
 }

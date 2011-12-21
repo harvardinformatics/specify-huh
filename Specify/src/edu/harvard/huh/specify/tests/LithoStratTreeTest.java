@@ -34,6 +34,6 @@ public class LithoStratTreeTest extends BaseTreeableTest {
 	}
 
 	@Before public void setTreeable() {
-		initialize(new LithoStratTreeDef().getClass(), new LithoStrat().getClass());
+		initialize(LithoStratTreeDef.class, LithoStrat.class, 1);
 	}
 }

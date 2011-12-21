@@ -52,7 +52,6 @@ public class BaseTreeableTest extends BaseTest {
 	protected  TreeDefIface currentDef;
 	protected  TreeDataService treeService;
 	protected  Treeable root;
-	protected  final int DEFAULT_TREE_DEF_ID = 1;
 
 	protected static List<String[]> propsList = new LinkedList<String[]>();
 
@@ -88,11 +87,11 @@ public class BaseTreeableTest extends BaseTest {
 	 * @param treeDefClass
 	 * @param treeableClass
 	 */
-	public void initialize(Class treeDefClass, Class treeableClass) {
+	public void initialize(Class treeDefClass, Class treeableClass, int treeDefId) {
 		getSession();
 		this.treeDefClass = treeDefClass;
 		this.treeableClass = treeableClass;
-		currentDef = (TreeDefIface)session.load(treeDefClass, DEFAULT_TREE_DEF_ID);
+		currentDef = (TreeDefIface)session.load(treeDefClass, treeDefId);
 		AppContextMgr.getInstance().setClassObject(treeDefClass, currentDef);
 		treeService = new HibernateTreeDataServiceImpl();
 		session.close();
