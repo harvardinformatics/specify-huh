@@ -22,6 +22,9 @@
 
 package edu.harvard.huh.specify.tests;
 
+import java.io.IOException;
+
+import org.junit.BeforeClass;
 import org.junit.runner.RunWith;
 import org.junit.runners.Suite;
 
@@ -32,12 +35,18 @@ import org.junit.runners.Suite;
  * lchan: BaseTreeBusRulesTest should be run first, before mutative tests
  * (TaxonTreeTest) run.
  * 
- * @author lowery
+ * @author lowery, lchan
  * 
  */
 @RunWith(Suite.class)
 @Suite.SuiteClasses({ BaseTreeBusRulesTest.class, GeographyTreeTest.class,
         StorageTreeTest.class, TaxonTreeTest.class, TreeIntegrityTest.class })
 public class RunTreeTests {
-    // Empty
+    
+    @BeforeClass
+    public static void beforeClass() throws IOException, InterruptedException {
+        ProcessBuilder builder = new ProcessBuilder("src/edu/harvard/huh/specify/tests/load-sample-db.sh");
+        Process process = builder.start();
+        process.waitFor();
+    }
 }
