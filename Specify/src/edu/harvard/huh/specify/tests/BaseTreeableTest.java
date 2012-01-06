@@ -183,6 +183,13 @@ public class BaseTreeableTest extends BaseTest {
         return nodes;
     }
 
+    /**
+     * Reparents a tree node in a test tree representation.
+     * 
+     * @param nodes
+     * @param nodeId
+     * @param parentId
+     */
     private void moveTreeNode(Set<TreeTestNode> nodes, int nodeId, int parentId) {
         for (TreeTestNode node : nodes) {
             if (node.getId() == nodeId) {
@@ -270,8 +277,28 @@ public class BaseTreeableTest extends BaseTest {
     @Test
     public void testDeleteTreeNode() {
         Treeable node = treeService.getNodeById(treeableClass, deleteId);
-        treeService.deleteTreeNode(node);
+        
+        // Create an expectation of the tree.
+        HashSet<TreeTestNode> before = getTreeNodeRepresentation(treeableClass);
+        for (TreeTestNode testNode : before) {
+            if (testNode.getId() == deleteId) {
+                before.remove(testNode);
+                break;
+            }
+        }
 
+        // Perform the actual delete.
+        treeService.deleteTreeNode(node);
+        
+        // Get a snapshot on the modified tree.
+        HashSet<TreeTestNode> after = getTreeNodeRepresentation(treeableClass);
+
+        // Test that the actual tree matches the expected one.  I'm using 
+        // hashCode because equals doesn't work for some strange reason.
+        Assert.assertTrue(before.hashCode() == after.hashCode());
+        
+        // TODO: we don't really need to following check since we have the one 
+        // above.
         Session session = getSession();
         Boolean deleted = (Integer) session.createQuery(
                 "select count(e) from " + treeableClass.getName()
@@ -292,15 +319,18 @@ public class BaseTreeableTest extends BaseTest {
         Treeable from = treeService.getNodeById(treeableClass, moveFrom);
         Treeable to = treeService.getNodeById(treeableClass, moveTo);
 
+        // Create a expectation of the tree
         HashSet<TreeTestNode> before = getTreeNodeRepresentation(treeableClass);
         moveTreeNode(before, moveFrom, moveTo);
 
+        // Perform the actual move.
         treeService.moveTreeNode(from, to);
 
+        // Get a snapshot on the modified tree.
         HashSet<TreeTestNode> after = getTreeNodeRepresentation(treeableClass);
 
-        // I'm using hashCode because equals doesn't work for some strange
-        // reason.
+        // Test that the actual results match the expected ones.  I'm using 
+        // hashCode because equals doesn't work for some strange reason.
         Assert.assertTrue(before.hashCode() == after.hashCode());
 
         Treeable child = treeService.getNodeById(treeableClass, moveFrom);
