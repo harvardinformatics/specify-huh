@@ -80,76 +80,76 @@ public abstract class BaseTreeDef<N extends Treeable<N,D,I>,
     /* (non-Javadoc)
      * @see edu.ku.brc.specify.datamodel.TreeDefIface#nodeNumbersAreCurrent()
      */
-    public boolean getNodeNumbersAreUpToDate()
-    {
-        return TreeDefStatusMgr.isNodeNumbersAreUpToDate(this);
-    }
+//    public boolean getNodeNumbersAreUpToDate()
+//    {
+//        return TreeDefStatusMgr.isNodeNumbersAreUpToDate(this);
+//    }
     
     /**
      * @param rootObj
      * 
      * Builds the queries used during the node number update process.
      */
-    protected void buildQueries(final DataModelObjBase rootObj)
-    {
-        String hql = "select n." + UploadTable.deCapitalize(rootObj.getDataClass().getSimpleName()) + "Id from " 
-            + rootObj.getDataClass().getSimpleName() + " n where parentID=:parent";
-        childrenQ = this.nodeUpdateSession.createQuery(hql, false);
-
-        hql = "update " + rootObj.getDataClass().getSimpleName() 
-            + " set nodeNumber=:node where " + UploadTable.deCapitalize(rootObj.getDataClass().getSimpleName()) + "Id=:id";
-        nodeQ = this.nodeUpdateSession.createQuery(hql, false);
-        
-        hql = "update " + rootObj.getDataClass().getSimpleName() 
-            + " set highestChildNodeNumber=:node where " 
-            + UploadTable.deCapitalize(rootObj.getDataClass().getSimpleName()) + "ID=:id";
-        highestNodeQ = this.nodeUpdateSession.createQuery(hql, false);
-    }
+//    protected void buildQueries(final DataModelObjBase rootObj)
+//    {
+//        String hql = "select n." + UploadTable.deCapitalize(rootObj.getDataClass().getSimpleName()) + "Id from " 
+//            + rootObj.getDataClass().getSimpleName() + " n where parentID=:parent";
+//        childrenQ = this.nodeUpdateSession.createQuery(hql, false);
+//
+//        hql = "update " + rootObj.getDataClass().getSimpleName() 
+//            + " set nodeNumber=:node where " + UploadTable.deCapitalize(rootObj.getDataClass().getSimpleName()) + "Id=:id";
+//        nodeQ = this.nodeUpdateSession.createQuery(hql, false);
+//        
+//        hql = "update " + rootObj.getDataClass().getSimpleName() 
+//            + " set highestChildNodeNumber=:node where " 
+//            + UploadTable.deCapitalize(rootObj.getDataClass().getSimpleName()) + "ID=:id";
+//        highestNodeQ = this.nodeUpdateSession.createQuery(hql, false);
+//    }
     
     /* (non-Javadoc)
      * @see edu.ku.brc.specify.datamodel.TreeDefIface#updateAllNodes()
      */
-    @SuppressWarnings("unchecked")
-    public void updateAllNodesOld(final DataModelObjBase rootObj) throws Exception
-    {
-        nodeUpdateSession = DataProviderFactory.getInstance().createSession();
-        N root = (N)rootObj;
-        if (root == null)
-        {
-            I rootDefItem = getDefItemByRank(0);
-            nodeUpdateSession.attach(rootDefItem);
-            root = rootDefItem.getTreeEntries().iterator().next();
-            nodeUpdateSession.evict(rootDefItem);
-        }
-        try
-        {
-            buildQueries((DataModelObjBase )root);
-            //But there could be thousands and thousands of records affected within the transaction.
-            //SQLServer accessed via ADO would blow up for large transactions  ???
-            nodeUpdateSession.beginTransaction();
-            
-            writeNodeNumber(root.getTreeId(), 1);
-            int highestChild = updateAllNodes2(root.getTreeId(), 1);
-            writeHighestChildNodeNumber(root.getTreeId(), highestChild);
-            
-            nodeUpdateSession.commit();
-            TreeDefStatusMgr.setNodeNumbersAreUpToDate(this, true);
-        }
-        catch (Exception ex)
-        {
-            edu.ku.brc.af.core.UsageTracker.incrHandledUsageCount();
-            edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(BaseTreeDef.class, ex);
-            nodeUpdateSession.rollback();
-        }
-        finally
-        {
-            nodeUpdateSession.close();
-            childrenQ = null;
-            nodeQ = null;
-            highestNodeQ = null;
-            nodeUpdateSession = null;
-        }
-    }
+//    @SuppressWarnings("unchecked")
+//    public void updateAllNodesOld(final DataModelObjBase rootObj) throws Exception
+//    {
+//        nodeUpdateSession = DataProviderFactory.getInstance().createSession();
+//        N root = (N)rootObj;
+//        if (root == null)
+//        {
+//            I rootDefItem = getDefItemByRank(0);
+//            nodeUpdateSession.attach(rootDefItem);
+//            root = rootDefItem.getTreeEntries().iterator().next();
+//            nodeUpdateSession.evict(rootDefItem);
+//        }
+//        try
+//        {
+//            buildQueries((DataModelObjBase )root);
+//            //But there could be thousands and thousands of records affected within the transaction.
+//            //SQLServer accessed via ADO would blow up for large transactions  ???
+//            nodeUpdateSession.beginTransaction();
+//            
+//            writeNodeNumber(root.getTreeId(), 1);
+//            int highestChild = updateAllNodes2(root.getTreeId(), 1);
+//            writeHighestChildNodeNumber(root.getTreeId(), highestChild);
+//            
+//            nodeUpdateSession.commit();
+//            TreeDefStatusMgr.setNodeNumbersAreUpToDate(this, true);
+//        }
+//        catch (Exception ex)
+//        {
+//            edu.ku.brc.af.core.UsageTracker.incrHandledUsageCount();
+//            edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(BaseTreeDef.class, ex);
+//            nodeUpdateSession.rollback();
+//        }
+//        finally
+//        {
+//            nodeUpdateSession.close();
+//            childrenQ = null;
+//            nodeQ = null;
+//            highestNodeQ = null;
+//            nodeUpdateSession = null;
+//        }
+//    }
 
     public N getTreeRootNode()
     {
@@ -168,18 +168,18 @@ public abstract class BaseTreeDef<N extends Treeable<N,D,I>,
      * 
      * Recursively walks the tree and numbers nodes.
      */
-    protected Integer updateAllNodes2(final Integer rootId, final int rootNodeNumber) throws Exception
-    {
-        List<?> children = getChildren(rootId);
-        int nodeNumber = rootNodeNumber;
-        for (Object childId : children)
-        {
-            writeNodeNumber(childId, nodeNumber+1);
-            nodeNumber = updateAllNodes2((Integer)childId, nodeNumber+1);
-            writeHighestChildNodeNumber(childId, nodeNumber);
-        }
-        return nodeNumber;
-    }
+//    protected Integer updateAllNodes2(final Integer rootId, final int rootNodeNumber) throws Exception
+//    {
+//        List<?> children = getChildren(rootId);
+//        int nodeNumber = rootNodeNumber;
+//        for (Object childId : children)
+//        {
+//            writeNodeNumber(childId, nodeNumber+1);
+//            nodeNumber = updateAllNodes2((Integer)childId, nodeNumber+1);
+//            writeHighestChildNodeNumber(childId, nodeNumber);
+//        }
+//        return nodeNumber;
+//    }
 
     /**
      * @param nodeId
@@ -197,12 +197,12 @@ public abstract class BaseTreeDef<N extends Treeable<N,D,I>,
      * 
      * Sets the nodeNumber for the item with key childId.
      */
-    protected void writeNodeNumber(final Object childId, final Integer nodeNumber)
-    {
-        nodeQ.setParameter("node", nodeNumber);
-        nodeQ.setParameter("id", childId);
-        nodeQ.executeUpdate();
-    }
+//    protected void writeNodeNumber(final Object childId, final Integer nodeNumber)
+//    {
+//        nodeQ.setParameter("node", nodeNumber);
+//        nodeQ.setParameter("id", childId);
+//        nodeQ.executeUpdate();
+//    }
 
     /**
      * @param childId
@@ -210,12 +210,12 @@ public abstract class BaseTreeDef<N extends Treeable<N,D,I>,
      * 
      * Sets the highestChildNodeNumber for the item with key childId.
      */
-    protected void writeHighestChildNodeNumber(final Object childId, final Integer nodeNumber)
-    {
-        highestNodeQ.setParameter("node", nodeNumber);
-        highestNodeQ.setParameter("id", childId);
-        highestNodeQ.executeUpdate();
-    }
+//    protected void writeHighestChildNodeNumber(final Object childId, final Integer nodeNumber)
+//    {
+//        highestNodeQ.setParameter("node", nodeNumber);
+//        highestNodeQ.setParameter("id", childId);
+//        highestNodeQ.executeUpdate();
+//    }
 
         
     /*
@@ -223,18 +223,18 @@ public abstract class BaseTreeDef<N extends Treeable<N,D,I>,
      * 
      * @see edu.ku.brc.specify.datamodel.TreeDefIface#getDoNodeUpdates()
      */
-    public boolean getDoNodeNumberUpdates()
-    {
-        return TreeDefStatusMgr.isDoNodeNumberUpdates(this);
-    }
+//    public boolean getDoNodeNumberUpdates()
+//    {
+//        return TreeDefStatusMgr.isDoNodeNumberUpdates(this);
+//    }
 
     /* (non-Javadoc)
      * @see edu.ku.brc.specify.datamodel.TreeDefIface#setDoNodeUpdates(boolean)
      */
-    public void setDoNodeNumberUpdates(final boolean arg)
-    {
-        TreeDefStatusMgr.setDoNodeNumberUpdates(this, arg);
-    }
+//    public void setDoNodeNumberUpdates(final boolean arg)
+//    {
+//        TreeDefStatusMgr.setDoNodeNumberUpdates(this, arg);
+//    }
 
     /* (non-Javadoc)
      * @see edu.ku.brc.specify.datamodel.TreeDefIface#isUploadInProgress()
@@ -257,10 +257,10 @@ public abstract class BaseTreeDef<N extends Treeable<N,D,I>,
      * 
      * locks or unlocks a nodeNumbersAreuptodate semaphore.
      */
-    @Override
-    public void setNodeNumbersAreUpToDate(final boolean arg) 
-    {
-    	TreeDefStatusMgr.setNodeNumbersAreUpToDate(this, arg);
+//    @Override
+//    public void setNodeNumbersAreUpToDate(final boolean arg) 
+//    {
+//    	TreeDefStatusMgr.setNodeNumbersAreUpToDate(this, arg);
 //        if (nodeNumbersAreUpToDate == null || !nodeNumbersAreUpToDate.equals(arg))
 //        {
 //            boolean canSwitch;
@@ -287,7 +287,7 @@ public abstract class BaseTreeDef<N extends Treeable<N,D,I>,
 //                nodeNumbersAreUpToDate = arg;
 //            }
 //        }
-    }
+//    }
     
     
     /* (non-Javadoc)
@@ -436,11 +436,11 @@ public abstract class BaseTreeDef<N extends Treeable<N,D,I>,
     	return treeTraversal(rootObj, useProgDlg, lockedByCaller, 0, TreeRebuilder.RebuildMode.Full);
     }
     
-    @Override
-	public boolean updateAllNodeNumbers(DataModelObjBase rootObj,
-			boolean useProgDlg, boolean lockedByCaller) throws Exception {
-		return treeTraversal(rootObj, useProgDlg, lockedByCaller, 0, TreeRebuilder.RebuildMode.NodeNumbers);
-	}
+//    @Override
+//	public boolean updateAllNodeNumbers(DataModelObjBase rootObj,
+//			boolean useProgDlg, boolean lockedByCaller) throws Exception {
+//		return treeTraversal(rootObj, useProgDlg, lockedByCaller, 0, TreeRebuilder.RebuildMode.NodeNumbers);
+//	}
 
 	@SuppressWarnings("unchecked")
     public boolean treeTraversal(final DataModelObjBase rootObj, final boolean useProgDlg, 
@@ -490,18 +490,18 @@ public abstract class BaseTreeDef<N extends Treeable<N,D,I>,
             return false;
         }
 
-        boolean wasUpToDate = TreeDefStatusMgr.isNodeNumbersAreUpToDate(this);
-        setRenumberingNodes(true);
-        setNodeNumbersAreUpToDate(false);
+//        boolean wasUpToDate = TreeDefStatusMgr.isNodeNumbersAreUpToDate(this);
+//        setRenumberingNodes(true);
+//        setNodeNumbersAreUpToDate(false);
         
-        if (!TreeDefStatusMgr.isRenumberingNodes(this) || TreeDefStatusMgr.isNodeNumbersAreUpToDate(this))
-        {
-            //locking issues will hopefully have been made apparent to user during the preceding setXXX calls. 
-            UIRegistry.showLocalizedError("BaseTreeDef.UnableToUpdate");
-            setRenumberingNodes(false);
-            setNodeNumbersAreUpToDate(wasUpToDate);
-            return false;
-        }
+//        if (!TreeDefStatusMgr.isRenumberingNodes(this) || TreeDefStatusMgr.isNodeNumbersAreUpToDate(this))
+//        {
+//            //locking issues will hopefully have been made apparent to user during the preceding setXXX calls. 
+//            UIRegistry.showLocalizedError("BaseTreeDef.UnableToUpdate");
+//            setRenumberingNodes(false);
+//            setNodeNumbersAreUpToDate(wasUpToDate);
+//            return false;
+//        }
             
         //useGlassPane avoids issues when simpleglasspane is already displayed. no help for normal glass pane yet.
         boolean useGlassPane = !UIRegistry.isShowingGlassPane() && nStatusBar != null;
@@ -539,8 +539,8 @@ public abstract class BaseTreeDef<N extends Treeable<N,D,I>,
 					})) 
 			{
 				// hopefully lock problems will already have been reported
-				setRenumberingNodes(false);
-				setNodeNumbersAreUpToDate(wasUpToDate);
+//				setRenumberingNodes(false);
+//				setNodeNumbersAreUpToDate(wasUpToDate);
 				return false;
 			}
 		}
@@ -559,7 +559,7 @@ public abstract class BaseTreeDef<N extends Treeable<N,D,I>,
             {
                 UIHelper.centerAndShow(progDlg);
             }
-            setNodeNumbersAreUpToDate(treeRebuilder.get());
+//            setNodeNumbersAreUpToDate(treeRebuilder.get());
             return true;
         }
         catch (Exception ex)
@@ -572,7 +572,7 @@ public abstract class BaseTreeDef<N extends Treeable<N,D,I>,
         }
         finally
         {
-            setRenumberingNodes(false);
+//            setRenumberingNodes(false);
             if (!lockedByCaller) 
             {
 				if (!TreeDefStatusMgr.unlockTree(this)) 
@@ -606,10 +606,10 @@ public abstract class BaseTreeDef<N extends Treeable<N,D,I>,
      * 
      * Locks or unlocks a "numbering nodes" semaphore.
      */
-    public void setRenumberingNodes(boolean arg) 
-    {
-    	TreeDefStatusMgr.setRenumberingNodes(this, arg);
-    }
+//    public void setRenumberingNodes(boolean arg) 
+//    {
+//    	TreeDefStatusMgr.setRenumberingNodes(this, arg);
+//    }
         
     /**
      * @return true if current user is a manager.
@@ -624,59 +624,59 @@ public abstract class BaseTreeDef<N extends Treeable<N,D,I>,
      * @return true if tree node numbers are up-to date.
      * @throws Exception
      * 
-     * Checks to see if a NodeNumbersOutOfDate lock is set. If not returns true.
-     * If so, then if user has permission to update the tree, an option is to update or exit specify is presented. If update
-     * is selected and succeeds, true is returned. 
-     */
-    public boolean checkNodeNumbersUpToDate(boolean useProgDlg) throws Exception
-    {
-        boolean result;
-        if (TreeDefStatusMgr.isNodeNumbersAreUpToDate(this))
-        {
-             result = true;
-        }
-        else
-        {
-            if (userCanUpdateTree())
-            {
-                PanelBuilder pb = new PanelBuilder(new FormLayout("5dlu, f:p:g, 5dlu", "5dlu, f:p:g, 2dlu, f:p:g, 5dlu"));
-                pb.add(new JLabel(String.format(UIRegistry.getResourceString("BaseTreeDef.TREE_UPDATE_REQUIRED1"), getName())), new CellConstraints().xy(2, 2));
-                pb.add(new JLabel(UIRegistry.getResourceString("BaseTreeDef.TREE_UPDATE_REQUIRED2")), new CellConstraints().xy(2, 4));
-                
-                CustomDialog dlg = new CustomDialog((Frame)UIRegistry.getTopWindow(),
-                        UIRegistry.getResourceString("BaseTreeDef.TREE_UPDATE_REQUIRED_TITLE"),
-                        true,
-                        CustomDialog.OKCANCELHELP,
-                        pb.getPanel());
-                dlg.setCancelLabel(UIRegistry.getResourceString("SpecifyAppContextMgr.EXIT"));
-                UIHelper.centerAndShow(dlg);
-                if (dlg.getBtnPressed() == CustomDialog.OK_BTN)
-                {
-                    updateAllNodes(null, useProgDlg, false);
-                    result = TreeDefStatusMgr.isNodeNumbersAreUpToDate(this);                    
-                }
-                else
-                {
-                    result = false;
-                }
-            }
-            else
-            {
-                PanelBuilder pb = new PanelBuilder(new FormLayout("5dlu, f:p:g, 5dlu", "5dlu, f:p:g, 2dlu, f:p:g, 5dlu"));
-                pb.add(new JLabel(String.format(UIRegistry.getResourceString("BaseTreeDef.TREE_UPDATE_REQUIRED1"), getName())), new CellConstraints().xy(2, 2));
-                pb.add(new JLabel(UIRegistry.getResourceString("BaseTreeDef.NO_TREE_UPDATE_PERMISSION")), new CellConstraints().xy(2, 4));
-                
-                CustomDialog dlg = new CustomDialog((Frame)UIRegistry.getTopWindow(),
-                        UIRegistry.getResourceString("BaseTreeDef.TREE_UPDATE_REQUIRED_TITLE"),
-                        true,
-                        CustomDialog.OKHELP,
-                        pb.getPanel());
-                UIHelper.centerAndShow(dlg);
-                result = false;               
-           }
-        }
-        return result;
-    }
+//     * Checks to see if a NodeNumbersOutOfDate lock is set. If not returns true.
+//     * If so, then if user has permission to update the tree, an option is to update or exit specify is presented. If update
+//     * is selected and succeeds, true is returned. 
+//     */
+//    public boolean checkNodeNumbersUpToDate(boolean useProgDlg) throws Exception
+//    {
+//        boolean result;
+//        if (TreeDefStatusMgr.isNodeNumbersAreUpToDate(this))
+//        {
+//             result = true;
+//        }
+//        else
+//        {
+//            if (userCanUpdateTree())
+//            {
+//                PanelBuilder pb = new PanelBuilder(new FormLayout("5dlu, f:p:g, 5dlu", "5dlu, f:p:g, 2dlu, f:p:g, 5dlu"));
+//                pb.add(new JLabel(String.format(UIRegistry.getResourceString("BaseTreeDef.TREE_UPDATE_REQUIRED1"), getName())), new CellConstraints().xy(2, 2));
+//                pb.add(new JLabel(UIRegistry.getResourceString("BaseTreeDef.TREE_UPDATE_REQUIRED2")), new CellConstraints().xy(2, 4));
+//                
+//                CustomDialog dlg = new CustomDialog((Frame)UIRegistry.getTopWindow(),
+//                        UIRegistry.getResourceString("BaseTreeDef.TREE_UPDATE_REQUIRED_TITLE"),
+//                        true,
+//                        CustomDialog.OKCANCELHELP,
+//                        pb.getPanel());
+//                dlg.setCancelLabel(UIRegistry.getResourceString("SpecifyAppContextMgr.EXIT"));
+//                UIHelper.centerAndShow(dlg);
+//                if (dlg.getBtnPressed() == CustomDialog.OK_BTN)
+//                {
+//                    updateAllNodes(null, useProgDlg, false);
+//                    result = TreeDefStatusMgr.isNodeNumbersAreUpToDate(this);                    
+//                }
+//                else
+//                {
+//                    result = false;
+//                }
+//            }
+//            else
+//            {
+//                PanelBuilder pb = new PanelBuilder(new FormLayout("5dlu, f:p:g, 5dlu", "5dlu, f:p:g, 2dlu, f:p:g, 5dlu"));
+//                pb.add(new JLabel(String.format(UIRegistry.getResourceString("BaseTreeDef.TREE_UPDATE_REQUIRED1"), getName())), new CellConstraints().xy(2, 2));
+//                pb.add(new JLabel(UIRegistry.getResourceString("BaseTreeDef.NO_TREE_UPDATE_PERMISSION")), new CellConstraints().xy(2, 4));
+//                
+//                CustomDialog dlg = new CustomDialog((Frame)UIRegistry.getTopWindow(),
+//                        UIRegistry.getResourceString("BaseTreeDef.TREE_UPDATE_REQUIRED_TITLE"),
+//                        true,
+//                        CustomDialog.OKHELP,
+//                        pb.getPanel());
+//                UIHelper.centerAndShow(dlg);
+//                result = false;               
+//           }
+//        }
+//        return result;
+//    }
     
     /**
      * @return true if user has permission to edit tree def.

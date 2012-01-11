@@ -842,8 +842,8 @@ public class BuildSampleDatabase
             earthNode.initialize();
             earthNode.setName("Earth");
             earthNode.setFullName("Earth");
-            earthNode.setNodeNumber(1);
-            earthNode.setHighestChildNodeNumber(1);
+//            earthNode.setNodeNumber(1);
+//            earthNode.setHighestChildNodeNumber(1);
             earthNode.setRankId(0);
             earthNode.setDefinition(lithoStratTreeDef);
             earthNode.setDefinitionItem(earth);
@@ -1376,8 +1376,8 @@ public class BuildSampleDatabase
                         stdi.getTreeEntries().add(stg);
                         stg.setName("Site");
                         stg.setFullName("Site");
-                        stg.setNodeNumber(1);
-                        stg.setHighestChildNodeNumber(1);
+//                        stg.setNodeNumber(1);
+//                        stg.setHighestChildNodeNumber(1);
                     }
                    
                     if (parent != null)
@@ -3603,8 +3603,8 @@ public class BuildSampleDatabase
         earth.initialize();
         earth.setName("Earth");
         earth.setFullName("Earth");
-        earth.setNodeNumber(1);
-        earth.setHighestChildNodeNumber(1);
+//        earth.setNodeNumber(1);
+//        earth.setHighestChildNodeNumber(1);
         earth.setRankId(0);
         earth.setDefinition(treeDef);
         LithoStratTreeDefItem defItem = treeDef.getDefItemByRank(0);
@@ -3658,8 +3658,8 @@ public class BuildSampleDatabase
         log.info("Converted " + counter + " Stratigraphy records");
 
         TreeHelper.fixFullnameForNodeAndDescendants(earth);
-        earth.setNodeNumber(1);
-        fixNodeNumbersFromRoot(earth);
+//        earth.setNodeNumber(1);
+//        fixNodeNumbersFromRoot(earth);
         
         commitTx();
         
@@ -3773,8 +3773,8 @@ public class BuildSampleDatabase
         earth.initialize();
         earth.setName("Earth");
         earth.setFullName("Earth");
-        earth.setNodeNumber(1);
-        earth.setHighestChildNodeNumber(1);
+//        earth.setNodeNumber(1);
+//        earth.setHighestChildNodeNumber(1);
         earth.setRankId(0);
         earth.setDefinition(treeDef);
         GeographyTreeDefItem defItem = treeDef.getDefItemByRank(0);
@@ -3859,8 +3859,8 @@ public class BuildSampleDatabase
         frame.getProcessProgress().setIndeterminate(true);
 
         TreeHelper.fixFullnameForNodeAndDescendants(earth);
-        earth.setNodeNumber(1);
-        fixNodeNumbersFromRoot(earth);
+//        earth.setNodeNumber(1);
+//        fixNodeNumbersFromRoot(earth);
         
         commitTx();
         
@@ -3904,7 +3904,7 @@ public class BuildSampleDatabase
     public void printTree( Treeable root, int level)
     {
         for (int i=0;i<level;i++) System.out.print(" ");
-        System.out.println(root.getName()+"  "+root.getNodeNumber()+"  "+root.getHighestChildNodeNumber());
+//        System.out.println(root.getName()+"  "+root.getNodeNumber()+"  "+root.getHighestChildNodeNumber());
         for( Treeable child: (Set<Treeable>)root.getChildren() )
         {
             printTree(child, level+2);
@@ -4851,8 +4851,8 @@ public class BuildSampleDatabase
         storage.setRankId(0);
         storage.setName("Storage Root");
         storage.setFullName("Storage Root");
-        storage.setNodeNumber(1);
-        storage.setHighestChildNodeNumber(1);
+//        storage.setNodeNumber(1);
+//        storage.setHighestChildNodeNumber(1);
         storage.setDefinition(treeDef);
         storage.setDefinitionItem(rootTTD);
         rootTTD.getTreeEntries().add(storage);
@@ -4869,8 +4869,8 @@ public class BuildSampleDatabase
         }
         
         TreeHelper.fixFullnameForNodeAndDescendants(storage);
-        storage.setNodeNumber(1);
-        fixNodeNumbersFromRoot(storage);
+//        storage.setNodeNumber(1);
+//        fixNodeNumbersFromRoot(storage);
     }
     
     @SuppressWarnings("unchecked")
@@ -4962,8 +4962,8 @@ public class BuildSampleDatabase
         taxon.setRankId(0);
         taxon.setName("Taxonomy Root");
         taxon.setFullName("Taxonomy Root");
-        taxon.setNodeNumber(1);
-        taxon.setHighestChildNodeNumber(1);
+//        taxon.setNodeNumber(1);
+//        taxon.setHighestChildNodeNumber(1);
         taxon.setDefinition(treeDef);
         taxon.setDefinitionItem(rootTTD);
         rootTTD.getTreeEntries().add(taxon);
@@ -4978,8 +4978,8 @@ public class BuildSampleDatabase
         }
         
         TreeHelper.fixFullnameForNodeAndDescendants(taxon);
-        taxon.setNodeNumber(1);
-        fixNodeNumbersFromRoot(taxon);
+//        taxon.setNodeNumber(1);
+//        fixNodeNumbersFromRoot(taxon);
     }
     
     @SuppressWarnings("unchecked")
@@ -6656,8 +6656,8 @@ public class BuildSampleDatabase
             earth.setFullName("Earth");
             earth.setDefinition(def);
             earth.setDefinitionItem(planet);
-            earth.setNodeNumber(1);
-            earth.setHighestChildNodeNumber(1);
+//            earth.setNodeNumber(1);
+//            earth.setHighestChildNodeNumber(1);
             earth.setIsAccepted(true);
             newObjs.add(earth);
         }
@@ -6747,8 +6747,8 @@ public class BuildSampleDatabase
         if (doAddTreeNodes)
         {
             TreeHelper.fixFullnameForNodeAndDescendants(earth);
-            earth.setNodeNumber(1);
-            fixNodeNumbersFromRoot(earth);
+//            earth.setNodeNumber(1);
+//            fixNodeNumbersFromRoot(earth);
         }
 
         return newObjs;
@@ -6806,8 +6806,8 @@ public class BuildSampleDatabase
         }
 
         TreeHelper.fixFullnameForNodeAndDescendants(level0);
-        level0.setNodeNumber(1);
-        fixNodeNumbersFromRoot(level0);
+//        level0.setNodeNumber(1);
+//        fixNodeNumbersFromRoot(level0);
         
         return newObjs;
     }
@@ -6890,8 +6890,8 @@ public class BuildSampleDatabase
         locs.add(shelf3_703);
         
         TreeHelper.fixFullnameForNodeAndDescendants(dyche);
-        dyche.setNodeNumber(1);
-        fixNodeNumbersFromRoot(dyche);
+//        dyche.setNodeNumber(1);
+//        fixNodeNumbersFromRoot(dyche);
         
         return locs;
     }
@@ -7075,8 +7075,8 @@ public class BuildSampleDatabase
         // 57 - 65
 
         TreeHelper.fixFullnameForNodeAndDescendants(life);
-        life.setNodeNumber(1);
-        fixNodeNumbersFromRoot(life);
+//        life.setNodeNumber(1);
+//        fixNodeNumbersFromRoot(life);
         
         return newObjs;
     }
@@ -7154,8 +7154,8 @@ public class BuildSampleDatabase
         newObjs.addAll(kids);
 
         TreeHelper.fixFullnameForNodeAndDescendants(life);
-        life.setNodeNumber(1);
-        fixNodeNumbersFromRoot(life);
+//        life.setNodeNumber(1);
+//        fixNodeNumbersFromRoot(life);
 
         return newObjs;
     }
@@ -7174,18 +7174,18 @@ public class BuildSampleDatabase
         return journal;
     }
 
-    @SuppressWarnings("unchecked")
-    public static int fixNodeNumbersFromRoot( Treeable root )
-    {
-        int nextNodeNumber = root.getNodeNumber();
-        for( Treeable child: (Set<Treeable>)root.getChildren() )
-        {
-            child.setNodeNumber(++nextNodeNumber);
-            nextNodeNumber = fixNodeNumbersFromRoot(child);
-        }
-        root.setHighestChildNodeNumber(nextNodeNumber);
-        return nextNodeNumber;
-    }
+//    @SuppressWarnings("unchecked")
+//    public static int fixNodeNumbersFromRoot( Treeable root )
+//    {
+//        int nextNodeNumber = root.getNodeNumber();
+//        for( Treeable child: (Set<Treeable>)root.getChildren() )
+//        {
+//            child.setNodeNumber(++nextNodeNumber);
+//            nextNodeNumber = fixNodeNumbersFromRoot(child);
+//        }
+//        root.setHighestChildNodeNumber(nextNodeNumber);
+//        return nextNodeNumber;
+//    }
 
     public void persist(Object o)
     {
@@ -9174,8 +9174,8 @@ public class BuildSampleDatabase
         log.info("Converted " + counter + " ChronoStrat records");
 
         TreeHelper.fixFullnameForNodeAndDescendants(rootNode);
-        rootNode.setNodeNumber(1);
-        fixNodeNumbersFromRoot(rootNode);
+//        rootNode.setNodeNumber(1);
+//        fixNodeNumbersFromRoot(rootNode);
         
         commitTx();
         

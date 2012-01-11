@@ -68,8 +68,8 @@ public class GeologicTimePeriod extends DataModelObjBase implements java.io.Seri
     protected String                        fullName;
     protected String                        remarks;
     protected String                        guid;
-    protected Integer                       nodeNumber;
-    protected Integer                       highestChildNodeNumber;
+//    protected Integer                       nodeNumber;
+//    protected Integer                       highestChildNodeNumber;
     protected String                        standard;
     protected Float                         startPeriod;
     protected Float                         startUncertainty;
@@ -114,8 +114,8 @@ public class GeologicTimePeriod extends DataModelObjBase implements java.io.Seri
         fullName = null;
         remarks = null;
         guid = null;
-        nodeNumber = null;
-        highestChildNodeNumber = null;
+//        nodeNumber = null;
+//        highestChildNodeNumber = null;
         standard = null;
         startPeriod = null;
         startUncertainty = null;
@@ -221,33 +221,33 @@ public class GeologicTimePeriod extends DataModelObjBase implements java.io.Seri
         this.fullName = fullName;
     }
 
-    /**
-     * 
-     */
-    @Column(name = "NodeNumber")
-    public Integer getNodeNumber()
-    {
-        return this.nodeNumber;
-    }
-
-    public void setNodeNumber(Integer nodeNumber)
-    {
-        this.nodeNumber = nodeNumber;
-    }
-
-    /**
-     * 
-     */
-    @Column(name = "HighestChildNodeNumber")
-    public Integer getHighestChildNodeNumber()
-    {
-        return this.highestChildNodeNumber;
-    }
-
-    public void setHighestChildNodeNumber(Integer highestChildNodeNumber)
-    {
-        this.highestChildNodeNumber = highestChildNodeNumber;
-    }
+//    /**
+//     * 
+//     */
+//    @Column(name = "NodeNumber")
+//    public Integer getNodeNumber()
+//    {
+//        return this.nodeNumber;
+//    }
+//
+//    public void setNodeNumber(Integer nodeNumber)
+//    {
+//        this.nodeNumber = nodeNumber;
+//    }
+//
+//    /**
+//     * 
+//     */
+//    @Column(name = "HighestChildNodeNumber")
+//    public Integer getHighestChildNodeNumber()
+//    {
+//        return this.highestChildNodeNumber;
+//    }
+//
+//    public void setHighestChildNodeNumber(Integer highestChildNodeNumber)
+//    {
+//        this.highestChildNodeNumber = highestChildNodeNumber;
+//    }
 
     /**
      * 

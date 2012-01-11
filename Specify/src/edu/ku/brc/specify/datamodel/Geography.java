@@ -54,8 +54,8 @@ import edu.ku.brc.specify.treeutils.TreeOrderSiblingComparator;
 @org.hibernate.annotations.Table(appliesTo="geography", indexes =
     {   @Index (name="GeoNameIDX", columnNames={"Name"}),
         @Index (name="GeoFullNameIDX", columnNames={"FullName"}),
-        @Index (name="GeoNodeNumberIDX", columnNames={"NodeNumber"}),
-        @Index (name="GeoHighChildIDX", columnNames={"HighestChildNodeNumber"})
+//        @Index (name="GeoNodeNumberIDX", columnNames={"NodeNumber"}),
+//        @Index (name="GeoHighChildIDX", columnNames={"HighestChildNodeNumber"})
     })
 public class Geography extends DataModelObjBase implements java.io.Serializable, Comparable<Geography>, Treeable<Geography,GeographyTreeDef,GeographyTreeDefItem>
 {
@@ -73,8 +73,8 @@ public class Geography extends DataModelObjBase implements java.io.Serializable,
 	protected String				fullName;
 	protected String				geographyCode;
 	protected Integer				rankId;
-	protected Integer				nodeNumber;
-	protected Integer				highestChildNodeNumber;
+//	protected Integer				nodeNumber;
+//	protected Integer				highestChildNodeNumber;
 	protected String				abbrev;
     protected BigDecimal            centroidLat;
     protected BigDecimal            centroidLon;
@@ -124,8 +124,8 @@ public class Geography extends DataModelObjBase implements java.io.Serializable,
 		commonName = null;
 		geographyCode = null;
 		rankId = null;
-		nodeNumber = null;
-		highestChildNodeNumber = null;
+//		nodeNumber = null;
+//		highestChildNodeNumber = null;
 		isAccepted = true;
 		abbrev = null;
 		text1 = null;
@@ -273,33 +273,33 @@ public class Geography extends DataModelObjBase implements java.io.Serializable,
 		this.rankId = rankId;
 	}
 
-	/**
-	 *
-	 */
-    @Column(name = "NodeNumber")
-	public Integer getNodeNumber()
-	{
-		return this.nodeNumber;
-	}
-
-	public void setNodeNumber(Integer nodeNumber)
-	{
-		this.nodeNumber = nodeNumber;
-	}
-
-	/**
-	 *
-	 */
-    @Column(name = "HighestChildNodeNumber")
-	public Integer getHighestChildNodeNumber()
-	{
-		return this.highestChildNodeNumber;
-	}
-
-	public void setHighestChildNodeNumber(Integer highestChildNodeNumber)
-	{
-		this.highestChildNodeNumber = highestChildNodeNumber;
-	}
+//	/**
+//	 *
+//	 */
+//    @Column(name = "NodeNumber")
+//	public Integer getNodeNumber()
+//	{
+//		return this.nodeNumber;
+//	}
+//
+//	public void setNodeNumber(Integer nodeNumber)
+//	{
+//		this.nodeNumber = nodeNumber;
+//	}
+//
+//	/**
+//	 *
+//	 */
+//    @Column(name = "HighestChildNodeNumber")
+//	public Integer getHighestChildNodeNumber()
+//	{
+//		return this.highestChildNodeNumber;
+//	}
+//
+//	public void setHighestChildNodeNumber(Integer highestChildNodeNumber)
+//	{
+//		this.highestChildNodeNumber = highestChildNodeNumber;
+//	}
 
 	/**
 	 *

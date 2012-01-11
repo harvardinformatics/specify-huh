@@ -152,7 +152,7 @@ public interface TreeDataService <T extends Treeable<T,D,I>,
      * @return
      * @throws Exception
      */
-    public boolean updateNodeNumbersAfterNodeAddition(T newNode, DataProviderSessionIFace session) throws Exception;
+//    public boolean updateNodeNumbersAfterNodeAddition(T newNode, DataProviderSessionIFace session) throws Exception;
     
     
     /**
@@ -161,7 +161,7 @@ public interface TreeDataService <T extends Treeable<T,D,I>,
      * @return
      * @throws Exception
      */
-    public boolean updateNodeNumbersAfterNodeEdit(final T node, final DataProviderSessionIFace session) throws Exception;
+//    public boolean updateNodeNumbersAfterNodeEdit(final T node, final DataProviderSessionIFace session) throws Exception;
 
     /**
      * @param deletedNode
@@ -169,7 +169,7 @@ public interface TreeDataService <T extends Treeable<T,D,I>,
      * @return
      * @throws Exception
      */
-    public boolean updateNodeNumbersAfterNodeDeletion(T deletedNode, DataProviderSessionIFace session) throws Exception;
+//    public boolean updateNodeNumbersAfterNodeDeletion(T deletedNode, DataProviderSessionIFace session) throws Exception;
     
     /**
      * Moves the given node from its current parent to the given new parent node.  This can

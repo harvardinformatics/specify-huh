@@ -26,11 +26,9 @@ import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
-import java.util.Vector;
 
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JCheckBox;
@@ -62,16 +60,11 @@ import edu.ku.brc.dbsupport.DataProviderSessionIFace;
 import edu.ku.brc.dbsupport.DataProviderSessionIFace.QueryIFace;
 import edu.ku.brc.specify.config.SpecifyAppContextMgr;
 import edu.ku.brc.specify.conversion.BasicSQLUtils;
-import edu.ku.brc.specify.datamodel.SpTaskSemaphore;
 import edu.ku.brc.specify.datamodel.TreeDefIface;
 import edu.ku.brc.specify.datamodel.TreeDefItemIface;
 import edu.ku.brc.specify.datamodel.TreeDefItemStandardEntry;
 import edu.ku.brc.specify.datamodel.Treeable;
 import edu.ku.brc.specify.dbsupport.TaskSemaphoreMgr;
-import edu.ku.brc.specify.dbsupport.TaskSemaphoreMgrCallerIFace;
-import edu.ku.brc.specify.dbsupport.TaskSemaphoreMgr.USER_ACTION;
-import edu.ku.brc.specify.treeutils.TreeDataService;
-import edu.ku.brc.specify.treeutils.TreeDataServiceFactory;
 import edu.ku.brc.specify.treeutils.TreeHelper;
 import edu.ku.brc.ui.GetSetValueIFace;
 import edu.ku.brc.ui.UIRegistry;
@@ -207,97 +200,44 @@ public abstract class BaseTreeBusRules<T extends Treeable<T,D,I>,
         }
         return super.okToEnableDelete(dataObj);
 	}
-
+    
 	/**
-     * @param node
-     * @return
-     */
+	 * The original method checked there were no references to all of the
+	 * descendants of a node, which was slow, especially when clicking on Life.
+	 * The new method only allows deletion when: 1) A node has no children 2)
+	 * There are no references to the node. Paul says that this is okay because
+	 * the HUH tree is relatively stable and there will not be any major
+	 * changes.
+	 * 
+	 * @author lchan
+	 * 
+	 * @param node
+	 * @return
+	 */
     @SuppressWarnings("unchecked")
     public boolean okToDeleteNode(T node)
     {
-        if (node.getDefinition() != null && !node.getDefinition().getNodeNumbersAreUpToDate() && !node.getDefinition().isUploadInProgress())
-        {
-            //Scary. If nodes are not up to date, tree rules may not work.
-            //The application should prevent edits to items/trees whose tree numbers are not up to date except while uploading
-            //workbenches.
-            throw new RuntimeException(node.getDefinition().getName() + " has out of date node numbers.");
-        }
-        
-        if (node.getDefinition() != null && node.getDefinition().isUploadInProgress())
-        {
-            //don't think this will ever get called during an upload/upload-undo, but just in case.
-            return true;
-        }
-        
-        Integer id = node.getTreeId();
-        if (id == null)
-        {
-            return true;
-        }
-        String[] relationships = getRelatedTableAndColumnNames();
+		DataProviderSessionIFace session = DataProviderFactory.getInstance()
+				.createSession();
 
-        // if the given node can't be deleted, return false
-        if (!super.okToDelete(relationships, node.getTreeId()))
-        {
-            return false;
-        }
+        // Need to search by node ID because Hibernate will throw a fit when
+        // there is an unpersisted node, such as on a new form.
+		QueryIFace query = session.createQuery("select count(e) from "
+				+ node.getClass().getName() + " e where e.parent.id = :node",
+				false);
+		query.setParameter("node", node.getTreeId());
+		Integer childrenCount = (Integer) query.uniqueResult();
 
-        // now check the children
+		boolean deletable = false;
+		if (childrenCount == 0) {
+			String[] relationships = getRelatedTableAndColumnNames();
 
-        // get a list of all descendent IDs
-        DataProviderSessionIFace session = null;
-        List<Integer> childIDs = null;
-        try
-        {
-            session = DataProviderFactory.getInstance().createSession();
-            String queryStr = "SELECT n.id FROM " + node.getClass().getName() + " n WHERE n.nodeNumber <= :highChild AND n.nodeNumber > :nodeNum ORDER BY n.rankId DESC";
-            QueryIFace query = session.createQuery(queryStr, false);
-            query.setParameter("highChild", node.getHighestChildNodeNumber());
-            query.setParameter("nodeNum", node.getNodeNumber());
-            childIDs = (List<Integer>)query.list();
-            
-        } catch (Exception ex)
-        {
-            edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(BaseTreeBusRules.class, ex);
-            // Error Dialog
-            ex.printStackTrace();
-            
-        } finally
-        {
-            if (session != null)
-            {
-                session.close();
-            }
-        }
+			deletable = super.okToDelete(relationships, node.getTreeId());
+		}
 
-        // if there are no descendent nodes, return true
-        if (childIDs != null && childIDs.size() == 0)
-        {
-            return true;
-        }
+		session.close();
 
-        // break the descendent checks up into chunks or queries
-        
-        // This is an arbitrary number.  Trial and error will determine a good value.  This determines
-        // the number of IDs that wind up in the "IN" clause of the query run inside okToDelete().
-        int chunkSize = 250;
-        int lastRecordChecked = -1;
-
-        boolean childrenDeletable = true;
-        while (lastRecordChecked  + 1 < childIDs.size() && childrenDeletable)
-        {
-            int startOfChunk = lastRecordChecked + 1;
-            int endOfChunk = Math.min(lastRecordChecked+1+chunkSize, childIDs.size());
-
-            // grabs selected subset, exclusive of the last index
-            List<Integer> chunk = childIDs.subList(startOfChunk, endOfChunk);
-            
-            Integer[] idChunk = chunk.toArray(new Integer[1]);
-            childrenDeletable = super.okToDelete(relationships, idChunk);
-            
-            lastRecordChecked = endOfChunk - 1;
-        }
-        return childrenDeletable;
+		return deletable;
     }
     
     
@@ -970,13 +910,13 @@ public abstract class BaseTreeBusRules<T extends Treeable<T,D,I>,
             //       this has a SMALL amount of risk to it
             T node = (T)dataObj;
             
-            if (!node.getDefinition().getNodeNumbersAreUpToDate() && !node.getDefinition().isUploadInProgress())
-            {
-                //Scary. If nodes are not up to date, tree rules may not work (actually this one is OK. (for now)). 
-                //The application should prevent edits to items/trees whose tree numbers are not up to date except while uploading
-                //workbenches.
-                throw new RuntimeException(node.getDefinition().getName() + " has out of date node numbers.");
-            }
+//            if (!node.getDefinition().getNodeNumbersAreUpToDate() && !node.getDefinition().isUploadInProgress())
+//            {
+//                //Scary. If nodes are not up to date, tree rules may not work (actually this one is OK. (for now)). 
+//                //The application should prevent edits to items/trees whose tree numbers are not up to date except while uploading
+//                //workbenches.
+//                throw new RuntimeException(node.getDefinition().getName() + " has out of date node numbers.");
+//            }
            
             // set it's fullname
             String fullname = TreeHelper.generateFullname(node);
@@ -1009,34 +949,35 @@ public abstract class BaseTreeBusRules<T extends Treeable<T,D,I>,
             //       this has a SMALL amount of risk to it
             T node = (T)dataObj;
 
-            if (!node.getDefinition().getNodeNumbersAreUpToDate() && !node.getDefinition().isUploadInProgress())
-            {
-                //Scary. If nodes are not up to date, tree rules may not work.
-                //The application should prevent edits to items/trees whose tree numbers are not up to date except while uploading
-                //workbenches.
-                throw new RuntimeException(node.getDefinition().getName() + " has out of date node numbers.");
-            }
-
-            // if the node doesn't have any assigned node number, it must be new
-            boolean added = (node.getNodeNumber() == null);
-
-            if (node.getDefinition().getDoNodeNumberUpdates() && node.getDefinition().getNodeNumbersAreUpToDate())
-            {
-                log.info("Saved tree node was added.  Updating node numbers appropriately.");
-                TreeDataService<T,D,I> dataServ = TreeDataServiceFactory.createService();
-                if (added)
-                {
-                	success = dataServ.updateNodeNumbersAfterNodeAddition(node, session);
-                }
-                else
-                {
-                	success = dataServ.updateNodeNumbersAfterNodeEdit(node, session);
-                }
-            }
-            else 
-            {
-                node.getDefinition().setNodeNumbersAreUpToDate(false);
-            }
+//            if (!node.getDefinition().getNodeNumbersAreUpToDate() && !node.getDefinition().isUploadInProgress())
+//            {
+//                //Scary. If nodes are not up to date, tree rules may not work.
+//                //The application should prevent edits to items/trees whose tree numbers are not up to date except while uploading
+//                //workbenches.
+//                throw new RuntimeException(node.getDefinition().getName() + " has out of date node numbers.");
+//            }
+//
+//            // if the node doesn't have any assigned node number, it must be new
+//
+//            boolean added = (node.getNodeNumber() == null);
+//
+//            if (node.getDefinition().getDoNodeNumberUpdates() && node.getDefinition().getNodeNumbersAreUpToDate())
+//            {
+//                log.info("Saved tree node was added.  Updating node numbers appropriately.");
+//                TreeDataService<T,D,I> dataServ = TreeDataServiceFactory.createService();
+//                if (added)
+//                {
+//                	success = dataServ.updateNodeNumbersAfterNodeAddition(node, session);
+//                }
+//                else
+//                {
+//                	success = dataServ.updateNodeNumbersAfterNodeEdit(node, session);
+//                }
+//            }
+//            else 
+//            {
+//                node.getDefinition().setNodeNumbersAreUpToDate(false);
+//            }
         }
         
         return success;
@@ -1051,6 +992,7 @@ public abstract class BaseTreeBusRules<T extends Treeable<T,D,I>,
      * NOTE: If this method is overridden, freeLocks() MUST be called when result is false
      * !!
      * 
+     * lchan: no more locks
      */
 	@Override
 	public boolean beforeDeleteCommit(Object dataObj,
@@ -1060,92 +1002,92 @@ public abstract class BaseTreeBusRules<T extends Treeable<T,D,I>,
 		{
 			return false;
 		}
-		if (BaseTreeBusRules.ALLOW_CONCURRENT_FORM_ACCESS && viewable != null)
-		{
-			return getRequiredLocks();
-		}
+//		if (BaseTreeBusRules.ALLOW_CONCURRENT_FORM_ACCESS && viewable != null)
+//		{
+//			return getRequiredLocks();
+//		}
 		else
 		{
 			return true;
 		}
 	}
 
-	/* (non-Javadoc)
-     * @see edu.ku.brc.ui.forms.BaseBusRules#afterDeleteCommit(java.lang.Object)
-     */
-    @SuppressWarnings("unchecked")
-    @Override
-    public void afterDeleteCommit(Object dataObj)
-    {
-        try
-		{
-			if (dataObj instanceof Treeable)
-			{
-				// NOTE: the instanceof check can't check against 'T' since T
-				// isn't a class
-				// this has a SMALL amount of risk to it
-				T node = (T) dataObj;
-
-				if (!node.getDefinition().getNodeNumbersAreUpToDate()
-						&& !node.getDefinition().isUploadInProgress())
-				{
-					// Scary. If nodes are not up to date, tree rules may not
-					// work.
-					// The application should prevent edits to items/trees whose
-					// tree numbers are not up to date except while uploading
-					// workbenches.
-					throw new RuntimeException(node.getDefinition().getName()
-							+ " has out of date node numbers.");
-				}
-
-				if (node.getDefinition().getDoNodeNumberUpdates()
-						&& node.getDefinition().getNodeNumbersAreUpToDate())
-				{
-					log
-							.info("A tree node was deleted.  Updating node numbers appropriately.");
-					TreeDataService<T, D, I> dataServ = TreeDataServiceFactory
-							.createService();
-					// apparently a refresh() is necessary. node can hold
-					// obsolete values otherwise.
-					// Possibly needs to be done for all business rules??
-					DataProviderSessionIFace session = null;
-					try
-					{
-						session = DataProviderFactory.getInstance()
-								.createSession();
-						// rods - 07/28/08 commented out because the node is
-						// already deleted
-						// session.refresh(node);
-						dataServ.updateNodeNumbersAfterNodeDeletion(node,
-								session);
-
-					} catch (Exception ex)
-					{
-						edu.ku.brc.exceptions.ExceptionTracker.getInstance()
-								.capture(BaseTreeBusRules.class, ex);
-						ex.printStackTrace();
-
-					} finally
-					{
-						if (session != null)
-						{
-							session.close();
-						}
-					}
-
-				} else
-				{
-					node.getDefinition().setNodeNumbersAreUpToDate(false);
-				}
-			}
-		} finally
-		{
-			if (BaseTreeBusRules.ALLOW_CONCURRENT_FORM_ACCESS && viewable != null)
-			{
-				this.freeLocks();
-			}
-		}
-    }
+//	/* (non-Javadoc)
+//     * @see edu.ku.brc.ui.forms.BaseBusRules#afterDeleteCommit(java.lang.Object)
+//     */
+//    @SuppressWarnings("unchecked")
+//    @Override
+//    public void afterDeleteCommit(Object dataObj)
+//    {
+//        try
+//		{
+//			if (dataObj instanceof Treeable)
+//			{
+//				// NOTE: the instanceof check can't check against 'T' since T
+//				// isn't a class
+//				// this has a SMALL amount of risk to it
+//				T node = (T) dataObj;
+//
+//				if (!node.getDefinition().getNodeNumbersAreUpToDate()
+//						&& !node.getDefinition().isUploadInProgress())
+//				{
+//					// Scary. If nodes are not up to date, tree rules may not
+//					// work.
+//					// The application should prevent edits to items/trees whose
+//					// tree numbers are not up to date except while uploading
+//					// workbenches.
+//					throw new RuntimeException(node.getDefinition().getName()
+//							+ " has out of date node numbers.");
+//				}
+//
+//				if (node.getDefinition().getDoNodeNumberUpdates()
+//						&& node.getDefinition().getNodeNumbersAreUpToDate())
+//				{
+//					log
+//							.info("A tree node was deleted.  Updating node numbers appropriately.");
+//					TreeDataService<T, D, I> dataServ = TreeDataServiceFactory
+//							.createService();
+//					// apparently a refresh() is necessary. node can hold
+//					// obsolete values otherwise.
+//					// Possibly needs to be done for all business rules??
+//					DataProviderSessionIFace session = null;
+//					try
+//					{
+//						session = DataProviderFactory.getInstance()
+//								.createSession();
+//						// rods - 07/28/08 commented out because the node is
+//						// already deleted
+//						// session.refresh(node);
+//						dataServ.updateNodeNumbersAfterNodeDeletion(node,
+//								session);
+//
+//					} catch (Exception ex)
+//					{
+//						edu.ku.brc.exceptions.ExceptionTracker.getInstance()
+//								.capture(BaseTreeBusRules.class, ex);
+//						ex.printStackTrace();
+//
+//					} finally
+//					{
+//						if (session != null)
+//						{
+//							session.close();
+//						}
+//					}
+//
+//				} else
+//				{
+//					node.getDefinition().setNodeNumbersAreUpToDate(false);
+//				}
+//			}
+//		} finally
+//		{
+//			if (BaseTreeBusRules.ALLOW_CONCURRENT_FORM_ACCESS && viewable != null)
+//			{
+//				this.freeLocks();
+//			}
+//		}
+//    }
 
     /**
      * Handles the {@link #beforeSave(Object)} method if the passed in {@link Object}
@@ -1432,50 +1374,54 @@ public abstract class BaseTreeBusRules<T extends Treeable<T,D,I>,
 	 * @see edu.ku.brc.af.ui.forms.BaseBusRules#isOkToSave(java.lang.Object, edu.ku.brc.dbsupport.DataProviderSessionIFace)
 	 */
     /*
-     * NOTE: If this method is overridden, freeLocks() MUST be called when result is false
-     * !!
+     * NOTE: If this method is overridden, freeLocks() MUST be called when
+     * result is false !!
      * 
+     * lchan: modified this method to return true all of the time. Otherwise
+     * Specify enforces locks on Treeable saves.
      */
 	@Override
 	public boolean isOkToSave(Object dataObj, DataProviderSessionIFace session)
 	{
-		boolean result = super.isOkToSave(dataObj, session);
-		if (result && BaseTreeBusRules.ALLOW_CONCURRENT_FORM_ACCESS)
-		{
-			if (!getRequiredLocks())
-			{
-				result = false;
-				reasonList.add(getUnableToLockMsg());
-			}
-		}
-		return result;
+	    return true;
+	    
+//		boolean result = super.isOkToSave(dataObj, session);
+//		if (result && BaseTreeBusRules.ALLOW_CONCURRENT_FORM_ACCESS)
+//		{
+//			if (!getRequiredLocks())
+//			{
+//				result = false;
+//				reasonList.add(getUnableToLockMsg());
+//			}
+//		}
+//		return result;
 	}
 
-	/**
-	 * @return true if locks were aquired.
-	 * 
-	 * Locks necessary tables prior to a save.
-	 * Only used when ALLOW_CONCURRENT_FORM_ACCESS is true.
-	 */
-	protected boolean getRequiredLocks()
-	{
-		TaskSemaphoreMgr.USER_ACTION result = TaskSemaphoreMgr.lock(getFormSaveLockTitle(), getFormSaveLockName(), "save", 
-				TaskSemaphoreMgr.SCOPE.Discipline, false, new TaskSemaphoreMgrCallerIFace(){
-
-					/* (non-Javadoc)
-					 * @see edu.ku.brc.specify.dbsupport.TaskSemaphoreMgrCallerIFace#resolveConflict(edu.ku.brc.specify.datamodel.SpTaskSemaphore, boolean, java.lang.String)
-					 */
-					@Override
-					public USER_ACTION resolveConflict(
-							SpTaskSemaphore semaphore,
-							boolean previouslyLocked, String prevLockBy)
-					{
-						return USER_ACTION.Error;
-					}
-			
-		}, false);
-		return result == TaskSemaphoreMgr.USER_ACTION.OK;
-	}
+//	/**
+//	 * @return true if locks were aquired.
+//	 * 
+//	 * Locks necessary tables prior to a save.
+//	 * Only used when ALLOW_CONCURRENT_FORM_ACCESS is true.
+//	 */
+//	protected boolean getRequiredLocks()
+//	{
+//		TaskSemaphoreMgr.USER_ACTION result = TaskSemaphoreMgr.lock(getFormSaveLockTitle(), getFormSaveLockName(), "save", 
+//				TaskSemaphoreMgr.SCOPE.Discipline, false, new TaskSemaphoreMgrCallerIFace(){
+//
+//					/* (non-Javadoc)
+//					 * @see edu.ku.brc.specify.dbsupport.TaskSemaphoreMgrCallerIFace#resolveConflict(edu.ku.brc.specify.datamodel.SpTaskSemaphore, boolean, java.lang.String)
+//					 */
+//					@Override
+//					public USER_ACTION resolveConflict(
+//							SpTaskSemaphore semaphore,
+//							boolean previouslyLocked, String prevLockBy)
+//					{
+//						return USER_ACTION.Error;
+//					}
+//			
+//		}, false);
+//		return result == TaskSemaphoreMgr.USER_ACTION.OK;
+//	}
 	
 	/**
 	 * @return the class for the generic parameter <T>

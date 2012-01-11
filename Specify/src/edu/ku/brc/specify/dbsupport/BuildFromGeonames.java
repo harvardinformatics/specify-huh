@@ -126,7 +126,7 @@ public class BuildFromGeonames
             earth.initialize();
             earth.setName("Earth");
             earth.setFullName("Earth");
-            earth.setNodeNumber(1);
+//            earth.setNodeNumber(1);
             //earth.setHighestChildNodeNumber(1); mmk: removed this
             earth.setRankId(0);
             earth.setDefinition(geoDef);

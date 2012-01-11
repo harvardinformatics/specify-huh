@@ -98,6 +98,7 @@ import edu.ku.brc.af.ui.forms.validation.UIValidator;
 import edu.ku.brc.dbsupport.DataProviderFactory;
 import edu.ku.brc.dbsupport.DataProviderSessionIFace;
 import edu.ku.brc.dbsupport.StaleObjectException;
+import edu.ku.brc.dbsupport.DataProviderSessionIFace.QueryIFace;
 import edu.ku.brc.helpers.SwingWorker;
 import edu.ku.brc.specify.conversion.BasicSQLUtils;
 import edu.ku.brc.specify.datamodel.Taxon;
@@ -1151,7 +1152,9 @@ public class TreeTableViewer <T extends Treeable<T,D,I>,
         
         // get the DB record that corresponds to the TreeNode
         T nodeRecord = getRecordForNode(node);
-        int numNodesToDelete = dataService.getDescendantCount(nodeRecord)+1;
+        //int numNodesToDelete = dataService.getDescendantCount(nodeRecord)+1;
+        // lchan: always 1, according to the BaseBusRules modification, which could only delete child-less nodes.
+        int numNodesToDelete = 1;
         int userChoice = JOptionPane.OK_OPTION;
         
         // if this node has children, ask the user if it is okay to delete multiple nodes
@@ -3518,7 +3521,7 @@ public class TreeTableViewer <T extends Treeable<T,D,I>,
             parentRank = parentRecord.getRankId();
         }
         
-        int descCount = dataService.getDescendantCount(dataRecord);
+//        int descCount = dataService.getDescendantCount(dataRecord);
         
         Set<T> synonyms = dataService.getSynonyms(dataRecord);
         Set<Integer> synIds = new HashSet<Integer>();
@@ -3533,7 +3536,17 @@ public class TreeTableViewer <T extends Treeable<T,D,I>,
         
         Integer acceptParentId      = (acceptedParent != null) ? acceptedParent.getTreeId() : null;
         String acceptParentFullName = (acceptedParent != null) ? acceptedParent.getFullName() : null;
-        TreeNode node = new TreeNode(nodeName,fullName,id,parentId,rank,parentRank, (descCount != 0), acceptParentId, acceptParentFullName, synIdsAndNames);
+
+        // lchan
+		DataProviderSessionIFace session = DataProviderFactory.getInstance()
+				.createSession();
+		QueryIFace query = session.createQuery("select count(e) from " + dataRecord.getClass().getCanonicalName() + " e where e.parent.id = :parentId", false);
+		query.setParameter("parentId", dataRecord.getTreeId());
+		Integer numChildren = (Integer) query.uniqueResult();
+		boolean hasDescendants = numChildren > 0;
+		session.close();
+		
+        TreeNode node = new TreeNode(nodeName,fullName,id,parentId,rank,parentRank, hasDescendants, acceptParentId, acceptParentFullName, synIdsAndNames);
         node.setDataObjClass(dataRecord.getClass());
         return node;
     }
@@ -3587,9 +3600,10 @@ public class TreeTableViewer <T extends Treeable<T,D,I>,
                             //System.out.println("Calc: "+node.getFullName()+" "+node.hashCode());
                             new ChildNodeCounter(TreeTableViewer.this, 1, node,  TreeFactory.getRelatedRecordCountSQLSingleNode(dbRecClass), null, isHQL);
                             
-                            new ChildNodeCounter(TreeTableViewer.this, 2, node, 
-                                    TreeFactory.getNodeNumberQuery(dbRecClass), 
-                                    TreeFactory.getRelatedRecordCountSQLForRange(dbRecClass, node), isHQL);
+// lchan: commenting this out because it slows down the tree editor/viewer to crawl.  Doesn't seem to affect anything.
+//                            new ChildNodeCounter(TreeTableViewer.this, 2, node, 
+//                                    TreeFactory.getNodeNumberQuery(dbRecClass), 
+//                                    TreeFactory.getRelatedRecordCountSQLForRange(dbRecClass, node), isHQL);
                         }
                     }
                     catch (Exception e)
@@ -3654,8 +3668,14 @@ public class TreeTableViewer <T extends Treeable<T,D,I>,
          }*/
         
         // get the node representing the parent DB record
-        TreeNode parentNode = listModel.getNodeById(dbRecord.getTreeId());                    
+        TreeNode parentNode = listModel.getNodeById(dbRecord.getTreeId());
         
+		// lchan: Workaround: if one moves a grandchild of Life to Life,
+		// parentNode (Life) will be null. Returning null doesn't seem to have
+		// any detrimental effect...
+		if (parentNode == null) {
+			return childNodes;
+		}        
 
         // add the nodes to the model
         if (childNodes.size() == 0)

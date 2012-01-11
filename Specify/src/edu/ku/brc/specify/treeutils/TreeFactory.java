@@ -144,27 +144,27 @@ public class TreeFactory
     {
         if (Taxon.class.isInstance(parent))
         {
-            return "SELECT n.id, n.name, n.fullName, n.nodeNumber, n.highestChildNodeNumber, n.rankId, n2.id, n2.fullName FROM Taxon n LEFT OUTER JOIN n.acceptedTaxon n2 WHERE n.parent=:PARENT ORDER BY n.rankId, n.name";
+            return "SELECT n.id, n.name, n.fullName, n.rankId, n2.id, n2.fullName FROM Taxon n LEFT OUTER JOIN n.acceptedTaxon n2 WHERE n.parent=:PARENT ORDER BY n.rankId, n.name";
         }
         
         if (Geography.class.isInstance(parent))
         {
-            return "SELECT n.id, n.name, n.fullName, n.nodeNumber, n.highestChildNodeNumber, n.rankId, n2.id, n2.fullName FROM Geography n LEFT OUTER JOIN n.acceptedGeography n2 WHERE n.parent=:PARENT ORDER BY n.rankId, n.name";
+            return "SELECT n.id, n.name, n.fullName, n.rankId, n2.id, n2.fullName FROM Geography n LEFT OUTER JOIN n.acceptedGeography n2 WHERE n.parent=:PARENT ORDER BY n.rankId, n.name";
         }
         
         if (GeologicTimePeriod.class.isInstance(parent))
         {
-            return "SELECT n.id, n.name, n.fullName, n.nodeNumber, n.highestChildNodeNumber, n.rankId, n2.id, n2.fullName FROM GeologicTimePeriod n LEFT OUTER JOIN n.acceptedGeologicTimePeriod n2 WHERE n.parent=:PARENT ORDER BY n.startPeriod, n.endPeriod, n.name";
+            return "SELECT n.id, n.name, n.fullName, n.rankId, n2.id, n2.fullName FROM GeologicTimePeriod n LEFT OUTER JOIN n.acceptedGeologicTimePeriod n2 WHERE n.parent=:PARENT ORDER BY n.startPeriod, n.endPeriod, n.name";
         }
         
         if (Storage.class.isInstance(parent))
         {
-            return "SELECT n.id, n.name, n.fullName, n.nodeNumber, n.highestChildNodeNumber, n.rankId, n2.id, n2.fullName FROM Storage n LEFT OUTER JOIN n.acceptedStorage n2 WHERE n.parent=:PARENT ORDER BY n.rankId, n.name";
+            return "SELECT n.id, n.name, n.fullName, n.rankId, n2.id, n2.fullName FROM Storage n LEFT OUTER JOIN n.acceptedStorage n2 WHERE n.parent=:PARENT ORDER BY n.rankId, n.name";
         }
         
         if (LithoStrat.class.isInstance(parent))
         {
-            return "SELECT n.id, n.name, n.fullName, n.nodeNumber, n.highestChildNodeNumber, n.rankId, n2.id, n2.fullName FROM LithoStrat n LEFT OUTER JOIN n.acceptedLithoStrat n2 WHERE n.parent=:PARENT ORDER BY n.rankId, n.name";
+            return "SELECT n.id, n.name, n.fullName, n.rankId, n2.id, n2.fullName FROM LithoStrat n LEFT OUTER JOIN n.acceptedLithoStrat n2 WHERE n.parent=:PARENT ORDER BY n.rankId, n.name";
         }
         
         return null;
@@ -515,8 +515,8 @@ public class TreeFactory
 		rootNode.setName("Root");
         rootNode.setFullName("Root");
 		rootNode.setRankId(0);
-        rootNode.setNodeNumber(1);
-        rootNode.setHighestChildNodeNumber(1);
+//        rootNode.setNodeNumber(1);
+//        rootNode.setHighestChildNodeNumber(1);
 		
 		// tie everything together
 		defItem.setTreeDef(def);

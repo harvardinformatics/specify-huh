@@ -1082,6 +1082,7 @@ public class ViewLoader
                     if (FormDataObjIFace.class.isAssignableFrom(classObj))
                     {
                         fldVerTableInfo   = DBTableIdMgr.getInstance().getByClassName(className);
+                        // lchan: TODO: check whether we can determine a tree without the hcn
                         isTreeClass       = fldVerTableInfo != null && fldVerTableInfo.getFieldByName("highestChildNodeNumber") != null;
                         fldVerFormViewDef = formViewDef;
                     }

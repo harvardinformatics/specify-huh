@@ -54,8 +54,8 @@ import edu.ku.brc.specify.treeutils.TreeOrderSiblingComparator;
 @org.hibernate.annotations.Table(appliesTo="storage", indexes =
     {   @Index (name="StorNameIDX", columnNames={"Name"}),
         @Index (name="StorFullNameIDX", columnNames={"FullName"}),
-        @Index (name="StorNodeNumberIDX", columnNames={"NodeNumber"}),
-        @Index (name="StorHighChildIDX", columnNames={"HighestChildNodeNumber"})
+//        @Index (name="StorNodeNumberIDX", columnNames={"NodeNumber"}),
+//        @Index (name="StorHighChildIDX", columnNames={"HighestChildNodeNumber"})
     })
 public class Storage extends DataModelObjBase implements Serializable, Comparable<Storage>, Treeable<Storage,StorageTreeDef, StorageTreeDefItem>
 {
@@ -71,8 +71,8 @@ public class Storage extends DataModelObjBase implements Serializable, Comparabl
     protected String                 fullName;
     protected String                 remarks;
     protected Integer                rankId;
-    protected Integer                nodeNumber;
-    protected Integer                highestChildNodeNumber;
+//    protected Integer                nodeNumber;
+//    protected Integer                highestChildNodeNumber;
     protected String                 abbrev;
     protected String                 text1;
     protected String                 text2;
@@ -112,8 +112,8 @@ public class Storage extends DataModelObjBase implements Serializable, Comparabl
         fullName = null;
         remarks = null;
         rankId = null;
-        nodeNumber = null;
-        highestChildNodeNumber = null;
+//        nodeNumber = null;
+//        highestChildNodeNumber = null;
         abbrev = null;
         text1 = null;
         text2 = null;
@@ -219,27 +219,27 @@ public class Storage extends DataModelObjBase implements Serializable, Comparabl
         this.rankId = rankId;
     }
 
-    @Column(name = "NodeNumber")
-    public Integer getNodeNumber()
-    {
-        return this.nodeNumber;
-    }
-
-    public void setNodeNumber(Integer nodeNumber)
-    {
-        this.nodeNumber = nodeNumber;
-    }
-
-    @Column(name = "HighestChildNodeNumber")
-    public Integer getHighestChildNodeNumber()
-    {
-        return this.highestChildNodeNumber;
-    }
-
-    public void setHighestChildNodeNumber(Integer highestChildNodeNumber)
-    {
-        this.highestChildNodeNumber = highestChildNodeNumber;
-    }
+//    @Column(name = "NodeNumber")
+//    public Integer getNodeNumber()
+//    {
+//        return this.nodeNumber;
+//    }
+//
+//    public void setNodeNumber(Integer nodeNumber)
+//    {
+//        this.nodeNumber = nodeNumber;
+//    }
+//
+//    @Column(name = "HighestChildNodeNumber")
+//    public Integer getHighestChildNodeNumber()
+//    {
+//        return this.highestChildNodeNumber;
+//    }
+//
+//    public void setHighestChildNodeNumber(Integer highestChildNodeNumber)
+//    {
+//        this.highestChildNodeNumber = highestChildNodeNumber;
+//    }
 
     @Column(name = "Abbrev", length = 16)
     public String getAbbrev()

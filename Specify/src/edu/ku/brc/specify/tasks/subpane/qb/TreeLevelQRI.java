@@ -20,7 +20,7 @@
 package edu.ku.brc.specify.tasks.subpane.qb;
 
 import java.text.ParseException;
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 
 import edu.ku.brc.af.core.AppContextMgr;
@@ -28,12 +28,12 @@ import edu.ku.brc.af.core.db.DBFieldInfo;
 import edu.ku.brc.af.core.db.DBTableInfo;
 import edu.ku.brc.dbsupport.DataProviderFactory;
 import edu.ku.brc.dbsupport.DataProviderSessionIFace;
+import edu.ku.brc.dbsupport.DataProviderSessionIFace.QueryIFace;
 import edu.ku.brc.specify.config.SpecifyAppContextMgr;
 import edu.ku.brc.specify.datamodel.TreeDefIface;
 import edu.ku.brc.specify.datamodel.TreeDefItemIface;
 import edu.ku.brc.specify.datamodel.Treeable;
 import edu.ku.brc.ui.UIRegistry;
-import edu.ku.brc.util.Pair;
 
 /**
  * @author timbo
@@ -110,7 +110,7 @@ public class TreeLevelQRI extends FieldQRI
     protected String getSQLFldName(final TableAbbreviator ta)
     {
         tableAlias = ta.getAbbreviation(table.getTableTree());
-        return tableAlias + ".nodeNumber";
+        return tableAlias + ".id";
     }
     
     /**
@@ -204,6 +204,36 @@ public class TreeLevelQRI extends FieldQRI
         }
         return result;
 	}
+	
+	/**
+	 * Returns the IDs of all of a Treeable and its descendants in the form of id1, id2,...id3
+	 * 
+	 * @param node
+	 * @return
+	 */
+	private String getDescendantsIn(DataProviderSessionIFace session, Class<?> clazz, Integer parentId) {
+	    String ids = parentId + ", " + getDescendantsInRecursive(session, clazz, parentId);
+	    if (ids.length() > 0) {
+	        return ids.substring(0, ids.length() - 2);
+	    } else {
+	        return "";
+	    }
+	}
+	
+	private String getDescendantsInRecursive(DataProviderSessionIFace session, Class<?> clazz, Integer parentId) {
+	    String in = "";
+	    
+	    QueryIFace query = session.createQuery("select e.id from " + clazz.getCanonicalName() + " e where e.parent.id = :parentId", false);
+	    query.setParameter("parentId", parentId);
+	    @SuppressWarnings("unchecked")
+		List<Integer> ids = (List<Integer>) query.list();
+	    for (Integer id : ids) {
+	        in += id + ", ";
+            in += getDescendantsInRecursive(session, clazz, id);
+	    }
+	    
+	    return in;
+	}
 
 	/**
      * @param criteria
@@ -235,7 +265,7 @@ public class TreeLevelQRI extends FieldQRI
             String className = getTableInfo().getClassObj().getSimpleName();
             List<?> matches = session.getDataList("from " + className + " where name " + operStr + " " +  criteria + " and " + className + "TreeDefId = " + treeDef.getTreeDefId()
                     + " and rankId =" + String.valueOf(rankId));
-            List<Pair<Integer, Integer>> nodeInfo = new LinkedList<Pair<Integer, Integer>>();
+//            List<Pair<Integer, Integer>> nodeInfo = new LinkedList<Pair<Integer, Integer>>();
             if (matches.size() == 0)
             {
                 return "2+2=2"; //that'll do the trick. 
@@ -246,34 +276,35 @@ public class TreeLevelQRI extends FieldQRI
             	throw new ParseException(UIRegistry.getResourceString("QB_TOO_MANY_TREE_RANK_MATCHES"), -1);
             }
             
+            ArrayList<String> inStatements = new ArrayList<String>();
             for (Object match : matches)
             {
                 Treeable<?,?,?> node = (Treeable<?,?,?>)match;
-                nodeInfo.add(new Pair<Integer, Integer>(node.getNodeNumber(), node.getHighestChildNodeNumber()));
+//                nodeInfo.add(new Pair<Integer, Integer>(node.getNodeNumber(), node.getHighestChildNodeNumber()));
+                String ids = getDescendantsIn(session, node.getClass(), node.getTreeId());
+                inStatements.add(ids);
             }
             StringBuilder result = new StringBuilder();
-            for (Pair<Integer, Integer> node : nodeInfo)
+            for (String in : inStatements)
             {
-                if (result.length() > 0)
-                {
-                    if (negate)
-                    {
-                        result.append(" and ");
+                // lchan: empty in statements (in()) are invalid
+                if (!in.isEmpty()) { 
+                    if (result.length() > 0) {
+                        if (negate) {
+                            result.append(" and ");
+                        } else {
+                            result.append(" or ");
+                        }
                     }
-                    else
-                    {
-                        result.append(" or ");
+                    result.append(ta.getAbbreviation(table.getTableTree())
+                            + ".id");
+                    if (negate) {
+                        result.append(" not ");
                     }
+                    result.append(" in(");
+                    result.append(in);
+                    result.append(")");
                 }
-                result.append(ta.getAbbreviation(table.getTableTree()) + ".nodeNumber");
-                if (negate)
-                {
-                    result.append(" not "); 
-                }
-                result.append(" between ");
-                result.append(node.getFirst());
-                result.append(" and ");
-                result.append(node.getSecond());
             }
             return "(" + result.toString() + ")";
         }

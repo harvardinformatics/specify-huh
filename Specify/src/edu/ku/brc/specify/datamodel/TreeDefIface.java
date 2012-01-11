@@ -63,29 +63,29 @@ public interface TreeDefIface<N extends Treeable<N,D,I>,
 	
 	public I getDefItemByRank(Integer rank);
 		
-	/**
-	 * @return true if the node numbers in the tree are up to date.
-	 */
-	public boolean getNodeNumbersAreUpToDate();
-	/**
-	 * @param arg 
-	 */
-	public void setNodeNumbersAreUpToDate(boolean arg);
-	
-	/**
-	 * @param rootObj
-	 * @param useProgDlg
-	 * @param lockedByCaller - main tree lock handled by caller
-	 * 
-	 * @return true if update completes without errors, else false
-	 * 
-	 * @throws Exception
-	 * 
-	 * Walks the entire tree and assigns node numbers for every item.
-	 *
-	 */
-	public boolean updateAllNodeNumbers(DataModelObjBase rootObj, final boolean useProgDlg, 
-			final boolean lockedByCaller) throws Exception;
+//	/**
+//	 * @return true if the node numbers in the tree are up to date.
+//	 */
+//	public boolean getNodeNumbersAreUpToDate();
+//	/**
+//	 * @param arg 
+//	 */
+//	public void setNodeNumbersAreUpToDate(boolean arg);
+//	
+//	/**
+//	 * @param rootObj
+//	 * @param useProgDlg
+//	 * @param lockedByCaller - main tree lock handled by caller
+//	 * 
+//	 * @return true if update completes without errors, else false
+//	 * 
+//	 * @throws Exception
+//	 * 
+//	 * Walks the entire tree and assigns node numbers for every item.
+//	 *
+//	 */
+//	public boolean updateAllNodeNumbers(DataModelObjBase rootObj, final boolean useProgDlg, 
+//			final boolean lockedByCaller) throws Exception;
 	
 	/**
 	 * @param rootObj
@@ -110,15 +110,15 @@ public interface TreeDefIface<N extends Treeable<N,D,I>,
 	public boolean updateAllNodes(DataModelObjBase rootObj, final boolean useProgDlg, 
 			final boolean lockedByCaller) throws Exception;
 	
-	/**
-	 * @return true if node numbers are to be kept up to date at all times.
-	 * (i.e. updated in business rule execution.)
-	 */
-	public boolean getDoNodeNumberUpdates();
-	/**
-	 * @param arg - true if node numbers should be kept up to date at all times.
-	 */
-	public void setDoNodeNumberUpdates(boolean arg);
+//	/**
+//	 * @return true if node numbers are to be kept up to date at all times.
+//	 * (i.e. updated in business rule execution.)
+//	 */
+//	public boolean getDoNodeNumberUpdates();
+//	/**
+//	 * @param arg - true if node numbers should be kept up to date at all times.
+//	 */
+//	public void setDoNodeNumberUpdates(boolean arg);
 	
 	/**
 	 * @return true if a workbench upload is (possibly) modifying the tree.

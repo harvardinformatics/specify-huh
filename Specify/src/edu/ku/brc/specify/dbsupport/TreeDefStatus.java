@@ -29,10 +29,10 @@ import edu.ku.brc.ui.UIRegistry;
  */
 public class TreeDefStatus
 {
-    protected static String nodeNumbersInvalid = "BadNodes";
+//    protected static String nodeNumbersInvalid = "BadNodes";
     protected static String numberingNodes = "UpdateNodes";
     protected final TreeDefIface<?,?,?> treeDef;
-    protected boolean doNodeNumberUpdates;
+//    protected boolean doNodeNumberUpdates;
     protected boolean uploadInProgress;
 	
 	public TreeDefStatus(final TreeDefIface<?,?,?> treeDef)
@@ -41,42 +41,42 @@ public class TreeDefStatus
 		
 		//XXX need to check locks to determine stats
 		//these are the defaults
-		this.doNodeNumberUpdates = true;
+//		this.doNodeNumberUpdates = true;
 		this.uploadInProgress = false;
 	}
-	/**
-	 * @return the nodeNumbersAreUpToDate
-	 */
-	public synchronized boolean isNodeNumbersAreUpToDate() 
-	{
-		return !TaskSemaphoreMgr.isLocked(getNodeNumberUptoDateLockTitle(), getNodeNumberUptoDateLockName(), TaskSemaphoreMgr.SCOPE.Discipline);
-	}
-	/**
-	 * @param nodeNumbersAreUpToDate the nodeNumbersAreUpToDate to set
-	 * 
-	 * return true if the set was accomplished.
-	 */
-	public synchronized boolean setNodeNumbersAreUpToDate(
-			boolean nodeNumbersAreUpToDate) 
-	{
-		boolean current = isNodeNumbersAreUpToDate();
-		if (current != nodeNumbersAreUpToDate)
-		{
-			if (nodeNumbersAreUpToDate == false)
-			{
-				//let anybody set them out of date.
-				return TaskSemaphoreMgr.lock(getNodeNumberUptoDateLockTitle(), getNodeNumberUptoDateLockName(), null,
-						TaskSemaphoreMgr.SCOPE.Discipline, true) == TaskSemaphoreMgr.USER_ACTION.OK;
-			}
-			else
-			{
-				return TaskSemaphoreMgr.unlock(getNodeNumberUptoDateLockTitle(),
-						getNodeNumberUptoDateLockName(),
-						TaskSemaphoreMgr.SCOPE.Discipline);
-			}
-		}
-		return true;
-	}
+//	/**
+//	 * @return the nodeNumbersAreUpToDate
+//	 */
+//	public synchronized boolean isNodeNumbersAreUpToDate() 
+//	{
+//		return !TaskSemaphoreMgr.isLocked(getNodeNumberUptoDateLockTitle(), getNodeNumberUptoDateLockName(), TaskSemaphoreMgr.SCOPE.Discipline);
+//	}
+//	/**
+//	 * @param nodeNumbersAreUpToDate the nodeNumbersAreUpToDate to set
+//	 * 
+//	 * return true if the set was accomplished.
+//	 */
+//	public synchronized boolean setNodeNumbersAreUpToDate(
+//			boolean nodeNumbersAreUpToDate) 
+//	{
+//		boolean current = isNodeNumbersAreUpToDate();
+//		if (current != nodeNumbersAreUpToDate)
+//		{
+//			if (nodeNumbersAreUpToDate == false)
+//			{
+//				//let anybody set them out of date.
+//				return TaskSemaphoreMgr.lock(getNodeNumberUptoDateLockTitle(), getNodeNumberUptoDateLockName(), null,
+//						TaskSemaphoreMgr.SCOPE.Discipline, true) == TaskSemaphoreMgr.USER_ACTION.OK;
+//			}
+//			else
+//			{
+//				return TaskSemaphoreMgr.unlock(getNodeNumberUptoDateLockTitle(),
+//						getNodeNumberUptoDateLockName(),
+//						TaskSemaphoreMgr.SCOPE.Discipline);
+//			}
+//		}
+//		return true;
+//	}
 	/**
 	 * @return the isRenumberingNodes
 	 */
@@ -108,20 +108,20 @@ public class TreeDefStatus
 		}
 		return true;
 	}
-	/**
-	 * @return the doNodeNumberUpdates
-	 */
-	public synchronized boolean isDoNodeNumberUpdates() 
-	{
-		return doNodeNumberUpdates;
-	}
-	/**
-	 * @param doNodeNumberUpdates the doNodeNumberUpdates to set
-	 */
-	public synchronized void setDoNodeNumberUpdates(boolean doNodeNumberUpdates) 
-	{
-		this.doNodeNumberUpdates = doNodeNumberUpdates;
-	}
+//	/**
+//	 * @return the doNodeNumberUpdates
+//	 */
+//	public synchronized boolean isDoNodeNumberUpdates() 
+//	{
+//		return doNodeNumberUpdates;
+//	}
+//	/**
+//	 * @param doNodeNumberUpdates the doNodeNumberUpdates to set
+//	 */
+//	public synchronized void setDoNodeNumberUpdates(boolean doNodeNumberUpdates) 
+//	{
+//		this.doNodeNumberUpdates = doNodeNumberUpdates;
+//	}
 	/**
 	 * @return the uploadInProgress
 	 */
@@ -167,13 +167,13 @@ public class TreeDefStatus
         return numberingNodes + treeDef.getNodeClass().getSimpleName();
     }
     
-    /**
-     * @return name for nodenumberuptodate lock.
-     */
-    protected String getNodeNumberUptoDateLockName()
-    {
-        return nodeNumbersInvalid + treeDef.getNodeClass().getSimpleName();
-    }
+//    /**
+//     * @return name for nodenumberuptodate lock.
+//     */
+//    protected String getNodeNumberUptoDateLockName()
+//    {
+//        return nodeNumbersInvalid + treeDef.getNodeClass().getSimpleName();
+//    }
 
     /**
      * @return name for tree lock.

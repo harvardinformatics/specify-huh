@@ -509,7 +509,7 @@ public class HUHTaxonBusRules extends TaxonBusRules
      * @param taxon
      */
     public void fixHybridName(Taxon taxon) {
-        if (taxon.getIsHybrid()) {
+        if (taxon.getIsHybrid() != null && taxon.getIsHybrid()) {
             String fullName = taxon.getFullName();
 
             if (taxon.getName() != null && !taxon.getName().isEmpty()) {
