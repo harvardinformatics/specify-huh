@@ -365,7 +365,7 @@
 					<fo:block space-before="12pt" space-after="12pt">
 						Total unbarcoded
 						sheet count:
-						<xsl:value-of select="$generalCollections" />
+						<xsl:value-of select="$generalCollections + $nonSpecimens" />
 					</fo:block>
 					</xsl:if>
 					<xsl:if test="count(reportLoan/barcodedSpecimen) &gt; 0">

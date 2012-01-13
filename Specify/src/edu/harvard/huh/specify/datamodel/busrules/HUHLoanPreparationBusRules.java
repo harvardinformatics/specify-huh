@@ -40,6 +40,7 @@ import edu.ku.brc.af.ui.forms.ResultSetController;
 import edu.ku.brc.af.ui.forms.ResultSetControllerListener;
 import edu.ku.brc.af.ui.forms.SubViewBtn;
 import edu.ku.brc.af.ui.forms.Viewable;
+import edu.ku.brc.af.ui.forms.validation.FormValidator;
 import edu.ku.brc.af.ui.forms.validation.ValComboBoxFromQuery;
 import edu.ku.brc.af.ui.forms.validation.ValSpinner;
 import edu.ku.brc.af.ui.forms.validation.ValTextAreaBrief;
@@ -156,6 +157,11 @@ public class HUHLoanPreparationBusRules extends LoanPreparationBusRules implemen
 					Preparation prep  = (Preparation) prepComboBox.getValue();
 					if (prep != null) {
 						adjustTaxonFields(prep, taxonComp, descriptionComp, typeCountComp, itemCountComp, isResolvedComp);				
+	                    ((FormViewObj)viewable).setDataIntoUI();
+	                    FormValidator formValidator = viewable.getValidator();
+	                    formValidator.setHasChanged(true);
+	                    formValidator.updateSaveUIEnabledState();
+	                    formValidator.validateForm();
 					}
 				}
         	};
@@ -182,6 +188,11 @@ public class HUHLoanPreparationBusRules extends LoanPreparationBusRules implemen
 					Preparation prep  = (Preparation) prepComboBox.getValue();
 					if (prep != null) {
 						adjustTaxonFields(prep, taxonComp, descriptionComp, typeCountComp, itemCountComp, isResolvedComp);				
+	                    ((FormViewObj)viewable).setDataIntoUI();
+	                    FormValidator formValidator = viewable.getValidator();
+	                    formValidator.setHasChanged(true);
+	                    formValidator.updateSaveUIEnabledState();
+	                    formValidator.validateForm();
 					}
 				doAccounting(itemCountsLabel, (Loan)formViewObj.getParentDataObj());
 				return null;

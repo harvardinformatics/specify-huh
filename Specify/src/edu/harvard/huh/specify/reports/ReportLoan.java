@@ -125,7 +125,7 @@ public class ReportLoan {
 				
 					unbarcodedSpecimens.add(lot);
 					
-					generalCollectionCount = (lp.getItemCount() != null ? lp.getItemCount() : 0) +
+					generalCollectionCount += (lp.getItemCount() != null ? lp.getItemCount() : 0) +
 	                                          (lp.getTypeCount() != null ? lp.getTypeCount() : 0);
 				} else {
 					preparationCount++;
