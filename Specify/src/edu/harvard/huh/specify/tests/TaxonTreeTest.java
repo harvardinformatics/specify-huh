@@ -81,6 +81,6 @@ public class TaxonTreeTest extends BaseTreeableTest {
 	 * Initializes the test with TaxonTreeDef class and the Taxon class.
 	 */
 	@Before public void setTreeable(){
-		initialize(TaxonTreeDef.class, Taxon.class, 3);
+		initialize(TaxonTreeDef.class, Taxon.class, 1);
 	}
 }

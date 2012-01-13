@@ -24,6 +24,7 @@
 package edu.harvard.huh.specify.tests;
 
 import java.io.IOException;
+import java.sql.SQLException;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.Properties;
@@ -58,8 +59,11 @@ public class BaseTreeBusRulesTest extends BaseTest {
 	 * @param nodeIdHasChildren
 	 * @param nodeIdNoChildren
 	 * @param nodeIdHasReferences
+	 * @throws IOException 
+	 * @throws SQLException 
+	 * @throws ClassNotFoundException 
 	 */
-	public BaseTreeBusRulesTest(int nodeIdHasChildren, int nodeIdNoChildren, int nodeIdHasReferences) {
+	public BaseTreeBusRulesTest(int nodeIdHasChildren, int nodeIdNoChildren, int nodeIdHasReferences) throws ClassNotFoundException, SQLException, IOException {
 		this.nodeIdHasChildren = nodeIdHasChildren;
 		this.nodeIdNoChildren = nodeIdNoChildren;
 		this.nodeIdHasReferences = nodeIdHasReferences;
@@ -84,6 +88,9 @@ public class BaseTreeBusRulesTest extends BaseTest {
 					Integer.parseInt(noChildren.getParam()),
 					Integer.parseInt(hasReferences.getParam()) });
 		}
+		
+		initializeDB();
+		initializeContext();
 
 		return params;
 	}

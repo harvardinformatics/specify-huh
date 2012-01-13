@@ -22,11 +22,18 @@
 
 package edu.harvard.huh.specify.tests;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.Statement;
 import java.util.Properties;
+import java.util.Scanner;
 
 import javax.swing.UIManager;
 
 import org.hibernate.Session;
+import org.junit.BeforeClass;
 
 import edu.ku.brc.af.core.AppContextMgr;
 import edu.ku.brc.af.core.expresssearch.QueryAdjusterForDomain;
@@ -45,8 +52,15 @@ import edu.ku.brc.specify.datamodel.TaxonTreeDef;
  * 
  */
 public class BaseTest {
-	protected Session session = null;
-
+	protected static Session session = null;
+	protected static Properties props;
+	
+    @BeforeClass
+    public static void beforeClass() {
+    	initializeDB();
+    	initializeContext();
+    }
+    
 	/**
 	 * 
 	 * This method initializes the database and application context before
@@ -54,54 +68,104 @@ public class BaseTest {
 	 * 
 	 * @return Session
 	 */
-	protected Session getSession() {
+	protected static Session getSession() {
 		try {
 			UIManager.setLookAndFeel(
 					UIManager.getCrossPlatformLookAndFeelClassName()); // Otherwise HibernateUtil will throw swing exception
 
-			System.setProperty(DataProviderFactory.factoryName, "edu.ku.brc.specify.dbsupport.HibernateDataProvider");
-			System.setProperty(QueryAdjusterForDomain.factoryName, "edu.ku.brc.specify.dbsupport.SpecifyQueryAdjusterForDomain");
-			System.setProperty(AppContextMgr.factoryName, "edu.ku.brc.specify.config.SpecifyAppContextMgr");
-			AppContextMgr appCtxMgr = AppContextMgr.getInstance();
-
-			Properties props = new Properties();
-			props.load(getClass().getResourceAsStream("testing.properties"));
-
-			DBConnection dbConn = DBConnection.getInstance();
-
-			dbConn.setDriver(props.getProperty("testing.db.driver"));
-			dbConn.setDialect(props.getProperty("testing.db.dialect"));
-			dbConn.setDatabaseName(props.getProperty("testing.db.name"));
-			dbConn.setConnectionStr(props.getProperty("testing.db.connstr"));
-			dbConn.setUsernamePassword(props.getProperty("testing.db.username"),
-					props.getProperty("testing.db.password"));
-
-			String prop = props.getProperty("testing.specify.userid");
-
-			SpecifyUser user = new SpecifyUser();
-			int userId = Integer.parseInt(prop);
-			user.setSpecifyUserId(userId);
-
-			appCtxMgr.setContext(props.getProperty("testing.db.name"), props.getProperty("testing.db.name"), false, false);
-			appCtxMgr.setHasContext(true);
-			appCtxMgr.setClassObject(SpecifyUser.class, user);
-
-			// The rest of this is needed for BaseTreeBusRulesTest
-			Collection collection = new Collection();
-			collection.setCollectionId(4);
-			appCtxMgr.setClassObject(Collection.class, collection);
-
-			TaxonTreeDef taxonTreeDef = new TaxonTreeDef();
-			taxonTreeDef.setTaxonTreeDefId(1);
-			appCtxMgr.setClassObject(TaxonTreeDef.class, taxonTreeDef);
-
-			Specify.setUpSystemProperties();
-
 			session = HibernateUtil.getNewSession();
 		} catch (Exception e) {
 			e.printStackTrace();
-
 		}
 		return session;
+	}
+	
+	protected static void initializeContext() {	
+		System.setProperty(DataProviderFactory.factoryName, "edu.ku.brc.specify.dbsupport.HibernateDataProvider");
+		System.setProperty(QueryAdjusterForDomain.factoryName, "edu.ku.brc.specify.dbsupport.SpecifyQueryAdjusterForDomain");
+		System.setProperty(AppContextMgr.factoryName, "edu.ku.brc.specify.config.SpecifyAppContextMgr");
+		AppContextMgr appCtxMgr = AppContextMgr.getInstance();
+		
+		String prop = props.getProperty("testing.specify.userid");
+
+		SpecifyUser user = new SpecifyUser();
+		int userId = Integer.parseInt(prop);
+		user.setSpecifyUserId(userId);
+
+		appCtxMgr.setContext(props.getProperty("testing.db.name"), props.getProperty("testing.db.name"), false, false);
+		appCtxMgr.setHasContext(true);
+		appCtxMgr.setClassObject(SpecifyUser.class, user);
+
+		// The rest of this is needed for BaseTreeBusRulesTest
+		Collection collection = new Collection();
+		collection.setCollectionId(4);
+		appCtxMgr.setClassObject(Collection.class, collection);
+
+		TaxonTreeDef taxonTreeDef = new TaxonTreeDef();
+		taxonTreeDef.setTaxonTreeDefId(1);
+		appCtxMgr.setClassObject(TaxonTreeDef.class, taxonTreeDef);
+
+		Specify.setUpSystemProperties();
+	}
+	
+	protected static void initializeDB() {
+		try {
+			H2SpecifySchemaGenerator.generateFromProps();
+			
+			props = new Properties();
+			props.load(new BaseTest().getClass().getResourceAsStream("testing.properties"));
+			
+			DBConnection dbConn = DBConnection.getInstance();
+
+			String driver = props.getProperty("testing.db.driver");
+			String connStr = props.getProperty("testing.db.connstr");
+			String user = props.getProperty("testing.db.username");
+			String pass = props.getProperty("testing.db.password");
+
+			// If using in memory db, load the sql script specified in the properties file as the test data
+			if (driver.equals("org.h2.Driver")) {
+				Class.forName(driver);
+				Connection conn = DriverManager.
+				getConnection(connStr, user, pass);
+
+				StringBuffer sb = new StringBuffer();
+
+				InputStream in = new BaseTest().getClass().getResourceAsStream(props.getProperty("testing.db.sqldump"));
+				Scanner sc = new Scanner(in);
+
+				while (sc.hasNextLine()) {
+					sb.append(sc.nextLine() + '\n');
+				}
+				sc.close();
+				in.close();
+
+				String[] statements = sb.toString().split(";\\n");
+				Statement stmt = conn.createStatement();
+
+				for (String sql : statements) {
+					if(!sql.equals("")) {
+						stmt.execute(sql);
+						//System.out.println(sql);
+					}
+				}
+
+				conn.close();
+			}
+
+			// Need to set up the db connection and get session for hibernate factory method
+			dbConn.setDriver(driver);
+			dbConn.setDialect(props.getProperty("testing.db.dialect"));
+			dbConn.setDatabaseName(props.getProperty("testing.db.name"));
+			dbConn.setConnectionStr(connStr);
+			dbConn.setUsernamePassword(props.getProperty("testing.db.username"),
+					props.getProperty("testing.db.password"));
+
+			getSession();
+
+			// Application context configuration
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 }

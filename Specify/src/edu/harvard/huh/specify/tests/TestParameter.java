@@ -45,7 +45,7 @@ public class TestParameter {
 	 */
 	public TestParameter(String propString) {
 		for (String s : propString.split(",")) {
-			s.trim();
+			s = s.trim();
 			paramStrings.offer(s);
 		}
 	}

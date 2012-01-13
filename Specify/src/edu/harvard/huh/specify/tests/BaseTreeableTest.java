@@ -18,12 +18,15 @@
  *
  *
  * @Author: David B. Lowery  lowery@cs.umb.edu
+ * @Author: Lawrence Chan lchan@indigocube.net
+ * 
  */
 
 package edu.harvard.huh.specify.tests;
 
 import static org.junit.Assert.assertTrue;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -41,49 +44,48 @@ import edu.ku.brc.specify.treeutils.HibernateTreeDataServiceImpl;
 import edu.ku.brc.specify.treeutils.TreeDataService;
 
 /**
- * This is the base class to be used for parameterized testing of each of the
- * Treeable interface's implementing classes.
+ * This is the base class to be used for parameterized testing of each of the Treeable
+ * interface's implementing classes.
  * 
  * @author lowery, lchan
- * 
+ *
  */
 @SuppressWarnings("unchecked")
 public class BaseTreeableTest extends BaseTest {
 
-    protected Class treeDefClass;
-    protected Class treeableClass;
-    protected TreeDefIface currentDef;
-    protected TreeDataService treeService;
-    protected Treeable root;
+	protected  Class treeDefClass;
+	protected  Class treeableClass;
+	protected  TreeDefIface currentDef;
+	protected  TreeDataService treeService;
+	protected  Treeable root;
+	protected  final int DEFAULT_TREE_DEF_ID = 1;
 
-    protected static List<String[]> propsList = new LinkedList<String[]>();
+	protected static List<String[]> propsList = new LinkedList<String[]>();
 
-    protected int lookupId;
-    protected String lookupName;
-    protected int moveFrom;
-    protected int moveTo;
-    protected int deleteId;
+	protected int lookupId;
+	protected String lookupName;
+	protected int moveFrom;
+	protected int moveTo;
+	protected int deleteId;
 
-    /**
-     * The constructor accepts arguments from the test parameters (initialized
-     * in getTreeableParams). Each test case will have a unique set of
-     * parameters and will run all tests once using these values.
-     * 
-     * @param lookupId
-     * @param lookupName
-     * @param moveFrom
-     * @param moveTo
-     * @param deleteId
-     */
-    public BaseTreeableTest(int lookupId, String lookupName, int moveFrom,
-            int moveTo, int deleteId) {
-        this.lookupId = lookupId;
-        this.lookupName = lookupName;
-        this.moveFrom = moveFrom;
-        this.moveTo = moveTo;
-        this.deleteId = deleteId;
-    }
-
+	/**
+	 * The constructor accepts arguments from the test parameters (initialized in getTreeableParams).
+	 * Each test case will have a unique set of parameters and will run all tests once using these values.
+	 * 
+	 * @param lookupId
+	 * @param lookupName
+	 * @param moveFrom
+	 * @param moveTo
+	 * @param deleteId
+	 */
+	public BaseTreeableTest(int lookupId, String lookupName, int moveFrom, int moveTo, int deleteId) {
+		this.lookupId = lookupId;
+		this.lookupName = lookupName;
+		this.moveFrom = moveFrom;
+		this.moveTo = moveTo;
+		this.deleteId = deleteId;
+	}
+	
     /**
      * Class that contains a tree ID, parent ID, and comparator that returns
      * true when another class has the same tree and parent IDs. I'm using this
@@ -159,8 +161,8 @@ public class BaseTreeableTest extends BaseTest {
         private BaseTreeableTest getOuterType() {
             return BaseTreeableTest.this;
         }
-
     }
+    
 
     /**
      * Returns a treeable table's rows as a set of TreeTestNodes.
@@ -199,78 +201,70 @@ public class BaseTreeableTest extends BaseTest {
         }
     }
 
-    /**
-     * This method must be called by it's subclass. The subclass deals with one
-     * specific implementing class of the Treeable interface. The corresponding
-     * tree definition class and tree object class must be initialized (as
-     * arguments to this method) before these tests can be run.
-     * 
-     * @param treeDefClass
-     * @param treeableClass
-     */
-    public void initialize(Class treeDefClass, Class treeableClass,
-            int treeDefId) {
-        getSession();
-        this.treeDefClass = treeDefClass;
-        this.treeableClass = treeableClass;
-        currentDef = (TreeDefIface) session.load(treeDefClass, treeDefId);
-        AppContextMgr.getInstance().setClassObject(treeDefClass, currentDef);
-        treeService = new HibernateTreeDataServiceImpl();
-        session.close();
+	/**
+	 * This method must be called by it's subclass. The subclass deals with one specific implementing
+	 * class of the Treeable interface. The corresponding tree definition class and tree object class
+	 * must be initialized (as arguments to this method) before these tests can be run.
+	 * 
+	 * @param treeDefClass
+	 * @param treeableClass
+	 */
+	public void initialize(Class treeDefClass, Class treeableClass, int treeDefId) {
+		getSession();
+		this.treeDefClass = treeDefClass;
+		this.treeableClass = treeableClass;
+		currentDef = (TreeDefIface)session.load(treeDefClass, treeDefId);
+		AppContextMgr.getInstance().setClassObject(treeDefClass, currentDef);
+		treeService = new HibernateTreeDataServiceImpl();
+		session.close();
 
-        root = treeService.getRootNode(currentDef);
-    }
+		root = treeService.getRootNode(currentDef);
+	}
 
-    /**
-     * A subclass method annotated with "@Parameters" must call this to obtain
-     * the Collection<Object[]> it is required to return for parameterized
-     * testing to work. This method obtains the parameter lists from the
-     * properties file, parses them, and composes a set of properties in an
-     * Object[] to be applied during one run of testing.
-     * 
-     * @param lookupProp
-     * @param moveProp
-     * @param deleteProp
-     * @return params
-     */
-    protected static Collection<Object[]> getTreeableParams(String lookupProp,
-            String moveProp, String deleteProp) {
-        TestParameter lookupParams = new TestParameter(lookupProp);
-        TestParameter moveParams = new TestParameter(moveProp);
-        TestParameter deleteParams = new TestParameter(deleteProp);
+	/**
+	 * A subclass method annotated with "@Parameters" must call this to obtain the Collection<Object[]>
+	 * it is required to return for parameterized testing to work. This method obtains the parameter lists
+	 * from the properties file, parses them, and composes a set of properties  in an Object[]
+	 * to be applied during one run of testing.
+	 * 
+	 * @param lookupProp
+	 * @param moveProp
+	 * @param deleteProp
+	 * @return params
+	 */
+	protected static Collection<Object[]> getTreeableParams(String lookupProp, String moveProp, String deleteProp) {
+		TestParameter lookupParams = new TestParameter(lookupProp);
+		TestParameter moveParams = new TestParameter(moveProp);
+		TestParameter deleteParams = new TestParameter(deleteProp);
 
-        Collection<Object[]> params = new LinkedList<Object[]>();
+		Collection<Object[]> params = new LinkedList<Object[]>();
 
-        while (lookupParams.hasNext() && moveParams.hasNext()
-                && deleteParams.hasNext()) {
-            params.add(new Object[] {
-                    Integer.parseInt(lookupParams.getParam()),
-                    lookupParams.getParam(),
-                    Integer.parseInt(moveParams.getParam()),
-                    Integer.parseInt(moveParams.getParam()),
-                    Integer.parseInt(deleteParams.getParam()) });
-        }
+		while (lookupParams.hasNext() && moveParams.hasNext() && deleteParams.hasNext()) {
+			params.add(new Object[] { Integer.parseInt(lookupParams.getParam()),
+					lookupParams.getParam(),
+					Integer.parseInt(moveParams.getParam()),
+					Integer.parseInt(moveParams.getParam()),
+					Integer.parseInt(deleteParams.getParam()) });
+		}
 
-        return params;
-    }
+		return params;
+	}
 
-    /**
-     * Tests the behavior of the TreeService method findByName.
-     */
-    @Test
-    public void testFindByName() {
-        assertTrue(treeService.findByName(currentDef, lookupName, true).size() > 0);
-    }
+	/**
+	 * Tests the behavior of the TreeService method findByName.
+	 */
+	@Test public void testFindByName() {
+		assertTrue(treeService.findByName(currentDef, lookupName, true).size() > 0);
+	}
 
-    /**
-     * Tests the behavior of the TreeService method getNodeById.
-     */
-    @Test
-    public void testGetNodeById() {
-        assertTrue(treeService.getNodeById(treeableClass, lookupId) != null);
-    }
+	/**
+	 * Tests the behavior of the TreeService method getNodeById.
+	 */
+	@Test public void testGetNodeById() {
+		assertTrue(treeService.getNodeById(treeableClass, lookupId) != null);
+	}
 
-    /**
+	 /**
      * Tests the behavior of TreeService method deleteTreeNode by deleting the
      * node then running a query to confirm that it has been deleted.
      */
@@ -282,7 +276,7 @@ public class BaseTreeableTest extends BaseTest {
         HashSet<TreeTestNode> before = getTreeNodeRepresentation(treeableClass);
         for (TreeTestNode testNode : before) {
             if (testNode.getId() == deleteId) {
-                before.remove(testNode);
+            	removeRecursive(before, testNode);
                 break;
             }
         }
@@ -296,18 +290,25 @@ public class BaseTreeableTest extends BaseTest {
         // Test that the actual tree matches the expected one.  I'm using 
         // hashCode because equals doesn't work for some strange reason.
         Assert.assertTrue(before.hashCode() == after.hashCode());
-        
-        // TODO: we don't really need to following check since we have the one 
-        // above.
-        Session session = getSession();
-        Boolean deleted = (Integer) session.createQuery(
-                "select count(e) from " + treeableClass.getName()
-                        + " e where e.id = " + deleteId).uniqueResult() == 0;
-        assertTrue(deleted);
-        session.close();
     }
 
-    /**
+    private void removeRecursive(HashSet<TreeTestNode> before, TreeTestNode currentNode) {
+    	ArrayList<TreeTestNode> children = new ArrayList<TreeTestNode>();
+    	
+    	for (TreeTestNode node: before) {
+            if (node.getParentId() == currentNode.getId()) {
+            	children.add(node);
+            }
+        }
+    	
+    	for (TreeTestNode child : children) {
+    		removeRecursive(before, child);
+    	}
+    	
+    	before.remove(currentNode);
+	}
+
+	/**
      * Tests the behavior of TreeService method MoveTreeNode by moving a tree
      * node from one parent to another then confirming that the moved node's
      * parent id is the same as the parent id that was specified by the
@@ -337,21 +338,20 @@ public class BaseTreeableTest extends BaseTest {
         assertTrue(child.getParent().getTreeId() == moveTo);
     }
 
-    /**
-     * Tests the behavior of the TreeService method getNodeById.
-     */
-    @Test
-    public void testRootNode() {
-        assertTrue(treeService.getRootNode(currentDef) != null);
-    }
+	/**
+	 * Tests the behavior of the TreeService method getNodeById.
+	 */
+	@Test public void testRootNode() 		
+	{
+		assertTrue(treeService.getRootNode(currentDef) != null);
+	}
 
-    /**
-     * Tests the behavior of the TreeService method getChildNodes with the
-     * parameter values specified for lookup as the parent.
-     */
-    @Test
-    public void testRootNodeChildren() {
-        Treeable parent = treeService.getNodeById(treeableClass, lookupId);
-        assertTrue(treeService.getChildNodes(parent) != null);
-    }
+	/**
+	 * Tests the behavior of the TreeService method getChildNodes with the parameter
+	 * values specified for lookup as the parent.
+	 */
+	@Test public void testRootNodeChildren() {
+		Treeable parent = treeService.getNodeById(treeableClass, lookupId);
+		assertTrue(treeService.getChildNodes(parent) != null);
+	}
 }

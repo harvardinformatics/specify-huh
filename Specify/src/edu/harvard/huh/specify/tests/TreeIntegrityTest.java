@@ -23,6 +23,7 @@
 package edu.harvard.huh.specify.tests;
 
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -36,6 +37,7 @@ import org.hibernate.HibernateException;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -62,19 +64,11 @@ public class TreeIntegrityTest extends BaseTest {
 
     private Set<Integer> visited = new HashSet<Integer>();
 
-    @SuppressWarnings("rawtypes")
     private TreeDataService treeService;
-
     private String treeDefClass;
-
-    @SuppressWarnings("rawtypes")
     private Treeable root;
-
-    @SuppressWarnings("rawtypes")
     private TreeDefIface currentDef;
-
     private String treeableClass;
-    
     private Integer size;
 
     public TreeIntegrityTest(String treeDefClass, String treeableClass) {
@@ -95,6 +89,7 @@ public class TreeIntegrityTest extends BaseTest {
                 { TaxonTreeDef.class.getName(), "Taxon" },
                 { GeographyTreeDef.class.getName(), "Geography" },
                 { StorageTreeDef.class.getName(), "Storage" } };
+    	
         return Arrays.asList(data);
     }
 
@@ -107,7 +102,7 @@ public class TreeIntegrityTest extends BaseTest {
      */
     @Before
     public void setUp() throws HibernateException, ClassNotFoundException {
-        session = getSession();
+    	session = getSession();
         currentDef = (TreeDefIface)session.load(Class.forName(treeDefClass), 1);
         session.close();
 
@@ -133,9 +128,17 @@ public class TreeIntegrityTest extends BaseTest {
         // session = HibernateUtil.getSessionFactory().openSession();
         size = 0;
         StringBuilder sb = new StringBuilder();
+        
+        if (root == null) {
+        	fail("This tree has no root node!");
+        }
+        
         testVisitationAndRankIdsRecursive(treeableClass,
                 root.getTreeId(), sb);
-
+        
+        int dbCount = (Integer) session.createQuery(
+                "select count(e) from " + treeableClass + " e").uniqueResult();
+        
         String errors = sb.toString();
         assertTrue(errors, errors.length() == 0);
         // } finally {
@@ -202,7 +205,11 @@ public class TreeIntegrityTest extends BaseTest {
      */
     @Test
     public void testTreeService() throws HibernateException, ClassNotFoundException {
-        String errors = checkTreeService();
+        if (root == null) {
+        	fail("This tree has no root node!");
+        }
+    	
+    	String errors = checkTreeService();
         assertTrue(errors, errors.length() == 0);
     }
 
@@ -219,7 +226,7 @@ public class TreeIntegrityTest extends BaseTest {
         Queue<Treeable> nodes = new LinkedList<Treeable>();
         Set<Integer> visited = new HashSet<Integer>();
         nodes.offer(root);
-
+        
         while (!nodes.isEmpty()) {
             Treeable parent = nodes.poll();
             for (Treeable node : (Set<Treeable>) treeService

@@ -23,7 +23,9 @@
 package edu.harvard.huh.specify.tests;
 
 import java.io.IOException;
+import java.sql.SQLException;
 
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.runner.RunWith;
 import org.junit.runners.Suite;
@@ -42,11 +44,5 @@ import org.junit.runners.Suite;
 @Suite.SuiteClasses({ BaseTreeBusRulesTest.class, GeographyTreeTest.class,
         StorageTreeTest.class, TaxonTreeTest.class, TreeIntegrityTest.class })
 public class RunTreeTests {
-    
-    @BeforeClass
-    public static void beforeClass() throws IOException, InterruptedException {
-        ProcessBuilder builder = new ProcessBuilder("src/edu/harvard/huh/specify/tests/load-sample-db.sh");
-        Process process = builder.start();
-        process.waitFor();
-    }
+
 }
