@@ -88,7 +88,6 @@ public class BatchReturnPreps extends JButton implements UIPluginable, GetSetVal
     	InteractionsTask task = new InteractionsTask();
     	CommandAction cmdAction = new CommandAction(InteractionsTask.INTERACTIONS, "ReturnLoan");
     	task.doCommand(cmdAction);
-       
     }
 
     

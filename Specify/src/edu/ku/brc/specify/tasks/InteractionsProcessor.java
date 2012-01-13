@@ -393,7 +393,7 @@ public class InteractionsProcessor<T extends PreparationsProviderIFace>
 	              
 	                	//dl: update the itemcountslabel plugin when batch add preps is performed
 	                    ItemCountsLabel itemCountsLabel = (ItemCountsLabel)formViewObj.getControlById("itemcountslabel");
-	                    HUHLoanPreparationBusRules.doAccounting(itemCountsLabel, (Loan)formViewObj.getParentDataObj());
+	                    //HUHLoanPreparationBusRules.doAccounting(itemCountsLabel, (Loan)formViewObj.getParentDataObj());
                     }
                 }
             };

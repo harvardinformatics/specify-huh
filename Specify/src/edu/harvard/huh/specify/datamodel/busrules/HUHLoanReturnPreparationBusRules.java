@@ -55,6 +55,8 @@ import edu.ku.brc.util.Triple;
  */
 public class HUHLoanReturnPreparationBusRules extends BaseBusRules
 {
+    private final String ITEM_COUNTS_LABEL = "itemcountslabel";
+    
     /**
      * 
      */
@@ -97,7 +99,7 @@ public class HUHLoanReturnPreparationBusRules extends BaseBusRules
 	                    if (prepForm != null) {
 		                    ItemCountsLabel itemCountsLabel = (ItemCountsLabel)prepForm.getControlById("itemcountslabel");
 		                    if ((LoanPreparation)formViewObj.getParentDataObj() != null) {
-		                    	HUHLoanPreparationBusRules.doAccounting(itemCountsLabel, ((LoanPreparation)formViewObj.getParentDataObj()).getLoan());
+		                    	itemCountsLabel.updateCounts(((LoanPreparation)formViewObj.getParentDataObj()).getLoan());
 		                    }
 	                    }
 	                }
@@ -188,4 +190,15 @@ public class HUHLoanReturnPreparationBusRules extends BaseBusRules
         return true;
     }
     
+    @Override
+    public void afterFillForm(Object dataObj) {
+    	super.afterFillForm(dataObj);
+    	
+    	if (formViewObj != null && dataObj != null) {
+    		FormViewObj prepForm = formViewObj.getMVParent().getMultiViewParent().getCurrentViewAsFormViewObj();
+    		
+	    	ItemCountsLabel itemCountsLabel = (ItemCountsLabel)prepForm.getControlById("itemcountslabel");
+	        itemCountsLabel.updateCounts(((LoanReturnPreparation)dataObj).getLoanPreparation().getLoan());
+    	}
+    }
 }

@@ -50,6 +50,7 @@ import com.jgoodies.forms.builder.PanelBuilder;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
 
+import edu.harvard.huh.specify.util.LoanPrepUtil;
 import edu.ku.brc.af.core.SubPaneMgr;
 import edu.ku.brc.af.core.db.DBTableIdMgr;
 import edu.ku.brc.af.core.expresssearch.QueryAdjusterForDomain;
@@ -271,5 +272,28 @@ public class ItemCountsLabel extends JPanel implements UIPluginable, GetSetValue
         boolean enable = true;
         setEnabled(enable);
     }
+
+	public void updateCounts(Loan loan) {
+		int itemTotal = 0;
+		int typeTotal = 0;
+		int nonSpecimenTotal = 0;
+		int itemReturned = 0;
+		int typeReturned = 0;
+		int nonSpecimenReturned = 0;
+		
+		for (LoanPreparation lp : loan.getLoanPreparations()) {
+			LoanPrepUtil lpUtil = new LoanPrepUtil(lp);
+			
+			itemTotal += lpUtil.getItemCount();
+			typeTotal += lpUtil.getTypeCount();
+			nonSpecimenTotal += lpUtil.getNonSpecimenCount();
+			itemReturned += lpUtil.getItemReturned();
+			typeReturned += lpUtil.getTypeReturned();
+			nonSpecimenReturned += lpUtil.getNonSpecimenReturned();
+		}
+		
+		updateLabels(itemTotal, typeTotal, nonSpecimenTotal, itemReturned, typeReturned, nonSpecimenReturned);
+		
+	}
 
 }
