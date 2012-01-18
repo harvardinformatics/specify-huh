@@ -53,7 +53,7 @@ import edu.ku.brc.specify.treeutils.TreeOrderSiblingComparator;
 @Table(name = "storage")
 @org.hibernate.annotations.Table(appliesTo="storage", indexes =
     {   @Index (name="StorNameIDX", columnNames={"Name"}),
-        @Index (name="StorFullNameIDX", columnNames={"FullName"}),
+        @Index (name="StorFullNameIDX", columnNames={"FullName"})
 //        @Index (name="StorNodeNumberIDX", columnNames={"NodeNumber"}),
 //        @Index (name="StorHighChildIDX", columnNames={"HighestChildNodeNumber"})
     })

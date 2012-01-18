@@ -53,7 +53,7 @@ import edu.ku.brc.specify.treeutils.TreeOrderSiblingComparator;
 @Table(name = "geography")
 @org.hibernate.annotations.Table(appliesTo="geography", indexes =
     {   @Index (name="GeoNameIDX", columnNames={"Name"}),
-        @Index (name="GeoFullNameIDX", columnNames={"FullName"}),
+        @Index (name="GeoFullNameIDX", columnNames={"FullName"})
 //        @Index (name="GeoNodeNumberIDX", columnNames={"NodeNumber"}),
 //        @Index (name="GeoHighChildIDX", columnNames={"HighestChildNodeNumber"})
     })
