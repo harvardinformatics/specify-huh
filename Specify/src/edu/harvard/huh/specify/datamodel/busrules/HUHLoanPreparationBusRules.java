@@ -142,7 +142,7 @@ public class HUHLoanPreparationBusRules extends LoanPreparationBusRules implemen
     		if (itemCountComp instanceof ValSpinner)
     			((ValSpinner)typeCountComp).setValue(typeTotal);
     		
-    		loanPrepNotificationLabel.display("After adding a lot, save the loan to enable count fields for editing.", FormNotificationLabel.MESSAGE);
+    		loanPrepNotificationLabel.display("For lots, save the loan to enable count fields.", FormNotificationLabel.MESSAGE);
     		boolean enabled = false;
     		
     		// TODO: Maybe instead of null, isLot() can return false
