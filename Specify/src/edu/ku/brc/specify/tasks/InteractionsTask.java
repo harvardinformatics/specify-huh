@@ -1934,8 +1934,10 @@ public class InteractionsTask extends BaseTask
             }
         }
         
-        if (mv != null && loan != null && loan.getLoanNumber() != null)
-        {
+        // a loan number will contain # chars if hibernate has merged the session before saving the
+        // loan and generating a loan number. In this case, we should not be able to return a loan.
+        if (mv != null && loan != null && loan.getLoanNumber() != null && !loan.getLoanNumber().contains("#"))
+        { 	
             LoanReturnDlg dlg = new LoanReturnDlg(loan);
             if (dlg.createUI())
             {
@@ -1962,7 +1964,7 @@ public class InteractionsTask extends BaseTask
             
         } else
         {
-            // XXX Show some kind of error dialog
+            JOptionPane.showMessageDialog(null, "Unable to perform a batch return, try saving the loan first.", "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
     
@@ -2392,7 +2394,6 @@ public class InteractionsTask extends BaseTask
                 //ignore
             }
         }
-        cmdAction.setConsumed(true);
     }
     
     /* (non-Javadoc)
