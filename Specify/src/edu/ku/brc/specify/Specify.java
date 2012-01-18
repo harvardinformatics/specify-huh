@@ -1466,6 +1466,7 @@ public class Specify extends JPanel implements DatabaseLoginListener, CommandLis
         //----------------------------------------------------
         //-- Bug Reporting Menu
         //----------------------------------------------------
+        /*
         JButton bugButton = new JButton("Report a Problem");
         bugButton.addActionListener(new ActionListener() {
 
@@ -1489,7 +1490,7 @@ public class Specify extends JPanel implements DatabaseLoginListener, CommandLis
         	
         });
         mb.add(bugButton);
-        
+        */
         return mb;
     }
     
