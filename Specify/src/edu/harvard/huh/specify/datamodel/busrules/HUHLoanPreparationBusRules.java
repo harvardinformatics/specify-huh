@@ -146,9 +146,11 @@ public class HUHLoanPreparationBusRules extends LoanPreparationBusRules implemen
     		boolean enabled = false;
     		
     		// TODO: Maybe instead of null, isLot() can return false
-    		if (lpUtil.isLot() != null && lpUtil.isLot()) {
-    			enabled = true;
+    		if (lpUtil.isLot() != null) {
     			loanPrepNotificationLabel.clear();
+    			
+    			if (lpUtil.isLot())
+    				enabled = true;
     		}
 
     		itemCountComp.setEnabled(enabled);
