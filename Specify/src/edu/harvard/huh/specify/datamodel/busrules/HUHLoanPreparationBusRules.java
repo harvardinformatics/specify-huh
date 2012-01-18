@@ -21,32 +21,16 @@ package edu.harvard.huh.specify.datamodel.busrules;
 
 import java.awt.Component;
 
-import javax.swing.JOptionPane;
 import javax.swing.JTextField;
-import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.ListSelectionListener;
-import javax.swing.text.JTextComponent;
 
 import edu.harvard.huh.specify.plugins.ItemCountsLabel;
 import edu.harvard.huh.specify.plugins.PrepItemTable;
 import edu.harvard.huh.specify.util.LoanPrepUtil;
-import edu.ku.brc.af.ui.db.TextFieldWithInfo;
-import edu.ku.brc.af.ui.forms.EditViewCompSwitcherPanel;
 import edu.ku.brc.af.ui.forms.FormViewObj;
 import edu.ku.brc.af.ui.forms.SubViewBtn;
 import edu.ku.brc.af.ui.forms.Viewable;
-import edu.ku.brc.af.ui.forms.validation.FormValidator;
-import edu.ku.brc.af.ui.forms.validation.ValComboBoxFromQuery;
 import edu.ku.brc.af.ui.forms.validation.ValSpinner;
-import edu.ku.brc.dbsupport.DataProviderFactory;
-import edu.ku.brc.dbsupport.DataProviderSessionIFace;
-import edu.ku.brc.dbsupport.StaleObjectException;
-import edu.ku.brc.specify.datamodel.Determination;
-import edu.ku.brc.specify.datamodel.Fragment;
 import edu.ku.brc.specify.datamodel.LoanPreparation;
-import edu.ku.brc.specify.datamodel.Preparation;
-import edu.ku.brc.specify.datamodel.Taxon;
-import edu.ku.brc.specify.datamodel.TaxonTreeDef;
 import edu.ku.brc.specify.datamodel.busrules.LoanPreparationBusRules;
 import edu.ku.brc.ui.CommandListener;
 import edu.ku.brc.ui.UIRegistry;
@@ -139,10 +123,10 @@ public class HUHLoanPreparationBusRules extends LoanPreparationBusRules implemen
     		if (itemCountComp instanceof ValSpinner)
     			((ValSpinner)typeCountComp).setValue(typeTotal);
     		
-    		boolean enabled = true;
+    		boolean enabled = false;
     		// TODO: Maybe instead of null, isLot() can return false
-    		if (lpUtil.isLot() != null && !lpUtil.isLot()) {
-    			enabled = false;
+    		if (lpUtil.isLot() != null && lpUtil.isLot()) {
+    			enabled = true;
     		}
 
     		itemCountComp.setEnabled(enabled);
