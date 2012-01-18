@@ -457,29 +457,11 @@ public class LoanPreparationBusRules extends BaseBusRules implements CommandList
                 MultiView loanMV = tvo.getMVParent().getMultiViewParent();
                 loanMV.getCurrentValidator().setHasChanged(true);
                 loanMV.getCurrentValidator().validateRoot();
-                
+
                 // Refresh list in the grid
-                /*if (dataObjList == null && cellName.equals("loanPreparations")) {
-            	dataObjList = new Vector();
-            	if (origDataSet == null) {
-            		if (((Loan)parentDataObj).getPreparations() == null)
-            			origDataSet = new HashSet<Object>();
-            		else	
-            			origDataSet = new HashSet<Object>(((Loan)parentDataObj).getPreparations());
-            	}
-            }*/
-                
-            	//List<MultiView> mvList = loanMV.getCurrentViewAsFormViewObj().getKids();
-            
-            	//for (MultiView mv : mvList) {
-            		//if (mv.getViewName().equals("LoanItems")) {
-            			if(loanMV.getData() instanceof Loan) {
-            				tvo.setDataObj(((Loan)loanMV.getData()).getPreparations());
-            			}
-            		//}
-            	//}
-                //tvo.setDataObj(tvo.getMVParent().getCurrentViewAsFormViewObj().getDataObj());
-                //tvo.newRecordAdded();
+                if(loanMV.getData() instanceof Loan) {
+                	tvo.setDataObj(((Loan)loanMV.getData()).getPreparations());
+                }
                 tvo.refreshDataList();
             }
         } else if (cmdAction.isType(LoanBusRules.DE_CMDS) && cmdAction.isAction("CLOSE_SUBVIEW"))
