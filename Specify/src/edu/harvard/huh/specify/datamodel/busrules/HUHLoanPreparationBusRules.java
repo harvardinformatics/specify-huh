@@ -21,22 +21,34 @@ package edu.harvard.huh.specify.datamodel.busrules;
 
 import java.awt.Component;
 
+import javax.swing.JOptionPane;
 import javax.swing.JTextField;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 
+import edu.harvard.huh.specify.plugins.FormNotificationLabel;
 import edu.harvard.huh.specify.plugins.ItemCountsLabel;
 import edu.harvard.huh.specify.plugins.PrepItemTable;
 import edu.harvard.huh.specify.util.LoanPrepUtil;
+import edu.ku.brc.af.ui.db.TextFieldWithInfo;
+import edu.ku.brc.af.ui.forms.EditViewCompSwitcherPanel;
 import edu.ku.brc.af.ui.forms.FormViewObj;
 import edu.ku.brc.af.ui.forms.SubViewBtn;
 import edu.ku.brc.af.ui.forms.Viewable;
+import edu.ku.brc.af.ui.forms.validation.DataChangeNotifier;
+import edu.ku.brc.af.ui.forms.validation.ValComboBoxFromQuery;
 import edu.ku.brc.af.ui.forms.validation.ValSpinner;
+import edu.ku.brc.dbsupport.DataProviderSessionIFace;
 import edu.ku.brc.specify.datamodel.LoanPreparation;
+import edu.ku.brc.specify.datamodel.Preparation;
 import edu.ku.brc.specify.datamodel.busrules.LoanPreparationBusRules;
 import edu.ku.brc.ui.CommandListener;
 import edu.ku.brc.ui.UIRegistry;
 
 /**
- * @author rod
+ * @author rod, David Lowery
  *
  * @code_status Alpha
  *
@@ -55,6 +67,7 @@ public class HUHLoanPreparationBusRules extends LoanPreparationBusRules implemen
     private final String ITEM_COUNT   = "itemCount";
     private final String PREP_ITEM_TABLE = "prepitemtable";
     private final String ITEM_COUNTS_LABEL = "itemcountslabel";
+    private final String FORM_NOTIFICATION_LABEL = "formnotificationlabel";
     private final String IS_RESOLVED = "isResolved";
     /**
      * Constructor.
@@ -79,7 +92,7 @@ public class HUHLoanPreparationBusRules extends LoanPreparationBusRules implemen
         if (formViewObj != null)
         {
             formViewObj.setSkippingAttach(true);
-
+            
             Component comp = formViewObj.getControlById("loanReturnPreparations");
             if (comp instanceof SubViewBtn)
             {
@@ -87,15 +100,21 @@ public class HUHLoanPreparationBusRules extends LoanPreparationBusRules implemen
                 loanRetBtn.getBtn().setIcon(null);
                 loanRetBtn.getBtn().setText(UIRegistry.getResourceString("LOAN_RET_PREP"));
             }
-            
         }
     }
-
+    
+    /**
+     * After the form has been filled, update the counts and taxon fields. Counts should display
+     * values calculated from fragment counts in the case of non-lots. In the case of lots, counts
+     * should be obtained from the LoanPreparation.
+     * 
+     */
     @Override
     public void afterFillForm(Object dataObj) {
     	super.afterFillForm(dataObj);
     	
     	if (formViewObj != null && dataObj != null) {
+    		final FormNotificationLabel loanPrepNotificationLabel = (FormNotificationLabel) formViewObj.getControlById(FORM_NOTIFICATION_LABEL);
     		ItemCountsLabel itemCountsLabel = (ItemCountsLabel)formViewObj.getControlById(ITEM_COUNTS_LABEL);
     		PrepItemTable prepItemTable = (PrepItemTable)formViewObj.getControlById(PREP_ITEM_TABLE);
     		
@@ -123,10 +142,13 @@ public class HUHLoanPreparationBusRules extends LoanPreparationBusRules implemen
     		if (itemCountComp instanceof ValSpinner)
     			((ValSpinner)typeCountComp).setValue(typeTotal);
     		
+    		loanPrepNotificationLabel.display("After adding a lot, save the loan to enable count fields for editing.", FormNotificationLabel.MESSAGE);
     		boolean enabled = false;
+    		
     		// TODO: Maybe instead of null, isLot() can return false
     		if (lpUtil.isLot() != null && lpUtil.isLot()) {
     			enabled = true;
+    			loanPrepNotificationLabel.clear();
     		}
 
     		itemCountComp.setEnabled(enabled);

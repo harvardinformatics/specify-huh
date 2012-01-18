@@ -3532,6 +3532,8 @@
                 <row>
                     <cell type="label" label=" "/>
                     <cell type="field" id="batchaddpreps" name="this" uitype="plugin" initialize="name=BatchAddPreps;title=Batch Add Preparations to Loan;Loan=loan" colspan="1"/>
+                    <cell type="label" label=" "/>
+                    <cell type="field" id="formnotificationlabel" name="this" uitype="plugin" initialize="name=FormNotificationLabel" colspan="5"/>
                 </row>
                 <row>
                 	<cell type="label" labelfor="preparation"/>

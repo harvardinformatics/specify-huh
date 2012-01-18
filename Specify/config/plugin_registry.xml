@@ -68,6 +68,7 @@
         <plugin name="IllustrativeBarCodeUI" class="edu.ku.brc.af.ui.IllustrativeBarCodeUI"/>
 		<plugin name="FeetToMeters"         class="edu.harvard.huh.specify.plugins.FeetToMeters"/>
 		<plugin name="BatchAddPreps"        class="edu.harvard.huh.specify.plugins.BatchAddPreps"/>
+		<plugin name="FormNotificationLabel" class="edu.harvard.huh.specify.plugins.FormNotificationLabel"/>
 		<plugin name="ItemCountsLabel"      class="edu.harvard.huh.specify.plugins.ItemCountsLabel"/>
 		<plugin name="PrepItemTable"        class="edu.harvard.huh.specify.plugins.PrepItemTable"/>
 		<plugin name="BatchReturnPreps"     class="edu.harvard.huh.specify.plugins.BatchReturnPreps"/>
