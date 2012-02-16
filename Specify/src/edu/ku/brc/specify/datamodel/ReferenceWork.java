@@ -520,7 +520,7 @@ public class ReferenceWork extends DataModelObjBase implements java.io.Serializa
      * 
      */
     @OneToMany(cascade = {}, fetch = FetchType.LAZY, mappedBy = "referenceWork")
-    @Cascade( { CascadeType.ALL, CascadeType.DELETE_ORPHAN })
+    @Cascade( { CascadeType.PERSIST, CascadeType.DELETE_ORPHAN })
     public Set<AgentCitation> getAgentCitations() {
         return this.agentCitations;
     }
