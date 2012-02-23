@@ -15,7 +15,6 @@ import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 
-import edu.ku.brc.af.core.SubPaneMgr;
 import edu.ku.brc.af.ui.forms.FormViewObj;
 import edu.ku.brc.af.ui.forms.UIPluginable;
 import edu.ku.brc.af.ui.forms.validation.ValComboBox;
@@ -71,9 +70,9 @@ public class GroupFullNameVariant extends JButton implements UIPluginable,
      * Creates the string of variant names in the order of the members.
      */
     protected void doButtonAction() {
-        agent = (Agent) SubPaneMgr.getInstance().getCurrentSubPane()
-                .getMultiView().getData();
-
+    	AgentVariant formAgentVariant = (AgentVariant) parent.getDataObj();
+    	Agent agent = formAgentVariant.getAgent();
+    	
         String groupFullName = "";
 
         // getGroups returns a set. Sort them to the order specified in "group"
