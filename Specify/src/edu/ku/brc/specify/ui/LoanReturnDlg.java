@@ -72,6 +72,7 @@ import com.jgoodies.forms.factories.ButtonBarFactory;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
 
+import edu.harvard.huh.specify.datamodel.busrules.LoanPreparationBarcodeComparator;
 import edu.ku.brc.af.core.AppContextMgr;
 import edu.ku.brc.af.prefs.AppPrefsCache;
 import edu.ku.brc.af.ui.db.ViewBasedDisplayDialog;
@@ -182,6 +183,8 @@ public class LoanReturnDlg extends JDialog
             for (LoanPreparation loanPrep : loan.getLoanPreparations()) {
             	loanPrepList.add(loanPrep);
             }
+            
+            Collections.sort(loanPrepList, new LoanPreparationBarcodeComparator());
             
             int colObjCnt = loanPrepList.size();
             
