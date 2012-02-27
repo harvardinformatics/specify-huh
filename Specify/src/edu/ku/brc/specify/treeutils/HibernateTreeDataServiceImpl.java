@@ -525,10 +525,10 @@ public class HibernateTreeDataServiceImpl <T extends Treeable<T,D,I>,
             // refresh the node data so we have correct information for the following calculation
             session.refresh(node);
             T parent = node.getParent();
-            if (parent != null)
-            {
-                session.refresh(parent);
-            }
+//            if (parent != null)
+//            {
+//                session.refresh(parent);
+//            }
     
             Transaction tx = session.beginTransaction();
             
