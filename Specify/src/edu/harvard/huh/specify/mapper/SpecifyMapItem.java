@@ -18,6 +18,22 @@ public class SpecifyMapItem {
 		;
 	}
 
+	public String toString(SpecifyMapItem mapItem) {
+ 		return name + ":" + fieldName + ":" + toString(mapItem.getPathSegments());
+ 	}
+
+ 	private String toString(List<PathSegment> pathSegments) {
+ 		StringBuffer sb = new StringBuffer();
+ 		for (PathSegment segment : pathSegments) {
+ 			String name = segment.getRelationshipName();
+ 			Integer tableId = segment.getTableId();
+ 			if (name == null) name = Integer.toString(tableId);
+ 			sb.append(name);
+ 			sb.append(",");
+ 		}
+ 		return sb.toString().replaceAll(",$", "");
+ 	}
+
 	public static class PathSegment {
 		private Integer tableId;
 		private String relationshipName;
