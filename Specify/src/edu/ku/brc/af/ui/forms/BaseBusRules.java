@@ -27,6 +27,7 @@ import java.sql.Statement;
 import java.util.Collection;
 import java.util.Date;
 import java.util.Hashtable;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Vector;
 
@@ -34,7 +35,14 @@ import javax.swing.JButton;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
+import org.flexdock.util.UUID;
+import org.hibernate.Hibernate;
+import org.hibernate.SQLQuery;
+import org.hibernate.Session;
+import org.hibernate.Transaction;
+import org.springframework.jdbc.object.SqlQuery;
 
+import edu.harvard.huh.specify.datamodel.busrules.HUHGuidBusRules;
 import edu.ku.brc.af.core.GenericLSIDGeneratorFactory;
 import edu.ku.brc.af.core.db.DBFieldInfo;
 import edu.ku.brc.af.core.db.DBRelationshipInfo;
@@ -45,8 +53,12 @@ import edu.ku.brc.af.core.expresssearch.QueryAdjusterForDomain;
 import edu.ku.brc.af.ui.forms.formatters.UIFieldFormatterIFace;
 import edu.ku.brc.dbsupport.DBConnection;
 import edu.ku.brc.dbsupport.DataProviderSessionIFace;
+import edu.ku.brc.dbsupport.HibernateUtil;
 import edu.ku.brc.specify.config.SpecifyLSIDGeneratorFactory;
 import edu.ku.brc.specify.conversion.BasicSQLUtils;
+import edu.ku.brc.specify.datamodel.Agent;
+import edu.ku.brc.specify.datamodel.Fragment;
+import edu.ku.brc.specify.datamodel.Taxon;
 import edu.ku.brc.ui.UIRegistry;
 
 /**
@@ -905,6 +917,51 @@ public class BaseBusRules implements BusinessRulesIFace
                 FormHelper.setValue(data, "guid", lsid);
             }
         }
+        
+        // PJM 
+        HUHGuidBusRules.setRecordGuid(data);
+        
+        /* 
+        log.debug(data.getTableId());
+        log.debug(data.getId());  // surrogate numeric primary key value
+        
+        String tablename = null;
+        if (data.getTableId()==Agent.getClassTableId()) {
+        	tablename = "agent";
+        }
+        if (data.getTableId()==Fragment.getClassTableId()) { 
+        	tablename = "fragment";
+        }
+        if (data.getTableId()==Taxon.getClassTableId()) { 
+        	tablename = "taxon";
+        }
+        if (tablename!=null) {
+        	// check if guid for this record exists, if not, create one
+        	String sql = "select count(*) from Guids where primarykey = " + Integer.toString(data.getId()) + " and tablename = '" + tablename + "' ";
+        	System.out.println(sql);
+        	// fire query 
+        	Session session = HibernateUtil.getCurrentSession();
+        	Transaction t = session.beginTransaction();
+        	try { 
+        		Integer result = ((Integer) session.createQuery(sql).iterate().next()).intValue();
+        		System.out.println("Found: " + result.toString());
+        		if (result.intValue()==0) { 
+        			// no guid found for this row in this table, add one.
+        			UUID guid = UUID.randomUUID();
+        			String sqlinsert = "insert into guids (tablename,primarykey,uuid) values ('"+ tablename + "',"+ Integer.toString(data.getId()) +",'" + guid +"')  ";
+        	        System.out.println(sqlinsert);
+        			SQLQuery updateQuery = session.createSQLQuery(sqlinsert);
+        			updateQuery.executeUpdate();
+        		} 
+        		t.commit();
+        	    System.out.println("Committed");
+        	} catch (Exception e) { 
+        	    System.out.println(e.getMessage());
+        		t.rollback();
+        	}
+        } 
+        */
+        
     }
     
     /**

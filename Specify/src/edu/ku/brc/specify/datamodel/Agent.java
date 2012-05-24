@@ -78,6 +78,8 @@ public class Agent extends DataModelObjBase implements java.io.Serializable,
                                                        AttachmentOwnerIFace<AgentAttachment>,
                                                        Cloneable
 {
+	
+	private static final int AGENTTABLEID = 5;
 
     // Fields
     private static Agent                    userAgent = null;
@@ -1035,7 +1037,7 @@ public class Agent extends DataModelObjBase implements java.io.Serializable,
      */
     public static int getClassTableId()
     {
-        return 5;
+        return AGENTTABLEID;
     }
 
     /* (non-Javadoc)
@@ -1218,6 +1220,8 @@ public class Agent extends DataModelObjBase implements java.io.Serializable,
     {
         String name = null;
         
+        //TODO: PJM Make order configurable
+        
         name = getVariantName(AgentVariant.AUTHOR);
         if (name != null) return name;
         
@@ -1237,6 +1241,8 @@ public class Agent extends DataModelObjBase implements java.io.Serializable,
     public String getCollectorName()
     {
         String name = null;
+        
+        //TODO: PJM Make order configurable
         
         name = getVariantName(AgentVariant.LABLELNAME);
         if (name != null) return name;

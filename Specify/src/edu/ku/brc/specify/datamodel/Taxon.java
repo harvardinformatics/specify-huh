@@ -1521,12 +1521,14 @@ public class Taxon extends DataModelObjBase implements AttachmentOwnerIFace<Taxo
         return getClassTableId();
     }
     
+    private static final int TAXONTABLEID = 4;
+    
     /**
      * @return the Table ID for the class.
      */
     public static int getClassTableId()
     {
-        return 4;
+        return TAXONTABLEID;
     }
 
     @Override

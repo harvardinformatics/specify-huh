@@ -72,6 +72,7 @@ public class ReportLoan {
 	private int generalCollectionCount;
 	private int nonSpecimenCount;
 	private int barcodedSpecimenCount;
+	private int unbarcodedTotalCount;
 	private int preparationCount;
 	private int totalCount;
 	private String description;
@@ -201,6 +202,7 @@ public class ReportLoan {
 		}
 		
 		totalCount = generalCollectionCount + nonSpecimenCount + barcodedSpecimenCount;
+		unbarcodedTotalCount = generalCollectionCount + nonSpecimenCount;
 	}
 	
 	/** Finds the current shipment and pulls the agent address values, date and other

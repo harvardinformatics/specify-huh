@@ -51,6 +51,7 @@
 	<xsl:variable name="generalCollections" select="reportLoan/generalCollectionCount" />
 	<xsl:variable name="nonSpecimens" select="reportLoan/nonSpecimenCount" />
 	<xsl:variable name="barcodedSpecimens" select="reportLoan/barcodedSpecimenCount" />
+	<xsl:variable name="unbarcodedTotalCount" select="reportLoan/unbarcodedTotalCount" />
 	<xsl:variable name="total" select="reportLoan/totalCount" />
 	<xsl:variable name="preparationCount" select="reportLoan/preparationCount" />
 
@@ -365,7 +366,7 @@
 					<fo:block space-before="12pt" space-after="12pt">
 						Total unbarcoded
 						sheet count:
-						<xsl:value-of select="$generalCollections + $nonSpecimens" />
+						<xsl:value-of select="$unbarcodedTotalCount" />
 					</fo:block>
 					</xsl:if>
 					<xsl:if test="count(reportLoan/barcodedSpecimen) &gt; 0">

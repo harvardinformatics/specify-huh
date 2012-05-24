@@ -35,6 +35,8 @@ public class Fragment extends CollectionMember implements AttachmentOwnerIFace<F
                                                           Comparable<Fragment>,
                                                           Cloneable
 {
+    private static final int FRAGMENTTABLEID = 142;
+    
 	// Fields 
 	protected Integer fragmentId;
 	protected String  accessionNumber;
@@ -156,12 +158,13 @@ public class Fragment extends CollectionMember implements AttachmentOwnerIFace<F
 		return Fragment.class;
 	}
     
+    
     /**
      * @return the Table ID for the class.
      */
     public static int getClassTableId()
     {
-        return 142;
+        return FRAGMENTTABLEID;
     }
     
     /**

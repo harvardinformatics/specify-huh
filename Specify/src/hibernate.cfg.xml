@@ -116,6 +116,7 @@
 		<mapping class="edu.ku.brc.specify.datamodel.Gift"/>
 		<mapping class="edu.ku.brc.specify.datamodel.GiftAgent"/>
 		<mapping class="edu.ku.brc.specify.datamodel.GiftPreparation"/>
+		<mapping class="edu.harvard.huh.specify.datamodel.Guids"/>
 		<mapping class="edu.ku.brc.specify.datamodel.InfoRequest"/>
 		<mapping class="edu.ku.brc.specify.datamodel.Institution"/>
 		<mapping class="edu.ku.brc.specify.datamodel.Journal"/>
