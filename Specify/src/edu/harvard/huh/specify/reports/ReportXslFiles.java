@@ -29,4 +29,6 @@ package edu.harvard.huh.specify.reports;
 public class ReportXslFiles {
 	public static final String REPORTS_DIR = "huh_reports";
 	public static final String LOAN_REPORT = "LoanReport.xsl";
+	public static final String ACCESSION_REPORT = "AccessionReport.xsl";
+	public static final String SHIPMENT_NOTICE = "ShipmentNotice.xsl";
 }
