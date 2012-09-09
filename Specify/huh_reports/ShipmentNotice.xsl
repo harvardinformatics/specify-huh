@@ -160,8 +160,6 @@
 					<fo:block border-bottom-style="solid" border-bottom-width="2pt" margin-bottom=".25in" margin-top=".25in"
 						space-before="24pt" border-top-style="solid" border-top-width="2pt">
 						<fo:table text-align="left">
-							<fo:table-column column-width="45mm" />
-							<fo:table-column />
 							<fo:table-body>
 								<fo:table-row>
 								    <fo:table-cell>
@@ -169,12 +167,13 @@
 											<xsl:value-of select="$remarks" />
 										</fo:block>
 									</fo:table-cell>
-									<fo:table-cell>
-										<fo:block>
-											
-										</fo:block>
-									</fo:table-cell>
 								</fo:table-row>
+							</fo:table-body>
+						</fo:table>
+						<fo:table text-align="left">
+							<fo:table-column column-width="45mm" />
+							<fo:table-column />
+							<fo:table-body>
 								<fo:table-row  margin-bottom=".25in" margin-top=".25in">
 									<fo:table-cell>
 										<fo:block>HUH Shipment number:</fo:block>
