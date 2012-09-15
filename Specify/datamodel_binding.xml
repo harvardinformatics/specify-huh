@@ -264,7 +264,7 @@
 		<collection field="shipments" usage="optional" create-type="java.util.HashSet" />
 	</mapping>
 	<mapping name="exchangeOutPreparation" class="edu.ku.brc.specify.datamodel.ExchangeOutPreparation">
-		<value name="exchangeOutId" field="exchangeOutId" usage="optional" />
+		<value name="exchangeOutPreparationId" field="exchangeOutPreparationId" usage="optional" />
 		<value name="itemCount" field="itemCount" usage="optional" />
 		<value name="descriptionOfMaterial" field="descriptionOfMaterial"
 			usage="optional" />
@@ -294,7 +294,7 @@
 		<collection field="shipments" usage="optional" create-type="java.util.HashSet" />
 	</mapping>
 	<mapping name="giftPreparation" class="edu.ku.brc.specify.datamodel.GiftPreparation">
-		<value name="giftPreparationId" field="exchangeOutId" usage="optional" />
+		<value name="giftPreparationId" field="giftPreparationId" usage="optional" />
 		<value name="itemCount" field="itemCount" usage="optional" />
 		<value name="descriptionOfMaterial" field="descriptionOfMaterial"
 			usage="optional" />
@@ -304,7 +304,7 @@
 		<value name="typeCount" field="typeCount" usage="optional" />
 		<structure field="preparation" usage="optional" />
 	</mapping>
-	<mapping name="accession" class="edu.ku.brc.specify.datamodel.accession">
+	<mapping name="accession" class="edu.ku.brc.specify.datamodel.Accession">
 		<value name="accessionId" field="accessionId" usage="optional" />
 		<value name="accessionCondition" field="accessionCondition" usage="optional" />
 		<value name="accessionNumber" field="accessionNumber" usage="optional" />
@@ -324,7 +324,7 @@
 			create-type="java.util.HashSet" />
 	</mapping>
 	<mapping name="accessionPreparation" class="edu.ku.brc.specify.datamodel.AccessionPreparation">
-		<value name="accessionPreparationId" field="exchangeOutId" usage="optional" />
+		<value name="accessionPreparationId" field="accessionPreparationId" usage="optional" />
 		<value name="discardCount" field="discardCount" usage="optional" />
 		<value name="distributeCount" field="distributeCount" usage="optional" />
 		<value name="returnCount" field="returnCount" usage="optional" />
@@ -336,13 +336,6 @@
 		<value name="nonSpecimenCount" field="nonSpecimenCount" usage="optional" />
 		<value name="typeCount" field="typeCount" usage="optional" />
 		<structure field="preparation" usage="optional" />
-		<structure type="edu.ku.brc.specify.datamodel.AccessionAgent"
-				name="accessionAgent">
-				<value name="accessionAgentId" field="accessionAgentId" usage="optional" />
-				<value name="role" field="role" usage="optional" />
-				<value name="remarks" field="remarks" usage="optional" />
-				<structure field="agent" usage="optional" />
-			</structure>
 	</mapping>
 	<mapping name="borrow" class="edu.ku.brc.specify.datamodel.Borrow">
 		<value name="borrowId" field="borrowId" usage="optional" />
@@ -380,13 +373,13 @@
 		<value name="outComments" field="outComments" usage="optional" />
 		<value name="materialNumber" field="materialNumber" usage="optional" />
 		<value name="inComments" field="inComments" usage="optional" />
-		<value name="receivedComments" field="receivedComments" usage="optional" />
+		<value name="outComments" field="outComments" usage="optional" />
 		<value name="srcTaxonomy" field="srcTaxonomy" usage="optional" />
 		<value name="nonSpecimenCount" field="nonSpecimenCount" usage="optional" />
 		<value name="quantityResolved" field="quantityResolved" usage="optional" />
 		<value name="quantityReturned" field="quantityReturned" usage="optional" />
 		<value name="typeCount" field="typeCount" usage="optional" />
-		<collection field="borrowMaterials" usage="optional"
+		<collection field="borrowReturnMaterials" usage="optional"
 			create-type="java.util.HashSet">
 			<structure type="edu.ku.brc.specify.datamodel.BorrowReturnMaterial"
 				name="borrowReturnMaterial">
@@ -397,7 +390,6 @@
 				<value name="nonSpecimenCount" field="nonSpecimenCount" usage="optional" />
 				<value name="typeCount" field="typeCount" usage="optional" />
 				<value name="remarks" field="remarks" usage="optional" />
-				<value name="yesNo1" field="yesNo1" usage="optional" />
 			</structure>
 		</collection>
 	</mapping>
