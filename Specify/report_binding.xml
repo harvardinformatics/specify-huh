@@ -95,6 +95,22 @@
 		<value name="dateSent" field="dateSent" usage="optional" />
 		<value name="numberOfPackages" field="numberOfPackages" usage="optional" />
 
+		<value name="generalCollectionsCount" field="generalCollectionsCount" usage="optional" />
+		<value name="nonSpecimensCount" field="nonSpecimensCount" usage="optional" />
+		<value name="typesCount" field="typesCount" usage="optional" />
+		
+		<value name="generalCollectionsReturnedCount" field="generalCollectionsReturnedCount" usage="optional" />
+		<value name="nonSpecimensReturnedCount" field="nonSpecimensReturnedCount" usage="optional" />
+		<value name="typesReturnedCount" field="typesReturnedCount" usage="optional" />
+		
+		<value name="generalCollectionsBalanceDueCount" field="generalCollectionsBalanceDueCount" usage="optional" />
+		<value name="nonSpecimensBalanceDueCount" field="nonSpecimensBalanceDueCount" usage="optional" />
+		<value name="typesBalanceDueCount" field="typesBalanceDueCount" usage="optional" />
+				
+		<value name="totalBorrowedSum" field="totalBorrowedSum" usage="optional" />
+		<value name="totalReturnedSum" field="totalReturnedSum" usage="optional" />
+		<value name="totalBalanceDueSum" field="totalBalanceDueSum" usage="optional" />
+
 		<collection field="borrowMaterialDescs" usage="optional"
 				create-type="java.util.ArrayList">
 				<structure

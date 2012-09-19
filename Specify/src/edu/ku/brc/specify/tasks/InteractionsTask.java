@@ -56,9 +56,12 @@ import com.jgoodies.forms.layout.FormLayout;
 import com.thoughtworks.xstream.XStream;
 
 import edu.harvard.huh.binding.DataModelObjectMarshaller;
+import edu.harvard.huh.specify.reports.BorrowReturnNotice;
 import edu.harvard.huh.specify.reports.DataModelObjectReport;
+import edu.harvard.huh.specify.reports.ReportAccession;
 import edu.harvard.huh.specify.reports.ReportLoan;
 import edu.harvard.huh.specify.reports.ReportXslFiles;
+import edu.harvard.huh.specify.reports.ShippingNotice;
 import edu.ku.brc.af.auth.BasicPermisionPanel;
 import edu.ku.brc.af.auth.PermissionEditorIFace;
 import edu.ku.brc.af.auth.PermissionSettings;
@@ -104,6 +107,7 @@ import edu.ku.brc.helpers.SwingWorker;
 import edu.ku.brc.specify.config.SpecifyAppContextMgr;
 import edu.ku.brc.specify.datamodel.Accession;
 import edu.ku.brc.specify.datamodel.Agent;
+import edu.ku.brc.specify.datamodel.Borrow;
 import edu.ku.brc.specify.datamodel.CollectionObject;
 import edu.ku.brc.specify.datamodel.Determination;
 import edu.ku.brc.specify.datamodel.Discipline;
@@ -1383,6 +1387,154 @@ public class InteractionsTask extends BaseTask
     }
     
     /**
+     * mmk: see checkToPrintLoan above
+     * 
+     * @param cmdAction
+     */
+    protected void checkToPrintAccession(final CommandAction cmdAction)
+    {
+        if (cmdAction.getData() instanceof Accession)
+        {
+            Accession loan = (Accession)cmdAction.getData();
+            
+            Boolean     printLoan   = null;
+            FormViewObj formViewObj = getCurrentFormViewObj();
+            if (formViewObj != null)
+            {
+                Component comp = formViewObj.getControlByName("generateInvoice");
+                if (comp instanceof JCheckBox)
+                {
+                    printLoan = ((JCheckBox)comp).isSelected();
+                }
+            }
+
+        	File reportsDir = new File(UIRegistry.getDefaultWorkingPath() + File.separator + ReportXslFiles.REPORTS_DIR);
+            Integer option = JOptionPane.showConfirmDialog(null, "Would you like to generate an invoice for accession " + loan.getAccessionNumber() + "?", "Generate Invoice", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
+            
+            if (option == JOptionPane.YES_OPTION) {
+	            try {
+	                ReportAccession rp = new ReportAccession(loan);
+	        		ByteArrayOutputStream out = new ByteArrayOutputStream();
+	                
+	    			DataModelObjectMarshaller<ReportAccession> marshaller = new DataModelObjectMarshaller<ReportAccession>(rp);
+	            	marshaller.transform(new StreamSource(reportsDir.getAbsoluteFile() + File.separator + ReportXslFiles.ACCESSION_REPORT), out);
+	                DataModelObjectReport report = new DataModelObjectReport(new StreamSource(new ByteArrayInputStream(out.toByteArray())));
+	                report.generatePDF();
+	                
+				} catch (Exception e) {
+					e.printStackTrace();
+					JOptionPane.showMessageDialog(null, "Failed to generate invoice pdf!", "Error", JOptionPane.ERROR_MESSAGE);
+				} finally {
+	                cmdAction.setConsumed(true);
+				}
+            }
+            cmdAction.setConsumed(true);
+			
+        }
+    }
+    
+    /**
+     * mmk: see checkToPrintLoan above
+     * 
+     * @param cmdAction
+     */
+    protected void checkToPrintShippingNotice(final CommandAction cmdAction)
+    {
+        if (cmdAction.getData() instanceof Shipment)
+        {
+        	Shipment shipment = (Shipment)cmdAction.getData();
+            
+        	// only offer to print a notice if there is not an attached transaction
+        	// (gift/loan/etc.) there will be a notice on the parent transaction if so.
+        	if (shipment.getBorrow() != null) return;
+        	if (shipment.getExchangeOut() != null) return;
+        	if (shipment.getGift() != null) return;
+        	if (shipment.getLoan() != null) return;
+        	
+            Boolean     printNotice   = null;
+            FormViewObj formViewObj = getCurrentFormViewObj();
+            if (formViewObj != null)
+            {
+                Component comp = formViewObj.getControlByName("generateInvoice");
+                if (comp instanceof JCheckBox)
+                {
+                    printNotice = ((JCheckBox)comp).isSelected();
+                }
+            }
+
+        	File reportsDir = new File(UIRegistry.getDefaultWorkingPath() + File.separator + ReportXslFiles.REPORTS_DIR);
+            Integer option = JOptionPane.showConfirmDialog(null, "Would you like to generate an notice for shipment " + shipment.getShipmentNumber() + "?", "Generate Invoice", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
+            
+            if (option == JOptionPane.YES_OPTION) {
+	            try {
+	                ShippingNotice rp = new ShippingNotice(shipment);
+	        		ByteArrayOutputStream out = new ByteArrayOutputStream();
+	                
+	    			DataModelObjectMarshaller<ShippingNotice> marshaller = new DataModelObjectMarshaller<ShippingNotice>(rp);
+	            	marshaller.transform(new StreamSource(reportsDir.getAbsoluteFile() + File.separator + ReportXslFiles.SHIPMENT_NOTICE), out);
+	                DataModelObjectReport report = new DataModelObjectReport(new StreamSource(new ByteArrayInputStream(out.toByteArray())));
+	                report.generatePDF();
+	                
+				} catch (Exception e) {
+					e.printStackTrace();
+					JOptionPane.showMessageDialog(null, "Failed to generate notice pdf!", "Error", JOptionPane.ERROR_MESSAGE);
+				} finally {
+	                cmdAction.setConsumed(true);
+				}
+            }
+            cmdAction.setConsumed(true);
+			
+        }
+    }
+    
+    /**
+     * mmk: see checkToPrintLoan above
+     * 
+     * @param cmdAction
+     */
+    protected void checkToPrintBorrowNotice(final CommandAction cmdAction)
+    {
+        if (cmdAction.getData() instanceof Borrow)
+        {
+            Borrow borrow = (Borrow)cmdAction.getData();
+            
+            Boolean     printLoan   = null;
+            FormViewObj formViewObj = getCurrentFormViewObj();
+            if (formViewObj != null)
+            {
+                Component comp = formViewObj.getControlByName("generateInvoice");
+                if (comp instanceof JCheckBox)
+                {
+                    printLoan = ((JCheckBox)comp).isSelected();
+                }
+            }
+
+        	File reportsDir = new File(UIRegistry.getDefaultWorkingPath() + File.separator + ReportXslFiles.REPORTS_DIR);
+            Integer option = JOptionPane.showConfirmDialog(null, "Would you like to generate an invoice for borrow " + borrow.getBorrowNumber() + "?", "Generate Invoice", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
+            
+            if (option == JOptionPane.YES_OPTION) {
+	            try {
+	                BorrowReturnNotice brn = new BorrowReturnNotice(borrow);
+	        		ByteArrayOutputStream out = new ByteArrayOutputStream();
+	                
+	    			DataModelObjectMarshaller<BorrowReturnNotice> marshaller = new DataModelObjectMarshaller<BorrowReturnNotice>(brn);
+	            	marshaller.transform(new StreamSource(reportsDir.getAbsoluteFile() + File.separator + ReportXslFiles.BORROW_RETURN), out);
+	                DataModelObjectReport report = new DataModelObjectReport(new StreamSource(new ByteArrayInputStream(out.toByteArray())));
+	                report.generatePDF();
+	                
+				} catch (Exception e) {
+					e.printStackTrace();
+					JOptionPane.showMessageDialog(null, "Failed to generate invoice pdf!", "Error", JOptionPane.ERROR_MESSAGE);
+				} finally {
+	                cmdAction.setConsumed(true);
+				}
+            }
+            cmdAction.setConsumed(true);
+			
+        }
+    }
+    
+    /**
      * @param invoice
      * @param rs
      * 
@@ -2418,6 +2570,9 @@ public class InteractionsTask extends BaseTask
             if (cmdAction.isAction("SaveBeforeSetData"))
             {
                 checkToPrintLoan(cmdAction);
+                // TODO checkToPrintAccession(cmdAction);
+                checkToPrintBorrowNotice(cmdAction);
+                checkToPrintShippingNotice(cmdAction);
             }
             
         } else if (cmdAction.isType(INTERACTIONS))

@@ -190,26 +190,35 @@ public class BorrowReturnNotice {
 			desc.borrowedTypes = typeCount;
 			
 			this.generalCollectionsCount += itemCount;
+			this.generalCollectionsBalanceDueCount += itemCount;
+			
 			this.nonSpecimensCount += nonSpecimenCount;
+			this.nonSpecimensBalanceDueCount += nonSpecimenCount;
+			
 			this.typesCount += typeCount;
+			this.typesBalanceDueCount += typeCount;
 			
 			this.totalBorrowedSum += (itemCount + nonSpecimenCount + typeCount);
+			this.totalBalanceDueSum += (itemCount + nonSpecimenCount + typeCount);
 			
 			for (BorrowReturnMaterial brm : bm.getBorrowReturnMaterials()) {
 
 				Short returnedItemCount = brm.getItemCount();
 				if (returnedItemCount == null) returnedItemCount = 0;
 				desc.returnedGeneralCollections += returnedItemCount;
+				this.generalCollectionsReturnedCount += returnedItemCount;
 				this.generalCollectionsBalanceDueCount -= returnedItemCount;
 				
 				Short returnedNonSpecimenCount = brm.getNonSpecimenCount();
 				if (returnedNonSpecimenCount == null) returnedNonSpecimenCount = 0;
 				desc.returnedNonSpecimens += returnedNonSpecimenCount;
+				this.nonSpecimensReturnedCount += returnedNonSpecimenCount;
 				this.nonSpecimensBalanceDueCount -= returnedNonSpecimenCount;
 				
 				Short returnedTypeCount = brm.getTypeCount();
 				if (returnedTypeCount == null) returnedTypeCount = 0;
 				desc.returnedTypes += returnedTypeCount;
+				this.typesReturnedCount += returnedTypeCount;
 				this.typesBalanceDueCount -= returnedTypeCount;
 				
 				this.totalReturnedSum += (returnedItemCount + returnedNonSpecimenCount + returnedTypeCount);
@@ -226,7 +235,11 @@ public class BorrowReturnNotice {
 	private void processShipment(Set<Shipment> shipments) {
 		Shipment curr = null;
 		for (Shipment s : shipments) {
-			if (curr == null || curr.getShipmentDate().before(s.getShipmentDate())) {
+			if (curr == null) curr = s;
+			
+			Calendar currShipmentDate = curr == null ? null : curr.getShipmentDate();
+			Calendar shipmentDate = s.getShipmentDate();
+			if (currShipmentDate == null || (shipmentDate != null && currShipmentDate.before(s.getShipmentDate()))) {
 				curr = s;
 			}
 		}

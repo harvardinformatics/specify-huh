@@ -31,4 +31,7 @@ public class ReportXslFiles {
 	public static final String LOAN_REPORT = "LoanReport.xsl";
 	public static final String ACCESSION_REPORT = "AccessionReport.xsl";
 	public static final String SHIPMENT_NOTICE = "ShipmentNotice.xsl";
+	public static final String EXCH_NOTICE = "ExchangeOutNotice.xsl";
+	public static final String GIFT_NOTICE = "OutgingGiftNotice.xsl";
+	public static final String BORROW_RETURN = "BorrowReturnNotice.xsl";
 }
