@@ -30,6 +30,7 @@ import edu.ku.brc.specify.datamodel.Accession;
 import edu.ku.brc.specify.datamodel.Agent;
 import edu.ku.brc.specify.datamodel.Collection;
 import edu.ku.brc.specify.datamodel.Discipline;
+import edu.ku.brc.specify.datamodel.Division;
 import edu.ku.brc.specify.datamodel.ExchangeIn;
 import edu.ku.brc.specify.datamodel.ExchangeOut;
 import edu.ku.brc.specify.datamodel.Geography;
@@ -101,16 +102,22 @@ public class SpecifyQueryAdjusterForDomain extends QueryAdjusterForDomain
                        tableInfo.getTableId() == ExchangeIn.getClassTableId() ||
                        tableInfo.getTableId() == ExchangeOut.getClassTableId())
             {
-                if (prefix.equals(""))
-                {
-                    prefix = isHQL ? "dv." : "";
-                }
-                else
-                {
-                    prefix = isHQL ? ("dv" + prefix) : prefix;
-                }
-                fld = isHQL ? "divisionId" : "DivisionID";
-                criterion = DIVID;
+            	// mmk: the replacement token "DIVID" in this join clause is not
+            	// replaced later in cases in which this division value is null,
+            	// so prevent the insertion of the clause in the first place.
+            	Division d = Agent.getUserAgent().getDivision();
+            	if (d != null && Agent.getUserAgent().getDivision().getDivisionId() != null) {
+            		if (prefix.equals(""))
+            		{
+            			prefix = isHQL ? "dv." : "";
+            		}
+            		else
+            		{
+            			prefix = isHQL ? ("dv" + prefix) : prefix;
+            		}
+            		fld = isHQL ? "divisionId" : "DivisionID";
+            		criterion = DIVID;
+            	}
                 
             } else if (tableInfo.getRelationshipByName("discipline") != null)
             {
@@ -286,16 +293,22 @@ public class SpecifyQueryAdjusterForDomain extends QueryAdjusterForDomain
                     tableInfo.getTableId() == ExchangeIn.getClassTableId() ||
                     tableInfo.getTableId() == ExchangeOut.getClassTableId())
         {
-            if (isHQL)
-            {
-                return join + alias + ".division as dv" + (aliasArg == null ? "" : alias);
-            }
-            if (aliasArg != null)
-            {
-                return "";
-                //throw new RuntimeException("SpecifyQueryAdjuster.getJoinClause does not work for SQL with non-null alias.");
-            }
-            return join;
+        	// mmk: the replacement token "DIVID" in this join clause is not
+        	// replaced later in cases in which this division value is null,
+        	// so prevent the insertion of the clause in the first place.
+        	Division d = Agent.getUserAgent().getDivision();
+        	if (d != null && Agent.getUserAgent().getDivision().getDivisionId() != null) {
+        		if (isHQL)
+        		{
+        			return join + alias + ".division as dv" + (aliasArg == null ? "" : alias);
+        		}
+        		if (aliasArg != null)
+        		{
+        			return "";
+        			//throw new RuntimeException("SpecifyQueryAdjuster.getJoinClause does not work for SQL with non-null alias.");
+        		}
+        		return join;
+        	}
             
         } else if (tableInfo.getRelationshipByName("discipline") != null)
         {

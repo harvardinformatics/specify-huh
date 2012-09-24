@@ -64,6 +64,7 @@
 	<mapping name="borrowReturnNotice" class="edu.harvard.huh.specify.reports.BorrowReturnNotice">
 		<value name="reportsDir" field="reportsDir" usage="optional" />
 		
+		<value name="borrowNumber" field="borrowNumber" usage="optional" />
 		<value name="currentDueDate" field="currentDueDate" usage="optional" />
 		<value name="dateClosed" field="dateClosed" usage="optional" />
 		<value name="invoiceNumber" field="invoiceNumber" usage="optional" />
@@ -71,30 +72,13 @@
 		<value name="originalDueDate" field="originalDueDate" usage="optional" />
 		<value name="receivedDate" field="receivedDate" usage="optional" />
 		<value name="remarks" field="remarks" usage="optional" />
-		<value name="text1" field="text1" usage="optional" />
-		<value name="text2" field="text2" usage="optional" />
-		<value name="text3" field="text3" usage="optional" />
-		<value name="yesNo1" field="yesNo1" usage="optional" />
-		<value name="yesNo2" field="yesNo2" usage="optional" />
-		<value name="yesNo3" field="yesNo3" usage="optional" />
+		<value name="purpose" field="purpose" usage="optional" />
+		<value name="herbarium" field="herbarium" usage="optional" />
+		<value name="userType" field="userType" usage="optional" />
+		<value name="isAcknowledged" field="isAcknowledged" usage="optional" />
+		<value name="isTheirRequest" field="isTheirRequest" usage="optional" />
+		<value name="isVisitor" field="isVisitor" usage="optional" />
 		
-		<value name="nameOfContact" field="nameOfContact" usage="optional" />
-		<value name="institution" field="institution" usage="optional" />
-		<value name="acronym" field="acronym" usage="optional" />
-		<value name="title" field="title" usage="optional" />
-		<value name="jobTitle" field="jobTitle" usage="optional" />
-		<value name="address1" field="address1" usage="optional" />
-		<value name="address2" field="address2" usage="optional" />
-		<value name="city" field="city" usage="optional" />
-		<value name="state" field="state" usage="optional" />
-		<value name="zip" field="zip" usage="optional" />
-		<value name="country" field="country" usage="optional" />
-		<value name="nameOfShippedBy" field="nameOfShippedBy" usage="optional" />
-		
-		<value name="borrowNumber" field="borrowNumber" usage="optional" />
-		<value name="dateSent" field="dateSent" usage="optional" />
-		<value name="numberOfPackages" field="numberOfPackages" usage="optional" />
-
 		<value name="generalCollectionsCount" field="generalCollectionsCount" usage="optional" />
 		<value name="nonSpecimensCount" field="nonSpecimensCount" usage="optional" />
 		<value name="typesCount" field="typesCount" usage="optional" />
@@ -110,27 +94,176 @@
 		<value name="totalBorrowedSum" field="totalBorrowedSum" usage="optional" />
 		<value name="totalReturnedSum" field="totalReturnedSum" usage="optional" />
 		<value name="totalBalanceDueSum" field="totalBalanceDueSum" usage="optional" />
+		
+		<value name="dateSent" field="dateSent" usage="optional" />
+		<value name="numberOfPackages" field="numberOfPackages" usage="optional" />
+		
+		<value name="nameOfContact" field="nameOfContact" usage="optional" />
+		<value name="title" field="title" usage="optional" />
+		<value name="jobTitle" field="jobTitle" usage="optional" />
+		
+		<value name="institution" field="institution" usage="optional" />
+		<value name="acronym" field="acronym" usage="optional" />
+
+		<value name="address1" field="address1" usage="optional" />
+		<value name="address2" field="address2" usage="optional" />
+		<value name="city" field="city" usage="optional" />
+		<value name="state" field="state" usage="optional" />
+		<value name="zip" field="zip" usage="optional" />
+		<value name="country" field="country" usage="optional" />
+		
+		<value name="nameOfShippedBy" field="nameOfShippedBy" usage="optional" />
 
 		<collection field="borrowMaterialDescs" usage="optional"
+					create-type="java.util.ArrayList">
+			<structure
+				type="edu.harvard.huh.specify.reports.BorrowReturnNotice$BorrowMaterialDesc"
+				name="borrowMaterialDesc" usage="optional">
+				<value name="borrowedGeneralCollections" field="borrowedGeneralCollections" usage="optional" />
+				<value name="borrowedTypes" field="borrowedTypes" usage="optional" />
+				<value name="borrowedNonSpecimens" field="borrowedNonSpecimens" usage="optional" />
+					
+				<value name="generalCollectionsBalanceDue" field="generalCollectionsBalanceDue" usage="optional" />
+				<value name="typesBalanceDue" field="typesBalanceDue" usage="optional" />
+				<value name="nonSpecimensBalanceDue" field="nonSpecimensBalanceDue" usage="optional" />
+				<value name="description" field="description" usage="optional" />
+				<value name="taxon" field="taxon" usage="optional" />
+				<value name="higherTaxon" field="higherTaxon" usage="optional" />
+
+				<collection field = "returnDescs" usage="optional" create-type="java.util.ArrayList">
+					<structure type="edu.harvard.huh.specify.reports.BorrowReturnNotice$BorrowReturnDesc"
+								name="returnDesc" usage="optional">
+						<value name="dateReturned" field="dateReturned" usage="optional" />
+						<value name="returnedGeneralCollections" field="returnedGeneralCollections" usage="optional" />
+						<value name="returnedTypes" field="returnedTypes" usage="optional" />
+						<value name="returnedNonSpecimens" field="returnedNonSpecimens" usage="optional" />
+					</structure>
+				</collection>
+			</structure>
+		</collection>
+	</mapping>
+	
+	
+	<mapping name="exchangeOutNotice" class="edu.harvard.huh.specify.reports.ExchangeOutNotice">
+		<value name="reportsDir" field="reportsDir" usage="optional" />
+		
+		<value name="descriptionOfMaterial" field="descriptionOfMaterial" usage="optional" />
+		<value name="exchangeDate" field="exchangeDate" usage="optional" />
+		<value name="exchangeNumber" field="exchangeNumber" usage="optional" />
+		<value name="forUseBy" field="forUseBy" usage="optional" />
+		<value name="herbarium" field="herbarium" usage="optional" />
+		<value name="isAcknowledged" field="isAcknowledged" usage="optional" />
+		<value name="isTheirRequest" field="isTheirRequest" usage="optional" />
+		<value name="purpose" field="purpose" usage="optional" />
+		<value name="remarks" field="remarks" usage="optional" />
+		
+		<value name="generalCollectionsOutCount" field="generalCollectionsOutCount" usage="optional" />
+		<value name="nonSpecimensOutCount" field="nonSpecimensOutCount" usage="optional" />
+		<value name="typesOutCount" field="typesOutCount" usage="optional" />
+		
+		<value name="totalExchangedOutSum" field="totalExchangedOutSum" usage="optional" />
+		
+		<value name="dateSent" field="dateSent" usage="optional" />
+		<value name="numberOfPackages" field="numberOfPackages" usage="optional" />
+		
+		<value name="nameOfContact" field="nameOfContact" usage="optional" />
+		<value name="title" field="title" usage="optional" />
+		<value name="jobTitle" field="jobTitle" usage="optional" />
+		
+		<value name="institution" field="institution" usage="optional" />
+		<value name="acronym" field="acronym" usage="optional" />
+
+		<value name="address1" field="address1" usage="optional" />
+		<value name="address2" field="address2" usage="optional" />
+		<value name="city" field="city" usage="optional" />
+		<value name="state" field="state" usage="optional" />
+		<value name="zip" field="zip" usage="optional" />
+		<value name="country" field="country" usage="optional" />
+		
+		<value name="nameOfShippedBy" field="nameOfShippedBy" usage="optional" />
+		
+		<collection field="outGeoBatchDescs" usage="optional"
 				create-type="java.util.ArrayList">
 				<structure
-					type="edu.harvard.huh.specify.reports.BorrowReturnNotice$BorrowMaterialDesc"
-					name="borrowMaterialDesc" usage="optional">
-					<value name="borrowedGeneralCollections" field="borrowedGeneralCollections" usage="optional" />
-					<value name="borrowedTypes" field="borrowedTypes" usage="optional" />
-					<value name="borrowedNonSpecimens" field="borrowedNonSpecimens" usage="optional" />
-					<value name="returnedGeneralCollections" field="returnedGeneralCollections" usage="optional" />
-					<value name="returnedTypes" field="returnedTypes" usage="optional" />
-					<value name="returnedNonSpecimens" field="returnedNonSpecimens" usage="optional" />
-					<value name="generalCollectionsBalanceDue" field="generalCollectionsBalanceDue" usage="optional" />
-					<value name="typesBalanceDue" field="typesBalanceDue" usage="optional" />
-					<value name="nonSpecimensBalanceDue" field="nonSpecimensBalanceDue" usage="optional" />
+					type="edu.harvard.huh.specify.reports.ExchangeOutNotice$OutGeoBatchDesc"
+					name="outGeoBatchDesc" usage="optional">
+					<value name="generalCollectionsOut" field="generalCollectionsOut" usage="optional" />
+					<value name="typesOut" field="typesOut" usage="optional" />
+					<value name="nonSpecimensOut" field="nonSpecimensOut" usage="optional" />
+					<value name="total" field="total" usage="optional" />
 					<value name="description" field="description" usage="optional" />
-					<value name="taxon" field="taxon" usage="optional" />
-					<value name="higherTaxon" field="higherTaxon" usage="optional" />
+					<value name="geography" field="geography" usage="optional" />
 				</structure>
 		</collection>
 	</mapping>
+<!-- <mapping name="exchangeHistory" class="edu.harvard.huh.specify.reports.ExchangeHistory">
+		<value name="reportsDir" field="reportsDir" usage="optional" />
+		
+		<value name="descriptionOfMaterial" field="descriptionOfMaterial" usage="optional" />
+		<value name="exchangeDate" field="exchangeDate" usage="optional" />
+		<value name="exchangeNumber" field="exchangeNumber" usage="optional" />
+		<value name="forUseBy" field="forUseBy" usage="optional" />
+		<value name="herbarium" field="herbarium" usage="optional" />
+		<value name="isAcknowledged" field="isAcknowledged" usage="optional" />
+		<value name="isTheirRequest" field="isTheirRequest" usage="optional" />
+		<value name="purpose" field="purpose" usage="optional" />
+		<value name="remarks" field="remarks" usage="optional" />
+		
+		<value name="generalCollectionsInCount" field="generalCollectionsInCount" usage="optional" />
+		<value name="nonSpecimensInCount" field="nonSpecimensInCount" usage="optional" />
+		<value name="typesInCount" field="typesInCount" usage="optional" />
+		
+		<value name="generalCollectionsOutCount" field="generalCollectionsOutCount" usage="optional" />
+		<value name="nonSpecimensOutCount" field="nonSpecimensOutCount" usage="optional" />
+		<value name="typesOutCount" field="typesOutCount" usage="optional" />
+		
+		<value name="generalCollectionsBalanceCount" field="generalCollectionsBalanceCount" usage="optional" />
+		<value name="nonSpecimensBalanceCount" field="nonSpecimensBalanceCount" usage="optional" />
+		<value name="typesBalanceCount" field="typesBalanceCount" usage="optional" />
+				
+		<value name="totalExchangedInSum" field="totalExchangedInSum" usage="optional" />
+		<value name="totalExchangedOutSum" field="totalExchangedOutSum" usage="optional" />
+		<value name="totalBalanceSum" field="totalBalanceSum" usage="optional" />
+		
+		<value name="dateSent" field="dateSent" usage="optional" />
+		<value name="numberOfPackages" field="numberOfPackages" usage="optional" />
+		
+		<value name="nameOfContact" field="nameOfContact" usage="optional" />
+		<value name="title" field="title" usage="optional" />
+		<value name="jobTitle" field="jobTitle" usage="optional" />
+		
+		<value name="institution" field="institution" usage="optional" />
+		<value name="acronym" field="acronym" usage="optional" />
+
+		<value name="address1" field="address1" usage="optional" />
+		<value name="address2" field="address2" usage="optional" />
+		<value name="city" field="city" usage="optional" />
+		<value name="state" field="state" usage="optional" />
+		<value name="zip" field="zip" usage="optional" />
+		<value name="country" field="country" usage="optional" />
+		
+		<value name="nameOfShippedBy" field="nameOfShippedBy" usage="optional" />
+		
+		<collection field="outGeoBatchDescs" usage="optional"
+				create-type="java.util.ArrayList">
+				<structure
+					type="edu.harvard.huh.specify.reports.ExchangeHistory$OutGeoBatchDesc"
+					name="outGeoBatchDesc" usage="optional">
+					<value name="generalCollectionsIn" field="generalCollectionsIn" usage="optional" />
+					<value name="typesIn" field="typesIn" usage="optional" />
+					<value name="nonSpecimensIn" field="nonSpecimensIn" usage="optional" />
+					<value name="generalCollectionsOut" field="generalCollectionsOut" usage="optional" />
+					<value name="typesOut" field="typesOut" usage="optional" />
+					<value name="nonSpecimensOut" field="nonSpecimensOut" usage="optional" />
+					<value name="generalCollectionsBalance" field="generalCollectionsBalance" usage="optional" />
+					<value name="typesBalance" field="typesBalance" usage="optional" />
+					<value name="nonSpecimensBalance" field="nonSpecimensBalance" usage="optional" />
+					<value name="description" field="description" usage="optional" />
+					<value name="geography" field="geography" usage="optional" />
+				</structure>
+		</collection>
+	</mapping> -->	
+	
 	<!-- <mapping name="reportAccession" class="edu.harvard.huh.specify.reports.ReportAccession">
 		<value name="reportsDir" field="reportsDir" usage="optional" />
 		<value name="nameOfContact" field="nameOfContact" usage="optional" />

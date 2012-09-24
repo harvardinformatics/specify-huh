@@ -250,37 +250,39 @@
 		<structure field="shippedBy" usage="optional" />
 	</mapping>
 	<mapping name="exchangeout" class="edu.ku.brc.specify.datamodel.ExchangeOut">
-		<value name="exchangeOutId" field="exchangeOutId" usage="optional" />
-		<value name="exchangeDate" field="exchangeDate" usage="optional" />
 		<value name="descriptionOfMaterial" field="descriptionOfMaterial" usage="optional" />
+		<value name="exchangeDate" field="exchangeDate" usage="optional" />
 		<value name="exchangeNumber" field="exchangeNumber" usage="optional" />
+		<value name="exchangeOutId" field="exchangeOutId" usage="optional" />
 		<value name="restrictions" field="restrictions" usage="optional" />
+		<value name="remarks" field="remarks" usage="optional" />
+		<value name="srcGeography" field="srcGeography" usage="optional" />
+		<value name="srcTaxonomy" field="srcTaxonomy" usage="optional" />
 		<value name="text1" field="text1" usage="optional" />
 		<value name="text2" field="text2" usage="optional" />
 		<value name="yesNo1" field="yesNo1" usage="optional" />
 		<value name="yesNo2" field="yesNo2" usage="optional" />
-		<collection field="exchangeOutPreparations" usage="optional"
-			create-type="java.util.HashSet" />
+		<collection field="exchangeOutPreparations" usage="optional" create-type="java.util.HashSet" />
 		<collection field="shipments" usage="optional" create-type="java.util.HashSet" />
 	</mapping>
 	<mapping name="exchangeOutPreparation" class="edu.ku.brc.specify.datamodel.ExchangeOutPreparation">
+		<value name="descriptionOfMaterial" field="descriptionOfMaterial" usage="optional" />
 		<value name="exchangeOutPreparationId" field="exchangeOutPreparationId" usage="optional" />
-		<value name="itemCount" field="itemCount" usage="optional" />
-		<value name="descriptionOfMaterial" field="descriptionOfMaterial"
-			usage="optional" />
-		<value name="outComments" field="outComments" usage="optional" />
 		<value name="inComments" field="inComments" usage="optional" />
-		<value name="receivedComments" field="receivedComments" usage="optional" />
+		<value name="itemCount" field="itemCount" usage="optional" />
 		<value name="nonSpecimenCount" field="nonSpecimenCount" usage="optional" />
+		<value name="outComments" field="outComments" usage="optional" />
+		<value name="receivedComments" field="receivedComments" usage="optional" />
 		<value name="typeCount" field="typeCount" usage="optional" />
 		<structure field="preparation" usage="optional" />
 	</mapping>
 	<mapping name="gift" class="edu.ku.brc.specify.datamodel.Gift">
-		<value name="giftId" field="giftId" usage="optional" />
-		<value name="giftDate" field="giftDate" usage="optional" />
 		<value name="dateReceived" field="dateReceived" usage="optional" />
+		<value name="giftDate" field="giftDate" usage="optional" />
+		<value name="giftId" field="giftId" usage="optional" />
 		<value name="giftNumber" field="giftNumber" usage="optional" />
 		<value name="purposeOfGift" field="purposeOfGift" usage="optional" />
+		<value name="receivedComments" field="receivedComments" usage="optional" />
 		<value name="remarks" field="remarks" usage="optional" />
 		<value name="specialConditions" field="specialConditions" usage="optional" />
 		<value name="srcGeography" field="srcGeography" usage="optional" />
@@ -289,18 +291,17 @@
 		<value name="text2" field="text2" usage="optional" />
 		<value name="yesNo1" field="yesNo1" usage="optional" />
 		<value name="yesNo2" field="yesNo2" usage="optional" />
-		<collection field="giftPreparations" usage="optional"
-			create-type="java.util.HashSet" />
+		<collection field="giftPreparations" usage="optional" create-type="java.util.HashSet" />
 		<collection field="shipments" usage="optional" create-type="java.util.HashSet" />
 	</mapping>
 	<mapping name="giftPreparation" class="edu.ku.brc.specify.datamodel.GiftPreparation">
+		<value name="descriptionOfMaterial" field="descriptionOfMaterial" usage="optional" />
 		<value name="giftPreparationId" field="giftPreparationId" usage="optional" />
+		<value name="inComments" field="inComments" usage="optional" />
 		<value name="itemCount" field="itemCount" usage="optional" />
-		<value name="descriptionOfMaterial" field="descriptionOfMaterial"
-			usage="optional" />
+		<value name="nonSpecimenCount" field="nonSpecimenCount" usage="optional" />
 		<value name="outComments" field="outComments" usage="optional" />
 		<value name="receivedComments" field="receivedComments" usage="optional" />
-		<value name="nonSpecimenCount" field="nonSpecimenCount" usage="optional" />
 		<value name="typeCount" field="typeCount" usage="optional" />
 		<structure field="preparation" usage="optional" />
 	</mapping>
@@ -341,16 +342,17 @@
 		<value name="borrowId" field="borrowId" usage="optional" />
 		<value name="currentDueDate" field="currentDueDate" usage="optional" />
 		<value name="dateClosed" field="dateClosed" usage="optional" />
+		<value name="herbarium" field="text2" usage="optional" />
 		<value name="invoiceNumber" field="invoiceNumber" usage="optional" />
+		<value name="isAcknowledged" field="yesNo1" usage="optional" />
 		<value name="isClosed" field="isClosed" usage="optional" />
+		<value name="isTheirRequest" field="yesNo2" usage="optional" />
+		<value name="isVisitor" field="yesNo3" usage="optional" />
 		<value name="originalDueDate" field="originalDueDate" usage="optional" />
+		<value name="purpose" field="text1" usage="optional" />
 		<value name="remarks" field="remarks" usage="optional" />
-		<value name="text1" field="text1" usage="optional" />
-		<value name="text2" field="text2" usage="optional" />
-		<value name="text3" field="text3" usage="optional" />
-		<value name="yesNo1" field="yesNo1" usage="optional" />
-		<value name="yesNo2" field="yesNo2" usage="optional" />
-		<value name="yesNo3" field="yesNo3" usage="optional" />
+		<value name="userType" field="text3" usage="optional" />
+				
 		<collection field="borrowAgents" usage="optional"
 			create-type="java.util.HashSet">
 			<structure type="edu.ku.brc.specify.datamodel.BorrowAgent"

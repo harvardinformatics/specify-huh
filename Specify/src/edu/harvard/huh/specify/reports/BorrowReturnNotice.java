@@ -26,6 +26,8 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
+import java.util.Comparator;
+import java.util.GregorianCalendar;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -58,21 +60,28 @@ import edu.ku.brc.ui.UIRegistry;
  */
 public class BorrowReturnNotice {
 	
+	private static final int REGION_RANK_ID = 150;
+	
+	private String reportsDir = UIRegistry.getDefaultWorkingPath() + File.separator + ReportXslFiles.REPORTS_DIR;
+	
 	// borrow
-	private String borrowNumber;
+	private String   borrowNumber;
 	private Calendar currentDueDate;
 	private Calendar dateClosed;
-	private String invoiceNumber;
-	private Boolean isClosed;
+	private String   herbarium;       // text2: A/AMES/ECON/FH/G/NEBC
+	private String   invoiceNumber;
+	private Boolean  isAcknowledged;  // yesno1
+	private Boolean  isClosed;
+	private Boolean  isTheirRequest;  // yesNo2
+	private Boolean  isVisitor;       // yesNo3
 	private Calendar originalDueDate;
+	private String   purpose;         // text1
 	private Calendar receivedDate;
-	private String remarks;
-	private String text1;   // purpose
-	private String text2;   // local unit
-	private String text3;   // user type: student/staff
-	private Boolean yesNo1; // is acknowledged
-	private Boolean yesNo2; // is their request
-	private Boolean yesNo3; // is visitor
+	private String   remarks;
+	private String   userType;        // text3: student/staff
+
+	// borrow agent
+	private String forUseBy;
 	
 	private List<BorrowMaterialDesc> borrowMaterialDescs;
 	
@@ -93,25 +102,30 @@ public class BorrowReturnNotice {
 	private int totalReturnedSum;
 	private int totalBalanceDueSum;
 	
-	private static final int REGION_RANK_ID = 150;
-	private String reportsDir = UIRegistry.getDefaultWorkingPath() + File.separator + ReportXslFiles.REPORTS_DIR;
+	// shipment
+	private Calendar dateSent;	
+	private int numberOfPackages;
+	
+	// shippedTo
 	private String nameOfContact;
 	private String title;
 	private String jobTitle;
+	
+	// shippedTo organization
 	private String institution;
 	private String acronym;
+
+	// shippedTo organization shipping address
 	private String address1;
 	private String address2;
 	private String city;
 	private String state;
 	private String zip;
 	private String country;
+	
+	// shippedBy
 	private String nameOfShippedBy;
-	private String forUseBy;
-	
-	private Calendar dateSent;	
-	private int numberOfPackages;
-	
+		
 	
 	/** Default constructor explicitly declared for the purposes of JibX binding requirements
 	 * 
@@ -134,31 +148,32 @@ public class BorrowReturnNotice {
 		isClosed = borrow.getIsClosed();
 		originalDueDate = borrow.getOriginalDueDate();
 		receivedDate = borrow.getReceivedDate();
+		
 		forUseBy = extractForUseBy(borrow);
 		
 		remarks = borrow.getRemarks();
-		text1 = borrow.getText1();   // purpose
-		text2 = borrow.getText2();   // local unit
-		text3 = borrow.getText3();   // user type: student/staff
-		yesNo1 = borrow.getYesNo1(); // is acknowledged
-		yesNo2 = borrow.getYesNo2(); // is their request
-		yesNo3 = borrow.getYesNo3(); // is visitor
+		purpose = borrow.getText1();   // purpose
+		herbarium = borrow.getText2();   // herbarium / local unit
+		userType = borrow.getText3();   // user type: student/staff
+		isAcknowledged = borrow.getYesNo1(); // is acknowledged
+		isTheirRequest = borrow.getYesNo2(); // is their request
+		isVisitor = borrow.getYesNo3(); // is visitor
 		
-		this.generalCollectionsCount = 0;
-		this.nonSpecimensCount = 0;
-		this.typesCount = 0;
+		generalCollectionsCount = 0;
+		nonSpecimensCount = 0;
+		typesCount = 0;
 		
-		this.generalCollectionsReturnedCount = 0;
-		this.nonSpecimensReturnedCount = 0;
-		this.typesReturnedCount = 0;
+		generalCollectionsReturnedCount = 0;
+		nonSpecimensReturnedCount = 0;
+		typesReturnedCount = 0;
 		
-		this.generalCollectionsBalanceDueCount = 0;
-		this.nonSpecimensBalanceDueCount = 0;
-		this.typesBalanceDueCount  = 0;
+		generalCollectionsBalanceDueCount = 0;
+		nonSpecimensBalanceDueCount = 0;
+		typesBalanceDueCount  = 0;
 		
-		this.totalBorrowedSum = 0;
-		this.totalReturnedSum = 0;
-		this.totalBalanceDueSum = 0;
+		totalBorrowedSum = 0;
+		totalReturnedSum = 0;
+		totalBalanceDueSum = 0;
 		
 		borrowMaterialDescs = new ArrayList<BorrowMaterialDesc>();
 		
@@ -200,31 +215,59 @@ public class BorrowReturnNotice {
 			
 			this.totalBorrowedSum += (itemCount + nonSpecimenCount + typeCount);
 			this.totalBalanceDueSum += (itemCount + nonSpecimenCount + typeCount);
-			
+
 			for (BorrowReturnMaterial brm : bm.getBorrowReturnMaterials()) {
 
+				BorrowReturnDesc returnDesc = new BorrowReturnDesc();
+				
+				returnDesc.dateReturned = brm.getReturnedDate();
+				
 				Short returnedItemCount = brm.getItemCount();
 				if (returnedItemCount == null) returnedItemCount = 0;
-				desc.returnedGeneralCollections += returnedItemCount;
+				returnDesc.returnedGeneralCollections += returnedItemCount;
 				this.generalCollectionsReturnedCount += returnedItemCount;
 				this.generalCollectionsBalanceDueCount -= returnedItemCount;
 				
 				Short returnedNonSpecimenCount = brm.getNonSpecimenCount();
 				if (returnedNonSpecimenCount == null) returnedNonSpecimenCount = 0;
-				desc.returnedNonSpecimens += returnedNonSpecimenCount;
+				returnDesc.returnedNonSpecimens += returnedNonSpecimenCount;
 				this.nonSpecimensReturnedCount += returnedNonSpecimenCount;
 				this.nonSpecimensBalanceDueCount -= returnedNonSpecimenCount;
 				
 				Short returnedTypeCount = brm.getTypeCount();
 				if (returnedTypeCount == null) returnedTypeCount = 0;
-				desc.returnedTypes += returnedTypeCount;
+				returnDesc.returnedTypes += returnedTypeCount;
 				this.typesReturnedCount += returnedTypeCount;
 				this.typesBalanceDueCount -= returnedTypeCount;
 				
 				this.totalReturnedSum += (returnedItemCount + returnedNonSpecimenCount + returnedTypeCount);
 				this.totalBalanceDueSum -= (returnedItemCount + returnedNonSpecimenCount + returnedTypeCount);
+				
+				desc.returnDescs.add(returnDesc);
 			}
+			
+			Collections.sort(desc.returnDescs, new Comparator<BorrowReturnDesc>() {
+
+				@Override
+				public int compare(BorrowReturnDesc o1, BorrowReturnDesc o2) {
+					// TODO Auto-generated method stub
+					return o1.dateReturned.compareTo(o2.dateReturned);
+				}
+				
+			});
+			
+			this.borrowMaterialDescs.add(desc);
 		}
+		
+		Collections.sort(this.borrowMaterialDescs, new Comparator<BorrowMaterialDesc>() {
+
+			@Override
+			public int compare(BorrowMaterialDesc o1, BorrowMaterialDesc o2) {
+				// TODO Auto-generated method stub
+				return o1.higherTaxon.compareTo(o2.higherTaxon);
+			}
+			
+		});
 	}
 	
 	/** Finds the current shipment and pulls the agent address values, date and other
@@ -296,10 +339,6 @@ public class BorrowReturnNotice {
 		int borrowedTypes = 0;
 		int borrowedNonSpecimens = 0;
 		
-		int returnedGeneralCollections = 0;
-		int returnedTypes = 0;
-		int returnedNonSpecimens = 0;
-		
 		int generalCollectionsBalanceDue = 0;
 		int typesBalanceDue = 0;
 		int nonSpecimensBalanceDue = 0;
@@ -307,5 +346,16 @@ public class BorrowReturnNotice {
 		String description = "";		
 		String taxon = "";
 		String higherTaxon = "";
+		
+		List<BorrowReturnDesc> returnDescs = new ArrayList<BorrowReturnDesc>();
+	}
+	
+	private class BorrowReturnDesc {
+		
+		Calendar dateReturned = GregorianCalendar.getInstance();
+		
+		int returnedGeneralCollections = 0;
+		int returnedTypes = 0;
+		int returnedNonSpecimens = 0;
 	}
 }
