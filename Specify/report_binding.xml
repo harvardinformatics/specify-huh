@@ -196,6 +196,66 @@
 				</structure>
 		</collection>
 	</mapping>
+	
+	<mapping name="outgoingGiftNotice" class="edu.harvard.huh.specify.reports.OutgoingGiftNotice">
+		<value name="reportsDir" field="reportsDir" usage="optional" />
+		
+		<value name="dateReceived" field="dateReceived" usage="optional" />
+		<value name="forUseBy" field="forUseBy" usage="optional" />
+		<value name="giftDate" field="giftDate" usage="optional" />
+		<value name="giftNumber" field="giftNumber" usage="optional" />
+		<value name="herbarium" field="herbarium" usage="optional" />
+		<value name="purposeOfGift" field="purposeOfGift" usage="optional" />
+		<value name="receivedComments" field="receivedComments" usage="optional" />
+		<value name="remarks" field="remarks" usage="optional" />
+		<value name="specialConditions" field="specialConditions" usage="optional" />
+		<value name="srcGeography" field="srcGeography" usage="optional" />
+		<value name="srcTaxonomy" field="srcTaxonomy" usage="optional" />
+		<value name="specialConditions" field="specialConditions" usage="optional" />
+		<value name="isAcknowledged" field="isAcknowledged" usage="optional" />
+		<value name="isTheirRequest" field="isTheirRequest" usage="optional" />
+		
+		<value name="generalCollectionsOutCount" field="generalCollectionsOutCount" usage="optional" />
+		<value name="nonSpecimensOutCount" field="nonSpecimensOutCount" usage="optional" />
+		<value name="typesOutCount" field="typesOutCount" usage="optional" />
+		
+		<value name="totalGiftOutSum" field="totalGiftOutSum" usage="optional" />
+		
+		<value name="dateSent" field="dateSent" usage="optional" />
+		<value name="numberOfPackages" field="numberOfPackages" usage="optional" />
+		
+		<value name="nameOfContact" field="nameOfContact" usage="optional" />
+		<value name="title" field="title" usage="optional" />
+		<value name="jobTitle" field="jobTitle" usage="optional" />
+		
+		<value name="institution" field="institution" usage="optional" />
+		<value name="acronym" field="acronym" usage="optional" />
+
+		<value name="address1" field="address1" usage="optional" />
+		<value name="address2" field="address2" usage="optional" />
+		<value name="city" field="city" usage="optional" />
+		<value name="state" field="state" usage="optional" />
+		<value name="zip" field="zip" usage="optional" />
+		<value name="country" field="country" usage="optional" />
+		
+		<value name="nameOfShippedBy" field="nameOfShippedBy" usage="optional" />
+		
+		<collection field="outGiftDescs" usage="optional"
+				create-type="java.util.ArrayList">
+				<structure
+					type="edu.harvard.huh.specify.reports.OutgoingGiftNotice$OutGiftDesc"
+					name="outGiftDesc" usage="optional">
+					<value name="generalCollectionsOut" field="generalCollectionsOut" usage="optional" />
+					<value name="typesOut" field="typesOut" usage="optional" />
+					<value name="nonSpecimensOut" field="nonSpecimensOut" usage="optional" />
+					<value name="total" field="total" usage="optional" />
+					<value name="descriptionOfMaterial" field="descriptionOfMaterial" usage="optional" />
+					<value name="geography" field="geography" usage="optional" />
+					<value name="taxon" field="taxon" usage="optional" />
+				</structure>
+		</collection>
+	</mapping>
+	
 <!-- <mapping name="exchangeHistory" class="edu.harvard.huh.specify.reports.ExchangeHistory">
 		<value name="reportsDir" field="reportsDir" usage="optional" />
 		

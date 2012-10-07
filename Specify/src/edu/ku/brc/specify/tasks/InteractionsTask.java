@@ -58,6 +58,8 @@ import com.thoughtworks.xstream.XStream;
 import edu.harvard.huh.binding.DataModelObjectMarshaller;
 import edu.harvard.huh.specify.reports.BorrowReturnNotice;
 import edu.harvard.huh.specify.reports.DataModelObjectReport;
+import edu.harvard.huh.specify.reports.ExchangeOutNotice;
+import edu.harvard.huh.specify.reports.OutgoingGiftNotice;
 import edu.harvard.huh.specify.reports.ReportAccession;
 import edu.harvard.huh.specify.reports.ReportLoan;
 import edu.harvard.huh.specify.reports.ReportXslFiles;
@@ -1535,6 +1537,100 @@ public class InteractionsTask extends BaseTask
     }
     
     /**
+     * mmk: see checkToPrintLoan above
+     * 
+     * @param cmdAction
+     */
+    protected void checkToPrintExchangeNotice(final CommandAction cmdAction)
+    {
+        if (cmdAction.getData() instanceof ExchangeOut)
+        {
+            ExchangeOut exchOut = (ExchangeOut)cmdAction.getData();
+            
+            Boolean     printLoan   = null;
+            FormViewObj formViewObj = getCurrentFormViewObj();
+            if (formViewObj != null)
+            {
+                Component comp = formViewObj.getControlByName("generateInvoice");
+                if (comp instanceof JCheckBox)
+                {
+                    printLoan = ((JCheckBox)comp).isSelected();
+                }
+            }
+
+        	File reportsDir = new File(UIRegistry.getDefaultWorkingPath() + File.separator + ReportXslFiles.REPORTS_DIR);
+            Integer option = JOptionPane.showConfirmDialog(null, "Would you like to generate an invoice for exchange " + exchOut.getExchangeNumber() + "?", "Generate Invoice", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
+            
+            if (option == JOptionPane.YES_OPTION) {
+	            try {
+	                ExchangeOutNotice brn = new ExchangeOutNotice(exchOut);
+	        		ByteArrayOutputStream out = new ByteArrayOutputStream();
+	                
+	    			DataModelObjectMarshaller<ExchangeOutNotice> marshaller = new DataModelObjectMarshaller<ExchangeOutNotice>(brn);
+	            	marshaller.transform(new StreamSource(reportsDir.getAbsoluteFile() + File.separator + ReportXslFiles.EXCH_NOTICE), out);
+	                DataModelObjectReport report = new DataModelObjectReport(new StreamSource(new ByteArrayInputStream(out.toByteArray())));
+	                report.generatePDF();
+	                
+				} catch (Exception e) {
+					e.printStackTrace();
+					JOptionPane.showMessageDialog(null, "Failed to generate invoice pdf!", "Error", JOptionPane.ERROR_MESSAGE);
+				} finally {
+	                cmdAction.setConsumed(true);
+				}
+            }
+            cmdAction.setConsumed(true);
+			
+        }
+    }
+    
+    /**
+     * mmk: see checkToPrintLoan above
+     * 
+     * @param cmdAction
+     */
+    protected void checkToPrintGiftNotice(final CommandAction cmdAction)
+    {
+        if (cmdAction.getData() instanceof Gift)
+        {
+            Gift gift = (Gift) cmdAction.getData();
+            
+            Boolean     printLoan   = null;
+            FormViewObj formViewObj = getCurrentFormViewObj();
+            if (formViewObj != null)
+            {
+                Component comp = formViewObj.getControlByName("generateInvoice");
+                if (comp instanceof JCheckBox)
+                {
+                    printLoan = ((JCheckBox)comp).isSelected();
+                }
+            }
+
+        	File reportsDir = new File(UIRegistry.getDefaultWorkingPath() + File.separator + ReportXslFiles.REPORTS_DIR);
+            Integer option = JOptionPane.showConfirmDialog(null, "Would you like to generate an invoice for gift " + gift.getGiftNumber() + "?", "Generate Invoice", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
+            
+            if (option == JOptionPane.YES_OPTION) {
+	            try {
+	                OutgoingGiftNotice brn = new OutgoingGiftNotice(gift);
+	        		ByteArrayOutputStream out = new ByteArrayOutputStream();
+	                
+	    			DataModelObjectMarshaller<OutgoingGiftNotice> marshaller = new DataModelObjectMarshaller<OutgoingGiftNotice>(brn);
+	            	marshaller.transform(new StreamSource(reportsDir.getAbsoluteFile() + File.separator + ReportXslFiles.GIFT_NOTICE), out);
+	                DataModelObjectReport report = new DataModelObjectReport(new StreamSource(new ByteArrayInputStream(out.toByteArray())));
+	                report.generatePDF();
+	                
+				} catch (Exception e) {
+					e.printStackTrace();
+					JOptionPane.showMessageDialog(null, "Failed to generate invoice pdf!", "Error", JOptionPane.ERROR_MESSAGE);
+				} finally {
+	                cmdAction.setConsumed(true);
+				}
+            }
+            cmdAction.setConsumed(true);
+			
+        }
+    }
+    
+    /**
      * @param invoice
      * @param rs
      * 
@@ -2572,6 +2668,8 @@ public class InteractionsTask extends BaseTask
                 checkToPrintLoan(cmdAction);
                 // TODO checkToPrintAccession(cmdAction);
                 checkToPrintBorrowNotice(cmdAction);
+                checkToPrintExchangeNotice(cmdAction);
+                checkToPrintGiftNotice(cmdAction);
                 checkToPrintShippingNotice(cmdAction);
             }
             
