@@ -392,12 +392,25 @@
 						</fo:table>
 						</fo:block>
 					</xsl:if>
-					 
 				<fo:block>
 					<fo:block-container height="20mm" space-before="24pt">
 						<fo:block linefeed-treatment="preserve" white-space-collapse="false" white-space-treatment="preserve"><xsl:value-of select="$descriptionOfMaterial" /></fo:block>
 					</fo:block-container>
 				</fo:block>
+				
+					 <fo:block-container
+						space-after="10mm">
+						<fo:block>Received the above in good order</fo:block>
+						<fo:block space-before="18pt">
+							<fo:leader leader-length="80mm" leader-pattern="rule" />
+							<fo:leader leader-length="50mm" leader-pattern="rule"
+								padding-left="5mm" />
+						</fo:block>
+						<fo:block font-size="8pt">
+							<fo:inline>Signed</fo:inline>
+							<fo:inline padding-left="78mm">Date</fo:inline>
+						</fo:block>
+					</fo:block-container>
 					
 			</fo:flow>
 		</fo:page-sequence>
