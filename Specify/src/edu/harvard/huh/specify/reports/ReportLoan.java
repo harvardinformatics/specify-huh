@@ -144,18 +144,29 @@ public class ReportLoan {
 							barcodedSpecimenCount++; // count barcoded items only
 						}
 						if (f.getDeterminations() != null) {
+							String currentName = null;
+							String filedUnderName = null;
 							for (Determination d : f.getDeterminations()) {
 								if (d.isCurrentDet()) {
 									if (d.getTaxon() != null) {
-										item.taxon = d.getTaxon().getFullName();
+										currentName = d.getTaxon().getFullName();
 									} else {
-										item.taxon = d.getAlternateName();
+										currentName = d.getAlternateName();
+									}
+								}
+								Boolean isFiledUnder = d.getYesNo3();
+								if (isFiledUnder != null && isFiledUnder) {
+									if (d.getTaxon() != null) {
+										filedUnderName = d.getTaxon().getFullName();
+									} else {
+										filedUnderName = d.getAlternateName();
 									}
 								}
 								if (d.getTypeStatusName() != null) {
 									item.type = "Type";
 								}
 							}
+							item.taxon = filedUnderName != null ? filedUnderName : currentName;
 						}
 						if (f.getCollectionObject() != null && f.getCollectionObject().getCollectingEvent() != null) {
 							if (f.getCollectionObject().getCollectingEvent().getCollectors() != null) {
