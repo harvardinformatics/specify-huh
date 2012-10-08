@@ -111,7 +111,7 @@ public class TextFieldWithQuery extends JPanel implements CustomQueryListener
     protected static DateWrapper scrDateFormat = AppPrefsCache.getDateWrapper("ui", "formatting", "scrdateformat");
     
     protected int                              popupDlgThreshold = 15;
-    protected int                              popupTextCharWidth = 100;
+    protected int                              popupTextCharWidth = 120;
     
     protected JTextField                       textField;
     protected Object                           dataObj        = null;
