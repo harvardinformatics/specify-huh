@@ -36,7 +36,6 @@ import javax.persistence.JoinColumn;
 import javax.persistence.Lob;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
-import javax.persistence.OneToOne;
 import javax.persistence.OrderBy;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
@@ -44,7 +43,6 @@ import javax.persistence.TemporalType;
 import javax.persistence.Transient;
 import javax.persistence.UniqueConstraint;
 
-import org.apache.commons.lang.StringUtils;
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.CascadeType;
 import org.hibernate.annotations.Index;
@@ -1100,13 +1098,29 @@ public class Preparation extends CollectionMember implements AttachmentOwnerIFac
      */
     public int compareTo(Preparation obj)
     {
-        if (prepType != null && obj != null && StringUtils.isNotEmpty(prepType.name) && StringUtils.isNotEmpty(obj.prepType.name))
-        {
-            return prepType.name.toLowerCase().compareTo(obj.prepType.name.toLowerCase());
-        }
+    	if (obj != null) {
+    		String barcode = getBarcode();
+    		String otherBarcode = obj.getBarcode();
+    		
+    		
+    		if (barcode == null) return -1;
+    		if (otherBarcode == null) return 1;
+    		return barcode.compareTo(otherBarcode);
+    	}
+
         // else
         return timestampCreated.compareTo(obj.timestampCreated);
     }
 
-
+    @Transient
+    public String getBarcode() {
+    	String barcode = null;
+    	for (Fragment f : fragments) {
+    		String identifier = f.getIdentifier();
+    		if (identifier == null) continue;
+    		if (barcode == null) barcode = identifier;
+    		if (barcode.compareTo(identifier) > 0) barcode = identifier; 
+    	}
+    	return barcode;
+    }
 }
