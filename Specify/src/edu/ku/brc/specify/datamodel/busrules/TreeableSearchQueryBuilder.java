@@ -105,7 +105,15 @@ public class TreeableSearchQueryBuilder implements ViewBasedSearchQueryBuilderIF
             }
             else
             {
-                queryFormatStr = "SELECT n.fullName, n.id ";
+            	// This is a hack on top of a hack.
+            	// Other queries use configuration defined elsewhere (e.g. typesearch_def.xml), but this is a tree query, so Specify hard codes it here.
+            	// I am adding some fields in for taxon search results.  See BugID 596. --mmk
+            	if (defMemberName.toLowerCase().equals("taxontreedef")) {
+            		queryFormatStr = "SELECT n.fullName, n.author, n.groupNumber, n.id ";
+            	}
+            	else {
+            		queryFormatStr = "SELECT n.fullName, n.id ";
+            	}
             }
             queryFormatStr += "from %s n INNER JOIN n.definition d WHERE lower(n.fullName) LIKE \'%s\' AND d.id = %d";
             queryStr = String.format(queryFormatStr, tableInfo.getShortClassName(), searchText.toLowerCase() + "%", treeDefId);

@@ -95,7 +95,9 @@
     <typesearch tableid="69"  name="RefWorkTaxCitSub"       searchfield="ref.containedRFParent.title" displaycols="ref.containedRFParent.title"  format="%s"     dataobjformatter="ReferenceWork"/>
     <typesearch tableid="70"  name="RepositoryAgreement"    searchfield="repositoryAgreementNumber" displaycols="repositoryAgreementNumber" format="%s"     dataobjformatter=""/>
     <typesearch tableid="58"  name="Storage"                searchfield="name,text1"      displaycols="fullName,text1"     format="%s.  %s" dataobjformatter="Storage"/>
-    <typesearch tableid="4"   name="Taxon"                  searchfield="fullName"        displaycols="fullName,author,groupNumber"    format="%s %s %s"   dataobjformatter="Taxon"/>
+    
+    <!-- NOTE: for tree tables, the displaycols and format attributes are ignored in the type searches.  See BugID 596, and TreeableSearchQueryBuilder.java, public String buildSQL(String searchText, boolean isForCount) -->
+    <typesearch tableid="4"   name="Taxon"                  searchfield="fullName"        displaycols="fullName,author,groupNumber"    format="%s %s (%s)" dataobjformatter="Taxon"/>
     <typesearch tableid="107" name="TaxonAuthor"            searchfield="name"            displaycols="name"               format="%s"      dataobjformatter="AgentVariant">
 	    SELECT DISTINCT %s1 FROM AgentVariant av WHERE av.varType = 3 AND %s2 ORDER BY name
     </typesearch>
