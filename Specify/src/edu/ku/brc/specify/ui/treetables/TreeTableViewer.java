@@ -2389,8 +2389,8 @@ public class TreeTableViewer <T extends Treeable<T,D,I>,
             if (numOptions == 4)
             {
             	JLabel lbl = createLabel("<html><b>" + getResourceString("TreeTableView.MOVE_NODE") + ":</b></html>");
-            	lbl.setVerticalAlignment(SwingConstants.BOTTOM);
-            	lbl.setVerticalTextPosition(SwingConstants.BOTTOM);
+            	lbl.setVerticalAlignment(SwingConstants.CENTER);
+            	lbl.setVerticalTextPosition(SwingConstants.CENTER);
             	pb.add(lbl, cc.xy(1, 3));
             	JTextArea tac = createTextArea();
             	tac.setEditable(false);
