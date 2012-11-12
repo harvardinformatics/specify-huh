@@ -242,11 +242,14 @@ public class ESTermParser implements SearchTermParserIFace
 
         boolean startWildCard = term.isOn(SearchTermField.STARTS_WILDCARD);
         boolean endWildCard   = term.isOn(SearchTermField.ENDS_WILDCARD);
+        
+        String termStr = term.getTerm();
+        termStr = termStr.replaceAll("'", "_");
         if (startWildCard || endWildCard)
         {
-            return " " + abbrev + fieldName + " LIKE " + (startWildCard ? "'%" : "'") + term.getTerm() + (endWildCard ? "%'" : "'");
+            return " " + abbrev + fieldName + " LIKE " + (startWildCard ? "'%" : "'") + termStr + (endWildCard ? "%'" : "'");
         }
-        return " " + abbrev + fieldName + " = " + "'" + term.getTerm() + "'";
+        return " " + abbrev + fieldName + " = " + "'" + termStr + "'";
     }
     
     
