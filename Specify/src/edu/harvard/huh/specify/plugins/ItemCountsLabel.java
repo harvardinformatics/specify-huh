@@ -281,17 +281,18 @@ public class ItemCountsLabel extends JPanel implements UIPluginable, GetSetValue
 		int typeReturned = 0;
 		int nonSpecimenReturned = 0;
 		
-		for (LoanPreparation lp : loan.getLoanPreparations()) {
-			LoanPrepUtil lpUtil = new LoanPrepUtil(lp);
-			
-			itemTotal += lpUtil.getItemCount();
-			typeTotal += lpUtil.getTypeCount();
-			nonSpecimenTotal += lpUtil.getNonSpecimenCount();
-			itemReturned += lpUtil.getItemReturned();
-			typeReturned += lpUtil.getTypeReturned();
-			nonSpecimenReturned += lpUtil.getNonSpecimenReturned();
+		if (loan != null) {
+			for (LoanPreparation lp : loan.getLoanPreparations()) {
+				LoanPrepUtil lpUtil = new LoanPrepUtil(lp);
+
+				itemTotal += lpUtil.getItemCount();
+				typeTotal += lpUtil.getTypeCount();
+				nonSpecimenTotal += lpUtil.getNonSpecimenCount();
+				itemReturned += lpUtil.getItemReturned();
+				typeReturned += lpUtil.getTypeReturned();
+				nonSpecimenReturned += lpUtil.getNonSpecimenReturned();
+			}
 		}
-		
 		updateLabels(itemTotal, typeTotal, nonSpecimenTotal, itemReturned, typeReturned, nonSpecimenReturned);
 		
 	}
