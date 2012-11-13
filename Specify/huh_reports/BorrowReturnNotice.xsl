@@ -366,18 +366,18 @@
 										</fo:table-cell>
 									</fo:table-row>
 									
-									<!-- <xsl:if test="description != ''">
+									<xsl:if test="description != ''">
 										<fo:table-row>
-											<fo:table-cell number-columns-spanned="3">
+											<fo:table-cell number-columns-spanned="4">
 												<fo:block />
 											</fo:table-cell>
-											<fo:table-cell number-columns-spanned="3" padding-left="4mm" padding-top="2mm" padding-bottom="2mm" text-align="right">
+											<fo:table-cell number-columns-spanned="2" padding-left="4mm" padding-top="2mm" padding-bottom="2mm" text-align="right">
 												<fo:block>
 													<xsl:value-of select="description" />
 												</fo:block>
 											</fo:table-cell>
 										</fo:table-row>
-									</xsl:if> -->
+									</xsl:if>
 
 									<xsl:if test="count(returnDesc) &gt; 0">
 										<fo:table-row>
@@ -500,7 +500,9 @@
 						</fo:table-body>
 						</fo:table>
 						<fo:block-container height="20mm" space-before="24pt">
-						<fo:block linefeed-treatment="preserve" white-space-collapse="false" white-space-treatment="preserve"><xsl:value-of select="$remarks" /></fo:block>
+						<!-- mmk: the following variable $remarks is taken from borrow.Remarks, which is currently labeled -->
+						<!-- "Internal Remarks" on the data entry forms, so data should not be displayed on reports.       -->
+						<!-- <fo:block linefeed-treatment="preserve" white-space-collapse="false" white-space-treatment="preserve"><xsl:value-of select="$remarks" /></fo:block> -->
 						</fo:block-container>
 					</fo:block>
 					<fo:block-container
