@@ -500,9 +500,7 @@
 						</fo:table-body>
 						</fo:table>
 						<fo:block-container height="20mm" space-before="24pt">
-						<!-- mmk: the following variable $remarks is taken from borrow.Remarks, which is currently labeled -->
-						<!-- "Internal Remarks" on the data entry forms, so data should not be displayed on reports.       -->
-						<!-- <fo:block linefeed-treatment="preserve" white-space-collapse="false" white-space-treatment="preserve"><xsl:value-of select="$remarks" /></fo:block> -->
+						<fo:block linefeed-treatment="preserve" white-space-collapse="false" white-space-treatment="preserve"><xsl:value-of select="$remarks" /></fo:block>
 						</fo:block-container>
 					</fo:block>
 					<fo:block-container
