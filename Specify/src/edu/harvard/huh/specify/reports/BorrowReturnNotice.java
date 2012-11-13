@@ -28,26 +28,17 @@ import java.util.Calendar;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.GregorianCalendar;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import edu.ku.brc.specify.datamodel.Accession;
-import edu.ku.brc.specify.datamodel.AccessionAgent;
 import edu.ku.brc.specify.datamodel.Address;
+import edu.ku.brc.specify.datamodel.Agent;
 import edu.ku.brc.specify.datamodel.Borrow;
 import edu.ku.brc.specify.datamodel.BorrowAgent;
 import edu.ku.brc.specify.datamodel.BorrowMaterial;
 import edu.ku.brc.specify.datamodel.BorrowReturnMaterial;
-import edu.ku.brc.specify.datamodel.Collector;
-import edu.ku.brc.specify.datamodel.Determination;
-import edu.ku.brc.specify.datamodel.Fragment;
-import edu.ku.brc.specify.datamodel.Geography;
-import edu.ku.brc.specify.datamodel.Loan;
-import edu.ku.brc.specify.datamodel.LoanPreparation;
 import edu.ku.brc.specify.datamodel.Shipment;
 import edu.ku.brc.specify.datamodel.Taxon;
-import edu.ku.brc.specify.datamodel.TaxonTreeDef;
 import edu.ku.brc.ui.UIRegistry;
 
 /** Java object representation of a Loan Report for use with HUH loans.
@@ -63,6 +54,9 @@ public class BorrowReturnNotice {
 	
 	private String reportsDir = UIRegistry.getDefaultWorkingPath() + File.separator + ReportXslFiles.REPORTS_DIR;
 	
+	// import edu.harvard.huh.asa.Transaction.ROLE;
+	private enum ROLE { Borrower, Benefactor, Collector, Contact, Contributor, Donor, ForUseBy, Guest, Lender, Other, Preparer, Receiver, Reviewer, Seller, Sponsor, Staff, Student };
+
 	// borrow
 	private String   borrowNumber;
 	private Calendar currentDueDate;
@@ -321,12 +315,13 @@ public class BorrowReturnNotice {
 	}
 	
 	private String extractForUseBy(Borrow borrow) {
-
+		
 		String forUseBy = null;
 		
 		for (BorrowAgent borrowAgent : borrow.getBorrowAgents()) {
-			if (ROLE.Receiver.equals(borrowAgent.getRole())) {
-				forUseBy = borrowAgent.getAgent().getLastName();
+			if (ROLE.ForUseBy.name().equals(borrowAgent.getRole())) {
+				Agent forUseByAgent = borrowAgent.getAgent();
+				forUseBy = forUseByAgent.getFirstName() + " " + forUseByAgent.getLastName();
 			}
 		}
 
