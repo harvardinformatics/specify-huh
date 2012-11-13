@@ -317,15 +317,26 @@ public class BorrowReturnNotice {
 	private String extractForUseBy(Borrow borrow) {
 		
 		String forUseBy = null;
+		String student = null;
 		
 		for (BorrowAgent borrowAgent : borrow.getBorrowAgents()) {
-			if (ROLE.ForUseBy.name().equals(borrowAgent.getRole())) {
-				Agent forUseByAgent = borrowAgent.getAgent();
-				forUseBy = forUseByAgent.getFirstName() + " " + forUseByAgent.getLastName();
+			String roleName = borrowAgent.getRole();
+			Agent agent = borrowAgent.getAgent();
+			String firstName = agent.getFirstName();
+			String lastName = agent.getLastName();
+			String agentName = (firstName != null ? firstName + " " : "") + lastName;
+
+			if (ROLE.ForUseBy.name().equals(roleName)) {
+				forUseBy = agentName;				
+			}
+			else if (ROLE.Student.name().equals(roleName)) {
+				student = agentName;
 			}
 		}
 
-		return forUseBy;
+		if (forUseBy != null) return forUseBy;
+		if (student != null) return student;
+		return null;
 	}
 	
 	private class BorrowMaterialDesc {
