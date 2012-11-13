@@ -76,6 +76,7 @@
 		<value name="purpose" field="purpose" usage="optional" />
 		<value name="herbarium" field="herbarium" usage="optional" />
 		<value name="userType" field="userType" usage="optional" />
+		<value name="forUseBy" field="forUseBy" usage="optional" />
 		<value name="isAcknowledged" field="isAcknowledged" usage="optional" />
 		<value name="isTheirRequest" field="isTheirRequest" usage="optional" />
 		<value name="isVisitor" field="isVisitor" usage="optional" />
