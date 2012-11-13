@@ -394,15 +394,15 @@
 					</xsl:if>
 
 					<fo:block>
-						<fo:block-container height="20mm" space-before="24pt">
-							<fo:block white-space-collapse="false" white-space-treatment="preserve">
+						<fo:block-container space-before="24pt">
+							<fo:block white-space-collapse="false" white-space-treatment="preserve" linefeed-treatment="preserve">
 								<xsl:value-of select="$specialConditions" />
 							</fo:block>
 						</fo:block-container>
 					</fo:block>
 					 <fo:block-container
 						space-after="10mm">
-						<fo:block>Received the above in good order</fo:block>
+						<fo:block keep-with-next="always">Received the above in good order</fo:block>
 						<fo:block space-before="18pt">
 							<fo:leader leader-length="80mm" leader-pattern="rule" />
 							<fo:leader leader-length="50mm" leader-pattern="rule"
