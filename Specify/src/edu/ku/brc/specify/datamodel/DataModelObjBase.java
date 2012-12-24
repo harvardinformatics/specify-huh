@@ -846,7 +846,7 @@ public abstract class DataModelObjBase implements FormDataObjIFace,
      */
     public static boolean save(final Object...dataObjs)
     {
-        return save(false, dataObjs);
+        return saveDoShowError(false, dataObjs);
     }
     
     /**
@@ -854,7 +854,7 @@ public abstract class DataModelObjBase implements FormDataObjIFace,
      * @param doShowError whether to show the an error dialog
      * @return true is ok, false if not
      */
-    public static boolean save(final boolean doShowError, final Object...dataObjs)
+    public static boolean saveDoShowError(final boolean doShowError, final Object...dataObjs)
     {
         errMsg = null;
         
@@ -925,7 +925,7 @@ public abstract class DataModelObjBase implements FormDataObjIFace,
      */
     public static boolean delete(final Object...dataObjs)
     {
-        return delete(false, dataObjs);
+        return deleteDoShowError(false, dataObjs);
     }
     
     /**
@@ -933,7 +933,7 @@ public abstract class DataModelObjBase implements FormDataObjIFace,
      * @param doShowError whether to show the an error dialog
      * @return true is ok, false if not
      */
-    public static boolean delete(final boolean doShowError, final Object...dataObjs)
+    public static boolean deleteDoShowError(final boolean doShowError, final Object...dataObjs)
     {
         errMsg = null;
         

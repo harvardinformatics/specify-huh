@@ -1251,8 +1251,8 @@ public class QueryTask extends BaseTask
     protected void persistQuery(final SpQuery query, final SpExportSchemaMapping schemaMapping)
     {
         // TODO Add StaleObject Code from FormView
-    	boolean saved = schemaMapping == null ? DataModelObjBase.save(true, query) 
-    			: DataModelObjBase.save(true, query, schemaMapping);
+    	boolean saved = schemaMapping == null ? DataModelObjBase.saveDoShowError(true, query) 
+    			: DataModelObjBase.saveDoShowError(true, query, schemaMapping);
         if (saved)
         {
             FormHelper.updateLastEdittedInfo(query);
@@ -1916,7 +1916,7 @@ public class QueryTask extends BaseTask
      */
     protected boolean saveImportedQueries(List<SpQuery> queriesList)
     {
-    	return DataModelObjBase.save(true, queriesList);
+    	return DataModelObjBase.saveDoShowError(true, queriesList);
     }
     /**
      * @return id for usage tracker

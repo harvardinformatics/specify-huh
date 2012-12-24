@@ -192,7 +192,7 @@ public class InfoRequestTask extends BaseTask
         Timestamp now = new Timestamp(System.currentTimeMillis());
         infoRequest.setTimestampCreated(now);
         
-        if (DataModelObjBase.save(true, infoRequest))
+        if (DataModelObjBase.saveDoShowError(true, infoRequest))
         {
             NavBoxMgr.getInstance().addBox(navBox);
             
@@ -498,7 +498,7 @@ public class InfoRequestTask extends BaseTask
         } else if (cmdAction.isAction(DELETE_CMD_ACT) && cmdAction.getData() instanceof RecordSetIFace)
         {
             InfoRequest inforRequest = (InfoRequest)cmdAction.getData();
-            if (DataModelObjBase.delete(true, inforRequest))
+            if (DataModelObjBase.deleteDoShowError(true, inforRequest))
             {
                 deleteInfoRequestFromUI(null, inforRequest);
             }

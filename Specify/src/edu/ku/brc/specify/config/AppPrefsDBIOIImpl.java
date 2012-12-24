@@ -237,7 +237,7 @@ public class AppPrefsDBIOIImpl implements AppPrefsIOIFace
                 }
                 byteOut.close();
                 
-                DataModelObjBase.save(true, spAppResourceDir, spAppResource);
+                DataModelObjBase.saveDoShowError(true, spAppResourceDir, spAppResource);
                 
             } catch (IOException ex)
             {

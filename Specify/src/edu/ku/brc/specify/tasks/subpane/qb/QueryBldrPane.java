@@ -2803,11 +2803,11 @@ public class QueryBldrPane extends BaseSubPane implements QueryFieldPanelContain
             
             if (schemaMapping != null)
             {
-            	result =  DataModelObjBase.save(true, query, schemaMapping);
+            	result =  DataModelObjBase.saveDoShowError(true, query, schemaMapping);
             }
             else
             {
-            	result =  DataModelObjBase.save(true, query);
+            	result =  DataModelObjBase.saveDoShowError(true, query);
             }
             if (result)
             {

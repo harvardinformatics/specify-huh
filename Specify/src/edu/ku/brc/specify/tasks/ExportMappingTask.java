@@ -1108,14 +1108,14 @@ public class ExportMappingTask extends QueryTask
 				//SpExportSchemas (and their contents).
 				e.getSpExportSchemaMappings().clear(); 
 				
-				if (!DataModelObjBase.save(true, e))
+				if (!DataModelObjBase.saveDoShowError(true, e))
 				{
 					return false;
 				}
 			}
 			
 			m.setMappingName(q.getName()); //assuming q already got a unique name and that mapping name==query name always
-			if (!DataModelObjBase.save(true, q, m))
+			if (!DataModelObjBase.saveDoShowError(true, q, m))
 			{
 				return false;
 			}
