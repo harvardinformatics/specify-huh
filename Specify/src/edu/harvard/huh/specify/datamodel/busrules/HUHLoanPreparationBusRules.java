@@ -133,7 +133,13 @@ public class HUHLoanPreparationBusRules extends LoanPreparationBusRules implemen
             Component srcTaxonComp    = formViewObj.getControlById(SRC_TAXONOMY);
 
             if (srcTaxonComp != null && srcTaxonComp instanceof JTextField) {
-            	((JTextField) srcTaxonComp).setText(lpUtil.getTaxonName());
+            	String userEnteredTaxonName = ((JTextField) srcTaxonComp).getText();
+            	if (userEnteredTaxonName == null || userEnteredTaxonName.trim().length() == 0) {
+            		String determinationTaxonName = lpUtil.getTaxonName();
+            		if (determinationTaxonName != null) {
+            			((JTextField) srcTaxonComp).setText(determinationTaxonName);
+            		}
+            	}
             }
                   
     		
