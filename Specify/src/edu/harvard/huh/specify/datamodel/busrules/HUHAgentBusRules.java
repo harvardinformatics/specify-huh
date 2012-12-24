@@ -27,9 +27,15 @@ import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
+import javax.swing.AbstractListModel;
 import javax.swing.JComboBox;
+import javax.swing.JLabel;
+import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
 
+import edu.ku.brc.af.ui.db.PickListDBAdapterIFace;
+import edu.ku.brc.af.ui.db.PickListItemIFace;
+import edu.ku.brc.af.ui.db.TextFieldFromPickListTable;
 import edu.ku.brc.af.ui.forms.FormViewObj;
 import edu.ku.brc.af.ui.forms.Viewable;
 import edu.ku.brc.af.ui.forms.validation.ValComboBox;
@@ -260,7 +266,7 @@ public class HUHAgentBusRules extends AgentBusRules
         // address is handled in fixUpTypeCBX
         enableFieldAndLabel(FIRST_NAME, isPerson, doSetOtherValues ? agent.getFirstName() : null);
         setVisible(GROUP_PERSONS, isGroup);
-        enableFieldAndLabel(DATES_TYPE, true, doSetOtherValues ? agent.getMiddleInitial() : null);
+        enableFieldAndLabel(DATES_TYPE, true, doSetOtherValues ? agent.getDatesType() : null);
         enableFieldAndLabel(INITIALS, isPerson, doSetOtherValues ? agent.getInitials() : null);
         enableFieldAndLabel(INTERESTS, isPerson, doSetOtherValues ? agent.getInterests() : null);
         enableFieldAndLabel(JOB_TITLE, isPerson, doSetOtherValues ? agent.getJobTitle() : null);
@@ -272,5 +278,89 @@ public class HUHAgentBusRules extends AgentBusRules
     {
         Component field  = formViewObj.getCompById(componentId);
         if (field != null) field.setVisible(visible);
+    }
+    
+    /**
+     * Enables/Disables both the control and the Label
+     * @param id the id of the control
+     * @param enabled enable it
+     * @param value the value it should set
+     */
+    protected void enableFieldAndLabel(final String      id, 
+                                       final boolean     enabled,
+                                       final Byte      value)
+    {
+    	if (formViewObj == null) return;
+    	
+        Component field  = formViewObj.getCompById(id);
+        if (field != null)
+        {
+            field.setEnabled(enabled);
+            
+            if (field instanceof TextFieldFromPickListTable)
+            {
+                String title = "";
+                PickListDBAdapterIFace adaptor = ((TextFieldFromPickListTable)field).getPickListAdapter();
+                if (adaptor != null)
+                {
+                    for (PickListItemIFace pli : adaptor.getList())
+                    {
+                    	String pickListValue = pli.getValue();
+                    	String dbValue = String.valueOf(value);
+                        if (pickListValue.equals(dbValue))
+                        {
+                            title = pli.getTitle();
+                            break;                                
+                        }
+                    }
+                    ((TextFieldFromPickListTable)field).setText(title);
+                } else
+                {
+                    log.error("Adapter was null for id ["+id+"] on the Agent Form.");
+                }
+                return;
+            }
+            
+            if (field instanceof JComboBox || 
+                field instanceof ValComboBox)
+            {
+                JComboBox cbx = field instanceof ValComboBox ? ((ValComboBox)field).getComboBox() : (JComboBox)field;
+                int inx = -1;
+                if (value != null)
+                {
+                    AbstractListModel model = (AbstractListModel)cbx.getModel();
+                    for (int i=0;i<model.getSize();i++)
+                    {
+                        Object item = model.getElementAt(i);
+                        if (item instanceof PickListItemIFace)
+                        {
+                            PickListItemIFace pli = (PickListItemIFace)item;
+                            String pickListValue = pli.getValue();
+                        	String dbValue = String.valueOf(value);
+                            if (pickListValue.equals(dbValue))
+                            {
+                                inx = i;
+                                break;                                
+                            }
+                        } else if (item.toString().equals(value))
+                        {
+                            inx = i;
+                            break;
+                        }
+                    }
+                }
+                //System.err.println("AgentBusRules - id "+id+" setting to "+inx);
+                cbx.setSelectedIndex(inx);
+                
+            } else
+            {
+                log.debug("******** unhandled component type: "+field);
+            }
+            JLabel label = formViewObj.getLabelFor(field);
+            if (label != null)
+            {
+                label.setEnabled(enabled);
+            }
+        }
     }
 }
