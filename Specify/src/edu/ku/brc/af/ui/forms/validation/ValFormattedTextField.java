@@ -383,7 +383,7 @@ public class ValFormattedTextField extends JPanel implements UIValidatable,
             g.dispose();
             
             Insets ins = txt.getBorder().getBorderInsets(txt);
-            int baseWidth = ins.left + ins.right;
+            int baseWidth = ins.left + ins.right + 10; // mmk BugID 606
             
             bgColor = txt.getBackground();
     
