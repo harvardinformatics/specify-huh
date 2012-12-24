@@ -151,7 +151,7 @@ public class HUHLoanBusRules extends AttachmentOwnerBaseBusRules
                 } 
             } else 
             {
-                Integer dueInMonths = AppPreferences.getRemote().getInt(DUEINMONTHS, 6);
+                Integer dueInMonths = AppPreferences.getRemote().getInt(DUEINMONTHS, 13); // mmk: BugID 608
                 if (dueInMonths != null)
                 {
                     Calendar date = Calendar.getInstance();
