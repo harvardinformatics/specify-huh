@@ -19,6 +19,19 @@
 */
 package edu.harvard.huh.specify.datamodel.busrules;
 
+import java.awt.Component;
+
+import javax.swing.JTextField;
+
+import org.apache.commons.lang.StringUtils;
+
+import edu.ku.brc.af.ui.db.PickListDBAdapterIFace;
+import edu.ku.brc.af.ui.db.PickListItemIFace;
+import edu.ku.brc.af.ui.db.TextFieldWithInfo;
+import edu.ku.brc.af.ui.forms.persist.AltViewIFace.CreationMode;
+import edu.ku.brc.af.ui.forms.validation.ValCheckBox;
+import edu.ku.brc.af.ui.forms.validation.ValComboBox;
+import edu.ku.brc.af.ui.forms.validation.ValComboBoxFromQuery;
 import edu.ku.brc.specify.datamodel.Determination;
 import edu.ku.brc.specify.datamodel.Fragment;
 import edu.ku.brc.specify.datamodel.busrules.DeterminationBusRules;
@@ -62,5 +75,33 @@ public class HUHDeterminationBusRules extends DeterminationBusRules
             }
         }
         return status;
+    }
+    
+    /* (non-Javadoc)
+     * @see edu.ku.brc.ui.forms.BaseBusRules#afterFillForm(java.lang.Object)
+     */
+    @Override
+    public void afterFillForm(final Object dataObj)
+    {
+    	super.afterFillForm(dataObj);
+
+    	final Component altNameComp = formViewObj.getControlByName("alternateName");
+    	
+    	final Component taxonComp = formViewObj.getControlByName("taxon");
+    	
+    	if (altNameComp != null && taxonComp != null)
+    	{
+    		if (taxonComp instanceof ValComboBoxFromQuery) {
+    			altNameComp.setEnabled(((ValComboBoxFromQuery) taxonComp).getValue() == null);
+    		}
+    		else if (taxonComp instanceof TextFieldWithInfo) {
+    			altNameComp.setEnabled(((TextFieldWithInfo) taxonComp).getValue() == null);
+    		}
+    	}
+    	if (taxonComp != null && altNameComp != null && altNameComp instanceof JTextField)
+    	{
+    		String text = ((JTextField) altNameComp).getText();
+    		taxonComp.setEnabled(text == null || text.trim().length() == 0);
+    	}
     }
 }
