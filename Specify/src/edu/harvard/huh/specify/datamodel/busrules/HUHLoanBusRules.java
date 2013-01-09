@@ -144,7 +144,7 @@ public class HUHLoanBusRules extends AttachmentOwnerBaseBusRules
                     
                 } finally
                 {
-                    if (session != null && formViewObj.getSession() == null)
+                    if (session != null && (formViewObj != null && formViewObj.getSession() == null)) // mmk: BugID 620
                     {
                         session.close();
                     }
