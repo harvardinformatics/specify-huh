@@ -308,7 +308,7 @@
  FROM collectionobject co
  LEFT JOIN collectingevent ce ON co.CollectingEventID = ce.CollectingEventID
  LEFT JOIN collector ctr ON ce.CollectingEventID = ctr.CollectingEventID
- LEFT JOIN agent ON ctr.AgentID = ag.AgentID
+ LEFT JOIN agent ag ON ctr.AgentID = ag.AgentID
  LEFT JOIN agentvariant av ON (ag.AgentID = av.AgentID AND av.VarType="4")
  JOIN fragment frag ON co.CollectionObjectID = frag.CollectionObjectID
  JOIN preparation pp ON frag.PreparationID = pp.PreparationID
@@ -497,6 +497,8 @@
  FROM fragment frag
  JOIN loanpreparation lpo ON frag.PreparationID = lpo.PreparationID
  JOIN loan ln ON lpo.LoanID = ln.LoanID
+ LEFT JOIN preparation pp on frag.PreparationID = pp.PreparationID
+ LEFT JOIN preptype ppt on pp.PrepTypeID = ppt.PrepTypeID
  WHERE %s
  ORDER BY ln.LoanNumber, lpo.PreparationID, frag.Identifier]]>
                 </sql>
@@ -770,11 +772,12 @@
  pp.PreparationID,
  ln.LoanNumber,
  ppt.Name,
- frag.Identifier
+ frag.Identifier,
  %s 
  FROM preparation pp
- JOIN preptype ppt ON pp.PrepTypeID = preptype.PrepTypeID
+ JOIN preptype ppt ON pp.PrepTypeID = ppt.PrepTypeID
  JOIN loanpreparation lpo ON pp.PreparationID = lpo.PreparationID
+ JOIN loan ln on lpo.LoanID = ln.LoanID
  LEFT JOIN fragment frag ON pp.PreparationID=frag.PreparationID
  WHERE %s
  ORDER BY ln.LoanID, lpo.PreparationID, frag.Identifier]]>
