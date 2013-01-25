@@ -33,6 +33,7 @@ import javax.swing.JCheckBox;
 
 import org.apache.commons.lang.StringUtils;
 
+import edu.harvard.huh.specify.util.LoanPrepUtil;
 import edu.ku.brc.af.prefs.AppPreferences;
 import edu.ku.brc.af.prefs.AppPrefsCache;
 import edu.ku.brc.af.ui.forms.DraggableRecordIdentifier;
@@ -266,6 +267,7 @@ public class HUHLoanBusRules extends AttachmentOwnerBaseBusRules
                 }
             }
         }
+
         return STATUS.OK;
     }
     
@@ -349,9 +351,10 @@ public class HUHLoanBusRules extends AttachmentOwnerBaseBusRules
                     	(lp.getTypeCount() != null ? lp.getTypeCount() : 0) +
                     	(lp.getNonSpecimenCount() != null ? lp.getNonSpecimenCount() : 0);
         			for (LoanReturnPreparation lrp : loanReturnPreparations) {
+        				
         				returnedCount += (lrp.getItemCount() != null ? lrp.getItemCount() : 0) +
-            				            (lrp.getTypeCount() != null ? lp.getTypeCount() : 0) +
-            				            (lrp.getNonSpecimenCount() != null ? lp.getNonSpecimenCount() : 0);
+            				            (lrp.getTypeCount() != null ? lrp.getTypeCount() : 0) +
+            				            (lrp.getNonSpecimenCount() != null ? lrp.getNonSpecimenCount() : 0);
         				}
 	    		    	/* If the preparation is marked isResolved, the qty returned is less than qty
 	    		    	loaned and the prepartion does not contain a return with 0 for all counts
@@ -388,6 +391,43 @@ public class HUHLoanBusRules extends AttachmentOwnerBaseBusRules
 	        	}
         }
         	
+    	return true;
+    }
+    
+    @Override
+    public boolean beforeSaveCommit(final Object dataObj, DataProviderSessionIFace session) throws Exception {
+
+    	boolean result = super.beforeSaveCommit(dataObj, session);
+    	if (result == false) return result;
+
+    	Loan l = (Loan) dataObj;
+    	
+    	Set<LoanPreparation> loanPreps = l.getLoanPreparations();
+    	if (loanPreps == null) return true;
+
+    	for (LoanPreparation loanPrep : loanPreps) {
+    		
+    		Preparation prep = loanPrep.getPreparation();
+    		if (prep == null) continue;
+
+    		LoanPrepUtil lpUtil = new LoanPrepUtil(loanPrep);
+
+    		int itemTotal = lpUtil.getItemCount();
+    		int typeTotal = lpUtil.getTypeCount();
+    		int nonSpecTotal = lpUtil.getNonSpecimenCount();
+
+    		int total = itemTotal + typeTotal + nonSpecTotal;
+
+    		Boolean isLot = lpUtil.isLot();
+
+    		if (prep != null && (isLot != null && isLot)) {
+    			Integer countAmt = prep.getCountAmt();
+    			if (countAmt == null || countAmt != total) {
+    				prep.setCountAmt(total);
+    			}
+    		}
+    	}
+    	
     	return true;
     }
 }
