@@ -442,6 +442,7 @@
       <picklistitem title="nom. nov." value="NomNov"/>
       <picklistitem title="nom. cons." value="NomCons"/>
       <picklistitem title="nom. rej." value="NomRej"/>
+      <picklistitem title="nom. utique rej." value="NomUtiqueRej"/>
       <picklistitem title="nom. superfl." value="NomSuperfl"/>
       <picklistitem title="synonym" value="Synonym"/>
       <picklistitem title="later homonym" value="LaterHomonym"/>
