@@ -76,23 +76,11 @@
         class="edu.ku.brc.specify.datamodel.Agent"
         default="true"
         >
-        <switch single="false" field="agentType">
-            <fields value="0">
-            	<field>abbreviation</field>
-                <field sep=" ">lastName</field>
-            </fields>
-            <fields value="1">
-            	<field>firstName</field>
-	            <field sep=" ">lastName</field>
-                <field>dateOfBirth</field>
-                <field sep="-">dateOfDeath</field>
-            </fields>
-            <fields value="2">
-                <field>lastName</field>
-            </fields>
-            <fields value="3">
-                <field>lastName</field>
-            </fields>
+        <!-- mmk: replacing simple formatter with this new class for BugID 586 -->
+        <switch single="true">
+            <external class="edu.harvard.huh.specify.ui.AgentFmt">
+				<param name="varType">3</param>
+            </external>
         </switch>
     </format>
 

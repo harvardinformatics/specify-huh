@@ -407,20 +407,16 @@ Good: <cell type="field" name="FieldNum" ...>
                     <cell type="field" id="2" name="FirstName" uitype="text" cols="20"/>
                 </row>
                 <row>
-                    <cell type="label" labelfor="4" label="Address"/>
-                    <cell type="field" id="4" name="Address" uitype="text" cols="20"/>
+                    <cell type="label" labelfor="3" label="Variant Name"/>
+                    <cell type="field" id="3" name="Name" uitype="text" cols="20"/>
+                    <cell type="label" labelfor="4" label="Country"/>
+                    <cell type="field" id="4" name="Country" uitype="text" cols="20"/>
                 </row>
                 <row>
                     <cell type="label" labelfor="5" label="City"/>
                     <cell type="field" id="5" name="City" uitype="text" cols="20"/>
                     <cell type="label" labelfor="6" label="State"/>
                     <cell type="field" id="6" name="State" uitype="text" cols="15"/>
-                </row>
-                <row>
-                    <cell type="label" labelfor="7" label="Postal Code"/>
-                    <cell type="field" id="7" name="Postalcode" uitype="text" cols="11"/>
-                    <cell type="label" labelfor="8" label="Country"/>
-                    <cell type="field" id="8" name="Country" uitype="text" cols="20"/>
                 </row>
             </rows>
         </viewdef>

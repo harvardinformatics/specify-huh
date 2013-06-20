@@ -1252,25 +1252,22 @@
                     <![CDATA[SELECT ag.AgentID, 
  ag.FirstName, 
  ag.LastName, 
- ag.EMail, 
- ad.Address, 
+ av.Name,
  ad.City, 
  ad.State, 
- ad.Postalcode, 
  ad.Country 
  FROM agent ag INNER JOIN agent_discipline ON ag.AgentID = agent_discipline.AgentID 
  LEFT JOIN address ad ON ag.AgentID = ad.AgentID 
- WHERE agent_discipline.DisciplineID = DSPLNID AND (%s) GROUP BY ag.AgentID ORDER BY ag.LastName, ag.FirstName]]>
+ LEFT JOIN agentvariant av ON ag.AgentID = av.AgentID
+ WHERE agent_discipline.DisciplineID = DSPLNID AND (%s) GROUP BY ag.AgentID ORDER BY ifnull(ag.LastName, av.Name), ag.FirstName]]>
                 </sql>
                 <captions>
                     <caption tableid="5" col="AgentID" visible="false"/>
                     <caption tableid="5" col="FirstName"/>
                     <caption tableid="5" col="LastName"/>
-                    <caption tableid="5" col="EMail"/>
-                    <caption tableid="8" col="Address"/>
+                    <caption tableid="107" col="Name" field="name"/>
                     <caption tableid="8" col="City"/>
                     <caption tableid="8" col="State"/>
-                    <caption tableid="8" col="Postalcode"/>
                     <caption tableid="8" col="Country"/>
                 </captions>
             </detailView>
