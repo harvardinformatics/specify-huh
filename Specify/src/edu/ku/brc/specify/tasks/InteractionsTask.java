@@ -1631,6 +1631,53 @@ public class InteractionsTask extends BaseTask
     }
     
     /**
+     * mmk: see checkToPrintLoan above
+     * 
+     * @param cmdAction
+     */
+    protected void checkToPrintAccessionReport(final CommandAction cmdAction)
+    {
+        if (cmdAction.getData() instanceof Accession)
+        {
+        	Accession accession = (Accession) cmdAction.getData();
+            
+            Boolean     printLoan   = null;
+            FormViewObj formViewObj = getCurrentFormViewObj();
+            if (formViewObj != null)
+            {
+                Component comp = formViewObj.getControlByName("generateInvoice");
+                if (comp instanceof JCheckBox)
+                {
+                    printLoan = ((JCheckBox)comp).isSelected();
+                }
+            }
+
+        	File reportsDir = new File(UIRegistry.getDefaultWorkingPath() + File.separator + ReportXslFiles.REPORTS_DIR);
+            Integer option = JOptionPane.showConfirmDialog(null, "Would you like to generate a report for accession " + accession.getAccessionNumber() + "?", "Generate Report", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
+            
+            if (option == JOptionPane.YES_OPTION) {
+	            try {
+	                ReportAccession brn = new ReportAccession(accession);
+	        		ByteArrayOutputStream out = new ByteArrayOutputStream();
+	                
+	    			DataModelObjectMarshaller<ReportAccession> marshaller = new DataModelObjectMarshaller<ReportAccession>(brn);
+	            	marshaller.transform(new StreamSource(reportsDir.getAbsoluteFile() + File.separator + ReportXslFiles.ACCESSION_REPORT), out);
+	                DataModelObjectReport report = new DataModelObjectReport(new StreamSource(new ByteArrayInputStream(out.toByteArray())));
+	                report.generatePDF();
+	                
+				} catch (Exception e) {
+					e.printStackTrace();
+					JOptionPane.showMessageDialog(null, "Failed to generate invoice pdf!", "Error", JOptionPane.ERROR_MESSAGE);
+				} finally {
+	                cmdAction.setConsumed(true);
+				}
+            }
+            cmdAction.setConsumed(true);
+			
+        }
+    }
+    
+    /**
      * @param invoice
      * @param rs
      * 
@@ -2667,6 +2714,7 @@ public class InteractionsTask extends BaseTask
             {
                 checkToPrintLoan(cmdAction);
                 // TODO checkToPrintAccession(cmdAction);
+                checkToPrintAccessionReport(cmdAction);
                 checkToPrintBorrowNotice(cmdAction);
                 checkToPrintExchangeNotice(cmdAction);
                 checkToPrintGiftNotice(cmdAction);

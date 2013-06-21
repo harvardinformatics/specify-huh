@@ -23,24 +23,18 @@
 package edu.harvard.huh.specify.reports;
 
 import java.io.File;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 import edu.ku.brc.specify.datamodel.Accession;
 import edu.ku.brc.specify.datamodel.AccessionAgent;
 import edu.ku.brc.specify.datamodel.AccessionPreparation;
-import edu.ku.brc.specify.datamodel.Address;
-import edu.ku.brc.specify.datamodel.Collector;
-import edu.ku.brc.specify.datamodel.Determination;
-import edu.ku.brc.specify.datamodel.Fragment;
+import edu.ku.brc.specify.datamodel.Agent;
 import edu.ku.brc.specify.datamodel.Geography;
-import edu.ku.brc.specify.datamodel.Loan;
-import edu.ku.brc.specify.datamodel.LoanPreparation;
-import edu.ku.brc.specify.datamodel.Shipment;
+import edu.ku.brc.specify.datamodel.Preparation;
 import edu.ku.brc.ui.UIRegistry;
 
 /** Java object representation of a Loan Report for use with HUH loans.
@@ -53,38 +47,31 @@ import edu.ku.brc.ui.UIRegistry;
  */
 public class ReportAccession {
 	private static final int REGION_RANK_ID = 150;
+	
 	private String reportsDir = UIRegistry.getDefaultWorkingPath() + File.separator + ReportXslFiles.REPORTS_DIR;
-	private String nameOfContact;
-	private String title;
-	private String jobTitle;
-	private String institution;
-	private String acronym;
-	private String address1;
-	private String address2;
-	private String city;
-	private String state;
-	private String zip;
-	private String country;
-	private String nameOfShippedBy;
+	
 	private String accessionNumber;
-	private Calendar dateSent;
-	private Calendar dateDue;
-	private String forUseBy;
-	private int numberOfPackages;
+	private String institution; // Text1
+	private String accessionDate;
+	private String recipientName; // accessionAgent(role="Receiver")
+
+	private String reportTitle;
+
+	private String staffName; // accessionAgent(role="Collector") but also see getStaff(Accession)
+	private String affiliation; // Text1
 	
-	private int fragmentCount;
-	private int generalCollectionCount;
+	private String description;
+	
+	private List<Region> regions;
+
+	private int nonTypeCount;
+	private int typeCount;
 	private int nonSpecimenCount;
-	private int barcodedSpecimenCount;
-	private int unbarcodedTotalCount;
-	private int preparationCount;
-	private int totalCount;
-	private String accessionCondition;
-	private String remarks;
-	
-	
-	private List<BarcodedSpecimen> barcodedSpecimens = new ArrayList<BarcodedSpecimen>();
-	private Set<UnbarcodedSpecimen> unbarcodedSpecimens = new HashSet<UnbarcodedSpecimen>();;
+	private int discardCount;
+	private int distributeCount;
+	private int returnCount;
+	private int net;
+	private int total;
 	
 	/** Default constructor explicitly declared for the purposes of JibX binding requirements
 	 * 
@@ -97,229 +84,186 @@ public class ReportAccession {
 	 * @param loan
 	 */
 	public ReportAccession(Accession accession) {
-		//if(loan.getShipments() != null)
-		//	processShipment(loan.getShipments());
 		
+		// upper right summary
 		accessionNumber = accession.getAccessionNumber();
-		dateDue = accession.getDateAccessioned();
-		forUseBy = extractForUseBy(accession);
-		accessionCondition = accession.getAccessionCondition();
-		remarks = accession.getRemarks();
-		
-		Set<AccessionPreparation> accPreparations = new HashSet<AccessionPreparation>();
-		
-		if(accession.getAccessionPreparations() != null)
-			accPreparations = accession.getAccessionPreparations();
+		institution = accession.getText1();
+		accessionDate = getAccessionDate(accession);
+		recipientName = getRecipient(accession);
 
-		//initializeCounts(accPreparations);
+		// title
+		reportTitle = getReportTitle(accession);
 		
-		for (AccessionPreparation ap : accPreparations) {
+		// staff, affiliation
+		staffName = getStaff(accession);
+		affiliation = institution;
+		
+		// description
+		description = accession.getAccessionCondition();
+		
+		// report
+		regions = getRegions(accession);
+		
+		// totals
+		updateTotals(regions);
+	}
+	
+	private void updateTotals(List<Region> regions2) {
+		for (Region r : regions) {
+			nonTypeCount += r.nonTypeCount;
+			typeCount += r.typeCount;
+			nonSpecimenCount += r.nonSpecimenCount;
+			discardCount += r.discardCount;
+			distributeCount += r.distributeCount;
+			returnCount += r.returnCount;
+			net += r.net;
+			total += r.total;
+		}
+		
+	}
+
+	/**
+	 * Inner class that represents the aggregate counts of accession
+	 * preparations by region.
+	 * 
+	 * @author mkelly
+	 *
+	 */
+	private class Region implements Comparable<Region> {
+		private String name = "";
+		private int nonTypeCount;
+		private int typeCount;
+		private int nonSpecimenCount;
+		private int discardCount;
+		private int distributeCount;
+		private int returnCount;
+		private int net;
+		private int total;
+		
+		public int compareTo(Region region) {
+			return name.compareTo(region.name);
+		}
+	}
+	
+	private String getReportTitle(Accession accession) {
+		
+		String type = accession.getType();
+		if (type.equals("FieldWork")) {
+			return "Incoming Staff Collection";
+		}
+
+		if (type.equals("Gift") ||
+				type.equals("Exchange") ||
+				type.equals("Purchase")) {
+			return "Incoming Exchange, Gift, or Purchase";
+		}
+
+		return "Accession";
+	}
+	
+	private String getRecipient(Accession accession) {
+		
+		Agent a = getAgent(accession, "Receiver");
+		
+		String name = toString(a);
+		return name;
+	}
+
+	private String getStaff(Accession accession) {
+
+		Agent student = getAgent(accession, "Student");
+		Agent collector = getAgent(accession, "Collector");
+		Agent staff = getAgent(accession, "Staff");
+		Agent sponsor = getAgent(accession, "Sponsor");
+		
+		String name = "";
+		String advisorName = "";
+		
+		if (student != null) {
+			name = toString(student);
 			
-			if (ap.getPreparation() != null) {
-				if (ap.getPreparation().getPrepType() != null && ap.getPreparation().getPrepType().getName().equals("Lot")) {
-					UnbarcodedSpecimen lot = new UnbarcodedSpecimen();
-					lot.sheetCount = (ap.getItemCount() != null ? ap.getItemCount() : 0) +
-					                 (ap.getTypeCount() != null ? ap.getTypeCount() : 0) +
-					                 (ap.getNonSpecimenCount() != null ? ap.getNonSpecimenCount() : 0);
-					if (lot.taxon != null) {
-						lot.taxon = ap.getPreparation().getTaxon().getFullName();
-					}
-					
-					
-					lot.description = ap.getDescriptionOfMaterial();
+			Agent advisor = collector;
+			if (advisor == null) advisor = staff;
+			if (advisor == null) advisor = sponsor;
+			if (advisor != null) advisorName = ", advisor: " + toString(advisor);
+		}
+		else {
+			if (collector != null) name = toString(collector);
+			else if (staff != null) name = toString(staff);
+		}
+
+		return name + advisorName;
+	}
+	
+	private List<Region> getRegions(Accession accession) {
+		List<Region> regions = new ArrayList<Region>();
+		
+		for (AccessionPreparation ap : accession.getAccessionPreparations()) {
+			
+			Region r = new Region();
+			
+			Preparation p = ap.getPreparation();
+			if (p != null) {
+				Geography g = p.getGeography();
 				
-					unbarcodedSpecimens.add(lot);
-					
-					generalCollectionCount += (ap.getItemCount() != null ? ap.getItemCount() : 0) +
-	                                          (ap.getTypeCount() != null ? ap.getTypeCount() : 0);
-				} else {
-					preparationCount++;
-					BarcodedSpecimen barcoded = new BarcodedSpecimen();
-					Boolean firstPrepBarcode = false;
-					for (Fragment f : ap.getPreparation().getFragments()) {
-						fragmentCount++;
-						BarcodedItem item = new BarcodedItem();
-						if (f.getIdentifier() != null) {
-							item.identifier = f.getIdentifier();
-							barcodedSpecimenCount++; // count barcoded items only
-						} else if (ap.getPreparation().getIdentifier() != null && !firstPrepBarcode) {
-							item.identifier = ap.getPreparation().getIdentifier();
-							firstPrepBarcode = true;
-							barcodedSpecimenCount++; // count barcoded items only
-						}
-						if (f.getDeterminations() != null) {
-							for (Determination d : f.getDeterminations()) {
-								if (d.isCurrentDet()) {
-									if (d.getTaxon() != null) {
-										item.taxon = d.getTaxon().getFullName();
-									} else {
-										item.taxon = d.getAlternateName();
-									}
-								}
-								if (d.getTypeStatusName() != null) {
-									item.type = "Type";
-								}
-							}
-						}
-						if (f.getCollectionObject() != null && f.getCollectionObject().getCollectingEvent() != null) {
-							if (f.getCollectionObject().getCollectingEvent().getCollectors() != null) {
-								for (Collector c : f.getCollectionObject().getCollectingEvent().getCollectors()) {
-									if (c.getAgent() != null)
-										item.collectorName = c.getAgent().getCollectorName();
-								}
-							}
-							if (f.getCollectionObject().getCollectingEvent().getStationFieldNumber() != null && f.getCollectionObject().getCollectingEvent().getStationFieldNumber() != "") {
-								item.collectorNumber = f.getCollectionObject().getCollectingEvent().getStationFieldNumber();
-							} else {
-								item.collectorNumber = f.getCollectionObject().getFieldNumber();
-							}
+				if (g != null) {
+					Geography parent = g.getParent();
+					Integer rankId = g.getRankId();
+
+						while (rankId > REGION_RANK_ID && p != null) {
 							
-							/* Loan report no longer displaying region. This code does not account for a geography with a rank that is 
-							 * initially higher than region. In that case the while loop will attempt to obtain a rankId on the root node 
-							 * which is null
-							  
-								if (f.getCollectionObject().getCollectingEvent().getLocality() != null &&
-									f.getCollectionObject().getCollectingEvent().getLocality().getGeography() != null) {
-								Geography geography = f.getCollectionObject().getCollectingEvent().getLocality().getGeography();
-								
-								while(geography.getRankId() != REGION_RANK_ID) {
-									geography = geography.getParent();
-								}
-								
-								item.region = geography.getName();
-							} */
-							
-							barcoded.items.add(item);
+							rankId = g.getRankId();
+							g = parent;
+							parent = g.getParent();
 						}
-					}
-					barcodedSpecimens.add(barcoded);
-					
-					/* fragmentCount += (lp.getItemCount() != null ? lp.getItemCount() : 0)
-					                       + (lp.getTypeCount() != null ? lp.getTypeCount() : 0); */
-				}
-			}
-			nonSpecimenCount += ap.getNonSpecimenCount() != null ? ap.getNonSpecimenCount() : 0;
-		}
-		Collections.sort(barcodedSpecimens);
-		for(BarcodedSpecimen specimen : barcodedSpecimens) {
-			Collections.sort(specimen.items);
-		}
-		
-		totalCount = generalCollectionCount + nonSpecimenCount + barcodedSpecimenCount;
-		unbarcodedTotalCount = generalCollectionCount + nonSpecimenCount;
-	}
-	
-	private String extractForUseBy(Accession accession) {
-
-		String forUseBy = null;
-		
-		for (AccessionAgent accessionAgent : accession.getAccessionAgents()) {
-			if (ROLE.Receiver.equals(accessionAgent.getRole())) {
-				forUseBy = accessionAgent.getAgent().getLastName();
-			}
-		}
-
-		return forUseBy;
-	}
-
-	/** Finds the current shipment and pulls the agent address values, date and other
-	 * information to be used on the report
-	 * 
-	 * @param shipments
-	 */
-	private void processShipment(Set<Shipment> shipments) {
-		Shipment curr = null;
-		for (Shipment s : shipments) {
-			if (curr == null || curr.getShipmentDate().before(s.getShipmentDate())) {
-				curr = s;
-			}
-		}
-		if (curr != null) {
-			dateSent = curr.getShipmentDate();
-			numberOfPackages = curr.getNumberOfPackages() != null ? curr.getNumberOfPackages() : 0;
-			
-			if (curr.getShippedTo() != null) {
-				nameOfContact = curr.getShippedTo().getFirstName() + " " + curr.getShippedTo().getLastName();
-				if (curr.getShippedTo().getTitle() != null) {
-					title = curr.getShippedTo().getTitle();
-					title = title.substring(0,1).toUpperCase() + title.substring(1);
-				}
-				jobTitle = curr.getShippedTo().getJobTitle() != null ? curr.getShippedTo().getJobTitle() : "";
-				if (curr.getShippedTo().getOrganization() != null) {
-					institution =  curr.getShippedTo().getOrganization().getLastName();
-					acronym = curr.getShippedTo().getOrganization().getAbbreviation();
-				}
-				
-				if (curr.getShippedTo().getAddresses() != null) {
-					for (Address a : curr.getShippedTo().getAddresses()) {
-						if (a.getIsShipping() != null && a.getIsShipping()) {
-							address1 = a.getAddress();
-							address2 = a.getAddress2();
-							city = a.getCity();
-							state = a.getState();
-							zip = a.getPostalCode();
-							country = a.getCountry();
-						}
-					}
+						r.name = g.getName();
 				}
 			}
 			
-			if (curr.getShippedBy() != null)
-				nameOfShippedBy = curr.getShippedBy().getFirstName() + " " + curr.getShippedBy().getLastName();
-		}
-	}
-	
-	/** Inner class that contains a HashSet representation of all the 
-	 * LoanPreparation fragments associated with barcoded loan preparations
-	 * 
-	 * @author lowery
-	 *
-	 */
-	private class BarcodedSpecimen implements Comparable<BarcodedSpecimen> {
-		private List<BarcodedItem> items = new ArrayList<BarcodedItem>();
-		
-		private BarcodedItem getSortItem() {
-			BarcodedItem sortItem = null;
-			for (BarcodedItem item : items) {
-				if (sortItem == null || sortItem.compareTo(item) == 1)
-					sortItem = item;
-			}
-			return sortItem;
-		}
-		
-		public int compareTo(BarcodedSpecimen specimen) {
+			r.nonTypeCount = ap.getItemCount();
+			r.typeCount = ap.getTypeCount();
+			r.nonSpecimenCount = ap.getNonSpecimenCount();
+			r.discardCount = ap.getDiscardCount();
+			r.distributeCount = ap.getDistributeCount();
+			r.returnCount = ap.getReturnCount();
+			r.total = r.nonTypeCount + r.typeCount + r.nonSpecimenCount;
+			r.net = r.total - r.discardCount - r.distributeCount - r.returnCount;
 			
-			if (!getSortItem().identifier.equals("") && !specimen.getSortItem().identifier.equals("") && Double.parseDouble(getSortItem().identifier) > Double.parseDouble(specimen.getSortItem().identifier)) return 1;
-			else return -1;
+			regions.add(r);
 		}
-	}
-	
-	/** Inner class representation of fragments associated with a barcoded loan preparation.
-	 * @author lowery
-	 *
-	 */
-	private class BarcodedItem implements Comparable<BarcodedItem> {
-		private String identifier = "";
-		private String taxon;
-		private String type;
-		private String collectorName;
-		private String collectorNumber;
-		private String region;
 		
-		public int compareTo(BarcodedItem item) {
-			if (!identifier.equals("") && !item.identifier.equals("") && Double.parseDouble(identifier) > Double.parseDouble(item.identifier)) return 1;
-			else return -1;
-		}
+		return regions;
 	}
 	
-	/** Inner class representation of an unbarcoded loan preparation
-	 * 
-	 * @author lowery
-	 *
-	 */
-	private class UnbarcodedSpecimen {
-		private int sheetCount;
-		private String taxon;
-		private String description;
+	private Agent getAgent(Accession accession, String role) {
+		Agent a = null;
+		for (AccessionAgent aa : accession.getAccessionAgents()) {
+			if (role.equals(aa.getRole())) {
+				a = aa.getAgent();
+				break;
+			}
+		}
+		return a;
+	}
+
+	private String toString(Agent a) {
+		if (a == null) return "";
+		
+		String firstName = a.getFirstName();
+		String lastName = a.getLastName();
+		
+		if (firstName != null && lastName != null) return firstName + " " + lastName;
+		else if (firstName == null && lastName != null) return lastName;
+		else if (firstName != null && lastName == null) return firstName;
+		else return "";
+	}
+
+	private String getAccessionDate(Accession accession) {
+		Calendar c = accession.getDateAccessioned();
+		if (c == null) return "";
+		
+		DateFormat f = new SimpleDateFormat("dd MMM YYYY");
+		String accessionDate = f.format(c.getTime());
+		return accessionDate;
 	}
 }

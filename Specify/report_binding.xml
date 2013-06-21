@@ -326,67 +326,44 @@
 		</collection>
 	</mapping> -->	
 	
-	<!-- <mapping name="reportAccession" class="edu.harvard.huh.specify.reports.ReportAccession">
+	<mapping name="reportAccession" class="edu.harvard.huh.specify.reports.ReportAccession">
 		<value name="reportsDir" field="reportsDir" usage="optional" />
-		<value name="nameOfContact" field="nameOfContact" usage="optional" />
-		<value name="institution" field="institution" usage="optional" />
-		<value name="acronym" field="acronym" usage="optional" />
-		<value name="title" field="title" usage="optional" />
-		<value name="jobTitle" field="jobTitle" usage="optional" />
-		<value name="address1" field="address1" usage="optional" />
-		<value name="address2" field="address2" usage="optional" />
-		<value name="city" field="city" usage="optional" />
-		<value name="state" field="state" usage="optional" />
-		<value name="zip" field="zip" usage="optional" />
-		<value name="country" field="country" usage="optional" />
-		<value name="nameOfShippedBy" field="nameOfShippedBy" usage="optional" />
 		<value name="accessionNumber" field="accessionNumber" usage="optional" />
-		<value name="dateSent" field="dateSent" usage="optional" />
-		<value name="dateDue" field="dateDue" usage="optional" />
-		<value name="forUseBy" field="forUseBy" usage="optional" />
-		<value name="numberOfPackages" field="numberOfPackages" usage="optional" />
-		<value name="fragmentCount" field="fragmentCount"
-			usage="optional" />
-		<value name="generalCollectionCount" field="generalCollectionCount"
-			usage="optional" />
+		<value name="institution" field="institution" usage="optional" />
+		<value name="accessionDate" field="accessionDate" usage="optional" />
+		<value name="recipientName" field="recipientName" usage="optional" />
+		<value name="reportTitle" field="reportTitle" usage="optional" />
+		<value name="staffName" field="staffName" usage="optional" />
+		<value name="affiliation" field="affiliation" usage="optional" />
+		<value name="description" field="description" usage="optional" />
+		
+		<value name="nonTypeCount" field="nonTypeCount" usage="optional" />
+		<value name="typeCount" field="typeCount" usage="optional" />
 		<value name="nonSpecimenCount" field="nonSpecimenCount" usage="optional" />
-		<value name="barcodedSpecimenCount" field="barcodedSpecimenCount"
-			usage="optional" />
-		<value name="preparationCount" field="preparationCount"
-			usage="optional" />
-		<value name="totalCount" field="totalCount" usage="optional" />
-		<value name="accessionCondition" field="accessionCondition" usage="optional" />
-		<value name="remarks" field="remarks" usage="optional" />
-		<collection field="barcodedSpecimens" usage="optional"
-			create-type="java.util.ArrayList">
-			<structure
-				type="edu.harvard.huh.specify.reports.ReportAccession$BarcodedSpecimen"
-				name="barcodedSpecimen" usage="optional">
-				<collection field="items" create-type="java.util.ArrayList">
-					<structure
-						type="edu.harvard.huh.specify.reports.ReportAccession$BarcodedItem"
-						name="barcodedItem" usage="optional">
-						<value name="identifier" field="identifier" usage="optional" />
-						<value name="taxon" field="taxon" usage="optional" />
-						<value name="type" field="type" usage="optional" />
-						<value name="collectorName" field="collectorName" usage="optional" />
-						<value name="collectorNumber" field="collectorNumber" usage="optional" />
-						<value name="region" field="region" usage="optional" />
-					</structure>
-				</collection>
-			</structure>
+		<value name="discardCount" field="discardCount" usage="optional" />
+		<value name="distributeCount" field="distributeCount" usage="optional" />
+		<value name="returnCount" field="returnCount" usage="optional" />
+		<value name="net" field="net" usage="optional" />
+		<value name="total" field="total" usage="optional" />
+					
+		<collection field="regions" usage="optional"
+				create-type="java.util.ArrayList">
+				<structure
+					type="edu.harvard.huh.specify.reports.ReportAccession$Region"
+					name="region" usage="optional">
+					<value name="name" field="name" usage="optional" />
+					<value name="nonTypeCount" field="nonTypeCount" usage="optional" />
+					<value name="typeCount" field="typeCount" usage="optional" />
+					<value name="nonSpecimenCount" field="nonSpecimenCount" usage="optional" />
+					<value name="discardCount" field="discardCount" usage="optional" />
+					<value name="distributeCount" field="distributeCount" usage="optional" />
+					<value name="returnCount" field="returnCount" usage="optional" />
+					<value name="net" field="net" usage="optional" />
+					<value name="total" field="total" usage="optional" />
+				</structure>
 		</collection>
-		<collection field="unbarcodedSpecimens" usage="optional"
-			create-type="java.util.HashSet">
-			<structure
-				type="edu.harvard.huh.specify.reports.ReportAccession$UnbarcodedSpecimen"
-				name="unbarcodedSpecimen" usage="optional">
-				<value name="sheetCount" field="sheetCount" usage="optional" />
-				<value name="taxon" field="taxon" usage="optional" />
-				<value name="description" field="description" usage="optional" />
-			</structure>
-		</collection>
-	</mapping> -->
+	</mapping>
+
 	<mapping name="shipmentNotice" class="edu.harvard.huh.specify.reports.ShippingNotice">
 		<value name="reportsDir" field="reportsDir" usage="optional" />
 		<value name="nameOfContact" field="nameOfContact" usage="optional" />
