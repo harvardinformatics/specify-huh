@@ -406,7 +406,7 @@ public class ExpressSearchTask extends BaseTask implements CommandListener, SQLE
         doingDebug = AppPreferences.getLocalPrefs().getBoolean("esdebug", false);
         searchWarningsResults = null;
         
-        String searchTerm = (searchTextArg != null ? searchTerm = searchTextArg.getText() : searchTextStr).toLowerCase();
+        String searchTerm = (searchTextArg != null ? searchTerm = searchTextArg.getText() : searchTextStr); // mmk: removed toLower();
         
         if (!ESTermParser.getInstance().parse(searchTerm, false))
         {
