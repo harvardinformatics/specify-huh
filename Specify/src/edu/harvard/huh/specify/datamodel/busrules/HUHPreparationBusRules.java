@@ -24,10 +24,13 @@ import static edu.ku.brc.ui.UIRegistry.getResourceString;
 
 import java.util.Vector;
 
+import javax.swing.JOptionPane;
+
 import org.apache.commons.lang.StringUtils;
 
 import edu.ku.brc.af.core.db.DBTableIdMgr;
 import edu.ku.brc.af.core.db.DBTableInfo;
+import edu.ku.brc.af.ui.forms.BusinessRulesIFace;
 import edu.ku.brc.af.ui.forms.BusinessRulesOkDeleteIFace;
 import edu.ku.brc.af.ui.forms.FormDataObjIFace;
 import edu.ku.brc.dbsupport.DataProviderSessionIFace;
@@ -35,6 +38,7 @@ import edu.ku.brc.specify.datamodel.Fragment;
 import edu.ku.brc.specify.datamodel.PrepType;
 import edu.ku.brc.specify.datamodel.Preparation;
 import edu.ku.brc.specify.datamodel.busrules.PreparationBusRules;
+import edu.ku.brc.ui.UIRegistry;
 
 /**
  * @author mkelly
@@ -46,6 +50,10 @@ import edu.ku.brc.specify.datamodel.busrules.PreparationBusRules;
  */
 public class HUHPreparationBusRules extends PreparationBusRules
 {
+	// these are keys in resources_en.properties
+	private static final String DELETE_PREP_ANYWAY = "DELETE_PREP_ANYWAY";
+	private static final String DONT_DELETE_PREP = "DONT_DELETE_PREP";
+	
     public HUHPreparationBusRules()
     {
         super();
@@ -121,8 +129,28 @@ public class HUHPreparationBusRules extends PreparationBusRules
             } else
             {
                 DBTableInfo tableInfo      = DBTableIdMgr.getInstance().getInfoById(Preparation.getClassTableId());
-                String[]    tableFieldList = gatherTableFieldsForDelete(new String[] {"preparation", "fragment"}, tableInfo);
+                String[]    tableFieldList = gatherTableFieldsForDelete(new String[] {"preparation", "fragment", "loanpreparation"}, tableInfo);
                 isOK = okToDelete(tableFieldList, dbObj.getId());
+                
+                // The above listing of preparation, fragment, and loanpreparation indicates that
+                // we ignore references from those tables if they exist and delete anyway.  But we
+                // probably still want to warn, at least on loanpreparation.  So we check again,
+                // but this time we don't ignore references to loanpreparation.
+                if (isOK) {
+                	tableFieldList = gatherTableFieldsForDelete(new String[] {"preparation", "fragment"}, tableInfo);
+                	boolean noLoanPrepsHere = okToDelete( tableFieldList, dbObj.getId() );
+                	if (! noLoanPrepsHere)  {
+                		boolean iWantToIgnoreThem = UIRegistry.displayConfirmLocalized(getResourceString("WARNING"),
+                				"There are loans associated with this preparation.  If you delete them, they will disappear from the loans.\n\n"
+                				+ "If you are trying to merge preparations, you should come back to these loans and re-add the merged preparation.\n\n"
+                				+ "To find a list of loans associated with this preparation, make sure 'Loans by Barcode' is active in the\n"
+                				+ "Simple Search config and perform a search over 'All' BEFORE YOU DELETE THIS PREPARATION.\n\n" 
+                				+ "Ignore them and delete anyway?", DELETE_PREP_ANYWAY, // TODO: localization
+                					DONT_DELETE_PREP, JOptionPane.WARNING_MESSAGE);
+
+                		if (! iWantToIgnoreThem) isOK = false;
+                	}
+                }
             }
             deletable.doDeleteDataObj(dataObj, session, isOK);
             
