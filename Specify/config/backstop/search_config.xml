@@ -564,7 +564,7 @@
  JOIN preparation pp ON lpo.PreparationID = pp.PreparationID
  LEFT JOIN fragment frag ON pp.PreparationID = frag.PreparationID
  WHERE %s
- ORDER BY ifnull(ag.Abbreviation, ag.LastName), ln.LoanNumber]]>
+ ORDER BY ln.LoanNumber]]>
         		</sql>
         		<captions>
                     <caption tableid="52"  col="ln.LoanID" visible="false"/>
