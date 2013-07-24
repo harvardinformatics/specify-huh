@@ -213,6 +213,12 @@ public class ContextMgr implements CommandListener
                                               final String        tooltip,
                                               final boolean       isDefault)
     {
+    	
+    	// DataEntryTask.initDataEntryViews calls this to register edit record commands:
+    	// ContextMgr.registerService(10, dev.getView(), tblId, cmdAction, this, DATA_ENTRY, toolTip, true);
+    	
+    	// where cmdAction = new CommandAction(DATA_ENTRY, EDIT_DATA);
+    	
         String hashName = ServiceInfo.getHashKey(serviceName, task, tableId);
         if (instance.services.get(hashName) != null)
         {

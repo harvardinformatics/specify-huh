@@ -24,6 +24,7 @@ import java.beans.PropertyChangeListener;
 import java.util.List;
 
 import edu.ku.brc.af.ui.db.QueryForIdResultsIFace;
+import edu.ku.brc.dbsupport.RecordSetIFace;
 
 /**
  * The important 
@@ -87,5 +88,6 @@ public interface ESResultsTablePanelIFace extends PropertyChangeListener
      * @return true if there are results, false if none were found.
      */
     public abstract boolean hasResults();
-    
+ 
+    public RecordSetIFace getRecordSet(final boolean returnAll);
 }

@@ -25,6 +25,7 @@ import java.beans.PropertyChangeListener;
 import java.util.List;
 
 import edu.ku.brc.af.ui.db.QueryForIdResultsIFace;
+import edu.ku.brc.dbsupport.RecordSetIFace;
 import edu.ku.brc.specify.tasks.subpane.ESResultsTablePanelIFace;
 import edu.ku.brc.specify.tasks.subpane.ExpressSearchResultsPaneIFace;
 
@@ -134,5 +135,11 @@ public class ResultsCollector implements ESResultsTablePanelIFace
         // TODO Auto-generated method stub
         return null;
     }
+
+	@Override
+	public RecordSetIFace getRecordSet(boolean returnAll) {
+		// TODO Auto-generated method stub
+		throw new UnsupportedOperationException();
+	}
     
 }

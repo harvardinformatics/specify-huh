@@ -96,6 +96,7 @@ import edu.ku.brc.dbsupport.RecordSetIFace;
 import edu.ku.brc.dbsupport.SQLExecutionListener;
 import edu.ku.brc.dbsupport.SQLExecutionProcessor;
 import edu.ku.brc.specify.datamodel.Discipline;
+import edu.ku.brc.specify.datamodel.RecordSet;
 import edu.ku.brc.specify.tasks.subpane.ESResultsSubPane;
 import edu.ku.brc.specify.tasks.subpane.ESResultsTablePanelIFace;
 import edu.ku.brc.specify.tasks.subpane.ExpressSearchResultsPaneIFace;
@@ -376,7 +377,7 @@ public class ExpressSearchTask extends BaseTask implements CommandListener, SQLE
                 statusBar.setProgressRange(EXPRESSSEARCH, 0, queryCount, queryCountDone);
             }
             
-            if (esrPane.doQueriesSynchronously())
+            if (true)//if (esrPane.doQueriesSynchronously())
             {
                 jpaQuery.execute();
                 
@@ -1244,6 +1245,8 @@ public class ExpressSearchTask extends BaseTask implements CommandListener, SQLE
             //System.err.println("AddPane: "+addPane+"  Err "+jpaQuery.isInError()+"  "+(list != null && list.size() > 0));
         }
         
+        QueryForIdResultsIFace results = null;
+        
         if (list != null)
         {
             if (list.size() > 0)
@@ -1298,7 +1301,7 @@ public class ExpressSearchTask extends BaseTask implements CommandListener, SQLE
                     }
                 }
                 
-                QueryForIdResultsIFace results = new QueryForIdResultsHQL(searchTableConfig, new Color(30, 144, 255), searchTerm, list);
+                results = new QueryForIdResultsHQL(searchTableConfig, new Color(30, 144, 255), searchTerm, list);
                 results.setMultipleSelection(true);
                 displayResults(esrPane, results, resultsForJoinsHash);
                 
@@ -1458,22 +1461,25 @@ public class ExpressSearchTask extends BaseTask implements CommandListener, SQLE
                 QueryForIdResultsIFace   results = (QueryForIdResultsIFace)cmdAction.getProperty("QueryForIdResultsIFace");
                 ESResultsTablePanelIFace esrto   = (ESResultsTablePanelIFace)cmdAction.getProperty("ESResultsTablePanelIFace");
                 
-                if (!isQueryBuilderResults(results) && esrto != null && !esrto.hasResults())
+                if (!isQueryBuilderResults(results) && esrto != null )
                 {
-                /* hmmmmmm.... A strange, seemingly windows-only issue has been occurring where
-                 * the propertyChange event that updates the table used in the esrto.hasResults() call
-                 * has not finished when the if statement above is executed, so esrto.hasResults() incorrectly
-                 * returns false. I have added the !isQueryBuilderResults() condition because so far this problem has only
-                 * occurred for the QueryBuilder and I don't know if the method for determining 'hasResults()'
-                 * in the QueryBuilder results block below are applicable for all types of results.
-                 * 
-                 * We occasionally see this on a Virtual machine, more investigation is needed.
-                 * 
-                 */
-                    //displayNoResults("QB_NO_RESULTS");
-                    results.complete();
-                    UIRegistry.showLocalizedError("QB_NO_RESULTS_UNK");
-                    return;
+                	if (!esrto.hasResults())
+                	{
+                		/* hmmmmmm.... A strange, seemingly windows-only issue has been occurring where
+                		 * the propertyChange event that updates the table used in the esrto.hasResults() call
+                		 * has not finished when the if statement above is executed, so esrto.hasResults() incorrectly
+                		 * returns false. I have added the !isQueryBuilderResults() condition because so far this problem has only
+                		 * occurred for the QueryBuilder and I don't know if the method for determining 'hasResults()'
+                		 * in the QueryBuilder results block below are applicable for all types of results.
+                		 * 
+                		 * We occasionally see this on a Virtual machine, more investigation is needed.
+                		 * 
+                		 */
+                		//displayNoResults("QB_NO_RESULTS");
+                		results.complete();
+                		UIRegistry.showLocalizedError("QB_NO_RESULTS_UNK");
+                		return;
+                	}
                 }
 
                 //Only execute this block for QueryBuilder results...
@@ -1482,7 +1488,7 @@ public class ExpressSearchTask extends BaseTask implements CommandListener, SQLE
                     int     rowCount = ((JPAQuery) cmdAction.getData()).getDataObjects().size();
                     boolean isError  = ((JPAQuery) cmdAction.getData()).isInError();
                     boolean isCancelled = ((JPAQuery) cmdAction.getData()).isCancelled();
-                    boolean showPane = !isError && !isCancelled && rowCount > 0;
+                    boolean showPane = !isError && !isCancelled && rowCount > 1;
                     //print status bar msg if error or rowCount == 0, 
                     //else show the queryResults pane if rowCount > 0
                     int index = SubPaneMgr.getInstance().indexOfComponent(queryResultsPane.getUIComponent());
@@ -1519,6 +1525,26 @@ public class ExpressSearchTask extends BaseTask implements CommandListener, SQLE
                         statusBar.setText(null);
                     }
                 }
+                // mmk
+                if (!isQueryBuilderResults(results) && esrto != null )
+                {
+                	if (results.size() == 1)
+                	{
+                		Vector<Integer> recordIds = results.getRecIds();
+                		Integer recordId = recordIds.get(0);
+
+                		Integer tableId = results.getTableId();
+
+                		RecordSet rs = new RecordSet();
+                		rs.setType(RecordSet.GLOBAL);
+                		rs.initialize();
+                		rs.addItem(recordId);
+                		rs.setDbTableId(tableId);
+
+                		CommandDispatcher.dispatch(new CommandAction(DataEntryTask.DATA_ENTRY, DataEntryTask.EDIT_DATA, rs));
+                	}
+                }
+                // mmk
             }
         }
     }

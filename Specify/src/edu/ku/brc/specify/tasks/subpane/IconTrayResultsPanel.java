@@ -36,6 +36,7 @@ import edu.ku.brc.af.ui.forms.FormDataObjIFace;
 import edu.ku.brc.dbsupport.DataProviderFactory;
 import edu.ku.brc.dbsupport.DataProviderSessionIFace;
 import edu.ku.brc.dbsupport.DataProviderSessionIFace.QueryIFace;
+import edu.ku.brc.dbsupport.RecordSetIFace;
 import edu.ku.brc.ui.IconTray;
 
 public class IconTrayResultsPanel extends IconTray implements ESResultsTablePanelIFace
@@ -172,6 +173,12 @@ public class IconTrayResultsPanel extends IconTray implements ESResultsTablePane
         // TODO Auto-generated method stub
         return null;
     }
+
+	@Override
+	public RecordSetIFace getRecordSet(boolean returnAll) {
+		// TODO Auto-generated method stub
+		throw new UnsupportedOperationException();
+	}
     
     
 }

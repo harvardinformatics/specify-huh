@@ -787,6 +787,7 @@ public class ESResultsTablePanel extends JPanel implements ESResultsTablePanelIF
     /* (non-Javadoc)
      * @see edu.ku.brc.specify.tasks.subpane.ESResultsTablePanelIFace#getRecordSet(boolean)
      */
+    @Override
     public RecordSetIFace getRecordSet(final boolean returnAll)
     {
         //log.debug("Indexes: "+table.getSelectedRows().length+" Index["+results.getTableId()+"]");
