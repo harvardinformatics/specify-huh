@@ -7,11 +7,9 @@
 
 	<xsl:variable name="nameOfContact">
 		<xsl:if test="borrowReturnNotice/title != ''">
-			<xsl:value-of select="borrowReturnNotice/title" />
-			.&#x20;
+			<xsl:value-of select="borrowReturnNotice/title" />.&#x20;
 		</xsl:if>
-		<xsl:value-of select="borrowReturnNotice/nameOfContact" />
-		,&#x20;
+		<xsl:value-of select="borrowReturnNotice/nameOfContact" />,&#x20;
 		<xsl:value-of select="borrowReturnNotice/jobTitle" />
 	</xsl:variable>
 	<xsl:variable name="institution">
@@ -27,12 +25,10 @@
 	<xsl:variable name="address2" select="borrowReturnNotice/address2" />
 	<xsl:variable name="cityStateZip">
 		<xsl:if test="borrowReturnNotice/city != ''">
-			<xsl:value-of select="borrowReturnNotice/city" />
-			,
+			<xsl:value-of select="borrowReturnNotice/city" />,
 		</xsl:if>
 		<xsl:if test="borrowReturnNotice/state != ''">
-			<xsl:value-of select="borrowReturnNotice/state" />
-			,
+			<xsl:value-of select="borrowReturnNotice/state" />,
 		</xsl:if>
 		<xsl:value-of select="borrowReturnNotice/zip" />
 	</xsl:variable>
@@ -499,12 +495,17 @@
 							</fo:table-row>
 						</fo:table-body>
 						</fo:table>
-						<fo:block-container height="20mm" space-before="24pt">
-						<fo:block linefeed-treatment="preserve" white-space-collapse="false" white-space-treatment="preserve"><xsl:value-of select="$remarks" /></fo:block>
-						</fo:block-container>
+
+						<!-- mmk: removed this because borrow remarks is labeled "Internal Remarks" -->
+						<!-- in the Specify UI, so remarks should not be included in the report.    -->
+						<!-- <fo:block-container space-before="24pt">
+						<fo:block linefeed-treatment="preserve" white-space-collapse="false" white-space-treatment="preserve">
+							<xsl:value-of select="$remarks" />
+						</fo:block>
+						</fo:block-container> -->
+
 					</fo:block>
-					<fo:block-container
-						space-after="10mm">
+					<fo:block-container page-break-inside="avoid" space-before="20pt" space-after="10mm">
 						<fo:block>Received the above in good order</fo:block>
 						<fo:block space-before="18pt">
 							<fo:leader leader-length="80mm" leader-pattern="rule" />
