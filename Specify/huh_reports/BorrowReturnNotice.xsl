@@ -177,7 +177,7 @@
 					</fo:block-container>
 					<fo:block space-before="12pt" space-after="24pt">We are sending
 						you
-						a return of borrowed of herbarium specimens as indicated below. Upon arrival
+						a return of borrowed herbarium specimens as indicated below. Upon arrival
 						of
 						this shipment, please verify its contents and acknowledge by
 						signing
