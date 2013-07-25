@@ -402,7 +402,7 @@ public class LoanPreparation extends DisciplineMember implements java.io.Seriali
     public int compareTo(LoanPreparation obj)
     {
     	
-    	if (preparation != null || obj.getPreparation() != null) {
+    	if (preparation != null && obj.getPreparation() != null) {
     		return preparation.compareTo(obj.getPreparation());
     	}
 
