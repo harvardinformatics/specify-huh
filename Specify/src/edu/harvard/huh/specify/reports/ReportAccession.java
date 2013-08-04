@@ -54,9 +54,11 @@ public class ReportAccession {
 	private String institution; // Text1
 	private String accessionDate;
 	private String recipientName; // accessionAgent(role="Receiver")
-
-	private String reportTitle;
-
+	private String from; // see getFrom(Accession)
+	private String accessionType;
+	private String boxes;
+	private String purpose;
+	
 	private String staffName; // accessionAgent(role="Collector") but also see getStaff(Accession)
 	private String affiliation; // Text1
 	
@@ -90,16 +92,19 @@ public class ReportAccession {
 		institution = accession.getText1();
 		accessionDate = getAccessionDate(accession);
 		recipientName = getRecipient(accession);
+		from = getFrom(accession);
+		boxes = getBoxes(accession);
+		purpose = getPurpose(accession);
 
-		// title
-		reportTitle = getReportTitle(accession);
-		
+		// type
+		accessionType = accession.getType();
+
 		// staff, affiliation
 		staffName = getStaff(accession);
 		affiliation = institution;
 		
 		// description
-		description = accession.getAccessionCondition();
+		description = getDescription(accession);
 		
 		// report
 		regions = getRegions(accession);
@@ -144,22 +149,7 @@ public class ReportAccession {
 			return name.compareTo(region.name);
 		}
 	}
-	
-	private String getReportTitle(Accession accession) {
-		
-		String type = accession.getType();
-		if (type.equals("FieldWork")) {
-			return "Incoming Staff Collection";
-		}
 
-		if (type.equals("Gift") ||
-				type.equals("Exchange") ||
-				type.equals("Purchase")) {
-			return "Incoming Exchange, Gift, or Purchase";
-		}
-
-		return "Accession";
-	}
 	
 	private String getRecipient(Accession accession) {
 		
@@ -169,12 +159,33 @@ public class ReportAccession {
 		return name;
 	}
 
+	private String getFrom(Accession accession) {
+		Agent donor = getAgent(accession, "Donor");
+		Agent contributor = getAgent(accession, "Contributor");
+		
+		Agent institution = null;
+		if (donor != null) institution = donor.getOrganization();
+		if (institution == null && contributor != null) institution = contributor.getOrganization();
+		
+		String abbrev = institution != null ? institution.getAbbreviation() : null;
+		if (abbrev != null) return abbrev;
+
+		String name = "";
+		
+		if (institution != null) name = toString(institution);
+		else if (donor != null) name = toString(donor);
+		else if (contributor != null) name = toString(contributor);
+		
+		return name;
+	}
+
 	private String getStaff(Accession accession) {
 
 		Agent student = getAgent(accession, "Student");
 		Agent collector = getAgent(accession, "Collector");
 		Agent staff = getAgent(accession, "Staff");
 		Agent sponsor = getAgent(accession, "Sponsor");
+		Agent donor = getAgent(accession, "Donor");
 		
 		String name = "";
 		String advisorName = "";
@@ -190,11 +201,55 @@ public class ReportAccession {
 		else {
 			if (collector != null) name = toString(collector);
 			else if (staff != null) name = toString(staff);
+			else if (donor != null) name = toString(donor);
 		}
 
 		return name + advisorName;
 	}
-	
+
+
+	private String getDescription(Accession accession) {
+		String accessionCondition = accession.getAccessionCondition();
+		if (accessionCondition == null) return "";
+		
+		int i = accessionCondition.indexOf("[box count:");
+		if (i < 0) return accessionCondition;
+		i += 12;
+		
+		int j = accessionCondition.indexOf("]");
+		if (j < i) return accessionCondition;
+		
+		String description = accessionCondition.replaceFirst("\\[box count:[^\\]]*\\]", "");
+		return description;
+	}
+
+	private String getBoxes(Accession accession) {
+		String accessionCondition = accession.getAccessionCondition();
+		if (accessionCondition == null) return "";
+		
+		int i = accessionCondition.indexOf("[box count:");
+		if (i < 0) return "";
+		i += 12;
+		
+		int j = accessionCondition.indexOf("]");
+		if (j < i) return "";
+		
+		String boxCount = accessionCondition.substring(i, j);
+		return boxCount;
+	}
+
+	private String getPurpose(Accession accession) {
+		String text2 = accession.getText2();
+		
+		if (text2 == null) return "";
+		
+		if (text2.equals("ForStudy")) return "For study";
+		if (text2.equals("ForID")) return "For ID";
+		if (text2.equals("Unrestricted")) return "Unrestricted";
+		
+		return text2;
+	}
+
 	private List<Region> getRegions(Accession accession) {
 		List<Region> regions = new ArrayList<Region>();
 		
@@ -227,7 +282,7 @@ public class ReportAccession {
 			r.distributeCount = ap.getDistributeCount();
 			r.returnCount = ap.getReturnCount();
 			r.total = r.nonTypeCount + r.typeCount + r.nonSpecimenCount;
-			r.net = r.total - r.discardCount - r.distributeCount - r.returnCount;
+			r.net = r.total - (r.discardCount + r.distributeCount + r.returnCount);
 			
 			regions.add(r);
 		}

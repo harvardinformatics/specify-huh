@@ -9,8 +9,11 @@
 	<xsl:variable name="institution" select="reportAccession/institution" />
 	<xsl:variable name="accessionDate" select="reportAccession/accessionDate" />
 	<xsl:variable name="recipientName" select="reportAccession/recipientName" />
-	<xsl:variable name="reportTitle" select="reportAccession/reportTitle" />
-
+	<xsl:variable name="accessionType" select="reportAccession/accessionType" />
+	<xsl:variable name="from" select="reportAccession/from" />
+	<xsl:variable name="boxes" select="reportAccession/boxes" />
+	<xsl:variable name="purpose" select="reportAccession/purpose" />
+	
 	<xsl:variable name="staffName" select="reportAccession/staffName" />
 	<xsl:variable name="affiliation" select="reportAccession/affiliation" />
 
@@ -73,7 +76,7 @@
 								</fo:table-row>
 								<fo:table-row>
 									<fo:table-cell>
-										<fo:block wrap-option="no-wrap">DATE:</fo:block>
+										<fo:block wrap-option="no-wrap">Date Accessioned:</fo:block>
 								   </fo:table-cell>
 								   <fo:table-cell>
 										<fo:block wrap-option="no-wrap">
@@ -91,43 +94,82 @@
 										</fo:block>
 									</fo:table-cell>
 								</fo:table-row>
+								<fo:table-row>
+								    <fo:table-cell>
+										<fo:block wrap-option="no-wrap">From:</fo:block>
+									</fo:table-cell>
+									<fo:table-cell>
+										<fo:block wrap-option="no-wrap">
+											<xsl:value-of select="$from" />
+										</fo:block>
+									</fo:table-cell>
+								</fo:table-row>
 						</fo:table-body>
 					</fo:table>
 
 					<fo:block text-align="center" space-before="15pt" font="15pt Times New Roman"
 						space-after="15pt" text-decoration="underline">
-							<fo:inline text-decoration="underline"><xsl:value-of select="$reportTitle" /></fo:inline>
+							<fo:inline text-decoration="underline">
+								<xsl:choose>
+									<xsl:when test="$accessionType = 'FieldWork'">
+										Incoming Staff Collection
+									</xsl:when>
+									<xsl:when test="$accessionType = 'Gift'">
+										Incoming Gift
+									</xsl:when>
+									<xsl:when test="$accessionType = 'Exchange'">
+										Incoming Exchange
+									</xsl:when>
+									<xsl:when test="$accessionType = 'Purchase'">
+										Purchase
+									</xsl:when>
+									<xsl:otherwise>Accession</xsl:otherwise>
+								</xsl:choose>
+							</fo:inline>
 					</fo:block>
 
-					<fo:table text-align="start">
-						<fo:table-column column-number="1" column-width="38mm"/>
-						<fo:table-column column-number="2" column-width="78mm"/>
-						<fo:table-column column-number="3" column-width="5mm"/>
-						<fo:table-column column-number="4" column-width="22mm"/>
-						<fo:table-column column-number="5" column-width="10mm"/>
-						<fo:table-body>
-							<fo:table-row>
-								<fo:table-cell text-decoration="underline">
-									<fo:block wrap-option="no-wrap">HUH Staff Member: </fo:block>
+					<xsl:if test="$accessionType = 'FieldWork'">
+						<fo:table text-align="start">
+							<fo:table-column column-number="1" column-width="38mm"/>
+							<fo:table-column column-number="2" column-width="78mm"/>
+							<fo:table-column column-number="3" column-width="5mm"/>
+							<fo:table-column column-number="4" column-width="22mm"/>
+							<fo:table-column column-number="5" column-width="10mm"/>
+							<fo:table-body>
+								<fo:table-row>
+									<fo:table-cell text-decoration="underline">
+										<fo:block wrap-option="no-wrap">HUH Staff Member: </fo:block>
+										</fo:table-cell>
+									<fo:table-cell>
+										<fo:block wrap-option="no-wrap"><xsl:value-of select="$staffName" /></fo:block>
 									</fo:table-cell>
-								<fo:table-cell>
-									<fo:block wrap-option="no-wrap"><xsl:value-of select="$staffName" /></fo:block>
-								</fo:table-cell>
-								<fo:table-cell>
-									<fo:block wrap-option="no-wrap"></fo:block>
-								</fo:table-cell>
-								<fo:table-cell text-decoration="underline">
-									<fo:block wrap-option="no-wrap">Affiliation: </fo:block>
-								</fo:table-cell>
-								<fo:table-cell>
-									<fo:block wrap-option="no-wrap"><xsl:value-of select="$affiliation" /></fo:block>
-								</fo:table-cell>
-							</fo:table-row>
-						</fo:table-body>
-					</fo:table>
-					
-					<fo:block space-before="15pt" space-after="15pt" font="12pt Times New Roman" text-decoration="underline">
-						<fo:inline>Description: </fo:inline>
+									<fo:table-cell>
+										<fo:block wrap-option="no-wrap"></fo:block>
+									</fo:table-cell>
+									<fo:table-cell text-decoration="underline">
+										<fo:block wrap-option="no-wrap">Affiliation: </fo:block>
+									</fo:table-cell>
+									<fo:table-cell>
+										<fo:block wrap-option="no-wrap"><xsl:value-of select="$affiliation" /></fo:block>
+									</fo:table-cell>
+								</fo:table-row>
+							</fo:table-body>
+						</fo:table>
+					</xsl:if>
+
+					<xsl:if test="$accessionType != 'FieldWork'">
+						<fo:block space-before="15pt" space-after="15pt" font="12pt Times New Roman">
+							<fo:inline  text-decoration="underline">Number of boxes: </fo:inline>
+							<xsl:value-of select="$boxes" />
+						</fo:block>
+						<fo:block space-before="15pt" space-after="15pt" font="12pt Times New Roman">
+							<fo:inline text-decoration="underline">Purpose: </fo:inline>
+							<xsl:value-of select="$purpose" />
+						</fo:block>
+					</xsl:if>
+
+					<fo:block space-before="15pt" space-after="15pt" font="12pt Times New Roman">
+						<fo:inline  text-decoration="underline">Description: </fo:inline>
 						<xsl:value-of select="$description" />
 					</fo:block>
 					

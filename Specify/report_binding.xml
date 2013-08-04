@@ -332,7 +332,9 @@
 		<value name="institution" field="institution" usage="optional" />
 		<value name="accessionDate" field="accessionDate" usage="optional" />
 		<value name="recipientName" field="recipientName" usage="optional" />
-		<value name="reportTitle" field="reportTitle" usage="optional" />
+		<value name="accessionType" field="accessionType" usage="optional" />
+		<value name="boxes" field="boxes" usage="optional" />
+		<value name="purpose" field="purpose" usage="optional" />
 		<value name="staffName" field="staffName" usage="optional" />
 		<value name="affiliation" field="affiliation" usage="optional" />
 		<value name="description" field="description" usage="optional" />
