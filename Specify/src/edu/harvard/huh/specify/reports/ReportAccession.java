@@ -164,10 +164,19 @@ public class ReportAccession {
 		Agent contributor = getAgent(accession, "Contributor");
 		
 		Agent institution = null;
-		if (donor != null) institution = donor.getOrganization();
-		if (institution == null && contributor != null) institution = contributor.getOrganization();
+		if (donor != null) {
+			if (isInstitution(donor)) institution = donor;
+			else institution = donor.getOrganization();
+		}
 		
-		String abbrev = institution != null ? institution.getAbbreviation() : null;
+		if (institution == null) {
+			if (contributor != null) {
+				if (isInstitution(contributor)) institution = contributor;
+				else institution = contributor.getOrganization();
+			}
+		}
+		
+		String abbrev = institution != null && isInstitution(institution)? institution.getAbbreviation() : null;
 		if (abbrev != null) return abbrev;
 
 		String name = "";
@@ -179,6 +188,10 @@ public class ReportAccession {
 		return name;
 	}
 
+	private boolean isInstitution(Agent a) {
+		return a.getAgentType().equals(Agent.ORG);
+	}
+	
 	private String getStaff(Accession accession) {
 
 		Agent student = getAgent(accession, "Student");

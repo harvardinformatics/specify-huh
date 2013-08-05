@@ -187,10 +187,10 @@
 						<fo:table-header>
 							<fo:table-row text-align="center" font-weight="bold" display-align="center">
 								<fo:table-cell><fo:block>Geography</fo:block></fo:table-cell>
-								<fo:table-cell><fo:block>Non-Type Ct. for HUH*</fo:block></fo:table-cell>
-								<fo:table-cell><fo:block>Type Ct. for HUH*</fo:block></fo:table-cell>
-								<fo:table-cell><fo:block>Non-specimen Ct. for HUH*</fo:block></fo:table-cell>
-								<fo:table-cell><fo:block>Discard Ct. for HUH*</fo:block></fo:table-cell>
+								<fo:table-cell><fo:block>Non-Type Ct.*</fo:block></fo:table-cell>
+								<fo:table-cell><fo:block>Type Ct.*</fo:block></fo:table-cell>
+								<fo:table-cell><fo:block>Non-specimen Ct.*</fo:block></fo:table-cell>
+								<fo:table-cell><fo:block>Discard Ct.*</fo:block></fo:table-cell>
 								<fo:table-cell><fo:block>Distribute Ct.</fo:block></fo:table-cell>
 								<fo:table-cell><fo:block>Return Ct.</fo:block></fo:table-cell>
 								<fo:table-cell><fo:block>Total accessioned for HUH**</fo:block></fo:table-cell>
@@ -376,9 +376,9 @@
 								</fo:table-row>
 						</fo:table-body>
 					</fo:table>
-					<fo:block font-weight="bold">* excludes numbers of discard ct., distribute ct., and return ct.</fo:block>
-					<fo:block font-weight="bold">** sum of non-type ct., type ct., and non-specimen ct.</fo:block>
-					<fo:block font-weight="bold">*** sum of nonytype ct., type ct., non-specimen ct., and distribute ct.</fo:block>
+					<fo:block font-weight="bold">* includes numbers of discard ct., distribute ct., and return ct.</fo:block>
+					<fo:block font-weight="bold">** sum of non-type ct., type ct., and non-specimen ct., minus distribute, discard, and return cts.</fo:block>
+					<fo:block font-weight="bold">*** sum of nonytype ct., type ct., non-specimen ct.</fo:block>
 
 				</fo:flow>
 			</fo:page-sequence>
