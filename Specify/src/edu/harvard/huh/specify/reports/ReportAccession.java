@@ -330,7 +330,7 @@ public class ReportAccession {
 		Calendar c = accession.getDateAccessioned();
 		if (c == null) return "";
 		
-		DateFormat f = new SimpleDateFormat("dd MMM YYYY");
+		DateFormat f = new SimpleDateFormat("dd MMM yyyy");
 		String accessionDate = f.format(c.getTime());
 		return accessionDate;
 	}
