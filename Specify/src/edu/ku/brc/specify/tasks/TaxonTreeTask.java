@@ -144,7 +144,8 @@ public class TaxonTreeTask extends BaseTreeTask<Taxon,TaxonTreeDef,TaxonTreeDefI
             });
             popup.add(getITIS, true);*/
 
-            JMenuItem getDeters = new JMenuItem(getResourceString("TTV_ASSOC_COS"));
+            // mmk: removing link to open collection objects for BugID 635
+            /*JMenuItem getDeters = new JMenuItem(getResourceString("TTV_ASSOC_COS"));
             getDeters.addActionListener(new ActionListener()
             {
                 public void actionPerformed(ActionEvent e)
@@ -178,7 +179,7 @@ public class TaxonTreeTask extends BaseTreeTask<Taxon,TaxonTreeDef,TaxonTreeDefI
                     });
                 }
             });
-            popup.add(getDeters, true);
+            popup.add(getDeters, true);*/
         }
         
         return ttv;
