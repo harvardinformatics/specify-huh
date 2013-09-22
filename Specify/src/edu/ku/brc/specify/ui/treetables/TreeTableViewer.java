@@ -3575,7 +3575,9 @@ public class TreeTableViewer <T extends Treeable<T,D,I>,
     protected synchronized void showCounts(final T dbRecord, 
                                            final List<TreeNode> childNodes)
     {
-        String propName = "TreeEditor.Rank.Threshold."+dbRecord.getClass().getSimpleName();
+    	return; // mmk: counts seemto sometimes cause Specify to crash/hang; omitting them for BugID 635
+    	
+        /*String propName = "TreeEditor.Rank.Threshold."+dbRecord.getClass().getSimpleName();
         final int rankThreshold = AppPreferences.getRemote().getInt(propName, -1);
 
         final Class<?> dbRecClass = dbRecord.getClass();
@@ -3617,7 +3619,7 @@ public class TreeTableViewer <T extends Treeable<T,D,I>,
             };
             
             countGrabberExecutor.submit(getAssocRecCount);
-         }
+         }*/
     }
     
     /**
