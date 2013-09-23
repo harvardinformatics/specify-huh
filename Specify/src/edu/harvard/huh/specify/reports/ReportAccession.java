@@ -288,12 +288,12 @@ public class ReportAccession {
 				}
 			}
 			
-			r.nonTypeCount = ap.getItemCount();
-			r.typeCount = ap.getTypeCount();
-			r.nonSpecimenCount = ap.getNonSpecimenCount();
-			r.discardCount = ap.getDiscardCount();
-			r.distributeCount = ap.getDistributeCount();
-			r.returnCount = ap.getReturnCount();
+			r.nonTypeCount = ifnull(ap.getItemCount(), 0);
+			r.typeCount = ifnull(ap.getTypeCount(), 0);
+			r.nonSpecimenCount = ifnull(ap.getNonSpecimenCount(), 0);
+			r.discardCount = ifnull(ap.getDiscardCount(), 0);
+			r.distributeCount = ifnull(ap.getDistributeCount(), 0);
+			r.returnCount = ifnull(ap.getReturnCount(), 0);
 			r.total = r.nonTypeCount + r.typeCount + r.nonSpecimenCount;
 			r.net = r.total - (r.discardCount + r.distributeCount + r.returnCount);
 			
@@ -301,6 +301,11 @@ public class ReportAccession {
 		}
 		
 		return regions;
+	}
+	
+	private int ifnull(Short s, int ifnull) {
+		if (s == null) return ifnull;
+		return s;
 	}
 	
 	private Agent getAgent(Accession accession, String role) {
