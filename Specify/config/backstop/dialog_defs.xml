@@ -114,7 +114,7 @@
 
     <!--  Plugin -->    
     <dialog type="display" viewset="Fish Views" view="FishBase"           name="FishBase"                  title="FishBase"                class="org.dom4j.Element" helpcontext="CBXQViewEdit"/>
-    
+    <dialog type="display" viewset="Index Fungorum Views" view="IndexFungorum" name="IndexFungorum"         title="IndexFungorum"          class="org.dom4j.Element" helpcontext="CBXQViewEdit"/>
     <!-- Custom displays -->
     <dialog type="display" view="Organization" name="OrganizationDisplay" class="edu.ku.brc.specify.datamodel.Agent" helpcontext="CBXQViewEdit"/>
     <dialog type="display" view="Transaction Agent" name="TransactionAgentDisplay" class="edu.ku.brc.specify.datamodel.Agent" helpcontext="CBXQViewEdit"/>

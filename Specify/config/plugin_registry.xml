@@ -73,6 +73,7 @@
 		<plugin name="PrepItemTable"        class="edu.harvard.huh.specify.plugins.PrepItemTable"/>
 		<plugin name="BatchReturnPreps"     class="edu.harvard.huh.specify.plugins.BatchReturnPreps"/>
 		<plugin name="GroupFullNameVariant" class="edu.harvard.huh.specify.plugins.GroupFullNameVariant"/>
+		<plugin name="IndexFungorum"        class="edu.harvard.huh.specify.plugins.IndexFungorum"/>
 	</uiplugins>
 	
 	<external>
