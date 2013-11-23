@@ -1852,14 +1852,10 @@
                 </row>
                 <row>
                 	<cell type="label" labelfor="name"/>
-                    <cell type="field" id="name" uitype="text" cols="16" name="name"  colspan="5"/>
+                    <cell type="field" id="name" uitype="text" cols="16" name="name"  colspan="3"/>
+                    <cell type="field" id="indexFungorum" name="this" uitype="plugin" initialize="name=IndexFungorum" colspan="2"/>
                     <cell type="label" labelfor="citesStatus"/>
                 	<cell type="field" id="citesStatus" uitype="combobox" name="citesStatus" picklist="HUH CITES Status" colspan="5"/>
-                </row>
-                <row>
-                	<cell type="label" labelfor="searchText" label=" "/>
-	                <cell type="field" id="searchText" uitype="text" colspan="3"/>
-                	<cell type="field" id="indexFungorum" name="this" uitype="plugin" initialize="name=IndexFungorum;title=Index Fungorum Search" colspan="4"/>
                 </row>
                 <row>
                 	<cell type="label" labelfor="hybridParent1"/>

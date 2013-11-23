@@ -1,29 +1,39 @@
 package edu.harvard.huh.specify.plugins;
 
-import static edu.ku.brc.ui.UIRegistry.getResourceString;
+import static edu.ku.brc.ui.UIHelper.setControlSize;
 import static edu.ku.brc.ui.UIRegistry.loadAndPushResourceBundle;
 import static edu.ku.brc.ui.UIRegistry.popResourceBundle;
 
 import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Properties;
 
 import javax.swing.JButton;
 import javax.swing.JComponent;
+import javax.swing.JMenuItem;
+import javax.swing.JPopupMenu;
 import javax.swing.JProgressBar;
 import javax.swing.JTextField;
+import javax.swing.SwingUtilities;
 import javax.swing.event.ChangeListener;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
+import javax.swing.event.PopupMenuEvent;
+import javax.swing.event.PopupMenuListener;
 
 import org.apache.log4j.Logger;
 import org.dom4j.Element;
 
+import edu.ku.brc.af.ui.db.TextFieldWithQuery;
 import edu.ku.brc.af.ui.db.ViewBasedDisplayIFace;
+import edu.ku.brc.af.ui.forms.EditViewCompSwitcherPanel;
 import edu.ku.brc.af.ui.forms.FormViewObj;
 import edu.ku.brc.af.ui.forms.MultiView;
 import edu.ku.brc.af.ui.forms.UIPluginable;
@@ -31,11 +41,10 @@ import edu.ku.brc.af.ui.forms.validation.ValComboBox;
 import edu.ku.brc.af.ui.forms.validation.ValComboBoxFromQuery;
 import edu.ku.brc.af.ui.forms.validation.ValTextField;
 import edu.ku.brc.helpers.HTTPGetter.ErrorCode;
-import edu.ku.brc.specify.datamodel.Locality;
 import edu.ku.brc.specify.datamodel.Taxon;
-import edu.ku.brc.specify.extras.FishBaseInfoGetter;
 import edu.ku.brc.ui.GetSetValueIFace;
 import edu.ku.brc.ui.IconManager;
+import edu.ku.brc.ui.UIHelper;
 import edu.ku.brc.ui.UIRegistry;
 
 @SuppressWarnings("serial")
@@ -59,9 +68,19 @@ public class IndexFungorum extends JButton implements UIPluginable, GetSetValueI
 	protected ValComboBoxFromQuery parentComboBox;
 	
 	protected IndexFungorumInfoGetter getter;
-	protected ValTextField searchTextField;
 
 	protected File cacheDir;
+	
+	// from TextFieldWithQuery
+	private JPopupMenu popupMenu;
+	private PopupMenuListener popupMenuListener;
+	 
+	private List<String> list = new ArrayList<String>();
+	private List<Taxon> taxonList = new ArrayList<Taxon>();
+	private Taxon selectedTaxon;
+	private final boolean doAddAddItem = false; // in TextFieldWithQuery, this indicates that there is a "+" icon for adding a new record.
+	
+	private List<ListSelectionListener> listSelectionListeners = new ArrayList<ListSelectionListener>();
 	
 	/**
 	 *
@@ -70,20 +89,25 @@ public class IndexFungorum extends JButton implements UIPluginable, GetSetValueI
 	{
 		loadAndPushResourceBundle("specify_plugins");
         
-        title = UIRegistry.getResourceString("IndexFungorumSearchTitle");
+        this.title = UIRegistry.getResourceString("IndexFungorumSearchTitle");
         String tooltip = UIRegistry.getResourceString("IndexFungorumSearchTooltip");
         
         popResourceBundle();
         
         setIcon(IconManager.getIcon("IndexFungorum", IconManager.IconSize.NonStd));
-        setText(title);
+
         this.setToolTipText(tooltip);
         
         addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent arg0)
-            {
-                doButtonAction();
-            }
+            public void actionPerformed(ActionEvent e)
+                    {
+                        SwingUtilities.invokeLater(new Runnable() {
+                            public void run()
+                            {
+                                doButtonAction();
+                            }
+                        });
+                    }
         });
         
         File path = UIRegistry.getAppDataSubDir("cache", true);
@@ -107,8 +131,11 @@ public class IndexFungorum extends JButton implements UIPluginable, GetSetValueI
 	{
 		log.debug("doButtonAction");
 		
-		String searchText = searchTextField.getText();
+		String searchText = nameTextField.getText();
 		log.info("Searching Index Fungorum for '" + searchText + "'");
+		
+		list.clear();
+		taxonList.clear();
 		
 		if (getter == null)
         {
@@ -179,12 +206,7 @@ public class IndexFungorum extends JButton implements UIPluginable, GetSetValueI
 	public void setParent(FormViewObj formViewObj)
 	{
 		this.formViewObj = formViewObj;
-		
-		Component searchText = formViewObj.getControlById("searchText");
-		if (searchText instanceof ValTextField) {
-			searchTextField = (ValTextField) searchText;
-		}
-		
+
 		Component name = formViewObj.getControlById("name");
 		if (name instanceof ValTextField) {
 			nameTextField = (ValTextField) name;
@@ -198,6 +220,9 @@ public class IndexFungorum extends JButton implements UIPluginable, GetSetValueI
 		Component parent = formViewObj.getControlById("parent");
 		if (parent instanceof ValComboBoxFromQuery) {
 			parentComboBox = (ValComboBoxFromQuery) parent;
+		}
+		else if (parent instanceof EditViewCompSwitcherPanel) {
+			//parentComboBox = (EditViewCompSwitcherPanel) parent;
 		}
 	}
 
@@ -240,7 +265,142 @@ public class IndexFungorum extends JButton implements UIPluginable, GetSetValueI
 		
 		for (Taxon t : results) {
 			String name = t.getName();
+			
 			log.debug(name);
+			list.add(name);
+			taxonList.add(t);
+		}
+		
+		// from TextFieldWithQuery
+		//protected void showPopup()
+		//{
+		String currentText = nameTextField.getText();
+		log.debug("current text: '" + currentText + "'");
+		
+		//if (hasNewText || currentText.length() == 0)
+		if (currentText != null && currentText.length() != 0)
+		{
+			ActionListener al = new ActionListener()
+			{
+				public void actionPerformed(ActionEvent e)
+				{
+					itemSelected((JMenuItem)e.getSource());
+				}
+			};
+
+			popupMenu = new JPopupMenu();
+			if (popupMenuListener != null)
+			{
+				popupMenu.addPopupMenuListener(popupMenuListener);
+			}
+
+			log.debug("Created popup menu");
+			
+			popupMenu.addPopupMenuListener(new PopupMenuListener() {
+				public void popupMenuCanceled(PopupMenuEvent e)
+				{
+					if (selectedTaxon == null)
+					{
+						setText(""); //$NON-NLS-1$
+					}
+				}
+
+				public void popupMenuWillBecomeInvisible(PopupMenuEvent e)
+				{
+					if (selectedTaxon == null)
+					{
+						setText(""); //$NON-NLS-1$
+					}
+					//textField.requestFocus();
+				}
+
+				public void popupMenuWillBecomeVisible(PopupMenuEvent e)
+				{
+					//
+				}
+			});
+
+			if (doAddAddItem)
+			{
+				JMenuItem mi = new JMenuItem(UIRegistry.getResourceString("TFWQ_ADD_LABEL")); //$NON-NLS-1$
+				setControlSize(mi);
+
+				popupMenu.add(mi);
+				mi.addActionListener(al); 
+			}
+
+			for (String str : list)
+			{
+				String label = str;
+				/*if (uiFieldFormatter != null)
+	                {
+	                    label = uiFieldFormatter.formatToUI(label).toString();
+	                }*/
+				JMenuItem mi = new JMenuItem(label);
+				setControlSize(mi);
+
+				popupMenu.add(mi);
+				mi.addActionListener(al);
+			}
+		}
+
+		if (popupMenu != null && (list.size() > 0 || doAddAddItem))
+		{
+			log.debug("going to show popup?");
+			
+			UIHelper.addSpecialKeyListenerForPopup(popupMenu);
+
+			final Point     location = nameTextField.getLocation();
+			final Dimension size     = nameTextField.getSize();
+
+			SwingUtilities.invokeLater(new Runnable()
+			{
+				public void run()
+				{
+					popupMenu.setInvoker(nameTextField);
+					popupMenu.show(nameTextField, location.x, location.y+size.height);
+					popupMenu.requestFocus();
+				}
+			});
+		}
+
+	    //}
+	}
+
+	// from TextFieldWithQuery
+	private void itemSelected(final JMenuItem mi)
+	{
+		//log.debug("setting hasNewText to true");
+
+		String selectedStr = mi.getText();
+		int inx = popupMenu.getComponentIndex(mi);
+		if (inx > -1)
+		{
+			if (taxonList.size() > 0 && !doAddAddItem)
+			{
+				selectedTaxon =  taxonList.get(doAddAddItem ? inx-1 : inx);
+
+				nameTextField.setText(selectedStr);
+				this.formViewObj.setNewObject(selectedTaxon);
+			}
+
+			if (listSelectionListeners != null)
+			{
+				notifyListenersOfChange(mi);
+			}
+		}
+	}
+
+	// from TextFieldWithQuery
+	private void notifyListenersOfChange(final Object source)
+	{
+		if (listSelectionListeners != null)
+		{
+			ListSelectionEvent lse = source == null ? null : new ListSelectionEvent(source, 0, 0, false);
+			for (ListSelectionListener l : listSelectionListeners)
+			{
+				l.valueChanged(lse);
+			}
 		}
 	}
 
@@ -251,7 +411,6 @@ public class IndexFungorum extends JButton implements UIPluginable, GetSetValueI
 		log.error("infoGetWasInError:" + e.name());
 	}
 	
-	@SuppressWarnings("unchecked")
 	protected List<Taxon> parseIFResults(Element root) {
 		
 		log.debug("parseIFResults");
@@ -272,10 +431,13 @@ public class IndexFungorum extends JButton implements UIPluginable, GetSetValueI
 			String recordNumber = result.valueOf("RECORD_x0020_NUMBER");
 			String uuid = result.valueOf("UUID");
 			
+			boolean isInfraSpecific = infraSpecificRank != null && infraSpecificRank.trim().length() > 0;
+			
 			Taxon t = new Taxon();
 			t.initialize();
 			
 			t.setName(name);
+			t.setGuid(uuid);
 			results.add(t);
 		}
 		return results;
