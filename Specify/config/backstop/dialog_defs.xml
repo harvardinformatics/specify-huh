@@ -39,7 +39,7 @@
     <dialog type="display" view="AccessionPreparation" name="AccessionPreparationsDisplay" class="edu.ku.brc.specify.datamodel.AccessionPrepration" helpcontext="CBXQViewEdit"/>
     <dialog type="display" view="Address"            name="AddressDisplay"           class="edu.ku.brc.specify.datamodel.Accession" helpcontext="CBXQViewEdit"/>
 	<dialog type="display" view="AffiliateAgent"     name="AffiliateAgent"           class="edu.ku.brc.specify.datamodel.Agent" helpcontext="CBXQViewEdit"/>
-    <dialog type="display" view="Agent"              name="AgentDisplay"             class="edu.ku.brc.specify.datamodel.Agent" helpcontext="CBXQViewEdit"/>
+    <dialog type="display" view="Transaction Agent"   name="AgentDisplay"             class="edu.ku.brc.specify.datamodel.Agent" helpcontext="CBXQViewEdit"/>
 	<dialog type="display" view="AgentCitation"      name="AgentCitation"            class="edu.ku.brc.specify.datamodel.AgentCitation" helpcontext="CBXQViewEdit"/>
     <dialog type="display" view="AgentGeography"     name="AgentGeography"           class="edu.ku.brc.specify.datamodel.AgentGeography" helpcontext="CBXQViewEdit"/>
     <dialog type="display" view="AgentSpecialty"     name="AgentSpecialty"           class="edu.ku.brc.specify.datamodel.AgentSpecialty" helpcontext="CBXQViewEdit"/>
