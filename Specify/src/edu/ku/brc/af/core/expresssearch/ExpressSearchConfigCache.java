@@ -204,7 +204,7 @@ public class ExpressSearchConfigCache
             ResourceBundle resBundle = ResourceBundle.getBundle("expresssearch"); //$NON-NLS-1$
 
             try
-            {
+            {   // comment by HUH: ultimately, this data comes from SpAppResource.getDataAsString(DataProviderSessionIFace) reading config/backstop/search_config.xml
                 Element esDOM = AppContextMgr.getInstance().getResourceAsDOM("SearchConfig"); // Describes the definitions of the full text search //$NON-NLS-1$
                 
                 if (esDOM != null)
