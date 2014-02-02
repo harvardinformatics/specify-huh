@@ -115,6 +115,14 @@ public class DateParser
      */
     public static DateFormatType getDateFormatType(final String dateStr)
     {
+    	if (dateStr == null) return DateFormatType.Unknown;
+
+    	if (! (dateStr.matches(".*[0-9][0-9][0-9][0-9]") ||
+    			dateStr.matches("[0-9][0-9][0-9][0-9].*"))) {
+
+    		return DateFormatType.Unknown;
+    	}
+    	
         DateFormatType type = DateFormatType.Unknown;
         int            len  = dateStr.length();
         if (len > 7 && len < 11)
