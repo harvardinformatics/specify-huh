@@ -6,7 +6,7 @@
 	<session-factory>
 
 		<property name="hibernate.use_identifer_rollback">true</property>
-		<property name="hibernate.show_sql">true</property>
+		<property name="hibernate.show_sql">false</property>
 		
         <!-- Use JTA for Transactions -->
         <!--
