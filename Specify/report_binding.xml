@@ -124,7 +124,8 @@
 				<value name="borrowedGeneralCollections" field="borrowedGeneralCollections" usage="optional" />
 				<value name="borrowedTypes" field="borrowedTypes" usage="optional" />
 				<value name="borrowedNonSpecimens" field="borrowedNonSpecimens" usage="optional" />
-					
+				<value name="borrowedLineTotal" field="borrowedLineTotal" usage="optional" />
+				
 				<value name="generalCollectionsBalanceDue" field="generalCollectionsBalanceDue" usage="optional" />
 				<value name="typesBalanceDue" field="typesBalanceDue" usage="optional" />
 				<value name="nonSpecimensBalanceDue" field="nonSpecimensBalanceDue" usage="optional" />
@@ -139,6 +140,7 @@
 						<value name="returnedGeneralCollections" field="returnedGeneralCollections" usage="optional" />
 						<value name="returnedTypes" field="returnedTypes" usage="optional" />
 						<value name="returnedNonSpecimens" field="returnedNonSpecimens" usage="optional" />
+						<value name="returnedLineTotal" field="returnedLineTotal" usage="optional" />
 					</structure>
 				</collection>
 			</structure>
@@ -333,6 +335,7 @@
 		<value name="accessionDate" field="accessionDate" usage="optional" />
 		<value name="recipientName" field="recipientName" usage="optional" />
 		<value name="accessionType" field="accessionType" usage="optional" />
+		<value name="from" field="from" usage="optional" />
 		<value name="boxes" field="boxes" usage="optional" />
 		<value name="purpose" field="purpose" usage="optional" />
 		<value name="staffName" field="staffName" usage="optional" />

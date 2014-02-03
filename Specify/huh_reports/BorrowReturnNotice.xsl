@@ -62,7 +62,7 @@
 	<xsl:variable name="generalCollectionsCount" select="borrowReturnNotice/generalCollectionsCount"/>
 	<xsl:variable name="nonSpecimensCount" select="borrowReturnNotice/nonSpecimensCount"/>
 	<xsl:variable name="typesCount" select="borrowReturnNotice/typesCount"/>
-	
+
 	<xsl:variable name="generalCollectionsReturnedCount" select="borrowReturnNotice/generalCollectionsReturnedCount"/>
 	<xsl:variable name="nonSpecimensReturnedCount" select="borrowReturnNotice/nonSpecimensReturnedCount"/>
 	<xsl:variable name="typesReturnedCount" select="borrowReturnNotice/typesReturnedCount"/>
@@ -85,7 +85,7 @@
 				<fo:simple-page-master master-name="LoanReport"
 					page-width="8.5in" page-height="11in">
 					<fo:region-body margin-left=".70in" margin-right=".70in"
-						margin-top=".50in" margin-bottom="1.5in" />
+						margin-top=".50in" margin-bottom=".25in" />
 					<fo:region-before extent="1.5in" display-align="before" />
 					<fo:region-after extent="3in" display-align="after" />
 				</fo:simple-page-master>
@@ -288,7 +288,8 @@
 						<fo:table-column column-width="40mm" />
 						<fo:table-column column-width="15mm" />
 						<fo:table-column column-width="15mm" />
-						<fo:table-column column-width="30mm" />
+						<fo:table-column column-width="15mm" />
+						<fo:table-column column-width="15mm" />
 						<fo:table-column column-width="40mm" />
 						<fo:table-column />
 						<fo:table-header>
@@ -304,7 +305,10 @@
 									<fo:block border-bottom-style="solid" border-bottom-width="2pt" font-weight="bold">Types</fo:block>
 								</fo:table-cell>
 								<fo:table-cell>
-									<fo:block border-bottom-style="solid" border-bottom-width="2pt" font-weight="bold">Non-specimens</fo:block>
+									<fo:block border-bottom-style="solid" border-bottom-width="2pt" font-weight="bold">Other</fo:block>
+								</fo:table-cell>
+								<fo:table-cell>
+									<fo:block border-bottom-style="solid" border-bottom-width="2pt" font-weight="bold">Total</fo:block>
 								</fo:table-cell>
 								<fo:table-cell>
 									<fo:block border-bottom-style="solid" border-bottom-width="2pt" font-weight="bold">Higher taxon</fo:block>
@@ -355,6 +359,16 @@
 											</fo:block>
 										</fo:table-cell>
 										<fo:table-cell>
+											<fo:block padding-bottom="4mm" padding-top="4mm">
+												<xsl:choose>
+													<xsl:when test="borrowedLineTotal != ''">
+														<xsl:value-of select="borrowedLineTotal" />
+													</xsl:when>
+													<xsl:otherwise>0</xsl:otherwise>
+												</xsl:choose>
+											</fo:block>
+										</fo:table-cell>
+										<fo:table-cell>
 											<fo:block padding-bottom="4mm" padding-top="4mm"><xsl:value-of select="higherTaxon" /></fo:block>
 										</fo:table-cell>
 										<fo:table-cell>
@@ -364,10 +378,10 @@
 									
 									<xsl:if test="description != ''">
 										<fo:table-row>
-											<fo:table-cell number-columns-spanned="4">
+											<fo:table-cell number-columns-spanned="2">
 												<fo:block />
 											</fo:table-cell>
-											<fo:table-cell number-columns-spanned="2" padding-left="4mm" padding-top="2mm" padding-bottom="2mm" text-align="right">
+											<fo:table-cell number-columns-spanned="5" padding-left="4mm" padding-top="2mm" padding-bottom="2mm" text-align="right">
 												<fo:block>
 													<xsl:value-of select="description" />
 												</fo:block>
@@ -380,6 +394,7 @@
 											<fo:table-cell>
 												<fo:block font-style="italic">Returns</fo:block>
 											</fo:table-cell>
+											<fo:table-cell><fo:block /></fo:table-cell>
 											<fo:table-cell><fo:block /></fo:table-cell>
 											<fo:table-cell><fo:block /></fo:table-cell>
 											<fo:table-cell><fo:block /></fo:table-cell>
@@ -427,6 +442,16 @@
 													</xsl:choose>
 												</fo:block>
 											</fo:table-cell>
+											<fo:table-cell>
+												<fo:block>
+													<xsl:choose>
+														<xsl:when test="returnedLineTotal != ''">
+															<xsl:value-of select="returnedLineTotal" />
+														</xsl:when>
+														<xsl:otherwise>0</xsl:otherwise>
+													</xsl:choose>
+												</fo:block>
+											</fo:table-cell>
 											<fo:table-cell number-columns-spanned="2">
 												<fo:block />
 											</fo:table-cell>
@@ -444,16 +469,19 @@
 						<fo:table-column column-width="40mm" />
 						<fo:table-column column-width="15mm" />
 						<fo:table-column column-width="15mm" />
-						<fo:table-column column-width="30mm" />
+						<fo:table-column column-width="15mm" />
+						<fo:table-column column-width="15mm" />
 						<fo:table-column column-width="40mm" />
 						<fo:table-column />
 						<fo:table-body>
 							<fo:table-row>
 								<fo:table-cell>
-									<fo:block />
+									<fo:block padding-top="2mm">
+										total balance due: 
+									</fo:block>
 								</fo:table-cell>
 								<fo:table-cell>
-									<fo:block>
+									<fo:block padding-top="2mm">
 										<xsl:choose>
 											<xsl:when test="$generalCollectionsBalanceDueCount != ''">
 												<xsl:value-of select="$generalCollectionsBalanceDueCount" />
@@ -463,7 +491,7 @@
 									</fo:block>
 								</fo:table-cell>
 								<fo:table-cell>
-									<fo:block>
+									<fo:block padding-top="2mm">
 										<xsl:choose>
 											<xsl:when test="$typesBalanceDueCount != ''">
 												<xsl:value-of select="$typesBalanceDueCount" />
@@ -473,7 +501,7 @@
 									</fo:block>
 								</fo:table-cell>
 								<fo:table-cell>
-									<fo:block>
+									<fo:block padding-top="2mm">
 										<xsl:choose>
 											<xsl:when test="$nonSpecimensReturnedCount != ''">
 												<xsl:value-of select="$nonSpecimensReturnedCount" />
@@ -482,9 +510,9 @@
 										</xsl:choose>
 									</fo:block>
 								</fo:table-cell>
-								<fo:table-cell number-columns-spanned="2">
-									<fo:block>
-										total balance due: <xsl:choose>
+								<fo:table-cell number-columns-spanned="3">
+									<fo:block padding-top="2mm">
+										<xsl:choose>
 											<xsl:when test="$totalBalanceDueSum != ''">
 												<xsl:value-of select="$totalBalanceDueSum" />
 											</xsl:when>
@@ -505,7 +533,7 @@
 						</fo:block-container> -->
 
 					</fo:block>
-					<fo:block-container page-break-inside="avoid" space-before="20pt" space-after="10mm">
+					<fo:block-container page-break-inside="avoid" space-before="10mm" space-after="2mm">
 						<fo:block>Received the above in good order</fo:block>
 						<fo:block space-before="18pt">
 							<fo:leader leader-length="80mm" leader-pattern="rule" />

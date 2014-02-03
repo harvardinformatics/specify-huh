@@ -94,7 +94,7 @@ public class BorrowReturnNotice {
 	private int totalBorrowedSum;
 	private int totalReturnedSum;
 	private int totalBalanceDueSum;
-	
+
 	// shipment
 	private Calendar dateSent;	
 	private int numberOfPackages;
@@ -197,6 +197,8 @@ public class BorrowReturnNotice {
 			if (typeCount == null) typeCount = 0;
 			desc.borrowedTypes = typeCount;
 			
+			desc.borrowedLineTotal = desc.borrowedGeneralCollections + desc.borrowedNonSpecimens + desc.borrowedTypes;
+			
 			this.generalCollectionsCount += itemCount;
 			this.generalCollectionsBalanceDueCount += itemCount;
 			
@@ -235,6 +237,8 @@ public class BorrowReturnNotice {
 				
 				this.totalReturnedSum += (returnedItemCount + returnedNonSpecimenCount + returnedTypeCount);
 				this.totalBalanceDueSum -= (returnedItemCount + returnedNonSpecimenCount + returnedTypeCount);
+				
+				returnDesc.returnedLineTotal = returnDesc.returnedGeneralCollections + returnDesc.returnedNonSpecimens + returnDesc.returnedTypes;
 				
 				desc.returnDescs.add(returnDesc);
 			}
@@ -343,6 +347,7 @@ public class BorrowReturnNotice {
 		int borrowedGeneralCollections = 0;
 		int borrowedTypes = 0;
 		int borrowedNonSpecimens = 0;
+		int borrowedLineTotal = 0;
 		
 		int generalCollectionsBalanceDue = 0;
 		int typesBalanceDue = 0;
@@ -362,5 +367,6 @@ public class BorrowReturnNotice {
 		int returnedGeneralCollections = 0;
 		int returnedTypes = 0;
 		int returnedNonSpecimens = 0;
+		int returnedLineTotal = 0;
 	}
 }
