@@ -1852,8 +1852,7 @@
                 </row>
                 <row>
                 	<cell type="label" labelfor="name"/>
-                    <cell type="field" id="name" uitype="text" cols="16" name="name"  colspan="3"/>
-                    <cell type="field" id="indexFungorum" name="this" uitype="plugin" initialize="name=IndexFungorum" colspan="2"/>
+                    <cell type="field" id="name" uitype="text" cols="16" name="name"  colspan="5"/>
                     <cell type="label" labelfor="citesStatus"/>
                 	<cell type="field" id="citesStatus" uitype="combobox" name="citesStatus" picklist="HUH CITES Status" colspan="5"/>
                 </row>
