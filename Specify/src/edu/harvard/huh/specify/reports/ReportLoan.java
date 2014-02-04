@@ -233,7 +233,21 @@ public class ReportLoan {
 			numberOfPackages = curr.getNumberOfPackages() != null ? curr.getNumberOfPackages() : 0;
 			
 			if (curr.getShippedTo() != null) {
-				nameOfContact = curr.getShippedTo().getFirstName() + " " + curr.getShippedTo().getLastName();
+				String firstName = curr.getShippedTo().getFirstName();
+				String lastName = curr.getShippedTo().getLastName();
+				if (firstName != null && lastName != null) {
+					nameOfContact = firstName + " " + lastName;
+				}
+				else if (firstName == null) {
+					nameOfContact = lastName;
+				}
+				else if (lastName == null) {
+					nameOfContact = firstName;
+				}
+				else {
+					nameOfContact = "";
+				}
+
 				if (curr.getShippedTo().getTitle() != null) {
 					title = curr.getShippedTo().getTitle();
 					title = title.substring(0,1).toUpperCase() + title.substring(1);
