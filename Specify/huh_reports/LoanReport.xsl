@@ -6,13 +6,26 @@
 	xmlns:date="http://exslt.org/dates-and-times" xmlns:huh="http://edu.harvard/huh/specify/reports/datamodel">
 
 	<xsl:variable name="nameOfContact">
-		<xsl:if test="reportLoan/title != ''">
-			<xsl:value-of select="reportLoan/title" />
-			.&#x20;
+		<xsl:choose>
+			<xsl:when test="not(reportLoan/title)"></xsl:when>
+			<xsl:when test="reportLoan/title = 'Dr'">Dr.&#x20;</xsl:when>
+			<xsl:when test="reportLoan/title = 'Mr'">Mr.&#x20;</xsl:when>
+			<xsl:when test="reportLoan/title = 'Mrs'">Mrs.&#x20;</xsl:when>
+			<xsl:when test="reportLoan/title = 'Ms'">Ms.&#x20;</xsl:when>
+			<xsl:otherwise>
+				<xsl:value-of select="concat(reportLoan/title, ' ')" />
+			</xsl:otherwise>
+		</xsl:choose>
+		
+		<xsl:if test="reportLoan/nameOfContact != ''">
+			<xsl:value-of select="reportLoan/nameOfContact" />
 		</xsl:if>
-		<xsl:value-of select="reportLoan/nameOfContact" />
-		,&#x20;
-		<xsl:value-of select="reportLoan/jobTitle" />
+		<xsl:if test="reportLoan/jobTitle != ''">
+			<xsl:if test="reportLoan/nameOfContact != ''">,&#x20;
+			</xsl:if>
+			<xsl:value-of select="reportLoan/jobTitle" />
+		</xsl:if>
+		
 	</xsl:variable>
 	<xsl:variable name="institution">
 		<xsl:value-of select="reportLoan/institution" />
