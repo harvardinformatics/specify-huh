@@ -102,9 +102,12 @@
 	    SELECT DISTINCT %s1 FROM AgentVariant av WHERE av.varType = 3 AND %s2 ORDER BY name
     </typesearch>
     <typesearch tableid="77"  name="TaxonTreeDefItem"       searchfield="name"            displaycols="name"               format="%s"     dataobjformatter=""/>
+
+	<!-- Don't change the following query without updating JPAQuery.runQuery() -->
     <typesearch tableid="5"   name="TransactionAgent"       searchfield="org.abbreviation,ag.abbreviation,ag.lastName" displaycols="ag.abbreviation,ag.lastName,ag.firstName,av.name,org.abbreviation" format="%s %s %s%s %s"     dataobjformatter="Agent">
-           SELECT distinct %s1 FROM Agent ag LEFT JOIN ag.variants as av LEFT JOIN ag.organization as org WHERE (%s2) and (av.varType is null or (av.varType = 5 and ag.organization is not null)) ORDER BY ifnull(ag.abbreviation, org.abbreviation), ifnull(org.abbreviation, 'a'), ifnull(ag.lastName, av.name)
+           SELECT distinct %s1 FROM Agent ag LEFT JOIN ag.variants as av LEFT JOIN ag.organization as org WHERE (%s2) and ag.agentType != 4 and (av.varType is null or (av.varType = 5 and ag.organization is not null)) ORDER BY ifnull(ag.lastName, av.name)
     </typesearch>
+
     <typesearch tableid="63"  name="BarcodedPreparation"  searchfield="frag.identifier,frag.preparation.identifier" displaycols="frag.preparation.prepType.name,frag.preparation.identifier,frag.identifier" format="%s - %s (%s)"     dataobjformatter="Preparation">
 		SELECT %s1 FROM Fragment frag JOIN frag.preparation as pp WHERE %s2 ORDER BY frag.identifier, frag.preparation.identifier, frag.preparation.sampleNumber
     </typesearch>

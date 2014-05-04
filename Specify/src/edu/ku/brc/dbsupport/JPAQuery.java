@@ -21,7 +21,10 @@ package edu.ku.brc.dbsupport;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -52,7 +55,7 @@ public class JPAQuery implements CustomQueryIFace
     protected QueryExecutor             queryExecutor;
     protected String                    sqlStr;
     protected boolean                   inError     = false;
-    protected List<?>                   resultsList = null;
+    protected List<Object>                   resultsList = null;
     protected boolean                   isUnique    = false;
     protected boolean                   doDebug     = AppPreferences.getLocalPrefs().getBoolean("esdebug", false);
     
@@ -209,6 +212,52 @@ public class JPAQuery implements CustomQueryIFace
                 } else
                 {
                     resultsList = qry.list();
+                }
+
+                // This SQL is from typesearch_def.xml, name="TransactionAgent"
+                String transAgentSQL = "SELECT distinct ag.abbreviation, ag.lastName, ag.firstName, av.name, org.abbreviation, ag.agentId";
+                if (sqlStr.startsWith(transAgentSQL)) {
+                	if (resultsList.size() > 0) {
+                		Object obj = resultsList.get(0);
+                		if (obj instanceof Object[]) {
+
+                			String like = " LIKE '";
+                			if (sqlStr.contains(like)) {
+
+                				int begin = sqlStr.indexOf(like) + like.length();
+                				int end = sqlStr.indexOf("'", begin);
+                				String searchTerm = sqlStr.substring(begin, end - 1);
+
+                				if (searchTerm != null && searchTerm.length() < 5) {
+                					// if the search term is < 5 chars, we'd like the list in this order:
+                					//   organizations with abbreviations matching the search term first
+                					//   people from organizations matching the search term next
+                					//   organizations and people otherwise matching the search term in order last, in the order they came in
+
+                					int matchingOrgs = 0;
+                					int matchingAgents = 0;
+                					
+                					for (int i = 0; i < resultsList.size(); i++) {
+                						if (resultsList.get(i) == null) continue;
+                						Object[] arr = (Object[]) resultsList.get(i);
+
+                						String abbrev = arr[0] == null ? null : (String) arr[0];
+                						String orgAbbrev = arr[4] == null ? null : (String) arr[4];
+                						if (abbrev != null && abbrev.equalsIgnoreCase(searchTerm)) {
+                							Object o = resultsList.remove((int) i);
+                							resultsList.add(matchingOrgs, o);
+                							matchingOrgs++;
+                						}
+                						else if (orgAbbrev != null && orgAbbrev.equalsIgnoreCase(searchTerm)) {
+                							Object o = resultsList.remove((int) i);
+                							resultsList.add(matchingOrgs + matchingAgents, o);
+                							matchingAgents++;
+                						}
+                					}
+                				}
+                			}
+                		}
+                	}
                 }
                 
                if (doDebug)
