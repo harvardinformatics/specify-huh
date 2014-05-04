@@ -215,7 +215,7 @@ public class HUHAgentBusRules extends AgentBusRules
                 final Component addrSubView = formViewObj.getCompById(ADDRESSES);
                 
                 byte agentType = (byte)cbx.getSelectedIndex();
-                if (agentType != Agent.PERSON)
+                if (agentType == Agent.ORG || agentType == Agent.GROUP || agentType == Agent.SERIES)
                 {
                     agent.setMiddleInitial(null);
                     agent.setFirstName(null);
