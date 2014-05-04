@@ -84,20 +84,23 @@ public class Agent extends DataModelObjBase implements java.io.Serializable,
     // Fields
     private static Agent                    userAgent = null;
     
+    // See AgentBusRules constructor, resources_en.properties
+    protected Byte                          agentType;
     public static final byte                ORG    = 0;
     public static final byte                PERSON = 1;
     public static final byte                OTHER  = 2;
     public static final byte                GROUP  = 3;
-
+    public static final byte                SERIES = 4;
+    public static final byte                AFFILIATE = 5;
+    public static final byte                AGENT = 6;
+    
     public static final byte                BIRTH              = 0;
     public static final byte                FLOURISHED         = 1;
     public static final byte                COLLECTED          = 2;
     public static final byte                RECEIVED_SPECIMENS = 3;
 
     protected Integer                       agentId;
-    /** Organization (0), Person (1), Other (2) or Group (3) */
-    protected Byte                          agentType;
-    
+
     protected String                        firstName;
     protected String                        lastName;
     protected String                        middleInitial;
