@@ -3813,4 +3813,19 @@ public final class UIHelper
         jComponent.getInputMap().put(enterKey, jComponent.getInputMap().get(spaceKey));
         jComponent.getInputMap().put(enterKeyReleased, jComponent.getInputMap().get(spaceKeyReleased));
     }
+    
+    /**
+     * Sizes the table to number of rows using getRowHeight
+     * @param table the table to be sized
+     * @param rows the number of rows
+     */
+    public static void setVisibleRowCount(final JTable table, final int rows)
+    {
+        if (table != null)
+        {
+            table.setPreferredScrollableViewportSize(new Dimension( 
+                    table.getPreferredScrollableViewportSize().width, 
+                    rows*table.getRowHeight()));
+        }
+    }
 }
