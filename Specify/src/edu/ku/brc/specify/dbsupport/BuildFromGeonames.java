@@ -25,6 +25,8 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.sql.Timestamp;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Hashtable;
@@ -61,7 +63,7 @@ public class BuildFromGeonames
     private static final Logger  log      = Logger.getLogger(BuildFromGeonames.class);
     
     protected GeographyTreeDef           geoDef;
-    protected String                     nowStr;
+    protected Timestamp                  now;
     protected String                     insertSQL = null;
     protected StringBuilder              sql       = new StringBuilder();
     protected Agent                      createdByAgent;
@@ -93,7 +95,7 @@ public class BuildFromGeonames
      * @param frame
      */
     public BuildFromGeonames(final GeographyTreeDef   geoDef, 
-                             final String             nowStr,
+                             final Timestamp          now,
                              final Agent              createdByAgent,
                              final String             itUsername,
                              final String             itPassword,
@@ -101,7 +103,7 @@ public class BuildFromGeonames
     {
         super();
         this.geoDef         = geoDef;
-        this.nowStr         = nowStr;
+        this.now            = now;
         this.createdByAgent = createdByAgent;
         this.itUsername     = itUsername;
         this.itPassword     = itPassword;
@@ -602,6 +604,7 @@ public class BuildFromGeonames
             nameStr = nameStr.substring(0, 64);
         }
         
+        String nowStr = (new SimpleDateFormat("yyyy-MM-dd")).format(now);
         if (parentId != null)
         {
             Double lat = ((BigDecimal)row.get(1)).doubleValue();
@@ -655,6 +658,8 @@ public class BuildFromGeonames
             log.error("No Continent Id for continentCode["+continentCode+"]   Country["+nameStr+"]");
         }
     
+        String nowStr = (new SimpleDateFormat("yyyy-MM-dd")).format(now);
+        
         if (parentId != null || rankId == 100)
         {
             sql.append("\"");
