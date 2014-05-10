@@ -1128,6 +1128,15 @@ public class UIRegistry
     }
 
     /**
+     * Display an Information dialog that gets its string from the resource bundle.
+     * @param msg the already localized message to be displayed
+     */
+    public static void displayInfoMsgDlg(final String msg)
+    {
+         JOptionPane.showMessageDialog(getMostRecentWindow(), msg, getResourceString("INFORMATION"), JOptionPane.INFORMATION_MESSAGE);
+    }
+    
+    /**
      * Display an Error dialog.
      * @param msg the message to be displayed
      */
