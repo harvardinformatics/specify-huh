@@ -412,10 +412,14 @@ public final class UIHelper
     /**
      * Center and make the window visible
      * @param window the window to center
+     * @param width sets the dialog to this width (can be null)
+     * @param height sets the dialog to this height (can be null)
      */
-    public static void centerAndShow(java.awt.Window window)
+    public static void centerAndShow(java.awt.Window window, 
+                                     final Integer width, 
+                                     final Integer height)
     {
-        centerWindow(window);
+        centerWindow(window, width, height);
 
         window.setVisible(true);
     }
@@ -424,33 +428,41 @@ public final class UIHelper
      * Center and make the window visible
      * @param window the window to center
      */
-    public static void centerWindow(java.awt.Window window)
+    public static void centerAndShow(java.awt.Window window)
+    {
+        centerAndShow(window, null, null);
+    }
+
+    /**
+     * Center and make the window visible
+     * @param window the window to center
+     */
+    public static void centerWindow(final java.awt.Window window)
+    {
+        centerWindow(window, null, null);
+    }
+
+    /**
+     * Center and make the window visible
+     * @param window the window to center
+     * @param width sets the dialog to this width (can be null)
+     * @param height sets the dialog to this height (can be null)
+     */
+    public static void centerWindow(final java.awt.Window window, 
+                                    final Integer width, 
+                                    final Integer height)
     {
         JFrame topFrame = (JFrame)UIRegistry.getTopWindow();
-        Insets screenInsets = null;
-        Rectangle screenRect = null;
+        Insets    screenInsets = null;
+        Rectangle screenRect   = null;
         
-        // if there is a registered TOPFRAME, and it's not the same as the window being passed in...
-        if (topFrame != null && topFrame != window)
+        if (width != null || height != null)
         {
-            screenRect = topFrame.getBounds();
-            screenInsets = topFrame.getInsets();
+            Dimension s = window.getSize();
+            if (width != null) s.width = width;
+            if (height != null) s.height = height;
+            window.setSize(s);
         }
-        else
-        {
-            screenRect = window.getGraphicsConfiguration().getBounds();
-            screenInsets = Toolkit.getDefaultToolkit().getScreenInsets(window.getGraphicsConfiguration());
-        }
-        
-        // Make sure we don't place the demo off the screen.
-        int centerWidth = screenRect.width < window.getSize().width ? screenRect.x : screenRect.x
-            + screenRect.width / 2 - window.getSize().width / 2;
-        int centerHeight = screenRect.height < window.getSize().height ? screenRect.y : screenRect.y
-            + screenRect.height / 2 - window.getSize().height / 2;
-
-        centerHeight = centerHeight < screenInsets.top ? screenInsets.top : centerHeight;
-
-        window.setLocation(centerWidth, centerHeight);
     }
     
     /**
@@ -2369,83 +2381,103 @@ public final class UIHelper
      */
     public static void calcColumnWidths(final JTable table, final Integer numRowsHeight)
     {
-        JTableHeader header = table.getTableHeader();
-
-        TableCellRenderer defaultHeaderRenderer = null;
-
-        if (header != null)
-        {
-            defaultHeaderRenderer = header.getDefaultRenderer();
-        }
-
-        TableColumnModel columns = table.getColumnModel();
-        TableModel data = table.getModel();
-
-        int margin = columns.getColumnMargin(); // only JDK1.3
-
-        int rowCount = data.getRowCount();
-
-        int totalWidth = 0;
-
-        for (int i = columns.getColumnCount() - 1; i >= 0; --i)
-        {
-            TableColumn column = columns.getColumn(i);
-
-            int columnIndex = column.getModelIndex();
-
-            int width = -1;
-
-            TableCellRenderer h = column.getHeaderRenderer();
-
-            if (h == null)
-                h = defaultHeaderRenderer;
-
-            if (h != null) // Not explicitly impossible
-            {
-                Component c = h.getTableCellRendererComponent
-                       (table, column.getHeaderValue(),
-                        false, false, -1, i);
-
-                width = c.getPreferredSize().width;
-            }
-
-            for (int row = rowCount - 1; row >= 0; --row)
-            {
-                TableCellRenderer r = table.getCellRenderer(row, i);
-
-                Component c = r.getTableCellRendererComponent
-                   (table,
-                    data.getValueAt(row, columnIndex),
-                    false, false, row, i);
-
-                    width = Math.max(width, c.getPreferredSize().width+10); // adding an arbitray 10 pixels to make it look nicer
-            }
-
-            if (width >= 0)
-            {
-                column.setPreferredWidth(width + margin); // <1.3: without margin
-            }
-            else
-            {
-                // ???
-            }
-
-            totalWidth += column.getPreferredWidth();
-        }
-
-        // If you like; This does not make sense for two many columns!
-        Dimension size = table.getPreferredScrollableViewportSize();
-        //if (totalWidth > size.width)
-        {
-            if (numRowsHeight != null)
-            {
-                size.height = Math.min(size.height, table.getRowHeight() * numRowsHeight);
-            }
-            size.width  = totalWidth;
-            table.setPreferredScrollableViewportSize(size);
-        }
+        calcColumnWidths(table, numRowsHeight, null);
     }
     
+    /**
+     * Calculates and sets the each column to it preferred size.  NOTE: This
+     * method also sets the table height to 10 rows.
+     * 
+     * @param table the table to fix up
+     * @param numRowsHeight the number of rows to make the table height (or null not to set it)
+     */
+    public static void calcColumnWidths(final JTable table, final Integer numRowsHeight, final Integer maxWidth)
+    {
+        if (table != null)
+        {
+            JTableHeader header = table.getTableHeader();
+    
+            TableCellRenderer defaultHeaderRenderer = null;
+    
+            if (header != null)
+            {
+                defaultHeaderRenderer = header.getDefaultRenderer();
+            }
+    
+            TableColumnModel columns = table.getColumnModel();
+            TableModel data = table.getModel();
+    
+            int margin = columns.getColumnMargin(); // only JDK1.3
+    
+            int rowCount = data.getRowCount();
+    
+            int totalWidth = 0;
+    
+            for (int i = columns.getColumnCount() - 1; i >= 0; --i)
+            {
+                TableColumn column = columns.getColumn(i);
+    
+                int columnIndex = column.getModelIndex();
+    
+                int width = -1;
+    
+                TableCellRenderer h = column.getHeaderRenderer();
+    
+                if (h == null)
+                    h = defaultHeaderRenderer;
+    
+                if (h != null) // Not explicitly impossible
+                {
+                    Component c = h.getTableCellRendererComponent
+                           (table, column.getHeaderValue(),
+                            false, false, -1, i);
+    
+                    width = c.getPreferredSize().width;
+                }
+    
+                for (int row = rowCount - 1; row >= 0; --row)
+                {
+                    TableCellRenderer r = table.getCellRenderer(row, i);
+    
+                    Component c = r.getTableCellRendererComponent
+                       (table,
+                        data.getValueAt(row, columnIndex),
+                        false, false, row, i);
+    
+                        width = Math.max(width, c.getPreferredSize().width+10); // adding an arbitray 10 pixels to make it look nicer
+                        
+                        if (maxWidth != null)
+                        {
+                            width = Math.min(width, maxWidth);
+                        }
+                }
+    
+                if (width >= 0)
+                {
+                    column.setPreferredWidth(width + margin); // <1.3: without margin
+                }
+                else
+                {
+                    // ???
+                }
+    
+                totalWidth += column.getPreferredWidth();
+            }
+    
+            // If you like; This does not make sense for two many columns!
+            Dimension size = table.getPreferredScrollableViewportSize();
+            //if (totalWidth > size.width)
+            {
+                if (numRowsHeight != null)
+                {
+                    size.height = Math.min(size.height, table.getRowHeight() * numRowsHeight);
+                }
+                size.width  = totalWidth;
+                table.setPreferredScrollableViewportSize(size);
+            }
+        }
+    }
+
     /**
      * Sets a JTable to have the headers be centered. Also, the caller can indicate whether
      * and "String" columns are also centered.
