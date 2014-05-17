@@ -130,7 +130,23 @@ public abstract class DBMSUserMgr
      */
     public abstract boolean connect(String username, String password, String databaseHost, String dbName);
 
-	/**
+    /**
+     * Checks to see if a field exists for a table.
+     * @param tableName the name of the table to be checked
+     * @param fieldName the name of the field to be checked
+     * @return false if table or field doesn't exist
+     */
+    public abstract boolean doesFieldExistInTable(String tableName, String fieldName);
+ 
+    /*
+     * Returns the length of a field if there is one or null.
+     * @param tableName the table name
+     * @param fieldName the field in the table
+     * @return length of field or null if field does not exist.
+     */
+    public abstract Integer getFieldLength(final String tableName, final String fieldName);
+	
+    /**
 	 * Creates a user and assigns permissions.
 	 * @param username the user's username
 	 * @param password the user's password
@@ -153,6 +169,14 @@ public abstract class DBMSUserMgr
      * @return true if the table exists, false if not.
      */
     public abstract boolean doesDBHaveTable(final String tableName);
+
+    /**
+     * Check to see if the table is in the database schema
+     * @param databaseName the database in question (not the current connection)
+     * @param dbName the database name
+     * @return true if the table exists, false if not.
+     */
+    public abstract boolean doesDBHaveTable(final String databaseName, final String tableName);
     
     /**
      * Some databases require a specific engine and also the charset needs to be checked (UTF-8).

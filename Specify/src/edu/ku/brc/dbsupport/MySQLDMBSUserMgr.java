@@ -20,6 +20,10 @@
 package edu.ku.brc.dbsupport;
 
 import java.sql.Connection;
+import java.sql.DatabaseMetaData;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Vector;
 
@@ -396,6 +400,46 @@ public class MySQLDMBSUserMgr extends DBMSUserMgr
     }
 
     /* (non-Javadoc)
+     * @see edu.ku.brc.dbsupport.DBMSUserMgr#doesDBHaveTable(java.lang.String)
+     */
+    @Override
+    public boolean doesDBHaveTable(final String databaseName, final String tableName)
+    {
+        if (tableName != null)
+        {
+            PreparedStatement stmt = null;
+            ResultSet         rs   = null;
+            try
+            {
+                String sql = "SELECT COUNT(*) FROM information_schema.`TABLES` T WHERE T.TABLE_SCHEMA = ? AND T.TABLE_NAME = ?";
+                stmt = connection.prepareStatement(sql);
+                if (stmt != null)
+                {
+                    stmt.setString(1, databaseName);
+                    stmt.setString(2, tableName);
+                    rs = stmt.executeQuery();
+                    if (rs != null && rs.next())
+                    {
+                        return (rs.getInt(1) > 0);
+                    }
+                }
+            } catch (SQLException ex)
+            {
+                ex.printStackTrace();
+            } finally
+            {
+                try
+                {
+                    if (stmt != null) stmt.close();
+                    if (rs != null) rs.close();
+                } catch (SQLException ex) {}
+            }
+        }
+
+        return false;
+    }
+    
+    /* (non-Javadoc)
      * @see edu.ku.brc.dbsupport.DBMSUserMgr#setPermissions(java.lang.String, java.lang.String, int)
      */
     @Override
@@ -594,4 +638,58 @@ public class MySQLDMBSUserMgr extends DBMSUserMgr
         return errMsg == null;
     }
     
+    /* (non-Javadoc)
+     * @see edu.ku.brc.dbsupport.DBMSUserMgr#getFieldLength(java.lang.String, java.lang.String)
+     */
+    @Override
+    public Integer getFieldLength(String tableName, String fieldName)
+    {
+        try
+        {
+            String sql = "SELECT CHARACTER_MAXIMUM_LENGTH FROM `information_schema`.`COLUMNS` where TABLE_SCHEMA = '" +
+                          connection.getCatalog() + "' and TABLE_NAME = '" + tableName + "' and COLUMN_NAME = '" + fieldName + "'";
+            //log.debug(sql);
+            
+            Vector<Object> rows = BasicSQLUtils.querySingleCol(connection, sql);                    
+            if (rows.size() == 0)
+            {
+                return null; //the field doesn't even exits
+            }
+            
+            return((Number )rows.get(0)).intValue();
+            
+        } catch (Exception ex)
+        {
+            errMsg = "Error getting field length";
+        }
+        return null;
+    }
+    
+    /* (non-Javadoc)
+     * @see edu.ku.brc.dbsupport.DBMSUserMgr#doesFieldExistInTable(java.lang.String, java.lang.String)
+     */
+    @Override
+    public boolean doesFieldExistInTable(final String tableName, final String fieldName)
+    {
+        try
+        {
+            DatabaseMetaData mdm = connection.getMetaData();
+            ResultSet        rs  = mdm.getColumns(connection.getCatalog(), connection.getCatalog(), tableName, null);
+            while (rs.next())
+            {
+                String dbFieldName = rs.getString("COLUMN_NAME");
+                if (dbFieldName.equals(fieldName))
+                {
+                    rs.close();
+                    return true;
+                }
+            }
+            rs.close();
+            
+        } catch (SQLException ex)
+        {
+            ex.printStackTrace();
+        }
+        return false;
+    }
 }
