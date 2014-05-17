@@ -96,6 +96,14 @@ public class TreeMerger<N extends Treeable<N,D,I>,
 	{
 		return "name";
 	}
+
+	/**
+	 * @return
+	 */
+	public String getFullNameFld()
+	{
+		return "fullname";
+	}
 	
 	/**
 	 * @param parentId
