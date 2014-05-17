@@ -1,4 +1,4 @@
-/* Copyright (C) 2009, University of Kansas Center for Research
+/* Copyright (C) 2013, University of Kansas Center for Research
  * 
  * Specify Software Project, specify@ku.edu, Biodiversity Institute,
  * 1345 Jayhawk Boulevard, Lawrence, Kansas, 66045, USA
@@ -22,21 +22,25 @@ package edu.ku.brc.specify.dbsupport;
 import java.io.File;
 import java.math.BigDecimal;
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.List;
+import java.util.Vector;
+import java.util.prefs.BackingStoreException;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.hibernate.Session;
 
 import edu.ku.brc.af.core.db.BackupServiceFactory;
+import edu.ku.brc.af.prefs.AppPreferences;
 import edu.ku.brc.dbsupport.DBConnection;
 import edu.ku.brc.dbsupport.DBMSUserMgr;
 import edu.ku.brc.helpers.XMLHelper;
@@ -62,10 +66,12 @@ public class BuildFromGeonames
 {
     private static final Logger  log      = Logger.getLogger(BuildFromGeonames.class);
     
+    private final static String                 CNT_SQL            = "SELECT COUNT(*) FROM geoname";
+    public  final static String                 GEONAMES_DATE_PREF = "GEONAMES_LAST_MOD";
+    
     protected GeographyTreeDef           geoDef;
     protected Timestamp                  now;
     protected String                     insertSQL = null;
-    protected StringBuilder              sql       = new StringBuilder();
     protected Agent                      createdByAgent;
     protected ProgressFrame              frame;
     
@@ -73,6 +79,7 @@ public class BuildFromGeonames
     protected String                     itPassword;
     protected Connection                 readConn = null;
     protected Connection                 updateConn;
+    protected PreparedStatement          pStmt    = null;
     
     protected ArrayList<Object>          rowData = new ArrayList<Object>();
     
@@ -111,7 +118,7 @@ public class BuildFromGeonames
         
         insertSQL = "INSERT INTO geography (Name, RankID, ParentID, IsAccepted, IsCurrent, GeographyTreeDefID, GeographyTreeDefItemID, " +
                     "CreatedByAgentID, CentroidLat, CentroidLon, Abbrev, " +
-                    "TimestampCreated, TimestampModified, Version) VALUES (";
+                    "TimestampCreated, TimestampModified, Version) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
     }
     
     /**
@@ -160,11 +167,7 @@ public class BuildFromGeonames
      */
     public boolean build(final int earthId)
     {
-        sql.setLength(0); // because of debugging
-        sql.append(insertSQL);
-        
         Statement    stmt       = null;
-        Statement    updateStmt = null;
         try
         {
             DBConnection currDBConn = DBConnection.getInstance();
@@ -172,12 +175,13 @@ public class BuildFromGeonames
             {
                 updateConn = currDBConn.createConnection();
             }
+            pStmt = updateConn.prepareStatement(insertSQL);
+            
             readConn = currDBConn.createConnection();
             
-            stmt       = readConn.createStatement();
-            updateStmt = updateConn.createStatement();
+            stmt = readConn.createStatement();
             
-            Integer count = BasicSQLUtils.getCount(readConn, "SELECT COUNT(*) FROM geoname");
+            Integer count = BasicSQLUtils.getCount(readConn, CNT_SQL);
             if (frame != null)
             {
                 frame.setProcess(0, count);
@@ -205,8 +209,6 @@ public class BuildFromGeonames
                 log.debug("Deleted "+delCnt+" geography records.");
             }*/
             
-            updateConn.setAutoCommit(false);
-            
             if (frame != null)
             {
                 frame.setDesc("Creating Continents..."); // I18N
@@ -228,16 +230,10 @@ public class BuildFromGeonames
                 
                 if (buildInsert(rs, 100, earthId))
                 {
-                    log.debug(sql.toString());
-                    @SuppressWarnings("unused")
-                    int rv = updateStmt.executeUpdate(sql.toString());
-                    
-                    Integer newId = BasicSQLUtils.getInsertedId(updateStmt);
+                    pStmt.executeUpdate();
+                    Integer newId = BasicSQLUtils.getInsertedId(pStmt);
                     contToIdHash.put(rs.getString(4), newId);
-                    
-                    updateConn.commit();
                 }
-                sql.setLength(insertSQL.length());
                 
                 cnt++;
                 if (frame != null && cnt % 100 == 0)
@@ -276,22 +272,17 @@ public class BuildFromGeonames
             }
             rs.close();
             
-            // Now create ll the countries in the geoname table
-            sqlStr = "SELECT name, latitude, longitude, country FROM geoname WHERE fcode = 'PCLI' ORDER BY name";
+            // Now create all the countries in the geoname table
+            sqlStr = "SELECT asciiname, latitude, longitude, country FROM geoname WHERE fcode = 'PCLI' ORDER BY name";
             rs = stmt.executeQuery(sqlStr);
             while (rs.next())
             {
                 if (buildInsert(rs, 200, earthId))
                 {
-                    @SuppressWarnings("unused")
-                    int rv = updateStmt.executeUpdate(sql.toString());
-                    
-                    Integer newId = BasicSQLUtils.getInsertedId(updateStmt);
+                    pStmt.executeUpdate();
+                    Integer newId = BasicSQLUtils.getInsertedId(pStmt);
                     countryCodeToIdHash.put(rs.getString(4), newId);
-                    updateConn.commit();
                 }
-                
-                sql.setLength(insertSQL.length());
                 
                 cnt++;
                 if (frame != null && cnt % 100 == 0)
@@ -316,14 +307,10 @@ public class BuildFromGeonames
                     log.error("Adding country["+countryName+"]");
                     
                     createCountry(countryName, countryCode, continentCode, 200);
-                    @SuppressWarnings("unused")
-                    int rv = updateStmt.executeUpdate(sql.toString());
                     
-                    Integer newId = BasicSQLUtils.getInsertedId(updateStmt);
+                    pStmt.executeUpdate();
+                    Integer newId = BasicSQLUtils.getInsertedId(pStmt);
                     countryCodeToIdHash.put(countryCode, newId);
-                    
-                    updateConn.commit();
-                    sql.setLength(insertSQL.length());
                 }
             }
             rs.close();
@@ -336,7 +323,7 @@ public class BuildFromGeonames
             //////////////////////
             // States
             //////////////////////
-            sqlStr = "SELECT name, latitude, longitude, country, admin1 as StateCode FROM geoname WHERE fcode = 'ADM1' ORDER BY name";
+            sqlStr = "SELECT asciiname, latitude, longitude, country, admin1 as StateCode FROM geoname WHERE fcode = 'ADM1' ORDER BY name";
             rs = stmt.executeQuery(sqlStr);
             while (rs.next())
             {
@@ -348,10 +335,8 @@ public class BuildFromGeonames
                     
                     stateToCountryHash.put(nameStr, countryCode);
                     
-                    @SuppressWarnings("unused")
-                    int     rv    = updateStmt.executeUpdate(sql.toString());
-                    Integer newId = BasicSQLUtils.getInsertedId(updateStmt);
-                    
+                    pStmt.executeUpdate();
+                    Integer newId = BasicSQLUtils.getInsertedId(pStmt);
                     Hashtable<String, Integer> stateToIdHash = countryStateCodeToIdHash.get(countryCode);
                     if (stateToIdHash != null)
                     {
@@ -360,11 +345,7 @@ public class BuildFromGeonames
                     {
                         log.error("****** Error - No State for code ["+stateCode+"]  Country: "+countryCode+"   Name: "+nameStr);
                     }
-    
-                    updateConn.commit();
                 }
-                
-                sql.setLength(insertSQL.length());
                 
                 cnt++;
                 if (frame != null && cnt % 100 == 0)
@@ -376,7 +357,7 @@ public class BuildFromGeonames
             rs.close();
             
             // Create States that are referenced by Counties in Countries
-            sqlStr = "SELECT name AS CountyName, latitude, longitude, country, admin1 as StateCode FROM geoname WHERE fcode = 'ADM2' ORDER BY name";
+            sqlStr = "SELECT asciiname AS CountyName, latitude, longitude, country, admin1 as StateCode FROM geoname WHERE fcode = 'ADM2' ORDER BY name";
             rs = stmt.executeQuery(sqlStr);
             while (rs.next())
             {
@@ -399,15 +380,10 @@ public class BuildFromGeonames
                         
                         log.debug("Adding State ["+rs.getString(1)+"]["+stateCode+"] for Country ["+countryCode+"]");
                         
-                        @SuppressWarnings("unused")
-                        int     rv    = updateStmt.executeUpdate(sql.toString());
-                        Integer newId = BasicSQLUtils.getInsertedId(updateStmt);
-                        
+                        pStmt.executeUpdate();
+                        Integer newId = BasicSQLUtils.getInsertedId(pStmt);
                         stateToIdHash.put(stateCode, newId);
-                        
-                        updateConn.commit();
                     }
-                    sql.setLength(insertSQL.length());
                 }
                 
                 /*cnt++;
@@ -426,25 +402,20 @@ public class BuildFromGeonames
             //////////////////////
             // County
             //////////////////////
-            sqlStr = "SELECT name, latitude, longitude, country, admin1 as StateCode FROM geoname WHERE fcode = 'ADM2' ORDER BY name";
+            sqlStr = "SELECT asciiname, latitude, longitude, country, admin1 as StateCode FROM geoname WHERE fcode = 'ADM2' ORDER BY name";
             rs = stmt.executeQuery(sqlStr);
             while (rs.next())
             {
                 if (buildInsert(rs, 400, earthId))
                 {
-                    @SuppressWarnings("unused")
-                    int rv = updateStmt.executeUpdate(sql.toString());
-                    updateConn.commit();
+                    pStmt.executeUpdate();
                 }
-                
-                sql.setLength(insertSQL.length());
                 
                 cnt++;
                 if (frame != null && cnt % 100 == 0)
                 {
                     frame.setProcess(cnt);
                 }
-
             }
             rs.close();
             
@@ -458,8 +429,8 @@ public class BuildFromGeonames
         } catch (Exception ex)
         {
             ex.printStackTrace();
-            edu.ku.brc.af.core.UsageTracker.incrHandledUsageCount();
-            edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(BuildFromGeonames.class, ex);
+            //edu.ku.brc.af.core.UsageTracker.incrHandledUsageCount();
+            //edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(BuildFromGeonames.class, ex);
 
             try
             {
@@ -477,13 +448,13 @@ public class BuildFromGeonames
                 {
                     stmt.close();
                 }
-                if (updateStmt != null)
-                {
-                    updateStmt.close();
-                }
                 if (readConn != null)
                 {
                     readConn.close();
+                }
+                if (pStmt != null)
+                {
+                    pStmt.close();
                 }
                 if (updateConn != DBConnection.getInstance())
                 {
@@ -497,6 +468,8 @@ public class BuildFromGeonames
         
         return false;
     }
+    
+    
     
     /**
      * @param rs
@@ -558,7 +531,7 @@ public class BuildFromGeonames
                 }
             } else
             {
-                StringBuilder sb = new StringBuilder("No Continent Code ["+continentCode+":\n");
+                StringBuilder sb = new StringBuilder("No Continent Code ["+continentCode+"]:\n");
                 for (int i=0;i<row.size();i++)
                 {
                     sb.append(i+" - "+row.get(i)+"\n");
@@ -604,36 +577,26 @@ public class BuildFromGeonames
             nameStr = nameStr.substring(0, 64);
         }
         
-        String nowStr = (new SimpleDateFormat("yyyy-MM-dd")).format(now);
         if (parentId != null)
         {
-            Double lat = ((BigDecimal)row.get(1)).doubleValue();
-            Double lon = ((BigDecimal)row.get(2)).doubleValue();
+            Double lat = row.get(1) != null ? ((BigDecimal)row.get(1)).doubleValue() : null;
+            Double lon = row.get(2) != null ? ((BigDecimal)row.get(2)).doubleValue() : null;
             
-            sql.append("\"");
-            sql.append(nameStr);
-            sql.append("\",");
-            sql.append(rankId);
-            sql.append(",");
-            sql.append(parentId != null ? parentId.toString() : "NULL");
-            sql.append(", TRUE, TRUE, ");
-            sql.append(geoDef.getId());
-            sql.append(",");
-            sql.append(geoDefItemId);
-            sql.append(",");
-            sql.append(createdByAgent == null ? 1 : createdByAgent.getId());
-            sql.append(",");
-            sql.append(lat > -181 ? lat.toString() : "NULL"); // Lat
-            sql.append(",");
-            sql.append(lon > -181 ? lon.toString() : "NULL"); // Lon
-            sql.append(",");
+            pStmt.setString(1, nameStr);
+            pStmt.setInt(2, rankId);
+            pStmt.setInt(3, parentId);
+            pStmt.setBoolean(4, true);
+            pStmt.setBoolean(5, true);
+            pStmt.setInt(6, geoDef.getId());
+            pStmt.setInt(7, geoDefItemId);
+            pStmt.setInt(8, createdByAgent == null ? 1 : createdByAgent.getId());
+            pStmt.setBigDecimal(9, lat > -181 ? new BigDecimal(lat) : null); // Lat
+            pStmt.setBigDecimal(10, lon > -181 ? new BigDecimal(lon) : null); // Lon
             
-            sql.append(StringUtils.isNotEmpty(abbrev) ? ("\"" + abbrev + "\""): "NULL"); // Abbrev
-            sql.append(",\"");
-            sql.append(nowStr);
-            sql.append("\",\"");
-            sql.append(nowStr);
-            sql.append("\", 0)");
+            pStmt.setString(11, StringUtils.isNotEmpty(abbrev) ? abbrev : null); // Abbrev
+            pStmt.setTimestamp(12, now);
+            pStmt.setTimestamp(13, now);
+            pStmt.setInt(14, 0);
             return true;
         }
         return false;
@@ -644,8 +607,9 @@ public class BuildFromGeonames
      * @param countryCode
      * @param continentCode
      * @param rankId
+     * @throws SQLException 
      */
-    private void createCountry(final String nameStr, final String countryCode, final String continentCode, final int rankId)
+    private void createCountry(final String nameStr, final String countryCode, final String continentCode, final int rankId) throws SQLException
     {
         GeographyTreeDefItem item         = geoDef.getDefItemByRank(rankId);
         int                  geoDefItemId = item.getId();
@@ -658,29 +622,23 @@ public class BuildFromGeonames
             log.error("No Continent Id for continentCode["+continentCode+"]   Country["+nameStr+"]");
         }
     
-        String nowStr = (new SimpleDateFormat("yyyy-MM-dd")).format(now);
-        
         if (parentId != null || rankId == 100)
         {
-            sql.append("\"");
-            sql.append(nameStr);
-            sql.append("\",");
-            sql.append(rankId);
-            sql.append(",");
-            sql.append(parentId != null ? parentId.toString() : "NULL");
-            sql.append(", TRUE, TRUE, ");
-            sql.append(geoDef.getId());
-            sql.append(",");
-            sql.append(geoDefItemId);
-            sql.append(",");
-            sql.append(createdByAgent == null ? 1 : createdByAgent.getId());
-            sql.append(",NULL, NULL,'");
-            sql.append(countryCode); // Abbrev
-            sql.append("',\"");
-            sql.append(nowStr);
-            sql.append("\",\"");
-            sql.append(nowStr);
-            sql.append("\", 0)");
+            pStmt.setString(1, nameStr);
+            pStmt.setInt(2, rankId);
+            pStmt.setInt(3, parentId);
+            pStmt.setBoolean(4, true);
+            pStmt.setBoolean(5, true);
+            pStmt.setInt(6, geoDef.getId());
+            pStmt.setInt(7, geoDefItemId);
+            pStmt.setInt(8, createdByAgent == null ? 1 : createdByAgent.getId());
+            pStmt.setBigDecimal(9, null); // Lat
+            pStmt.setBigDecimal(10, null); // Lon
+            
+            pStmt.setString(11, countryCode); // Abbrev
+            pStmt.setTimestamp(12, now);
+            pStmt.setTimestamp(13, now);
+            pStmt.setInt(14, 0);
             
         } else
         {
@@ -688,62 +646,334 @@ public class BuildFromGeonames
         }
     }
     
+    /*private Object getCreatedDate(final File file)
+    {
+        Path file = ...;
+        BasicFileAttributes attr = Files.readAttributes(file, BasicFileAttributes.class);
+
+        System.out.println("creationTime: " + attr.creationTime());
+        System.out.println("lastAccessTime: " + attr.lastAccessTime());
+        System.out.println("lastModifiedTime: " + attr.lastModifiedTime());
+
+        System.out.println("isDirectory: " + attr.isDirectory());
+        System.out.println("isOther: " + attr.isOther());
+        System.out.println("isRegularFile: " + attr.isRegularFile());
+        System.out.println("isSymbolicLink: " + attr.isSymbolicLink());
+        System.out.println("size: " + attr.size());
+    }*/
+    
     /**
-     * Unzips and loads the SQL backup of the geonames database needed for building the full geography tree.
-     * @return true if build correctly.
+     * @return the Globals prefs or null if the app isn't logged in.
      */
-    public boolean loadGeoNamesDB()
+    public static AppPreferences getGlobalPrefs()
     {
         try
         {
-            DBConnection currDBConn = DBConnection.getInstance();
-            String       dbName     = currDBConn.getDatabaseName();
-            DBMSUserMgr.DBSTATUS status = DBMSUserMgr.checkForDB(dbName, currDBConn.getServerName(), itUsername, itPassword);
+            return AppPreferences.getGlobalPrefs();
+        } catch (InternalError ex) 
+        {
+            return null;
+        }
+    }
+    
+    /**
+     * @return the time in milliseconds when geonames was last upload.
+     */
+    public static Long getLastGeonamesBuiltTime()
+    {
+        AppPreferences appPrefs = getGlobalPrefs();
+        return appPrefs != null ? appPrefs.getLong(GEONAMES_DATE_PREF, null) : null;
+    }
+    
+    /**
+     * Unzips and loads the SQL backup of the geonames database needed for building the full geography tree.
+     * @param doAsynchronously whether it is done asynchronously in the background
+     * @return true if build correctly.
+     */
+    public boolean loadGeoNamesDB(final String databaseName)
+    {
+    	if(true) return false;
+    	
+        // See if date of file matches the last time the file was restored
+        boolean isDatesMatch = true;
+        final File file = new File(XMLHelper.getConfigDirPath("geonames.sql.zip"));
+        System.out.println(file.getAbsolutePath());
+        if (file.exists())
+        {
+            Long lastModLong = getLastGeonamesBuiltTime();
+            long prefMilli   = lastModLong != null ? lastModLong : 0;
+            isDatesMatch = file.lastModified() == prefMilli;
             
-            if (status == DBMSUserMgr.DBSTATUS.missingDB)
+        } else
+        {
+            return false;
+        }
+        
+        DBMSUserMgr  dbMgr = null;
+        boolean shouldLoadGeoNames = true;
+        try
+        {
+            DBConnection currDBConn = DBConnection.getInstance();
+            dbMgr = DBMSUserMgr.getInstance();
+            if (dbMgr == null) return false;
+            
+            String dbName = databaseName != null ? databaseName : currDBConn.getDatabaseName();
+            //DBMSUserMgr.DBSTATUS status = DBMSUserMgr.checkForDB(dbName, currDBConn.getServerName(), itUsername, itPassword); // opens and closes connection
+            
+            if (!dbMgr.connectToDBMS(itUsername, itPassword, currDBConn.getServerName(), dbName, currDBConn.isEmbedded()))
             {
-                DBMSUserMgr dbMgr = DBMSUserMgr.getInstance();
-                
-                if (dbMgr != null)
-                {
-                    if (dbMgr.connectToDBMS(itUsername, itPassword, currDBConn.getServerName()))
-                    {
-                        if (!dbMgr.createDatabase(dbName))
-                        {
-                            UIRegistry.showLocalizedError("ERROR_CRE_GEODB", dbName);
-                        }
-                    } else
-                    {
-                        UIRegistry.showLocalizedError("ERROR_LOGIN_GEODB", dbName);
-                    }
-                    
-                } else
-                {
-                    edu.ku.brc.af.core.UsageTracker.incrHandledUsageCount();
-                    edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(BuildFromGeonames.class, new Exception("Couldn't create DBMSMgr"));
-                }
+                UIRegistry.showError("Unable to login as IT user. ");
+                return false;
             }
+
+            boolean isDBOk = true;
+            //boolean isDBOk           = false;
+            boolean isGeoNameTableOK = false;
+            
+            //XXX
+            //For unknown reasons, on Windows 8, the checkForDB call above fails because the embedded-db directory structure appears to have not yet been created.
+            //Currently, this method is not called from a context in which it would make sense for it to create the db the geonames are being added to if it did not already exist.
+            //So it is probably safe to assume, that if we are here, the db exists, and this code is not necessary.
+            //Removing fixes the Windows 8 issue.
+            
+            //if (status == DBMSUserMgr.DBSTATUS.missingDB)
+           //{
+            //    if (!dbMgr.createDatabase(dbName))
+            //    {
+            //        UIRegistry.showLocalizedError("ERROR_CRE_GEODB", dbName);
+            //    } else
+            //    {
+            //        isDBOk = true;
+            //    }
+            //        
+            //} else
+            //{
+            //    isDBOk = true;
+            //}
+            
+            if (isDBOk)
+            {
+                if (dbMgr.doesDBHaveTable(dbName, "geoname"))
+                {
+                    isGeoNameTableOK = BasicSQLUtils.getCountAsInt(currDBConn.getConnection(), CNT_SQL) > 30000;
+                }
+                shouldLoadGeoNames = !isGeoNameTableOK || !isDatesMatch;
+            } else
+            {
+                return false;
+            }
+
         } catch (Exception ex)
         {
             ex.printStackTrace();
-            edu.ku.brc.af.core.UsageTracker.incrHandledUsageCount();
-            edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(BuildFromGeonames.class, ex);
+            //edu.ku.brc.af.core.UsageTracker.incrHandledUsageCount();
+            //edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(BuildFromGeonames.class, ex);
+            return false;
+            
+        } finally
+        {
+            if (dbMgr != null) dbMgr.close();
         }
         
-        File file = new File(XMLHelper.getConfigDirPath("geonames.sql.zip"));
-        if (file.exists())
+        if (shouldLoadGeoNames)
         {
             BackupServiceFactory bsf = BackupServiceFactory.getInstance();
             bsf.setUsernamePassword(itUsername, itPassword);
             
-            String dbName = DBConnection.getInstance().getDatabaseName();
-            boolean status = bsf.doRestoreBulkDataInBackground(dbName, null, file.getAbsolutePath(), null, null, null, true, false); // true - does it asynchronously, 
+            //String  dbName = DBConnection.getInstance().getDatabaseName();
             
+            // 2nd to last 'true' - does it synchronously, last boolean 'false' means drop database
+            DBConnection currDBConn = DBConnection.getInstance();
+            String       dbName     = databaseName != null ? databaseName : currDBConn.getDatabaseName();
+            boolean      status     = bsf.doRestoreBulkDataInBackground(dbName, null, file.getAbsolutePath(), null, null, null, true, false);
+            if (status)
+            {
+            	//File createFile = bsf.getUnzippedFileByName("continentCodes.txt");
+            	buildISOCodes();
+            }
+            
+            AppPreferences appPrefs = getGlobalPrefs();
+            if (appPrefs != null)
+            {
+            	appPrefs.putLong(GEONAMES_DATE_PREF, status ? file.lastModified() : 0);
+            	try 
+            	{
+					appPrefs.flush();
+				} catch (BackingStoreException e) {
+					e.printStackTrace();
+				}
+            }
             // Clear IT Username and Password
             bsf.setUsernamePassword(null, null);
             
             return status;
         }
-        return false;
+        return true;
     }
+    
+    /**
+     * Needed when a new geonames file is gotten
+     */
+    @SuppressWarnings("unused")
+    private void buildISOCodes()
+    {
+        try
+        {
+            DBConnection currDBConn = DBConnection.getInstance();
+            String       dbName     = currDBConn.getDatabaseName();
+            DBMSUserMgr  dbMgr      = DBMSUserMgr.getInstance();
+            if (dbMgr != null)
+            {
+                boolean isConnected = dbMgr.connectToDBMS(itUsername, itPassword, currDBConn.getServerName(), dbName, currDBConn.isEmbedded());
+                if (isConnected)
+                {
+                    Connection conn = dbMgr.getConnection();
+                    Statement  stmt = null;
+                    ResultSet  rs   = null;
+                    PreparedStatement pStmt = null;
+                    try
+                    {
+                        conn.setCatalog(dbName);
+                        
+                        boolean isFieldOK = true;
+                        if (!dbMgr.doesFieldExistInTable("geoname", "ISOCode"))
+                        {
+                            if (BasicSQLUtils.update(conn, "ALTER TABLE geoname ADD COLUMN ISOCode VARCHAR(24) DEFAULT NULL") == 0)
+                            {
+                                isFieldOK = false;
+                            }
+                        } else 
+                        {
+                        	int numMissingISOCodes = BasicSQLUtils.getCountAsInt(currDBConn.getConnection(), "SELECT COUNT(*) FROM geoname WHERE ISOCode IS NULL");
+                        	if (numMissingISOCodes == 0)
+                        	{
+                                dbMgr.close();
+                                return;
+                        	}
+                        }
+                        
+                        if (isFieldOK)
+                        {
+                        	Vector<Object[]> rowData = BasicSQLUtils.query("SELECT code, name, geonameId FROM continentCodes");
+                        	// Do Continents and Oceans
+                            for (Object[] cols : rowData)
+                            {
+                            	String iso  = cols[0].toString();
+                            	String name = cols[1].toString();
+                            	StringBuilder str = new StringBuilder(String.format("UPDATE geoname SET ISOCode='%s' WHERE ", iso));
+                            	String sql = "";
+                            	if (name.contains("Ocean") && !name.contains("Oceania"))
+                            	{
+                            		str.append(String.format("asciiname LIKE '|%s' AND fcode = 'OCN'", name));
+                            		sql = str.toString().replace("|", "%"); 
+                            	} else
+                            	{
+                            		str.append("geonameId = " + cols[2]);
+                            		sql = str.toString();
+                            	}
+                            	System.out.println(sql);
+                                int rv = BasicSQLUtils.update(sql);
+                                if (rv < 1)
+                                {
+                                	log.error("Can't update geoname: "+sql);
+                                }
+                            }
+                            String sql = "SELECT geonameId, country FROM geoname WHERE fcode = 'GULF' AND country IS NOT NULL AND LENGTH(country) > 0";
+                            for (Object[] cols : BasicSQLUtils.query(sql))
+                            {
+                            	String id  = cols[0].toString();
+                            	String iso = cols[1].toString();
+                            	sql        = String.format("UPDATE geoname SET ISOCode='%s' WHERE geonameId = %s", iso, id);
+                            	System.out.println(sql);
+                                int rv = BasicSQLUtils.update(sql);
+                                if (rv < 1)
+                                {
+                                	log.error("Can't update geoname: "+sql);
+                                }
+                            }
+                            
+                            sql = "SELECT g.geonameId, g.fcode, g.country, g.admin1, g.admin2 FROM geoname g WHERE ISOCode IS NULL " +
+                                  "ORDER BY g.country ASC, g.fcode DESC, g.admin1 ASC, g.admin2 ASC";
+                            pStmt = conn.prepareStatement("UPDATE geoname SET ISOCode=? WHERE geonameId = ?");
+                            stmt  = conn.createStatement();
+                            rs    = stmt.executeQuery(sql);
+                            
+                            boolean hasCountry = false;
+                            boolean isOK       = true;
+                            StringBuilder sb = new StringBuilder();
+                            while (rs.next() && isOK)
+                            {
+                                String fcode = rs.getString(2);
+                                if (!hasCountry)
+                                {
+                                    hasCountry = fcode.equals("PCLI");
+                                }
+                                
+                                if (hasCountry)
+                                {
+                                    String country = rs.getString(3);
+                                    if (StringUtils.isEmpty(country))
+                                    {
+                                        continue;
+                                    }
+                                    
+                                    String state   = rs.getString(4);
+                                    String county  = rs.getString(5);
+                                    
+                                    sb.setLength(0);
+                                    if (StringUtils.isNotEmpty(country))
+                                    {
+                                        sb.append(country);
+                                        if (!fcode.equals("PCLI") && StringUtils.isNotEmpty(state))
+                                        {
+                                            sb.append(state);
+                                            if (StringUtils.isNotEmpty(county))
+                                            {
+                                                sb.append(county);
+                                            }
+                                        }
+                                        pStmt.setString(1, sb.length() > 24 ? sb.substring(0, 24) : sb.toString());
+                                        pStmt.setInt(2, rs.getInt(1));
+                                        isOK = pStmt.executeUpdate() == 1;
+                                    }
+                               }
+                            }
+                        } else
+                        {
+                            UIRegistry.showLocalizedError("ERROR_ERR_GEODB", dbName);
+                        }
+                    } catch (Exception ex)
+                    {
+                        ex.printStackTrace();
+                    } finally
+                    {
+                        try
+                        {
+                            if (rs != null) rs.close();
+                            if (stmt != null) stmt.close();
+                            if (pStmt != null) pStmt.close();
+
+                        } catch (Exception ex) {}
+                    }
+                } else
+                {
+                    UIRegistry.showLocalizedError("ERROR_LOGIN_GEODB", dbName);
+                }
+                dbMgr.close();
+                
+            } else
+            {
+            	log.error("BuildFromGeonames: Couldn't create DBMSMgr");
+                //edu.ku.brc.af.core.UsageTracker.incrHandledUsageCount();
+                //edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(BuildFromGeonames.class, new Exception("Couldn't create DBMSMgr"));
+            }
+        } catch (Exception ex)
+        {
+            ex.printStackTrace();
+            //edu.ku.brc.af.core.UsageTracker.incrHandledUsageCount();
+            //edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(BuildFromGeonames.class, ex);
+        }
+
+    }
+
 }
