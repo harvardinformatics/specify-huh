@@ -22,6 +22,7 @@ package edu.ku.brc.dbsupport;
 import java.io.File;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
+import java.sql.Connection;
 
 import edu.ku.brc.specify.config.init.SpecifyDBSetupWizard;
 import edu.ku.brc.ui.UIHelper;
@@ -129,6 +130,11 @@ public abstract class DBMSUserMgr
      * @return true if the IT user got logged in
      */
     public abstract boolean connect(String username, String password, String databaseHost, String dbName);
+
+    /**
+     * @return the current connection (do not close).
+     */
+    public abstract Connection getConnection();
 
     /**
      * Checks to see if a field exists for a table.
