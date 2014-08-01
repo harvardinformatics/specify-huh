@@ -235,6 +235,12 @@
       <picklistitem title="CITES III" value="CitesIII"/>
     </items>
   </picklist>
+  <picklist name="HUH DEA Status" type="0" issystem="true" readonly="true" sizelimit="2">
+    <items>
+      <picklistitem title="[none]" value="None"/>
+      <picklistitem title="Controlled" value="controlled"/>
+    </items>
+  </picklist>  
   <picklist name="HUH Date Confidence" type="0" issystem="true" readonly="true" sizelimit="2">
     <items>
       <picklistitem title="ca." value="ca."/>

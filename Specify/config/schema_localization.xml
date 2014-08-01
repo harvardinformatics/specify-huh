@@ -32542,13 +32542,13 @@ Specify provides an extensive array of utilities for curatorial management of sp
         </names>
         <descs/>
       </item>
-      <item name="esaStatus">
+      <item name="esaStatus"  type="java.lang.String" isUIFormatter="false" pickListName="HUH DEA Status" isRequired="false">
         <version>0</version>
-        <isHidden>true</isHidden>
+        <isHidden>false</isHidden>
         <names>
           <str language="en">
             <version>0</version>
-            <text>ESA Status</text>
+            <text>DEA Status</text>
           </str>
         </names>
         <descs/>
