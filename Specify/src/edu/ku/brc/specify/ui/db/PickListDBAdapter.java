@@ -1,18 +1,18 @@
 /* Copyright (C) 2009, University of Kansas Center for Research
- * 
+ *
  * Specify Software Project, specify@ku.edu, Biodiversity Institute,
  * 1345 Jayhawk Boulevard, Lawrence, Kansas, 66045, USA
- * 
+ *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
  * of the License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
@@ -42,26 +42,26 @@ import edu.ku.brc.ui.AutoCompComboBoxModelIFace;
  * This is an adaptor class that supports all the necessary functions for supporting a PickList.
  *
  * @code_status Complete
- * 
+ *
  * @author rods
  *
  */
-public class PickListDBAdapter extends AbstractListModel implements PickListDBAdapterIFace, 
-                                                                    MutableComboBoxModel, 
+public class PickListDBAdapter extends AbstractListModel implements PickListDBAdapterIFace,
+                                                                    MutableComboBoxModel,
                                                                     AutoCompComboBoxModelIFace
 {
     // Static Data Members
     protected static final Logger log                = Logger.getLogger(PickListDBAdapter.class);
     protected static PickListItemIFace searchablePLI = new PickListItem(); // used for binary searches
-    
-    // Data Members        
+
+    // Data Members
     protected Vector<PickListItemIFace> items    = new Vector<PickListItemIFace>(); // Make this Vector because the combobox can use it directly
     protected PickList                  pickList = null;
-    
+
     protected Object                    selectedObject  = null;
     protected boolean                   doAutoSaveOnAdd = true;
-     
-    
+
+
     /**
      * Protected Default constructor deriving subclasses.
      */
@@ -71,7 +71,7 @@ public class PickListDBAdapter extends AbstractListModel implements PickListDBAd
         pl.initialize();
         pickList = pl;
     }
-    
+
     /**
      * Creates an adapter from a PickList.
      * @param pickList the picklist
@@ -79,17 +79,17 @@ public class PickListDBAdapter extends AbstractListModel implements PickListDBAd
     public PickListDBAdapter(final PickList pickList)
     {
         this.pickList = pickList;
-        
+
         for (PickListItemIFace pli : pickList.getItems())
         {
-            items.add(pli); 
+            items.add(pli);
         }
-         
+
         // Always keep the list sorted
         Collections.sort(items);
         super.fireContentsChanged(this, 0, items.size()-1);
     }
-    
+
     /**
      * Constructor with a unique name.
      * @param name the name of the picklist
@@ -97,12 +97,12 @@ public class PickListDBAdapter extends AbstractListModel implements PickListDBAd
     public PickListDBAdapter(final String name)
     {
         pickList = new PickList();
-        pickList.initialize();                 
+        pickList.initialize();
         pickList.setName(name);
-        
-        DataModelObjBase.save(pickList);
+
+        DataModelObjBase.save(false, pickList);
     }
-    
+
     /* (non-Javadoc)
      * @see edu.ku.brc.af.ui.db.PickListDBAdapterIFace#setAutoSaveOnAdd(boolean)
      */
@@ -135,7 +135,7 @@ public class PickListDBAdapter extends AbstractListModel implements PickListDBAd
     {
         return items.get(index);
     }
-    
+
     /* (non-Javadoc)
      * @see edu.ku.brc.ui.db.PickListDBAdapterIFace#addItem(java.lang.String, java.lang.String)
      */
@@ -146,20 +146,20 @@ public class PickListDBAdapter extends AbstractListModel implements PickListDBAd
         {
             throw new RuntimeException("Trying to add an item to a readonly picklist ["+pickList.getName()+"]");
         }
-        
+
         int     sizeLimit = 50; // arbitrary size could be a pref (XXX PREF)
         Integer sizeLimitInt = pickList.getSizeLimit();
         if (sizeLimitInt != null)
         {
             sizeLimit = sizeLimitInt.intValue();
         }
-        
+
         searchablePLI.setTitle(title);
         int index = Collections.binarySearch(items, searchablePLI);
         if (index < 0)
         {
             // find oldest item and remove it
-            if (items.size() >= sizeLimit && sizeLimit > 0) 
+            if (items.size() >= sizeLimit && sizeLimit > 0)
             {
                 PickListItemIFace oldest = null;
                 for (PickListItemIFace pli : items)
@@ -172,19 +172,19 @@ public class PickListDBAdapter extends AbstractListModel implements PickListDBAd
                 items.remove(oldest);
                 pickList.removeItem(oldest);
             }
-            
+
             PickListItem item = new PickListItem(title, value, new Timestamp(System.currentTimeMillis()));
             items.add(item);
-            
+
             if (pickList != null)
             {
                 pickList.addItem(item);
                 item.setPickList(pickList);
                 pickList.reorder();
             }
-            
+
             Collections.sort(items);
-            
+
             super.fireContentsChanged(this, 0, items.size()-1);
 
             if (doAutoSaveOnAdd)
@@ -193,12 +193,12 @@ public class PickListDBAdapter extends AbstractListModel implements PickListDBAd
             }
 
             return item;
-            
+
         }
         // else
         return items.elementAt(index);
     }
-    
+
     /* (non-Javadoc)
      * @see edu.ku.brc.ui.db.PickListDBAdapterIFace#save()
      */
@@ -209,13 +209,13 @@ public class PickListDBAdapter extends AbstractListModel implements PickListDBAd
         {
             session = DataProviderFactory.getInstance().createSession();
             session.beginTransaction();
-            
-            session.saveOrUpdate(pickList);
-            
-            session.commit();
-            
 
-        } catch (Exception e) 
+            session.saveOrUpdate(pickList);
+
+            session.commit();
+
+
+        } catch (Exception e)
         {
             edu.ku.brc.af.core.UsageTracker.incrHandledUsageCount();
             edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(PickListDBAdapter.class, e);
@@ -224,18 +224,18 @@ public class PickListDBAdapter extends AbstractListModel implements PickListDBAd
             {
                 session.rollback();
             }
-            
+
             e.printStackTrace();
-            
-        } finally 
+
+        } finally
         {
             if (session != null)
             {
                 session.close();
             }
-        } 
+        }
     }
-    
+
     /* (non-Javadoc)
      * @see edu.ku.brc.ui.db.PickListDBAdapterIFace#isReadOnly()
      */
@@ -243,7 +243,7 @@ public class PickListDBAdapter extends AbstractListModel implements PickListDBAd
     {
         return pickList.getReadOnly();
     }
-    
+
     /* (non-Javadoc)
      * @see edu.ku.brc.ui.db.PickListDBAdapterIFace#isTabledBased()
      */
@@ -251,7 +251,7 @@ public class PickListDBAdapter extends AbstractListModel implements PickListDBAd
     {
         return pickList == null ? false : pickList.getType() > 0;
     }
-    
+
     /* (non-Javadoc)
      * @see edu.ku.brc.ui.db.PickListDBAdapterIFace#getType()
      */
@@ -265,7 +265,7 @@ public class PickListDBAdapter extends AbstractListModel implements PickListDBAd
         }
         throw new RuntimeException("Unknown picklist type["+pickList.getType()+"]");
     }
-    
+
     //------------------------------------------------------------------------
     //-- Default
     //------------------------------------------------------------------------
@@ -318,7 +318,7 @@ public class PickListDBAdapter extends AbstractListModel implements PickListDBAd
      */
     public void addElement(Object anObject)
     {
-        
+
         if (anObject instanceof PickListItemIFace)
         {
             PickListItemIFace item = (PickListItemIFace)anObject;
@@ -329,10 +329,10 @@ public class PickListDBAdapter extends AbstractListModel implements PickListDBAd
                 pickList.addItem(item);
                 pickList.reorder();
             }
-            
+
             Collections.sort(items);
             super.fireContentsChanged(this, 0, items.size()-1);
-            
+
         } else if (anObject instanceof String)
         {
             addItem((String)anObject, (String)anObject);
@@ -340,9 +340,9 @@ public class PickListDBAdapter extends AbstractListModel implements PickListDBAd
         {
             throw new RuntimeException("Inserting item that is not a String or PickListItemIFace");
         }
-        
+
         fireIntervalAdded(this, items.size()-1, items.size()-1);
-        if ( items.size() == 1 && selectedObject == null) 
+        if ( items.size() == 1 && selectedObject == null)
         {
             setSelectedItem( anObject );
         }
@@ -356,7 +356,7 @@ public class PickListDBAdapter extends AbstractListModel implements PickListDBAd
         if (obj instanceof PickListItemIFace)
         {
             PickListItemIFace item = (PickListItemIFace)obj;
-            
+
             items.insertElementAt((PickListItemIFace)obj, index);
             item.setPickList(pickList);
             if (pickList != null)
@@ -364,11 +364,11 @@ public class PickListDBAdapter extends AbstractListModel implements PickListDBAd
                 pickList.addItem(item);
                 pickList.reorder();
             }
-            
+
         } else if (obj instanceof String)
         {
             addItem((String)obj, (String)obj);
-            
+
         } else
         {
             throw new RuntimeException("Inserting item that is not a String or PickListItemIFace");
@@ -379,14 +379,14 @@ public class PickListDBAdapter extends AbstractListModel implements PickListDBAd
     /* (non-Javadoc)
      * @see javax.swing.MutableComboBoxModel#removeElement(java.lang.Object)
      */
-    public void removeElement(Object anObject) 
+    public void removeElement(Object anObject)
     {
         int index = items.indexOf(anObject);
-        if ( index != -1 ) 
+        if ( index != -1 )
         {
             removeElementAt(index);
         }
-        
+
         if (pickList != null)
         {
             pickList.reorder();
@@ -398,18 +398,18 @@ public class PickListDBAdapter extends AbstractListModel implements PickListDBAd
      */
     public void removeElementAt(int index)
     {
-        if ( getElementAt( index ) == selectedObject ) 
+        if ( getElementAt( index ) == selectedObject )
         {
             PickListItemIFace item = (PickListItemIFace)selectedObject;
-            
-            if ( index == 0 ) 
+
+            if ( index == 0 )
             {
                 setSelectedItem( getSize() == 1 ? null : getElementAt( index + 1 ) );
-            } else 
+            } else
             {
                 setSelectedItem( getElementAt( index - 1 ) );
             }
-            
+
             if (pickList != null)
             {
                 pickList.removeItem(item);
@@ -424,7 +424,7 @@ public class PickListDBAdapter extends AbstractListModel implements PickListDBAd
     //-------------------------------------------------
     // Interface AutoCompComboBoxModelIFace
     //-------------------------------------------------
-    
+
     /* (non-Javadoc)
      * @see edu.ku.brc.ui.AutoCompComboBoxModelIFace#add(java.lang.Object)
      */
@@ -440,5 +440,5 @@ public class PickListDBAdapter extends AbstractListModel implements PickListDBAd
     {
         return !isReadOnly();
     }
-    
+
 }

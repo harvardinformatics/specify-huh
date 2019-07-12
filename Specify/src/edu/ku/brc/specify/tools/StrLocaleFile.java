@@ -1,18 +1,18 @@
 /* Copyright (C) 2009, University of Kansas Center for Research
- * 
+ *
  * Specify Software Project, specify@ku.edu, Biodiversity Institute,
  * 1345 Jayhawk Boulevard, Lawrence, Kansas, 66045, USA
- * 
+ *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
  * of the License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
@@ -45,7 +45,7 @@ import edu.ku.brc.specify.tools.StrLocaleEntry.STATUS;
 public class StrLocaleFile
 {
     private static final Logger  log                = Logger.getLogger(StrLocaleFile.class);
-            
+
     protected String                            dstPath;
     protected String                            srcPath;
     protected Vector<StrLocaleEntry>            items      = new Vector<StrLocaleEntry>();
@@ -54,11 +54,11 @@ public class StrLocaleFile
     protected boolean                           isDestination;
     protected Hashtable<String, Integer>        keyToInxMap = new Hashtable<String, Integer>();
     protected Vector<StrLocaleEntry>			keys = new Vector<StrLocaleEntry>();
-    
+
     /**
      * @param dstPath
      */
-    public StrLocaleFile(final String  dstPath, 
+    public StrLocaleFile(final String  dstPath,
                          final String  srcPath,
                          final boolean isDestination)
     {
@@ -66,10 +66,10 @@ public class StrLocaleFile
         this.dstPath       = dstPath;
         this.srcPath       = srcPath;
         this.isDestination = isDestination;
-        
+
         load();
     }
-    
+
     /**
      * @return number of actual resources with keys in the file
      */
@@ -77,7 +77,7 @@ public class StrLocaleFile
     {
     	return keys.size();
     }
-    
+
     /**
      * @param key
      * @return
@@ -86,9 +86,10 @@ public class StrLocaleFile
     {
         return keyToInxMap.get(key);
     }
-    
+
+
     /**
-     * 
+     *
      */
     @SuppressWarnings("unchecked")
     private void load()
@@ -97,7 +98,7 @@ public class StrLocaleFile
         try
         {
             itemHash.clear();
-            
+
             File file = new File(dstPath);
             if (file.exists())
             {
@@ -110,20 +111,20 @@ public class StrLocaleFile
                     if (line.trim().startsWith("#"))
                     {
                         items.add(new StrLocaleEntry("#", line, null, STATUS.IsComment));
-                        
+
                     } else if (line.indexOf('=') > -1)
                     {
                         int inx = line.indexOf('=');
-                        
+
                         String key   = line.substring(0, inx);
                         String value = line.substring(inx+1, line.length());
-                        
+
                         boolean debug = false;//key.equals("TOP5") && StringUtils.contains(dstPath, "_pt");
-                        
+
                         if (debug)
                         {
                             //System.out.println((byte)value.charAt(12)+"="+value.charAt(12));
-                            char spec = 'Ã';
+                            char spec = 'ï¿½';
                             int fInx = value.indexOf(spec);
                             if (fInx > -1)
                             {
@@ -134,7 +135,7 @@ public class StrLocaleFile
                                     byte b1 = bytes[ii];
                                     short s1 = (short)(b1 < 0 ? (256 + b1) : b1);
                                     if (s1 > 127 && s1 != 195) s1 += 64;
-                                    
+
                                     //System.out.println(ii+"  "+bytes[ii]+" ");
                                     if (s1 == 195)
                                     {
@@ -142,7 +143,7 @@ public class StrLocaleFile
                                         b1 = bytes[ii];
                                         s1 = (short)(b1 < 0 ? (256 + b1) : b1);
                                         if (s1 > 127 && s1 != 195) s1 += 64;
-                                        
+
                                         dstBytes[jj++] = (char)s1;
                                     } else
                                     {
@@ -176,12 +177,12 @@ public class StrLocaleFile
                                 }
                             }*/
                         }
-                                                
+
                         if (itemHash.get(key) != null)
                         {
                             log.error("Key '"+key+"' on Line "+count+" is a duplicate.");
                             duplicateCnt++;
-                            
+
                         } else
                         {
                             StrLocaleEntry entry = new StrLocaleEntry(key, value, null, StringUtils.isEmpty(value) ? STATUS.IsNew : STATUS.IsOK);
@@ -190,9 +191,9 @@ public class StrLocaleFile
                             keyToInxMap.put(key, keys.size());
                             keys.add(entry);
                         }
-                        
+
                         index++;
-                        
+
                     } else
                     {
                         items.add(new StrLocaleEntry(null, null, null, STATUS.IsBlank));
@@ -201,20 +202,20 @@ public class StrLocaleFile
                 }
                 log.error(duplicateCnt+" duplicate keys: "+dstPath);
             }
-            
+
             if (isDestination)
             {
                 loadCheckFile();
             }
-            
+
             clearEditFlags();
-            
+
         } catch (IOException ex)
         {
             ex.printStackTrace();
         }
     }
-    
+
     /**
      * @param path
      */
@@ -224,7 +225,7 @@ public class StrLocaleFile
         try
         {
             chkHash.clear();
-            
+
             File file = new File(dstPath+".orig");
             if (file.exists())
             {
@@ -240,13 +241,13 @@ public class StrLocaleFile
                     }
                 }
             }
-            
+
         } catch (IOException ex)
         {
             ex.printStackTrace();
         }
     }
-    
+
     /**
      * @param key
      * @param value
@@ -261,7 +262,7 @@ public class StrLocaleFile
         }
         return false;
     }
-    
+
     /**
      * Save as Ascii.
      */
@@ -274,13 +275,13 @@ public class StrLocaleFile
         {
             fos = new FileOutputStream(dstPath);
             dos = new DataOutputStream(fos);//, "UTF-8");
-            
+
             for (StrLocaleEntry entry : items)
             {
                 String str = "";
                 if (entry.getKey() == null)
                 {
-                    
+
                 } else if (entry.getKey().equals("#"))
                 {
                     str = entry.getSrcStr();
@@ -288,27 +289,27 @@ public class StrLocaleFile
                 {
                     str = entry.getKey()+ "="+ (entry.getDstStr() == null ? "" : entry.getDstStr());
                 }
-                
+
                 str += '\n';
                 dos.writeBytes(str);
             }
             dos.flush();
             dos.close();
             return true;
-            
+
         } catch (Exception e)
         {
             System.out.println("e: " + e);
         }
         return false;
     }
-    
+
     /**
      * clear edited flag for all items
      */
     public void clearEditFlags()
     {
-        for (StrLocaleEntry entry : items) 
+        for (StrLocaleEntry entry : items)
         {
         	entry.setEdited(false);
         }
@@ -318,7 +319,7 @@ public class StrLocaleFile
      */
     public boolean isEdited()
     {
-        for (StrLocaleEntry entry : items) 
+        for (StrLocaleEntry entry : items)
         {
         	if (entry.isEdited())
         	{
@@ -328,7 +329,7 @@ public class StrLocaleFile
         return false;
     }
     /**
-     * 
+     *
      */
     /*private void saveCheckFile()
     {
@@ -340,22 +341,22 @@ public class StrLocaleFile
                 lines.add(entry.getKey()+ "="+ (entry.getDstStr() == null ? "" : entry.getDstStr()));
             }
         }
-        
+
         try
         {
             FileUtils.writeLines(new File(path+".chg"), lines);
-            
+
         } catch (IOException ex)
         {
             ex.printStackTrace();
         }
     }*/
-    
+
     public StrLocaleEntry getKey(final int index)
     {
     	return keys.get(index);
     }
-        
+
     /**
      * @return
      */
@@ -395,8 +396,8 @@ public class StrLocaleFile
 	{
 		return srcPath;
 	}
-    
-	
+
+
     /* (non-Javadoc)
 	 * @see java.lang.Object#toString()
 	 */
@@ -430,6 +431,6 @@ public class StrLocaleFile
 //    		e.printStackTrace();
 //    		System.exit(1);
 //    	}
-//    	
+//
 //    }
 }

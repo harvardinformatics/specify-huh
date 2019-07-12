@@ -1,18 +1,18 @@
 /* Copyright (C) 2009, University of Kansas Center for Research
- * 
+ *
  * Specify Software Project, specify@ku.edu, Biodiversity Institute,
  * 1345 Jayhawk Boulevard, Lawrence, Kansas, 66045, USA
- * 
+ *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
  * of the License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
@@ -72,7 +72,7 @@ import edu.ku.brc.ui.UIRegistry;
 import edu.ku.brc.util.Pair;
 
 /**
- * 
+ *
  * @author megkumin & Ricardo
  *
  */
@@ -88,7 +88,7 @@ public class SecurityAdminTask extends BaseTask
     	CommandDispatcher.register(SECURITY_ADMIN, this);
     	iconName = "Security";
     }
-    
+
     /* (non-Javadoc)
      * @see edu.ku.brc.specify.core.Taskable#initialize()
      */
@@ -99,7 +99,7 @@ public class SecurityAdminTask extends BaseTask
             super.initialize(); // sets isInitialized to false
         }
     }
-    
+
     /* (non-Javadoc)
      * @see edu.ku.brc.specify.core.BaseTask#getStarterPane()
      */
@@ -112,13 +112,13 @@ public class SecurityAdminTask extends BaseTask
             	SecurityAdminPane userGroupAdminPane = new SecurityAdminPane(title, this);
             	userGroupAdminPane.createMainControlUI();
                 starterPane = userGroupAdminPane;
-                
+
                 TaskMgr.disableAllEnabledTasks();
             }
         }
         return starterPane;
     }
-    
+
     /* (non-Javadoc)
      * @see edu.ku.brc.af.ui.SubPaneMgrListener#subPaneRemoved(edu.ku.brc.af.ui.SubPaneIFace)
      */
@@ -126,7 +126,7 @@ public class SecurityAdminTask extends BaseTask
     public void subPaneRemoved(final SubPaneIFace subPane)
     {
         super.subPaneRemoved(subPane);
-        
+
         if (starterPane != null && (starterPane == subPane || subPanes.size() == 0))
         {
             starterPane.shutdown();
@@ -135,7 +135,7 @@ public class SecurityAdminTask extends BaseTask
             TaskMgr.getTask("Startup").requestContext();
         }
     }
-    
+
     /**
      * Enables the User to change password.
      */
@@ -153,7 +153,7 @@ public class SecurityAdminTask extends BaseTask
                 MultiView.HIDE_SAVE_BTN | MultiView.DONT_ADD_ALL_ALTVIEWS | MultiView.USE_ONLY_CREATION_MODE |
                 MultiView.IS_EDITTING);
         dlg.setWhichBtns(CustomDialog.OK_BTN | CustomDialog.CANCEL_BTN);
-        
+
         dlg.setFormAdjuster(new FormPane.FormPaneAdjusterIFace() {
             @Override
             public void adjustForm(final FormViewObj fvo)
@@ -162,25 +162,25 @@ public class SecurityAdminTask extends BaseTask
                 final ValPasswordField   newPwdVTF    = fvo.getCompById("2");
                 final ValPasswordField   verPwdVTF    = fvo.getCompById("3");
                 final PasswordStrengthUI pwdStrenthUI = fvo.getCompById("4");
-                
+
                 Institution institution = AppContextMgr.getInstance().getClassObject(Institution.class);
                 int minPwdLen = (int)institution.getMinimumPwdLength();
                 newPwdVTF.setMinLen(minPwdLen);
                 verPwdVTF.setMinLen(minPwdLen);
                 pwdStrenthUI.setMinPwdLen(minPwdLen);
-                
+
                 DocumentAdaptor da = new DocumentAdaptor() {
                     @Override
                     protected void changed(final DocumentEvent e)
                     {
                         super.changed(e);
-                        
+
                         // Need to invoke later so the da gets to set the enabled state last.
                         SwingUtilities.invokeLater(new Runnable() {
                             @Override
                             public void run()
                             {
-                                
+
                                 String  pwdStr  = new String(newPwdVTF.getPassword());
                                 String  verStr  = new String(verPwdVTF.getPassword());
                                 boolean pwdOK   = pwdStrenthUI.checkStrength(pwdStr) &&
@@ -192,25 +192,25 @@ public class SecurityAdminTask extends BaseTask
                         });
                     }
                 };
-                
+
                 oldPwdVTF.getDocument().addDocumentListener(da);
                 verPwdVTF.getDocument().addDocumentListener(da);
                 newPwdVTF.getDocument().addDocumentListener(da);
             }
-        
+
         });
         Hashtable<String, String> valuesHash = new Hashtable<String, String>();
         dlg.setData(valuesHash);
         UIHelper.centerAndShow(dlg);
-        
+
         if (!dlg.isCancelled())
         {
             int pwdLen = 6;
-            
+
             String oldPwd  = valuesHash.get("OldPwd");
             String newPwd1 = valuesHash.get("NewPwd1");
             String newPwd2 = valuesHash.get("NewPwd2");
-            
+
             if (newPwd1.equals(newPwd2))
             {
                 if (newPwd1.length() >= pwdLen)
@@ -218,27 +218,27 @@ public class SecurityAdminTask extends BaseTask
                     SpecifyUser spUser    = AppContextMgr.getInstance().getClassObject(SpecifyUser.class);
                     //String      username  = spUser.getName();
                     String      spuOldPwd = spUser.getPassword();
-                    
+
                     String newEncryptedPwd = null;
                     String oldDecryptedPwd = Encryption.decrypt(spuOldPwd, oldPwd);
                     if (oldDecryptedPwd != null && oldDecryptedPwd.equals(oldPwd))
                     {
                         newEncryptedPwd = Encryption.encrypt(newPwd2, newPwd2);
                         spUser.setPassword(newEncryptedPwd);
-                        if (!DataModelObjBase.save(spUser))
+                        if (!DataModelObjBase.save(false, spUser))
                         {
                             UIRegistry.writeTimedSimpleGlassPaneMsg(getResourceString(getKey("PWD_ERR_SAVE")), Color.RED);
                         }
-                        
+
                     } else
                     {
                         UIRegistry.writeTimedSimpleGlassPaneMsg(getResourceString(getKey("PWD_ERR_BAD")), Color.RED);
                     }
-                    
+
                     if (newEncryptedPwd != null)
                     {
                         Pair<String, String> masterPwd = UserAndMasterPasswordMgr.getInstance().getUserNamePasswordForDB();
-                        
+
                         String encryptedMasterUP = UserAndMasterPasswordMgr.encrypt(masterPwd.first, masterPwd.second, newPwd2);
                         if (StringUtils.isNotEmpty(encryptedMasterUP))
                         {
@@ -247,7 +247,7 @@ public class SecurityAdminTask extends BaseTask
                         {
                             UIRegistry.writeTimedSimpleGlassPaneMsg(getResourceString(getKey("PWD_ERR_RTRV")), Color.RED);
                         }
-                        
+
                     } else
                     {
                         UIRegistry.writeTimedSimpleGlassPaneMsg(getResourceString(getKey("PWD_ERR_BAD")), Color.RED);
@@ -262,7 +262,7 @@ public class SecurityAdminTask extends BaseTask
             }
         }
     }
-    
+
     /**
      * @param key
      * @return
@@ -271,7 +271,7 @@ public class SecurityAdminTask extends BaseTask
     {
         return "SecurityAdminTask." + key;
     }
-    
+
     /*
      *  (non-Javadoc)
      * @see edu.ku.brc.specify.plugins.Taskable#getMenuItems()
@@ -279,7 +279,7 @@ public class SecurityAdminTask extends BaseTask
     public List<MenuItemDesc> getMenuItems()
     {
         menuItems = new Vector<MenuItemDesc>();
-        
+
         // show security summary menu item
     	// no need to check security as everyone can see their own summary... besides it's read only
         String menuTitle = getKey("SHOW_SECURITY_SUMMARY_MENU"); //$NON-NLS-1$
@@ -295,12 +295,12 @@ public class SecurityAdminTask extends BaseTask
             }
         });
         String menuDesc = "Specify.SYSTEM_MENU/Specify.COLSETUP_MENU";
-        
+
         MenuItemDesc showSummaryMenuDesc = new MenuItemDesc(mi, menuDesc);
         showSummaryMenuDesc.setPosition(MenuItemDesc.Position.After, getResourceString(getKey("SECURITY_TOOLS_MENU")));
 
         // check whether user can see the security admin panel
-        // other permissions will be checked when the panel is created 
+        // other permissions will be checked when the panel is created
         // XXX RELEASE
         String securityName = buildTaskPermissionName(SECURITY_ADMIN);
         if (!AppContextMgr.isSecurityOn() || SecurityMgr.getInstance().checkPermission(securityName, BasicSpPermission.view)) //$NON-NLS-1$
@@ -323,11 +323,11 @@ public class SecurityAdminTask extends BaseTask
             MenuItemDesc mid = new MenuItemDesc(mi, menuDesc);
             mid.setPosition(MenuItemDesc.Position.After, getResourceString("SystemSetupTask.COLL_CONFIG"));
             //mid.setSepPosition(MenuItemDesc.Position.After);
-            
+
             menuItems.add(mid);
             menuItems.add(showSummaryMenuDesc);
         }
-        
+
         menuTitle = getKey("MASTER_PWD_MENU"); //$NON-NLS-1$
         mneu      = getKey("MASTER_PWD_MNEU"); //$NON-NLS-1$
         desc      = getKey("MASTER_PWD_DESC"); //$NON-NLS-1$
@@ -354,13 +354,13 @@ public class SecurityAdminTask extends BaseTask
                 changePassword();
             }
         });
-        
+
         mid = new MenuItemDesc(mi, mid.getMenuPath(), UIHelper.isMacOS() ? MenuItemDesc.Position.Bottom : MenuItemDesc.Position.Before); //$NON-NLS-1$ $NON-NLS-2$
         menuItems.add(mid);
-        
+
         return menuItems;
     }
-    
+
     /* (non-Javadoc)
      * @see edu.ku.brc.af.tasks.BaseTask#getToolBarItems()
      */
@@ -386,10 +386,10 @@ public class SecurityAdminTask extends BaseTask
     {
         if (cmdAction.isType(SECURITY_ADMIN))
         {
-            processAdminCommands(cmdAction);     
-        } 
+            processAdminCommands(cmdAction);
+        }
     }
-   
+
     /**
      * @param cmdAction
      */
@@ -397,8 +397,8 @@ public class SecurityAdminTask extends BaseTask
     {
         log.error("not implemented");         //$NON-NLS-1$
     }
-    
-    
+
+
     /* (non-Javadoc)
      * @see edu.ku.brc.af.tasks.BaseTask#getPermEditorPanel()
      */
@@ -407,7 +407,7 @@ public class SecurityAdminTask extends BaseTask
     {
         return new BasicPermisionPanel(SECURITY_ADMIN, "ENABLE", null, null, null);
     }
-    
+
     /**
      * @return the permissions array
      */
@@ -419,16 +419,16 @@ public class SecurityAdminTask extends BaseTask
                                 {false, false, false, false},
                                 {false, false, false, false}};
     }
-    
+
     /*class PwdDocAdapter extends DocumentAdaptor
     {
         private CustomDialog       dlg;
         private ValPasswordField   pwdField;
         private boolean            doCheckLen;
         private PasswordStrengthUI pwdStrenthUI;
-        
-        public PwdDocAdapter(final CustomDialog dlg, 
-                             final ValPasswordField pwdField, 
+
+        public PwdDocAdapter(final CustomDialog dlg,
+                             final ValPasswordField pwdField,
                              final PasswordStrengthUI pwdStrenthUI,
                              final boolean doCheckLen)
         {
@@ -438,12 +438,12 @@ public class SecurityAdminTask extends BaseTask
             this.pwdStrenthUI = pwdStrenthUI;
             this.doCheckLen   = doCheckLen;
         }
-                
+
         @Override
         protected void changed(DocumentEvent e)
         {
             super.changed(e);
-            
+
             // Need to invoke later so the da gets to set the enabled state last.
             SwingUtilities.invokeLater(new Runnable() {
                 @Override
@@ -452,7 +452,7 @@ public class SecurityAdminTask extends BaseTask
                     //boolean enabled = dlg.getOkBtn().isEnabled();
                     //String  pwdStr  = new String(newPwdVTF.getPassword());
                     //boolean pwdOK   = pwdStrenthUI.checkStrength(pwdStr);
-                    
+
                     //dlg.getOkBtn().setEnabled(enabled && pwdOK);
                     //pwdStrenthUI.repaint();
                 }

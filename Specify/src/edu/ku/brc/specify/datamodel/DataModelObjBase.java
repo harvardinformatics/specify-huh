@@ -1,18 +1,18 @@
 /* Copyright (C) 2009, University of Kansas Center for Research
- * 
+ *
  * Specify Software Project, specify@ku.edu, Biodiversity Institute,
  * 1345 Jayhawk Boulevard, Lawrence, Kansas, 66045, USA
- * 
+ *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
  * of the License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
@@ -61,27 +61,27 @@ import edu.ku.brc.ui.UIRegistry;
 
 @MappedSuperclass
 public abstract class DataModelObjBase implements FormDataObjIFace,
-                                                  WebLinkDataProviderIFace, 
+                                                  WebLinkDataProviderIFace,
                                                   Cloneable
 {
     private static final Logger log = Logger.getLogger(DataModelObjBase.class);
-    
+
     protected PropertyChangeSupport changes;
-    
+
     protected Timestamp timestampCreated;
     protected Timestamp timestampModified;
-    
+
     protected Agent     createdByAgent;
     protected Agent     modifiedByAgent;
-    
+
     protected int       version;
-    
+
     // Transient
     protected Integer   parentTblId = null;
-   
+
     // Transient Static
     protected static String errMsg = null;
-     
+
     /* (non-Javadoc)
      * @see edu.ku.brc.ui.forms.FormDataObjIFace#initialize()
      */
@@ -99,13 +99,13 @@ public abstract class DataModelObjBase implements FormDataObjIFace,
         createdByAgent    = AppContextMgr.getInstance() == null? null : (AppContextMgr.getInstance().hasContext() ? Agent.getUserAgent() : null);
         modifiedByAgent   = null;
     }
-    
+
     /* (non-Javadoc)
      * @see edu.ku.brc.ui.forms.FormDataObjIFace#getId()
      */
     @Transient
     public abstract Integer getId();
-    
+
     /* (non-Javadoc)
      * @see edu.ku.brc.ui.forms.FormDataObjIFace#getIdentityTitle()
      */
@@ -133,7 +133,7 @@ public abstract class DataModelObjBase implements FormDataObjIFace,
         }
         return getClass().getName() + hashCode();
     }
-    
+
     /* (non-Javadoc)
      * @see edu.ku.brc.ui.forms.FormDataObjIFace#getTimestampCreated()
      */
@@ -198,7 +198,7 @@ public abstract class DataModelObjBase implements FormDataObjIFace,
     {
         this.modifiedByAgent = lastEditedBy;
     }
-    
+
     /**
      * @return the createdByAgent
      */
@@ -225,7 +225,7 @@ public abstract class DataModelObjBase implements FormDataObjIFace,
     {
         return false;
     }
-    
+
     /**
      * Sets a value into the current object.
      * @param clazz the class of the data being set
@@ -245,7 +245,7 @@ public abstract class DataModelObjBase implements FormDataObjIFace,
                 method.invoke(dataObject, ref);
                 return true;
             }
-            
+
         } catch (java.lang.NoSuchMethodException ex)
         {
             edu.ku.brc.af.core.UsageTracker.incrHandledUsageCount();
@@ -261,7 +261,7 @@ public abstract class DataModelObjBase implements FormDataObjIFace,
                 }
             }
             ex.printStackTrace();
-            
+
         } catch (Exception ex)
         {
             edu.ku.brc.af.core.UsageTracker.incrHandledUsageCount();
@@ -271,7 +271,7 @@ public abstract class DataModelObjBase implements FormDataObjIFace,
         }
         return false;
     }
-    
+
     /**
      * Adds a data object 'ref' to a collection by the name of 'refType' from the data object 'dataObject'.
      * @param dataObject the data object that owns the collection
@@ -285,7 +285,7 @@ public abstract class DataModelObjBase implements FormDataObjIFace,
         {
             DataObjectGettable getter     = DataObjectGettableFactory.get(dataObject.getClass().getName(), FormHelper.DATA_OBJ_GETTER);
             Object             dataMember = getter.getFieldValue(dataObject, fieldName);
-            
+
             if (dataMember != null)
             {
                 try
@@ -295,10 +295,10 @@ public abstract class DataModelObjBase implements FormDataObjIFace,
                     {
                         method.invoke(dataMember, ref);
                         return true;
-                        
+
                     }
                     log.error("Missing method add(Object) for this type of set ["+dataMember.getClass()+"]");
-        
+
                 } catch (Exception ex)
                 {
                     edu.ku.brc.af.core.UsageTracker.incrHandledUsageCount();
@@ -336,7 +336,7 @@ public abstract class DataModelObjBase implements FormDataObjIFace,
             {
                 method.invoke(dataMember, ref);
                 return true;
-                
+
             }
             log.error("Missing method remove(Object) for this type of set ["+dataMember.getClass()+"]");
 
@@ -349,7 +349,7 @@ public abstract class DataModelObjBase implements FormDataObjIFace,
 
         return false;
     }
-    
+
     /**
      * Retruns whether a given field in a data object is a collection/
      * @param dataObject the data object
@@ -364,10 +364,10 @@ public abstract class DataModelObjBase implements FormDataObjIFace,
             if (fld != null)
             {
                 return Collection.class.isAssignableFrom(fld.getType());
-                
+
             }
             log.error("Couldn't find field ["+fieldName+"] in class ["+getClass().getSimpleName()+"]");
-            
+
         } catch (Exception ex)
         {
             edu.ku.brc.af.core.UsageTracker.incrHandledUsageCount();
@@ -396,19 +396,19 @@ public abstract class DataModelObjBase implements FormDataObjIFace,
         {
             return;
         }
-        
+
         // Note that this method uses local members for the parent data object the field name.
         // This is because they may need to be adjusted when using '.' notation.
         String           fldName          = fieldName;
         FormDataObjIFace parentDataObject = this;
-        
+
         // Check for DOT notation for setting a child
         // If so then we need to walk the list finding the 'true' parent of the last
-        // item in the hierarchy list, and the let it continue with the 'adjusted' parent and 
+        // item in the hierarchy list, and the let it continue with the 'adjusted' parent and
         // the 'real' field name (the name after the last '.')
         if (StringUtils.contains(fldName, '.'))
         {
-            // Get the list of data objects to walk and 
+            // Get the list of data objects to walk and
             // create a new list without the last member
             String[] fieldNames = StringUtils.split(fldName, '.');
             String[] parentPath = new String[fieldNames.length-1];
@@ -420,7 +420,7 @@ public abstract class DataModelObjBase implements FormDataObjIFace,
             DataObjectGettable getter = DataObjectGettableFactory.get(getClass().getName(), FormHelper.DATA_OBJ_GETTER);
             Object[] values = UIHelper.getFieldValues(parentPath, this, getter);
             parentDataObject = (FormDataObjIFace)values[parentPath.length-1];
-            
+
             // Set the field name to the last item in the original list
             fldName = fieldNames[fieldNames.length-1];
         }
@@ -432,14 +432,14 @@ public abstract class DataModelObjBase implements FormDataObjIFace,
             if (rel != null)
             {
                 Boolean isJavaCollection = isJavaCollection(parentDataObject, fldName);
-                
+
                 if (isJavaCollection != null)
                 {
                     String  otherSide = rel.getOtherSide();
                     if (isJavaCollection)
                     {
                         addToCollection(parentDataObject, fldName, ref);
-                        
+
                         if (StringUtils.isNotEmpty(otherSide) && doOtherSide)
                         {
                             Boolean isOtherSideCollection = isJavaCollection(ref, otherSide);
@@ -475,7 +475,7 @@ public abstract class DataModelObjBase implements FormDataObjIFace,
             log.error("Couldn't find TableInfo ["+ref.getTableId()+"]");
         }
     }
-    
+
     /* (non-Javadoc)
      * @see edu.ku.brc.ui.forms.FormDataObjIFace#removeReference(edu.ku.brc.ui.forms.FormDataObjIFace, java.lang.String)
      */
@@ -483,7 +483,7 @@ public abstract class DataModelObjBase implements FormDataObjIFace,
     {
         removeReference(ref, fieldName, false);
     }
-    
+
     /* (non-Javadoc)
      * @see edu.ku.brc.af.ui.forms.FormDataObjIFace#removeReference(edu.ku.brc.af.ui.forms.FormDataObjIFace, java.lang.String, boolean)
      */
@@ -493,19 +493,19 @@ public abstract class DataModelObjBase implements FormDataObjIFace,
         {
             return;
         }
-        
+
         // Note that this method uses local members for the parent data object the field name.
         // This is because they may need to be adjusted when using '.' notation.
         String           fldName          = fieldName;
         FormDataObjIFace parentDataObject = this;
-        
+
         // Check for DOT notation for setting a child
         // If so then we need to walk the list finding the 'true' parent of the last
-        // item in the hierarchy list, and the let it continue with the 'adjusted' parent and 
+        // item in the hierarchy list, and the let it continue with the 'adjusted' parent and
         // the 'real' field name (the name after the last '.')
         if (StringUtils.contains(fldName, '.'))
         {
-            // Get the list of data objects to walk and 
+            // Get the list of data objects to walk and
             // create a new list without the last member
             String[] fieldNames = StringUtils.split(fldName, '.');
             String[] parentPath = new String[fieldNames.length-1];
@@ -517,11 +517,11 @@ public abstract class DataModelObjBase implements FormDataObjIFace,
             DataObjectGettable getter = DataObjectGettableFactory.get(getClass().getName(), FormHelper.DATA_OBJ_GETTER);
             Object[] values = UIHelper.getFieldValues(parentPath, this, getter);
             parentDataObject = (FormDataObjIFace)values[parentPath.length-1];
-            
+
             // Set the field name to the last item in the original list
             fldName = fieldNames[fieldNames.length-1];
         }
-        
+
         DBTableInfo tblInfo = DBTableIdMgr.getInstance().getInfoById(parentDataObject.getTableId());
         if (tblInfo != null)
         {
@@ -550,7 +550,7 @@ public abstract class DataModelObjBase implements FormDataObjIFace,
                               setter.setFieldValue(ref, otherSide, null);
                             }
                         }
-        
+
                     } else
                     {
                         DataObjectSettable setter = DataObjectSettableFactory.get(ref.getClass().getName(), FormHelper.DATA_OBJ_SETTER);
@@ -595,13 +595,13 @@ public abstract class DataModelObjBase implements FormDataObjIFace,
      */
     @Transient
     public abstract int getTableId();
-    
+
     /* (non-Javadoc)
      * @see edu.ku.brc.ui.forms.FormDataObjIFace#getDataClass()
      */
     @Transient
     public abstract Class<?> getDataClass();
-    
+
     /* (non-Javadoc)
      * @see edu.ku.brc.ui.forms.FormDataObjIFace#isIndexable()
      */
@@ -634,7 +634,7 @@ public abstract class DataModelObjBase implements FormDataObjIFace,
     {
         return null;
     }
-    
+
     //---------------------------------------------------------------------------
     // Property Change Support
     //---------------------------------------------------------------------------
@@ -669,7 +669,7 @@ public abstract class DataModelObjBase implements FormDataObjIFace,
     /**
      * Notifies all attached {@link PropertyChangeListener}s of a {@link PropertyChangeEvent}.
      * See {@link PropertyChangeSupport}.firePropertyChange(PropertyChangeEvent).
-     * 
+     *
      * @param evt
      */
     public void firePropertyChange(PropertyChangeEvent evt)
@@ -684,7 +684,7 @@ public abstract class DataModelObjBase implements FormDataObjIFace,
     /**
      * Notifies all attached {@link PropertyChangeListener}s of a {@link PropertyChangeEvent}.
      * See {@link PropertyChangeSupport}.firePropertyChange(String,boolean,boolean).
-     * 
+     *
      * @param propertyName the name of the bound property that changed
      * @param oldValue the old value of the property
      * @param newValue the new value of the property
@@ -701,7 +701,7 @@ public abstract class DataModelObjBase implements FormDataObjIFace,
     /**
      * Notifies all attached {@link PropertyChangeListener}s of a {@link PropertyChangeEvent}.
      * See {@link PropertyChangeSupport}.firePropertyChange(String,int,int).
-     * 
+     *
      * @param propertyName the name of the bound property that changed
      * @param oldValue the old value of the property
      * @param newValue the new value of the property
@@ -718,7 +718,7 @@ public abstract class DataModelObjBase implements FormDataObjIFace,
     /**
      * Notifies all attached {@link PropertyChangeListener}s of a {@link PropertyChangeEvent}.
      * See {@link PropertyChangeSupport}.firePropertyChange(String,Object,Object).
-     * 
+     *
      * @param propertyName the name of the bound property that changed
      * @param oldValue the old value of the property
      * @param newValue the new value of the property
@@ -757,16 +757,16 @@ public abstract class DataModelObjBase implements FormDataObjIFace,
         }
         changes.removePropertyChangeListener(propertyName, listener);
     }
-    
+
     /* (non-Javadoc)
      * @see edu.ku.brc.af.ui.forms.FormDataObjIFace#forceLoad()
      */
     @Override
     public void forceLoad()
     {
-        
+
     }
-    
+
     //-------------------------------------------------------------------
     //-- WebLinkProviderIFace
     //-------------------------------------------------------------------
@@ -783,7 +783,7 @@ public abstract class DataModelObjBase implements FormDataObjIFace,
         }
         return null;
     }
-    
+
     /* (non-Javadoc)
      * @see java.lang.Object#clone()
      */
@@ -794,7 +794,7 @@ public abstract class DataModelObjBase implements FormDataObjIFace,
         obj.init();
         return obj;
     }
-    
+
     /* (non-Javadoc)
      * @see java.lang.Object#toString()
      */
@@ -820,17 +820,17 @@ public abstract class DataModelObjBase implements FormDataObjIFace,
         try
         {
             session = DataProviderFactory.getInstance().createSession();
-            
+
             DataModelObjBase dmObj = (DataModelObjBase)session.get(cls, id);
             dmObj.forceLoad();
             return (T)dmObj;
-            
+
         } catch (Exception ex)
         {
             edu.ku.brc.af.core.UsageTracker.incrHandledUsageCount();
             edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(DataModelObjBase.class, ex);
             ex.printStackTrace();
-            
+
         } finally
         {
             if (session != null)
@@ -840,16 +840,16 @@ public abstract class DataModelObjBase implements FormDataObjIFace,
         }
         return null;
     }
-    
-    /**
-     * Saves the data object.
-     * @return true is ok, false if not
-     */
-    public static boolean save(final Object...dataObjs)
-    {
-        return save(false, dataObjs);
-    }
-    
+
+    // /**
+    //  * Saves the data object.
+    //  * @return true is ok, false if not
+    //  */
+    // public static boolean save(final Object...dataObjs)
+    // {
+    //     return save(false, dataObjs);
+    // }
+
     /**
      * Saves the data object.
      * @param doShowError whether to show the an error dialog
@@ -858,7 +858,7 @@ public abstract class DataModelObjBase implements FormDataObjIFace,
     public static boolean save(final boolean doShowError, final Object...dataObjs)
     {
         errMsg = null;
-        
+
         // save to database
         DataProviderSessionIFace session = null;
         boolean transOpen = false;
@@ -882,7 +882,7 @@ public abstract class DataModelObjBase implements FormDataObjIFace,
                     }
                 }
             }
-            
+
             if (doSave)
             {
                 for (Object obj : dataObjs)
@@ -899,7 +899,7 @@ public abstract class DataModelObjBase implements FormDataObjIFace,
             edu.ku.brc.af.core.UsageTracker.incrHandledUsageCount();
             edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(DataModelObjBase.class, ex);
             errMsg = ex.toString();
-            
+
             if (doShowError)
             {
                 UIRegistry.showError(errMsg);
@@ -909,7 +909,7 @@ public abstract class DataModelObjBase implements FormDataObjIFace,
             	session.rollback();
             }
             return false;
-            
+
         } finally
         {
             if (session != null)
@@ -919,16 +919,16 @@ public abstract class DataModelObjBase implements FormDataObjIFace,
         }
         return true;
     }
-    
-    /**
-     * Deletes the data object.
-     * @return true is ok, false if not
-     */
-    public static boolean delete(final Object...dataObjs)
-    {
-        return delete(false, dataObjs);
-    }
-    
+
+    // /**
+    //  * Deletes the data object.
+    //  * @return true is ok, false if not
+    //  */
+    // public static boolean delete(final Object...dataObjs)
+    // {
+    //     return delete(false, dataObjs);
+    // }
+
     /**
      * Deletes the data object.
      * @param doShowError whether to show the an error dialog
@@ -937,7 +937,7 @@ public abstract class DataModelObjBase implements FormDataObjIFace,
     public static boolean delete(final boolean doShowError, final Object...dataObjs)
     {
         errMsg = null;
-        
+
         // save to database
         DataProviderSessionIFace session = null;
         try
@@ -949,7 +949,7 @@ public abstract class DataModelObjBase implements FormDataObjIFace,
                 session.delete(obj);
             }
             session.commit();
-            
+
         } catch (Exception ex)
         {
             edu.ku.brc.af.core.UsageTracker.incrHandledUsageCount();
@@ -957,13 +957,13 @@ public abstract class DataModelObjBase implements FormDataObjIFace,
             ex.printStackTrace();
             log.error(ex);
             errMsg = ex.toString();
-            
+
             if (doShowError)
             {
                 UIRegistry.showError(errMsg);
             }
             return false;
-            
+
         } finally
         {
             if (session != null)
@@ -973,7 +973,7 @@ public abstract class DataModelObjBase implements FormDataObjIFace,
         }
         return true;
     }
-    
+
     /**
      * Deletes the data object.
      * @return true is ok, false if not
@@ -982,7 +982,7 @@ public abstract class DataModelObjBase implements FormDataObjIFace,
     {
         return delete(id, tableId, false);
     }
-    
+
     /**
      * Deletes the data object.
      * @param doShowError whether to show the an error dialog
@@ -991,7 +991,7 @@ public abstract class DataModelObjBase implements FormDataObjIFace,
     public static boolean delete(final int id, final int tableId, final boolean doShowError)
     {
         errMsg = null;
-        
+
         DBTableInfo ti         = DBTableIdMgr.getInstance().getInfoById(tableId);
         Connection  connection = DBConnection.getInstance().createConnection();
         Statement   stmt       = null;
@@ -1004,18 +1004,18 @@ public abstract class DataModelObjBase implements FormDataObjIFace,
                 // TODO need error message
                 return false;
             }
-            
+
         } catch (SQLException ex)
         {
             edu.ku.brc.af.core.UsageTracker.incrSQLUsageCount();
             edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(DataModelObjBase.class, ex);
             ex.printStackTrace();
             errMsg = ex.toString();
-            
+
             try
             {
                 connection.rollback();
-                
+
             } catch (SQLException ex2)
             {
                 edu.ku.brc.af.core.UsageTracker.incrSQLUsageCount();
@@ -1023,7 +1023,7 @@ public abstract class DataModelObjBase implements FormDataObjIFace,
                 ex.printStackTrace();
             }
             return false;
-            
+
         } finally
         {
             try
@@ -1045,7 +1045,7 @@ public abstract class DataModelObjBase implements FormDataObjIFace,
         }
         return true;
     }
-    
+
     /**
      * @return the error message from saving or deleting
      */
